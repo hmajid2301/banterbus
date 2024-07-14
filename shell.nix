@@ -33,15 +33,15 @@ in
 
       docker
 
+      air
       golangci-lint
       gotools
       go-junit-report
       gocover-cobertura
       go-task
       goreleaser
+      templ
 
       sqlc
-
-      vhs
     ];
   }

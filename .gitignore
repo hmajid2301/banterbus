@@ -1,0 +1,3 @@
+.direnenv/
+bin/
+!bin/.gitkeep

@@ -1,0 +1,96 @@
+include:
+  - 'https://gitlab.com/Cynerd/gitlab-ci-nix/-/raw/master/template.yml'
+
+image: nixos/nix
+
+.task:
+  stage: test
+  # extends: .nix
+  # tags: [docker]
+  only:
+    - merge_request
+  before_script:
+    - echo "experimental-features = nix-command flakes" >>/etc/nix/nix.conf
+
+stages:
+  - pre
+  - test
+  - build
+  - release
+
+# install:deps:
+#   stage: pre
+#   extends:
+#     - .task
+#   only:
+#     - merge_request
+#   script:
+#     - nix develop
+#
+lint:
+  extends:
+    - .task
+  script:
+    - nix develop -c task lint
+
+tests:unit:
+  extends:
+    - .task
+  variables:
+    XDG_DATA_HOME: "/tmp/"
+  script:
+    - nix develop -c task tests:unit
+
+coverage:
+  extends:
+    - .task
+  only:
+    - main
+    - merge_request
+  variables:
+    XDG_DATA_HOME: "/tmp/"
+  script:
+    - nix develop -c task coverage
+  coverage: /^coverage:\s(\d+(?:\.\d+)?%)/
+  artifacts:
+    reports:
+      junit: report.xml
+      coverage_report:
+        coverage_format: cobertura
+        path: coverage.xml
+
+build:binary:
+  stage: build
+  only:
+    - main
+  extends:
+    - .task
+  script:
+    - nix build
+#
+# build:docker:
+#   stage: build
+#   only:
+#     - tags
+#   needs: []
+#   extends:
+#     - .task
+#   variables:
+#     DOCKER_HOST: tcp://docker:2375
+#     DOCKER_DRIVER: overlay2
+#   services:
+#     - docker:27.0.3-dind
+#   script:
+#     - nix build .#container
+#     - nix develop -c task docker:publish
+
+release:
+  stage: release
+  extends:
+    - .task
+  only:
+    - tags
+  variables:
+    GIT_DEPTH: 0
+  script:
+    - nix develop -c task release
