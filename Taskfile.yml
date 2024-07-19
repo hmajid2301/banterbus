@@ -1,10 +1,10 @@
 version: "3"
 
 tasks:
-  build:
-    desc: Builds the app into a binary.
+  dev:
+    desc: Start the app in dev mode with live-reloading.
     cmds:
-      - go build main.go
+      - air
 
   lint:
     desc: Runs the linter.
