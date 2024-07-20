@@ -28,8 +28,10 @@ in
     inherit (pre-commit-check) shellHook;
     hardeningDisable = ["all"];
     packages = with pkgs; [
-      goEnv
+      # TODO: workout how to use go env
+      # goEnv
       gomod2nix
+      go_1_22
 
       docker
 

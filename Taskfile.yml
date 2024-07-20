@@ -9,7 +9,7 @@ tasks:
   lint:
     desc: Runs the linter.
     cmds:
-      - golangci-lint run {{.CLI_ARGS}}
+      - golangci-lint run {{.CLI_ARGS}} ./...
 
   docker:build:
     desc: Builds a Docker image using Nix.

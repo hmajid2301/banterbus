@@ -1,0 +1,54 @@
+schema = 3
+
+[mod]
+  [mod."github.com/a-h/templ"]
+    version = "v0.2.747"
+    hash = "sha256-F0tNpUY2OD6MaDLk9yVQJ8kphlHPXzACPSYlZMmkKo0="
+  [mod."github.com/andybalholm/brotli"]
+    version = "v1.1.0"
+    hash = "sha256-njLViV4v++ZdgOWGWzlvkefuFvA/nkugl3Ta/h1nu/0="
+  [mod."github.com/fasthttp/websocket"]
+    version = "v1.5.10"
+    hash = "sha256-+fKZQ7kCVnthRffcFM9KNQwuXb3nr8zTsODuuaUfebQ="
+  [mod."github.com/gofiber/fiber/v2"]
+    version = "v2.52.5"
+    hash = "sha256-YgsC5OwgIdiMg1/s5ytvrSyKNRug2eVGDVqhHtXeIrg="
+  [mod."github.com/gofiber/websocket/v2"]
+    version = "v2.2.1"
+    hash = "sha256-NS2kWQGnhASt0N1totS1uvvt6CUdBTf42xWXX9cwc6A="
+  [mod."github.com/google/uuid"]
+    version = "v1.6.0"
+    hash = "sha256-VWl9sqUzdOuhW0KzQlv0gwwUQClYkmZwSydHG2sALYw="
+  [mod."github.com/klauspost/compress"]
+    version = "v1.17.9"
+    hash = "sha256-FxHk4OuwsbiH1OLI+Q0oA4KpcOB786sEfik0G+GNoow="
+  [mod."github.com/mattn/go-colorable"]
+    version = "v0.1.13"
+    hash = "sha256-qb3Qbo0CELGRIzvw7NVM1g/aayaz4Tguppk9MD2/OI8="
+  [mod."github.com/mattn/go-isatty"]
+    version = "v0.0.20"
+    hash = "sha256-qhw9hWtU5wnyFyuMbKx+7RB8ckQaFQ8D+8GKPkN3HHQ="
+  [mod."github.com/mattn/go-runewidth"]
+    version = "v0.0.15"
+    hash = "sha256-WP39EU2UrQbByYfnwrkBDoKN7xzXsBssDq3pNryBGm0="
+  [mod."github.com/rivo/uniseg"]
+    version = "v0.4.7"
+    hash = "sha256-rDcdNYH6ZD8KouyyiZCUEy8JrjOQoAkxHBhugrfHjFo="
+  [mod."github.com/savsgio/gotils"]
+    version = "v0.0.0-20240704082632-aef3928b8a38"
+    hash = "sha256-lJrQB5moZ3buPX3WvX+zfCf59Rf8T4D5CbELzwnWfWg="
+  [mod."github.com/valyala/bytebufferpool"]
+    version = "v1.0.0"
+    hash = "sha256-I9FPZ3kCNRB+o0dpMwBnwZ35Fj9+ThvITn8a3Jr8mAY="
+  [mod."github.com/valyala/fasthttp"]
+    version = "v1.55.0"
+    hash = "sha256-mE04ah8jRKGj3MPV/JO8FtZwuXZVwEJ+5Db9JGGh0ro="
+  [mod."github.com/valyala/tcplisten"]
+    version = "v1.0.0"
+    hash = "sha256-aP0CrNH6UNRMhzgA2NgPwKyZs6xry5aDlZnLgGuHZbs="
+  [mod."golang.org/x/net"]
+    version = "v0.27.0"
+    hash = "sha256-GrlN5isYeEVrPZVAHK0MDQatttbnyfSPoWJHj0xqhjk="
+  [mod."golang.org/x/sys"]
+    version = "v0.22.0"
+    hash = "sha256-RbG0XaXGGlErCsl2agvUxMnrkRwdbJLmriYT1H24FwA="
