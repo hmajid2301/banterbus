@@ -64,6 +64,16 @@ generate:sql:
     - nix develop -c task generate:sql
     - git diff --exit-code
 
+build:binary:
+  stage: build
+  only:
+    - main
+  extends:
+    - .task
+  script:
+    - nix develop -c task generate:sql
+    - git diff --exit-code
+
 # build:binary:
 #   stage: build
 #   only:
