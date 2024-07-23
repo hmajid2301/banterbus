@@ -59,6 +59,11 @@ tasks:
       - cat output.txt | go-junit-report -set-exit-code > report.xml
       - gocover-cobertura < coverage.txt > coverage.xml
 
+  generate:sql:
+    desc: Runs sqlc to generate the SQL go code.
+    cmds:
+      - sqlc generate
+
   release:
     desc: Release the CLI tool.
     cmds:

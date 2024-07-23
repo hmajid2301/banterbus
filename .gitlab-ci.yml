@@ -36,8 +36,6 @@ lint:
 tests:unit:
   extends:
     - .task
-  variables:
-    XDG_DATA_HOME: "/tmp/"
   script:
     - nix develop -c task tests:unit
 
@@ -59,14 +57,21 @@ coverage:
         coverage_format: cobertura
         path: coverage.xml
 
-build:binary:
-  stage: build
-  only:
-    - main
+generate:sql:
   extends:
     - .task
   script:
-    - nix build
+    - nix develop -c task generate:sql
+    - git diff --exit-code
+
+# build:binary:
+#   stage: build
+#   only:
+#     - main
+#   extends:
+#     - .task
+#   script:
+#     - nix build
 #
 # build:docker:
 #   stage: build
