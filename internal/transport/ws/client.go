@@ -3,11 +3,11 @@ package ws
 import "net"
 
 type client struct {
-	connection *websocket.Conn
+	connection net.Conn
 	messages   chan []byte
 }
 
-func NewClient(conn *websocket.Conn) *client {
+func NewClient(conn net.Conn) *client {
 	return &client{
 		connection: conn,
 		messages:   make(chan []byte, 10),

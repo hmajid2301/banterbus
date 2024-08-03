@@ -2,6 +2,7 @@ package ws
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"io"
 	"log"
@@ -12,17 +13,32 @@ import (
 	"github.com/gobwas/ws/wsutil"
 )
 
+type RoomServicer interface {
+	CreateRoom(ctx context.Context, roomCode string) error
+}
+
+type RoomRandomizer interface {
+	GetRoomCode() string
+}
+
 type server struct {
-	mux http.ServeMux
+	rooms          map[string]*room
+	roomRandomizer RoomRandomizer
+	eventHandlers  map[string]func(context.Context, *client, message) error
+	roomServicer   RoomServicer
+	mux            http.ServeMux
 }
 
-type Message struct {
-	Data interface{} `json:"data"`
-	Type string      `json:"type"`
-}
+func NewHTTPServer(roomServicer RoomServicer, roomRandomizer RoomRandomizer) *server {
+	s := &server{
+		rooms:          make(map[string]*room),
+		roomServicer:   roomServicer,
+		roomRandomizer: roomRandomizer,
+	}
 
-func NewHTTPServer() *server {
-	s := &server{}
+	s.eventHandlers = map[string]func(context.Context, *client, message) error{
+		"room_created": s.handleRoomCreatedEvent,
+	}
 	s.mux.Handle("/", http.FileServer(http.Dir("./static")))
 	s.mux.HandleFunc("/ws", s.subscribeHandler)
 
@@ -49,7 +65,7 @@ func (s *server) subscribeHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *server) subscribe(ctx context.Context, r *http.Request, w http.ResponseWriter) (err error) {
-	connection, err := websocket.Accept(w, r, nil)
+	connection, _, _, err := ws.UpgradeHTTP(r, w)
 	if err != nil {
 		return err
 	}
@@ -58,8 +74,8 @@ func (s *server) subscribe(ctx context.Context, r *http.Request, w http.Response
 	client := NewClient(connection)
 
 	defer func() {
-		if err := connection.CloseNow(); err != nil {
-			log.Printf("Failed to close connection: %v", err)
+		if err := connection.Close(); err != nil {
+			log.Printf("failed to close connection: %v", err)
 		}
 	}()
 
@@ -81,16 +97,33 @@ func (s *server) subscribe(ctx context.Context, r *http.Request, w http.Response
 		case <-ctx.Done():
 			return ctx.Err()
 		case <-ticker.C:
-			msg, op, err := wsutil.ReadClientData(connection)
+			msg, _, err := wsutil.ReadClientData(connection)
 			if err != nil {
-				if !errors.Is(err, io.ErrUnexpectedEOF) || !errors.Is(err, io.EOF) {
+				if !errors.Is(err, io.ErrUnexpectedEOF) && !errors.Is(err, io.EOF) {
 					log.Println("failed to read message", err)
 					continue
 				}
 				// return err?
 			}
 			if msg != nil {
-				log.Println("msg", string(msg), op)
+				var message message
+				err := json.Unmarshal(msg, &message)
+				if err != nil {
+					log.Println("failed to unmarshal message", err)
+					continue
+				}
+
+				handlerFunc, ok := s.eventHandlers[message.EventName]
+				if !ok {
+					log.Println("unknown event name", message.EventName)
+					continue
+				}
+
+				err = handlerFunc(ctx, client, message)
+				if err != nil {
+					log.Println("failed to handle message", err)
+					continue
+				}
 			}
 		}
 	}

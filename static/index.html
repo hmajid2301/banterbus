@@ -5,12 +5,20 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Banter Bus</title>
-    <!-- <link rel="stylesheet" href="/static/style.css"> -->
+    <link rel="stylesheet" href="/css/styles.css">
+    <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+    <link rel="manifest" href="/site.webmanifest">
 </head>
 
 <body>
     <div hx-ext="ws" ws-connect="/ws">
         <div>Banter Bus</div>
+        <form id="room_created_form" ws-send>
+            <input class="hidden" type="text" name="event_name" value="room_created">
+            <button>Create Room</button>
+        </form>
     </div>
 </body>
 

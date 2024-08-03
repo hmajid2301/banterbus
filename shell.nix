@@ -33,6 +33,7 @@ in
       gomod2nix
       go_1_22
 
+      tailwindcss
       docker
 
       air
