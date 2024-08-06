@@ -19,13 +19,36 @@
             <input class="hidden" type="text" name="event_name" value="room_created">
             <button>Create Room</button>
         </form>
+
+        <div id="update-timestamp">Waiting for data..</div>
+
+        <div id="spinner"
+            class="grid hidden overflow-x-scroll place-items-center p-6 w-full bg-indigo-500 rounded-lg lg:overflow-visible min-h-[140px]">
+                <svg class="mr-3 -ml-1 w-5 h-5 text-black animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none"
+                    viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                    </path>
+                </svg>
+        </div>
     </div>
 </body>
-
 
 <script src="https://unpkg.com/htmx.org@2.0.0"
     integrity="sha384-wS5l5IKJBvK6sPTKa2WZ1js3d947pvWXbPJ1OmWfEuxLgeHcEbjUUA5i9V5ZkpCw"
     crossorigin="anonymous"></script>
 <script src="https://unpkg.com/htmx-ext-ws@2.0.0/ws.js"></script>
+
+<script>
+    htmx.on("htmx:wsAfterSend", (evt) => {
+        console.log("Messasge before opened", evt);
+        document.getElementById('spinner').classList.remove('hidden');
+    });
+    htmx.on("htmx:wsAfterMessage", (evt) => {
+        console.log("Messasge after ", evt);
+        document.getElementById('spinner').classList.add('hidden');
+    });
+</script>
 
 </html>

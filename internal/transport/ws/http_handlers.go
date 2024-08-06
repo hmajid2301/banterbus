@@ -24,7 +24,7 @@ type RoomRandomizer interface {
 type server struct {
 	rooms          map[string]*room
 	roomRandomizer RoomRandomizer
-	eventHandlers  map[string]func(context.Context, *client, message) error
+	eventHandlers  map[string]func(context.Context, *client, message) ([]byte, error)
 	roomServicer   RoomServicer
 	mux            http.ServeMux
 }
@@ -36,7 +36,7 @@ func NewHTTPServer(roomServicer RoomServicer, roomRandomizer RoomRandomizer) *se
 		roomRandomizer: roomRandomizer,
 	}
 
-	s.eventHandlers = map[string]func(context.Context, *client, message) error{
+	s.eventHandlers = map[string]func(context.Context, *client, message) ([]byte, error){
 		"room_created": s.handleRoomCreatedEvent,
 	}
 	s.mux.Handle("/", http.FileServer(http.Dir("./static")))
@@ -85,11 +85,12 @@ func (s *server) subscribe(ctx context.Context, r *http.Request, w http.Response
 	for {
 		select {
 		case msg := <-client.messages:
-			err := connection.SetWriteDeadline(time.Now().Add(time.Second))
+			log.Println("sending message")
+			err := connection.SetWriteDeadline(time.Now().Add(time.Second * 10))
 			if err != nil {
 				log.Println("failed to set timeout ", err)
 			}
-			_, err = connection.Write(msg)
+			err = wsutil.WriteServerText(connection, msg)
 			if err != nil {
 				log.Println("failed to write message", err)
 				return err
@@ -103,7 +104,7 @@ func (s *server) subscribe(ctx context.Context, r *http.Request, w http.Response
 					log.Println("failed to read message", err)
 					continue
 				}
-				// return err?
+				return err
 			}
 			if msg != nil {
 				var message message
@@ -119,11 +120,12 @@ func (s *server) subscribe(ctx context.Context, r *http.Request, w http.Response
 					continue
 				}
 
-				err = handlerFunc(ctx, client, message)
+				msg, err := handlerFunc(ctx, client, message)
 				if err != nil {
 					log.Println("failed to handle message", err)
 					continue
 				}
+				client.messages <- msg
 			}
 		}
 	}

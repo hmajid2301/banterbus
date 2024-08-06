@@ -10,13 +10,13 @@ type message struct {
 	EventName string      `json:"event_name"`
 }
 
-func (s *server) handleRoomCreatedEvent(ctx context.Context, client *client, message message) error {
+func (s *server) handleRoomCreatedEvent(ctx context.Context, client *client, message message) ([]byte, error) {
 	log.Println("handle `room_created` event")
 	room := NewRoom()
 
 	var code string
 	for {
-		code := s.roomRandomizer.GetRoomCode()
+		code = s.roomRandomizer.GetRoomCode()
 		if _, exists := s.rooms[code]; !exists {
 			break
 		}
@@ -27,9 +27,13 @@ func (s *server) handleRoomCreatedEvent(ctx context.Context, client *client, mes
 
 	err := s.roomServicer.CreateRoom(ctx, code)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	go room.runRoom()
-	return nil
+
+	html := `<div hx-swap-oob="innerHTML:#update-timestamp">
+        <p>Hello</p>
+      </div>`
+	return []byte(html), nil
 }
