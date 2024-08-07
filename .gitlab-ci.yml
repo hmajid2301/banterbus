@@ -11,6 +11,7 @@ image: nixos/nix
     - merge_request
   before_script:
     - echo "experimental-features = nix-command flakes" >>/etc/nix/nix.conf
+    - nix develop -c task build:dev
 
 stages:
   - pre

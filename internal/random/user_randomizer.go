@@ -19,6 +19,8 @@ var colors = []string{
 	"Green",
 	"Yellow",
 	"Purple",
+	"Tangerine",
+	"Mandarin",
 }
 
 var adjectives = []string{
@@ -28,6 +30,8 @@ var adjectives = []string{
 	"Slow",
 	"Big",
 	"Small",
+	"Joyous",
+	"Smelly",
 }
 
 var animals = []string{
@@ -47,14 +51,19 @@ func (UserRandomizer) GetNickname() string {
 }
 
 func (UserRandomizer) GetAvatar() []byte {
-	isMale := rand.IntN(1)
-	av := avatar.NewPersonAvatar(isMale != 0)
-	av.RandomizePalette()
-	av.RandomizeEye()
-	av.RandomizeHairColor()
-	av.RandomizeSkinColor()
-	av.RandomizeFacialHair()
-	av.RandomizeMouth()
-	svg := av.SVG()
-	return []byte(svg)
+	isMale := rand.IntN(2)
+	avatar := avatar.NewPersonAvatar(isMale == 1)
+
+	avatar.RandomizeHair()
+	avatar.RandomizeSticker()
+	avatar.RandomizeDress()
+	avatar.RandomizePalette()
+	avatar.RandomizeEye()
+	avatar.RandomizeHairColor()
+	avatar.RandomizeSkinColor()
+	avatar.RandomizeFacialHair()
+	avatar.RandomizeMouth()
+
+	encodedAvatar := avatar.Base64()
+	return []byte(encodedAvatar)
 }

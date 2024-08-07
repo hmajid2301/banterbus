@@ -1,0 +1,15 @@
+package views
+
+import "gitlab.com/hmajid2301/banterbus/internal/entities"
+
+templ Room(code string, players []entities.Player) {
+	<div hx-swap-oob="innerHTML:#page">
+		<div>Code: { code }</div>
+		for _, player := range players {
+			<p>{ player.Nickname }</p>
+			<div class="w-5 h-5">
+				<img src={ player.Avatar }/>
+			</div>
+		}
+	</div>
+}

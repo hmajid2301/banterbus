@@ -6,6 +6,13 @@ tasks:
     cmds:
       - air
 
+  build:dev:
+    desc: Build the app for development, generates all the files needed for the binary.
+    cmds:
+      - templ generate
+      - tailwindcss -i ./static/css/tailwind.css -o ./static/css/styles.css
+      - go build -o ./tmp/main .
+
   lint:
     desc: Runs the linter.
     cmds:

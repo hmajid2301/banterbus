@@ -11,10 +11,12 @@ import (
 
 	"github.com/gobwas/ws"
 	"github.com/gobwas/ws/wsutil"
+
+	"gitlab.com/hmajid2301/banterbus/internal/entities"
 )
 
 type RoomServicer interface {
-	CreateRoom(ctx context.Context, roomCode string) error
+	CreateRoom(ctx context.Context, roomCode string) (entities.Room, error)
 }
 
 type RoomRandomizer interface {

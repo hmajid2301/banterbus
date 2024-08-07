@@ -21,7 +21,8 @@ func NewRoomService(store store.Store, randomizer UserRandomizer) *RoomService {
 	return &RoomService{store: store, Randomizer: randomizer}
 }
 
-func (r *RoomService) CreateRoom(ctx context.Context, roomCode string) error {
+// TODO: return room and player info
+func (r *RoomService) CreateRoom(ctx context.Context, roomCode string) (entities.Room, error) {
 	nickname := r.Randomizer.GetNickname()
 	avatar := r.Randomizer.GetAvatar()
 	newPlayer := entities.NewPlayer{
@@ -34,5 +35,19 @@ func (r *RoomService) CreateRoom(ctx context.Context, roomCode string) error {
 		GameName: "fibbing_it",
 		RoomCode: roomCode,
 	}
-	return r.store.CreateRoom(ctx, newPlayer, newRoom)
+	err := r.store.CreateRoom(ctx, newPlayer, newRoom)
+	if err != nil {
+		return entities.Room{}, err
+	}
+
+	room := entities.Room{
+		Code: roomCode,
+		Players: []entities.Player{
+			{
+				Nickname: nickname,
+				Avatar:   string(avatar),
+			},
+		},
+	}
+	return room, nil
 }

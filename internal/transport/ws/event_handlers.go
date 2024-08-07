@@ -1,8 +1,11 @@
 package ws
 
 import (
+	"bytes"
 	"context"
 	"log"
+
+	"gitlab.com/hmajid2301/banterbus/internal/views"
 )
 
 type message struct {
@@ -25,15 +28,20 @@ func (s *server) handleRoomCreatedEvent(ctx context.Context, client *client, mes
 	room.addClient(client)
 	s.rooms[code] = room
 
-	err := s.roomServicer.CreateRoom(ctx, code)
+	newRoom, err := s.roomServicer.CreateRoom(ctx, code)
 	if err != nil {
 		return nil, err
 	}
 
 	go room.runRoom()
 
-	html := `<div hx-swap-oob="innerHTML:#update-timestamp">
-        <p>Hello</p>
-      </div>`
-	return []byte(html), nil
+	comp := views.Room(newRoom.Code, newRoom.Players)
+
+	var buf bytes.Buffer
+	err = comp.Render(ctx, &buf)
+	if err != nil {
+		return nil, err
+	}
+
+	return buf.Bytes(), nil
 }
