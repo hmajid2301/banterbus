@@ -81,3 +81,4 @@ bin/*
 !bin/.gitkeep
 static/css/styles.css
 *_templ.go
+coverage.out

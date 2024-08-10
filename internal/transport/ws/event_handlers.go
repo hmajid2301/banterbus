@@ -3,7 +3,6 @@ package ws
 import (
 	"bytes"
 	"context"
-	"log"
 
 	"gitlab.com/hmajid2301/banterbus/internal/views"
 )
@@ -14,7 +13,6 @@ type message struct {
 }
 
 func (s *server) handleRoomCreatedEvent(ctx context.Context, client *client, message message) ([]byte, error) {
-	log.Println("handle `room_created` event")
 	room := NewRoom()
 
 	var code string

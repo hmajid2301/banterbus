@@ -3,12 +3,6 @@ testdata_dir = "testdata"
 tmp_dir = "tmp"
 
 [build]
-args_bin = []
-bin = "./tmp/main"
-cmd = "task build:dev"
-delay = 1000
-exclude_dir = ["assets", "tmp", "vendor", "testdata"]
-exclude_file = []
 exclude_regex = ["_test.go", "_templ.go"]
 exclude_unchanged = false
 follow_symlink = false
@@ -35,6 +29,12 @@ runner = "green"
 watcher = "cyan"
 
 [log]
+args_bin = []
+bin = "./tmp/main"
+cmd = "task build:dev"
+delay = 1000
+exclude_dir = ["assets", "tmp", "vendor", "testdata"]
+exclude_file = []
 main_only = false
 time = false
 

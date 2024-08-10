@@ -2,14 +2,14 @@ package main
 
 import (
 	"context"
-	"database/sql"
 	_ "embed"
 	"fmt"
-	"log"
+	"log/slog"
 	"os"
 	"os/signal"
 
 	// used to connect to sqlite
+	slogotel "github.com/remychantenay/slog-otel"
 	_ "modernc.org/sqlite"
 
 	"gitlab.com/hmajid2301/banterbus/internal/config"
@@ -24,51 +24,58 @@ var ddl string
 
 func main() {
 	var exitCode int
-	ctx := gracefulShutdown()
-	defer func() { os.Exit(exitCode) }()
+	slog.SetDefault(slog.New(slogotel.OtelHandler{
+		Next: slog.NewJSONHandler(os.Stdout, nil),
+	}))
 
-	db, err := getDB(ctx, ddl)
+	logger := slog.Default()
+	ctx := gracefulShutdown(logger)
+
+	err := mainLogic(ctx, logger)
 	if err != nil {
-		log.Fatal("failed to setup database: ", err)
+		logger.Error("failed to run main logic", slog.Any("error", err))
 		exitCode = 1
-		return
+	}
+	defer func() { os.Exit(exitCode) }()
+}
+
+func mainLogic(ctx context.Context, logger *slog.Logger) error {
+	conf, err := config.LoadConfig(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to load config: %w", err)
+	}
+
+	if conf.Environment == "dev" {
+		logger = slog.New(slog.NewTextHandler(os.Stdout, nil))
+	}
+
+	db, err := store.GetDB(conf.DBFolder)
+	if err != nil {
+		return fmt.Errorf("failed to get database: %w", err)
+	}
+
+	if _, err := db.ExecContext(ctx, ddl); err != nil {
+		return fmt.Errorf("failed to create database schema: %w", err)
 	}
 
 	myStore, err := store.NewStore(db)
 	if err != nil {
-		log.Fatal("failed to setup store: ", err)
-		exitCode = 1
-		return
+		return fmt.Errorf("failed to setup store: %w", err)
 	}
 
 	userRandomizer := random.NewUserRandomizer()
 	roomService := service.NewRoomService(myStore, userRandomizer)
 	roomRandomizer := random.NewRoomRandomizer()
-	srv := ws.NewHTTPServer(roomService, roomRandomizer)
+	server := ws.NewHTTPServer(roomService, roomRandomizer, logger)
 
-	err = srv.Serve()
+	err = server.Serve()
 	if err != nil {
-		log.Fatal("Failed to start server: ", err)
+		return fmt.Errorf("failed to start server: %w", err)
 	}
-}
-func getDB(ctx context.Context, ddl string) (*sql.DB, error) {
-	conf, err := config.LoadConfig()
-	if err != nil {
-		return nil, fmt.Errorf("failed to load config: %w", err)
-	}
-
-	db, err := store.GetDB(conf.DBFolder)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get database: %w", err)
-	}
-
-	if _, err := db.ExecContext(ctx, ddl); err != nil {
-		return nil, fmt.Errorf("failed to create database schema: %w", err)
-	}
-	return db, nil
+	return nil
 }
 
-func gracefulShutdown() context.Context {
+func gracefulShutdown(logger *slog.Logger) context.Context {
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt)
 
@@ -76,7 +83,7 @@ func gracefulShutdown() context.Context {
 
 	go func() {
 		oscall := <-c
-		log.Printf("system call:%+v", oscall)
+		logger.Info("system call", slog.Any("oscall", oscall))
 		cancel()
 	}()
 
