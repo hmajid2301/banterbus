@@ -53,14 +53,14 @@ test:generate:
     - nix develop -c task generate:sqlc
     - git diff --exit-code
 
-build:binary:
-  stage: build
-  only:
-    - main
-  extends:
-    - .task
-  script:
-    - nix build
+# build:binary:
+#   stage: build
+#   only:
+#     - main
+#   extends:
+#     - .task
+#   script:
+#     - nix build
 
 build:docker:
   stage: build

@@ -17,7 +17,7 @@ import (
 )
 
 type RoomServicer interface {
-	CreateRoom(ctx context.Context, roomCode string) (entities.Room, error)
+	CreateRoom(ctx context.Context, roomCode string, playerNickname string) (entities.Room, error)
 }
 
 type RoomRandomizer interface {
@@ -67,6 +67,33 @@ func (s *server) subscribeHandler(w http.ResponseWriter, r *http.Request) {
 		s.logger.Error("subscribe failed", slog.Any("error", err))
 		return
 	}
+}
+
+func (m *message) UnmarshalJSON(data []byte) error {
+	type Alias message
+	aux := &struct {
+		*Alias
+	}{
+		Alias: (*Alias)(m),
+	}
+	if err := json.Unmarshal(data, &aux); err != nil {
+		return err
+	}
+
+	// Unmarshal extra fields into ExtraFields map
+	var raw map[string]interface{}
+	if err := json.Unmarshal(data, &raw); err != nil {
+		return err
+	}
+
+	m.ExtraFields = make(map[string]interface{})
+	for k, v := range raw {
+		if k != "event_name" {
+			m.ExtraFields[k] = v
+		}
+	}
+
+	return nil
 }
 
 func (s *server) subscribe(ctx context.Context, r *http.Request, w http.ResponseWriter) (err error) {

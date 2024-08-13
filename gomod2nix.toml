@@ -13,6 +13,15 @@ schema = 3
   [mod."github.com/gabriel-vasile/mimetype"]
     version = "v1.4.2"
     hash = "sha256-laV+IkgbnEG07h1eFfPISqp0ctnLXfzchz/CLR1lftk="
+  [mod."github.com/go-logr/logr"]
+    version = "v1.4.2"
+    hash = "sha256-/W6qGilFlZNTb9Uq48xGZ4IbsVeSwJiAMLw4wiNYHLI="
+  [mod."github.com/go-logr/stdr"]
+    version = "v1.2.2"
+    hash = "sha256-rRweAP7XIb4egtT1f2gkz4sYOu7LDHmcJ5iNsJUd0sE="
+  [mod."github.com/go-viper/mapstructure/v2"]
+    version = "v2.1.0"
+    hash = "sha256-BoGqHdQCiGhtElWsWaemxTPwkov4iFoHEkzF173fYFY="
   [mod."github.com/gobwas/httphead"]
     version = "v0.1.0"
     hash = "sha256-6wFni/JkK2GqtVs3IW+GxHRNoSu4EJfzaBRGX2hF1IA="
@@ -49,6 +58,9 @@ schema = 3
   [mod."github.com/pmezard/go-difflib"]
     version = "v1.0.0"
     hash = "sha256-/FtmHnaGjdvEIKAJtrUfEhV7EVo5A/eYrtdnUkuxLDA="
+  [mod."github.com/remychantenay/slog-otel"]
+    version = "v1.3.2"
+    hash = "sha256-fQN8r+CnyiVLgCHybK62der+t4nii53h2jGhEg4OGxQ="
   [mod."github.com/remyoudompheng/bigfft"]
     version = "v0.0.0-20230129092748-24d4a6f8daec"
     hash = "sha256-vYmpyCE37eBYP/navhaLV4oX4/nu0Z/StAocLIFqrmM="
@@ -58,9 +70,15 @@ schema = 3
   [mod."github.com/stretchr/testify"]
     version = "v1.9.0"
     hash = "sha256-uUp/On+1nK+lARkTVtb5RxlW15zxtw2kaAFuIASA+J0="
-  [mod."golang.org/x/mod"]
-    version = "v0.17.0"
-    hash = "sha256-CLaPeF6uTFuRDv4oHwOQE6MCMvrzkUjWN3NuyywZjKU="
+  [mod."go.opentelemetry.io/otel"]
+    version = "v1.28.0"
+    hash = "sha256-bilBBr2cuADs9bQ7swnGLTuC7h0DooU6BQtrQqMqIjs="
+  [mod."go.opentelemetry.io/otel/metric"]
+    version = "v1.28.0"
+    hash = "sha256-k3p1lYcvrODwIkZo/j2jvCoDFUelz4yVJEEVdUKUmGU="
+  [mod."go.opentelemetry.io/otel/trace"]
+    version = "v1.28.0"
+    hash = "sha256-8uxmlm0/5VGoWegxwy0q8NgeY+pyicSoV08RkvD9Q98="
   [mod."golang.org/x/net"]
     version = "v0.24.0"
     hash = "sha256-w1c21ljta5wNIyel9CSIn/crPzwOCRofNKhqmfs4aEQ="

@@ -2,14 +2,38 @@ package views
 
 import "gitlab.com/hmajid2301/banterbus/internal/entities"
 
-// HELLO
-templ Room(code string, players []entities.Player) {
+templ Room(code string, players []entities.Player, currentPlayer entities.Player) {
 	<div hx-swap-oob="innerHTML:#page">
 		<div>Code: { code }</div>
 		for _, player := range players {
-			<p>{ player.Nickname }</p>
+			if currentPlayer == player {
+				<form id="update_nickname_form" ws-send>
+					<input name="update_player_nickname" value={ player.Nickname }/>
+					<button>Update Nickname</button>
+				</form>
+			} else {
+				<p>{ player.Nickname }</p>
+			}
 			<div class="w-5 h-5">
 				<img src={ player.Avatar }/>
+				if currentPlayer == player {
+					<button hx-vals='{"event_name": "generate_new_avatar"}' ws-send>
+						<svg
+							xmlns="http://www.w3.org/2000/svg"
+							fill="none"
+							viewBox="0 0 24 24"
+							stroke-width="1.5"
+							stroke="currentColor"
+							class="size-6"
+						>
+							<path
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								d="M19.5 12c0-1.232-.046-2.453-.138-3.662a4.006 4.006 0 0 0-3.7-3.7 48.678 48.678 0 0 0-7.324 0 4.006 4.006 0 0 0-3.7 3.7c-.017.22-.032.441-.046.662M19.5 12l3-3m-3 3-3-3m-12 3c0 1.232.046 2.453.138 3.662a4.006 4.006 0 0 0 3.7 3.7 48.656 48.656 0 0 0 7.324 0 4.006 4.006 0 0 0 3.7-3.7c.017-.22.032-.441.046-.662M4.5 12l3 3m-3-3-3 3"
+							></path>
+						</svg>
+					</button>
+				}
 			</div>
 		}
 	</div>
