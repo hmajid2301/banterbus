@@ -7,20 +7,21 @@ package sqlc
 
 import (
 	"context"
+	"database/sql"
 )
 
 const addPlayer = `-- name: AddPlayer :one
-INSERT INTO players (avatar, nickname, latest_session_id) VALUES (?, ?, ?) RETURNING id, created_at, updated_at, avatar, nickname, disconnected_at, latest_session_id
+INSERT INTO players (id, avatar, nickname) VALUES (?, ?, ?) RETURNING id, created_at, updated_at, avatar, nickname
 `
 
 type AddPlayerParams struct {
-	Avatar          []byte
-	Nickname        string
-	LatestSessionID int64
+	ID       string
+	Avatar   []byte
+	Nickname string
 }
 
 func (q *Queries) AddPlayer(ctx context.Context, arg AddPlayerParams) (Player, error) {
-	row := q.db.QueryRowContext(ctx, addPlayer, arg.Avatar, arg.Nickname, arg.LatestSessionID)
+	row := q.db.QueryRowContext(ctx, addPlayer, arg.ID, arg.Avatar, arg.Nickname)
 	var i Player
 	err := row.Scan(
 		&i.ID,
@@ -28,24 +29,28 @@ func (q *Queries) AddPlayer(ctx context.Context, arg AddPlayerParams) (Player, e
 		&i.UpdatedAt,
 		&i.Avatar,
 		&i.Nickname,
-		&i.DisconnectedAt,
-		&i.LatestSessionID,
 	)
 	return i, err
 }
 
 const addRoom = `-- name: AddRoom :one
-INSERT INTO rooms (game_name, host_player, room_code) VALUES (?, ?, ?) RETURNING id, created_at, updated_at, game_name, host_player, room_code
+INSERT INTO rooms (id, game_name, host_player, room_code) VALUES (?, ?, ?, ?) RETURNING id, created_at, updated_at, game_name, host_player, room_code
 `
 
 type AddRoomParams struct {
+	ID         string
 	GameName   string
-	HostPlayer int64
+	HostPlayer string
 	RoomCode   string
 }
 
 func (q *Queries) AddRoom(ctx context.Context, arg AddRoomParams) (Room, error) {
-	row := q.db.QueryRowContext(ctx, addRoom, arg.GameName, arg.HostPlayer, arg.RoomCode)
+	row := q.db.QueryRowContext(ctx, addRoom,
+		arg.ID,
+		arg.GameName,
+		arg.HostPlayer,
+		arg.RoomCode,
+	)
 	var i Room
 	err := row.Scan(
 		&i.ID,
@@ -63,8 +68,8 @@ INSERT INTO rooms_players (room_id, player_id) VALUES (?, ?) RETURNING room_id, 
 `
 
 type AddRoomPlayerParams struct {
-	RoomID   int64
-	PlayerID int64
+	RoomID   string
+	PlayerID string
 }
 
 func (q *Queries) AddRoomPlayer(ctx context.Context, arg AddRoomPlayerParams) (RoomsPlayer, error) {
@@ -75,6 +80,79 @@ func (q *Queries) AddRoomPlayer(ctx context.Context, arg AddRoomPlayerParams) (R
 		&i.PlayerID,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const getAllPlayersInRoom = `-- name: GetAllPlayersInRoom :many
+SELECT p.id, p.created_at, p.updated_at, p.avatar, p.nickname, r.room_code
+FROM players p
+JOIN rooms_players rp ON p.id = rp.player_id
+JOIN rooms r ON rp.room_id = r.id
+WHERE rp.room_id IN (
+    SELECT room_id
+    FROM rooms_players
+    WHERE rp.player_id = ?
+)
+`
+
+type GetAllPlayersInRoomRow struct {
+	ID        string
+	CreatedAt sql.NullTime
+	UpdatedAt sql.NullTime
+	Avatar    []byte
+	Nickname  string
+	RoomCode  string
+}
+
+func (q *Queries) GetAllPlayersInRoom(ctx context.Context, playerID string) ([]GetAllPlayersInRoomRow, error) {
+	rows, err := q.db.QueryContext(ctx, getAllPlayersInRoom, playerID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetAllPlayersInRoomRow
+	for rows.Next() {
+		var i GetAllPlayersInRoomRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.Avatar,
+			&i.Nickname,
+			&i.RoomCode,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const updateNickname = `-- name: UpdateNickname :one
+UPDATE players SET nickname = ? WHERE id = ? RETURNING id, created_at, updated_at, avatar, nickname
+`
+
+type UpdateNicknameParams struct {
+	Nickname string
+	ID       string
+}
+
+func (q *Queries) UpdateNickname(ctx context.Context, arg UpdateNicknameParams) (Player, error) {
+	row := q.db.QueryRowContext(ctx, updateNickname, arg.Nickname, arg.ID)
+	var i Player
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.Avatar,
+		&i.Nickname,
 	)
 	return i, err
 }

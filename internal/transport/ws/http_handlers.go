@@ -17,7 +17,11 @@ import (
 )
 
 type RoomServicer interface {
-	CreateRoom(ctx context.Context, roomCode string, playerNickname string) (entities.Room, error)
+	Create(ctx context.Context, roomCode string, playerID string, playerNickname string) (entities.Room, error)
+}
+
+type PlayerServicer interface {
+	UpdateNickname(ctx context.Context, nickname string, playerID string) (entities.Room, error)
 }
 
 type RoomRandomizer interface {
@@ -27,22 +31,25 @@ type RoomRandomizer interface {
 type server struct {
 	rooms          map[string]*room
 	roomRandomizer RoomRandomizer
-	eventHandlers  map[string]func(context.Context, *client, message) ([]byte, error)
+	eventHandlers  map[string]func(context.Context, *client, message) error
 	roomServicer   RoomServicer
+	playerServicer PlayerServicer
 	logger         *slog.Logger
 	mux            http.ServeMux
 }
 
-func NewHTTPServer(roomServicer RoomServicer, roomRandomizer RoomRandomizer, logger *slog.Logger) *server {
+func NewHTTPServer(roomServicer RoomServicer, playerServicer PlayerServicer, roomRandomizer RoomRandomizer, logger *slog.Logger) *server {
 	s := &server{
 		rooms:          make(map[string]*room),
 		roomServicer:   roomServicer,
+		playerServicer: playerServicer,
 		roomRandomizer: roomRandomizer,
 		logger:         logger,
 	}
 
-	s.eventHandlers = map[string]func(context.Context, *client, message) ([]byte, error){
-		"room_created": s.handleRoomCreatedEvent,
+	s.eventHandlers = map[string]func(context.Context, *client, message) error{
+		"create_room":            s.handleCreateRoomEvent,
+		"update_player_nickname": s.handleUpdateNicknameEvent,
 	}
 	s.mux.Handle("/", http.FileServer(http.Dir("./static")))
 	s.mux.HandleFunc("/ws", s.subscribeHandler)
@@ -80,7 +87,7 @@ func (m *message) UnmarshalJSON(data []byte) error {
 		return err
 	}
 
-	// Unmarshal extra fields into ExtraFields map
+	// INFO: Unmarshal extra fields into ExtraFields map, let event handler functions deal with them.
 	var raw map[string]interface{}
 	if err := json.Unmarshal(data, &raw); err != nil {
 		return err
@@ -166,11 +173,10 @@ func (s *server) subscribe(ctx context.Context, r *http.Request, w http.Response
 				return fmt.Errorf("no handler for event %s", message.EventName)
 			}
 
-			msg, err := handlerFunc(ctx, client, message)
+			err := handlerFunc(ctx, client, message)
 			if err != nil {
 				return err
 			}
-			client.messages <- msg
 			span.End()
 		}
 	}

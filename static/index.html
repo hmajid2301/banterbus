@@ -16,7 +16,7 @@
     <div hx-ext="ws" ws-connect="/ws">
         <div>Banter Bus</div>
         <div id="page">
-             <form id="create_room_form" hx-vals='{"event_name": "room_created"}' ws-send>
+             <form id="create_room_form" hx-vals='{"event_name": "create_room"}' ws-send>
                 <input type="text" name="player_nickname" placeholder="Enter your nickname here ...">
                 <button>Create Room</button>
             </form>

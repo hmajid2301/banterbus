@@ -7,6 +7,8 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/google/uuid"
+
 	"gitlab.com/hmajid2301/banterbus/internal/entities"
 	sqlc "gitlab.com/hmajid2301/banterbus/internal/store/db"
 )
@@ -39,15 +41,17 @@ func (s Store) CreateRoom(ctx context.Context, player entities.NewPlayer, room e
 	}()
 
 	newPlayer, err := s.queries.WithTx(tx).AddPlayer(ctx, sqlc.AddPlayerParams{
-		Avatar:          player.Avatar,
-		Nickname:        player.Nickname,
-		LatestSessionID: player.SessionID,
+		ID:       player.ID,
+		Avatar:   player.Avatar,
+		Nickname: player.Nickname,
 	})
 	if err != nil {
 		return err
 	}
 
+	u := uuid.Must(uuid.NewV7())
 	newRoom, err := s.queries.WithTx(tx).AddRoom(ctx, sqlc.AddRoomParams{
+		ID:         u.String(),
 		GameName:   room.GameName,
 		RoomCode:   room.RoomCode,
 		HostPlayer: newPlayer.ID,
@@ -64,6 +68,34 @@ func (s Store) CreateRoom(ctx context.Context, player entities.NewPlayer, room e
 		return err
 	}
 	return tx.Commit()
+}
+
+func (s Store) UpdateNickname(ctx context.Context, nickname string, playerID string) (players []sqlc.GetAllPlayersInRoomRow, err error) {
+	tx, err := s.db.Begin()
+	if err != nil {
+		return players, err
+	}
+
+	defer func() {
+		if err != nil {
+			err = tx.Rollback()
+		}
+	}()
+
+	_, err = s.queries.WithTx(tx).UpdateNickname(ctx, sqlc.UpdateNicknameParams{
+		Nickname: nickname,
+		ID:       playerID,
+	})
+	if err != nil {
+		return players, err
+	}
+
+	players, err = s.queries.WithTx(tx).GetAllPlayersInRoom(ctx, playerID)
+	if err != nil {
+		return players, err
+	}
+
+	return players, tx.Commit()
 }
 
 func GetDB(dbFolder string) (*sql.DB, error) {

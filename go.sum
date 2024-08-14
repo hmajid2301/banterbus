@@ -4,6 +4,10 @@ github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/dustin/go-humanize v1.0.1 h1:GzkhY7T5VNhEkwH0PVJgjz+fX1rhBrR7pRT3mDkpeCY=
 github.com/dustin/go-humanize v1.0.1/go.mod h1:Mu1zIs6XwVuF/gI1OepvI0qD18qycQx+mFykh5fBlto=
+github.com/edwingeng/wuid v1.0.0 h1:zRcU2MBKSGvtMShmOP0SWHJhfeZ9Y31PwHu/1bXIsAE=
+github.com/edwingeng/wuid v1.0.0/go.mod h1:DeJiDeOnBXD2Bvrk4+yaJsJBhUZMD9Ya8qUDELUHRMg=
+github.com/flexstack/uuid v1.0.0 h1:iJCndNC/1NyRW5vEFu3aR7HmZLBT9fxEbEFgaFI6nZ4=
+github.com/flexstack/uuid v1.0.0/go.mod h1:Ssmzr+osP1+Ee+s6eXC9YIbUK3aZVtp8gT5bzmKf6K8=
 github.com/gabriel-vasile/mimetype v1.4.2 h1:w5qFW6JKBz9Y393Y4q372O9A7cUSequkh1Q7OhCmWKU=
 github.com/gabriel-vasile/mimetype v1.4.2/go.mod h1:zApsH/mKG4w07erKIaJPFiX0Tsq9BFQgN3qGY5GnNgA=
 github.com/go-logr/logr v1.2.2/go.mod h1:jdQByPbusPIv2/zmleS9BjJVeZ6kBagPoEUsqbVz/1A=

@@ -64,9 +64,10 @@ func mainLogic(ctx context.Context, logger *slog.Logger) error {
 	}
 
 	userRandomizer := random.NewUserRandomizer()
-	roomService := service.NewRoomService(myStore, userRandomizer)
+	roomServicer := service.NewRoomService(myStore, userRandomizer)
 	roomRandomizer := random.NewRoomRandomizer()
-	server := ws.NewHTTPServer(roomService, roomRandomizer, logger)
+	playerServicer := service.NewPlayerService(myStore)
+	server := ws.NewHTTPServer(roomServicer, playerServicer, roomRandomizer, logger)
 
 	err = server.Serve()
 	if err != nil {

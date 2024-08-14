@@ -6,7 +6,7 @@ import (
 )
 
 type room struct {
-	clients     map[*client]struct{}
+	clients     map[string]*client
 	register    chan *client
 	unregister  chan *client
 	broadcast   chan []byte
@@ -16,7 +16,7 @@ type room struct {
 
 func NewRoom() *room {
 	return &room{
-		clients:    make(map[*client]struct{}),
+		clients:    make(map[string]*client),
 		register:   make(chan *client),
 		unregister: make(chan *client),
 		broadcast:  make(chan []byte),
@@ -33,7 +33,7 @@ func (r *room) runRoom() {
 			r.addClient(client)
 
 		case client := <-r.unregister:
-			r.removeClient(client)
+			r.removeClient(client.playerID)
 
 		case message := <-r.broadcast:
 			r.broadcastMessage(message)
@@ -48,21 +48,21 @@ func (r *room) runRoom() {
 func (r *room) addClient(client *client) {
 	log.Println("client added", client)
 	r.clientMutex.Lock()
-	r.clients[client] = struct{}{}
+	r.clients[client.playerID] = client
 	r.clientMutex.Unlock()
 }
 
-func (r *room) removeClient(client *client) {
-	log.Println("client removed", client)
+func (r *room) removeClient(playerID string) {
+	log.Println("client removed", playerID)
 	r.clientMutex.Lock()
-	delete(r.clients, client)
+	delete(r.clients, playerID)
 	r.clientMutex.Unlock()
 }
 
 func (r *room) broadcastMessage(message []byte) {
 	r.clientMutex.Lock()
 	defer r.clientMutex.Unlock()
-	for client := range r.clients {
+	for _, client := range r.clients {
 		client.messages <- message
 	}
 }

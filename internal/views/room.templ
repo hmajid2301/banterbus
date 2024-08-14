@@ -7,8 +7,9 @@ templ Room(code string, players []entities.Player, currentPlayer entities.Player
 		<div>Code: { code }</div>
 		for _, player := range players {
 			if currentPlayer == player {
-				<form id="update_nickname_form" ws-send>
-					<input name="update_player_nickname" value={ player.Nickname }/>
+				<form id="update_nickname_form" hx-vals='{"event_name": "update_player_nickname"}' ws-send>
+					<input name="player_nickname" value={ player.Nickname }/>
+					<input name="player_id" class="hidden" value={ player.ID }/>
 					<button>Update Nickname</button>
 				</form>
 			} else {

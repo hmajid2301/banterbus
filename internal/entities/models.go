@@ -1,9 +1,9 @@
 package entities
 
 type NewPlayer struct {
-	Nickname  string
-	Avatar    []byte
-	SessionID int64
+	ID       string
+	Nickname string
+	Avatar   []byte
 }
 
 type NewRoom struct {
@@ -12,6 +12,7 @@ type NewRoom struct {
 }
 
 type Player struct {
+	ID       string
 	Nickname string
 	Avatar   string
 }
