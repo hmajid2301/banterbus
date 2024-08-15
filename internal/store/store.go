@@ -98,6 +98,34 @@ func (s Store) UpdateNickname(ctx context.Context, nickname string, playerID str
 	return players, tx.Commit()
 }
 
+func (s Store) UpdateAvatar(ctx context.Context, avatar []byte, playerID string) (players []sqlc.GetAllPlayersInRoomRow, err error) {
+	tx, err := s.db.Begin()
+	if err != nil {
+		return players, err
+	}
+
+	defer func() {
+		if err != nil {
+			err = tx.Rollback()
+		}
+	}()
+
+	_, err = s.queries.WithTx(tx).UpdateAvatar(ctx, sqlc.UpdateAvatarParams{
+		Avatar: avatar,
+		ID:     playerID,
+	})
+	if err != nil {
+		return players, err
+	}
+
+	players, err = s.queries.WithTx(tx).GetAllPlayersInRoom(ctx, playerID)
+	if err != nil {
+		return players, err
+	}
+
+	return players, tx.Commit()
+}
+
 func GetDB(dbFolder string) (*sql.DB, error) {
 	if _, err := os.Stat(dbFolder); os.IsNotExist(err) {
 		permissions := 0755

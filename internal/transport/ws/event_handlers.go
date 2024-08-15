@@ -24,6 +24,10 @@ type UpdateNicknameEvent struct {
 	PlayerID       string `mapstructure:"player_id"`
 }
 
+type GenerateNewAvatarEvent struct {
+	PlayerID string `mapstructure:"player_id"`
+}
+
 func (s *server) handleCreateRoomEvent(ctx context.Context, client *client, message message) error {
 	room := NewRoom()
 
@@ -76,6 +80,36 @@ func (s *server) handleUpdateNicknameEvent(ctx context.Context, client *client, 
 
 	var buf bytes.Buffer
 
+	clientsInRoom := s.rooms[updatedRoom.Code].clients
+	for _, player := range updatedRoom.Players {
+		client := clientsInRoom[player.ID]
+		component := views.Room(updatedRoom.Code, updatedRoom.Players, player)
+		err = component.Render(ctx, &buf)
+		if err != nil {
+			return err
+		}
+		client.messages <- buf.Bytes()
+
+	}
+
+	return nil
+}
+
+// TODO: check room state
+func (s *server) handleGenerateNewAvatarEvent(ctx context.Context, client *client, message message) error {
+	var event GenerateNewAvatarEvent
+	if err := mapstructure.Decode(message.ExtraFields, &event); err != nil {
+		return fmt.Errorf("failed to decode generate_new_avatar event: %w", err)
+	}
+
+	updatedRoom, err := s.playerServicer.GenerateNewAvatar(ctx, event.PlayerID)
+	if err != nil {
+		return err
+	}
+
+	var buf bytes.Buffer
+
+	// TODO: refactor this to a function
 	clientsInRoom := s.rooms[updatedRoom.Code].clients
 	for _, player := range updatedRoom.Players {
 		client := clientsInRoom[player.ID]

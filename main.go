@@ -66,7 +66,7 @@ func mainLogic(ctx context.Context, logger *slog.Logger) error {
 	userRandomizer := random.NewUserRandomizer()
 	roomServicer := service.NewRoomService(myStore, userRandomizer)
 	roomRandomizer := random.NewRoomRandomizer()
-	playerServicer := service.NewPlayerService(myStore)
+	playerServicer := service.NewPlayerService(myStore, userRandomizer)
 	server := ws.NewHTTPServer(roomServicer, playerServicer, roomRandomizer, logger)
 
 	err = server.Serve()

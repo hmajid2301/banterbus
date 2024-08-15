@@ -15,7 +15,8 @@ templ Room(code string, players []entities.Player, currentPlayer entities.Player
 			} else {
 				<p>{ player.Nickname }</p>
 			}
-			<div class="w-5 h-5">
+
+			<div class="w-10 h-10">
 				<img src={ player.Avatar }/>
 				if currentPlayer == player {
 					<button hx-vals='{"event_name": "generate_new_avatar"}' ws-send>

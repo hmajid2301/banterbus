@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
-
-<head>
+  <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Banter Bus</title>
@@ -10,35 +9,30 @@
     <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
     <link rel="manifest" href="/site.webmanifest">
-</head>
-
-<body>
+  </head>
+  <body>
     <div hx-ext="ws" ws-connect="/ws">
-        <div>Banter Bus</div>
-        <div id="page">
-             <form id="create_room_form" hx-vals='{"event_name": "create_room"}' ws-send>
-                <input type="text" name="player_nickname" placeholder="Enter your nickname here ...">
-                <button>Create Room</button>
-            </form>
-        </div>
+      <div>Banter Bus</div>
+      <div id="page">
+        <form id="create_room_form" hx-vals='{"event_name": "create_room"}' ws-send>
+          <input type="text" name="player_nickname" placeholder="Enter your nickname here ...">
+          <button>Create Room</button>
+        </form>
+      </div>
     </div>
-
-    <div id="spinner"
-            class="grid hidden overflow-x-scroll place-items-center p-6 w-full bg-indigo-500 rounded-lg lg:overflow-visible min-h-[140px]">
-        <svg class="mr-3 -ml-1 w-5 h-5 text-black animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none"
+    <div id="spinner" class="grid hidden overflow-x-scroll place-items-center p-6 w-full bg-indigo-500 rounded-lg lg:overflow-visible min-h-[140px]">
+      <svg class="mr-3 -ml-1 w-5 h-5 text-black animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none"
             viewBox="0 0 24 24">
-            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-            <path class="opacity-75" fill="currentColor"
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+        <path class="opacity-75" fill="currentColor"
                 d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
-            </path>
-        </svg>
+        </path>
+      </svg>
     </div>
-</body>
-
-<script src="https://unpkg.com/htmx.org@2.0.2" integrity="sha384-Y7hw+L/jvKeWIRRkqWYfPcvVxHzVzn5REgzbawhxAuQGwX1XWe70vji+VSeHOThJ" crossorigin="anonymous"></script>
-<script src="https://unpkg.com/htmx-ext-ws@2.0.0/ws.js"></script>
-
-<script>
+  </body>
+  <script src="https://unpkg.com/htmx.org@2.0.2" integrity="sha384-Y7hw+L/jvKeWIRRkqWYfPcvVxHzVzn5REgzbawhxAuQGwX1XWe70vji+VSeHOThJ" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/htmx-ext-ws@2.0.0/ws.js"></script>
+  <script>
     htmx.on("htmx:wsAfterSend", (evt) => {
         console.log("Messasge before opened", evt);
         document.getElementById('spinner').classList.remove('hidden');
@@ -47,6 +41,5 @@
         console.log("Messasge after ", evt);
         document.getElementById('spinner').classList.add('hidden');
     });
-</script>
-
+  </script>
 </html>

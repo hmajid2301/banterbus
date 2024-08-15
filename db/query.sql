@@ -20,3 +20,6 @@ WHERE rp.room_id IN (
 
 -- name: UpdateNickname :one
 UPDATE players SET nickname = ? WHERE id = ? RETURNING *;
+
+-- name: UpdateAvatar :one
+UPDATE players SET avatar = ? WHERE id = ? RETURNING *;

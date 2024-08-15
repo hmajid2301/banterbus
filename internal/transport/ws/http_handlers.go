@@ -22,6 +22,7 @@ type RoomServicer interface {
 
 type PlayerServicer interface {
 	UpdateNickname(ctx context.Context, nickname string, playerID string) (entities.Room, error)
+	GenerateNewAvatar(ctx context.Context, playerID string) (entities.Room, error)
 }
 
 type RoomRandomizer interface {
@@ -50,6 +51,7 @@ func NewHTTPServer(roomServicer RoomServicer, playerServicer PlayerServicer, roo
 	s.eventHandlers = map[string]func(context.Context, *client, message) error{
 		"create_room":            s.handleCreateRoomEvent,
 		"update_player_nickname": s.handleUpdateNicknameEvent,
+		"generate_new_avatar":    s.handleGenerateNewAvatarEvent,
 	}
 	s.mux.Handle("/", http.FileServer(http.Dir("./static")))
 	s.mux.HandleFunc("/ws", s.subscribeHandler)

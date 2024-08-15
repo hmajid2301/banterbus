@@ -135,6 +135,28 @@ func (q *Queries) GetAllPlayersInRoom(ctx context.Context, playerID string) ([]G
 	return items, nil
 }
 
+const updateAvatar = `-- name: UpdateAvatar :one
+UPDATE players SET avatar = ? WHERE id = ? RETURNING id, created_at, updated_at, avatar, nickname
+`
+
+type UpdateAvatarParams struct {
+	Avatar []byte
+	ID     string
+}
+
+func (q *Queries) UpdateAvatar(ctx context.Context, arg UpdateAvatarParams) (Player, error) {
+	row := q.db.QueryRowContext(ctx, updateAvatar, arg.Avatar, arg.ID)
+	var i Player
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.Avatar,
+		&i.Nickname,
+	)
+	return i, err
+}
+
 const updateNickname = `-- name: UpdateNickname :one
 UPDATE players SET nickname = ? WHERE id = ? RETURNING id, created_at, updated_at, avatar, nickname
 `
