@@ -23,6 +23,7 @@ func (p *PlayerService) UpdateNickname(ctx context.Context, nickname string, pla
 		return entities.Room{}, err
 	}
 
+	// TODO: refactor this room data
 	var players []entities.Player
 	for _, player := range playerRows {
 		p := entities.Player{

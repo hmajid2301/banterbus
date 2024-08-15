@@ -19,6 +19,11 @@ type CreateRoomEvent struct {
 	PlayerNickname string `mapstructure:"player_nickname"`
 }
 
+type JoinRoomEvent struct {
+	PlayerNickname string `mapstructure:"player_nickname"`
+	RoomCode       string `mapstructure:"room_code"`
+}
+
 type UpdateNicknameEvent struct {
 	PlayerNickname string `mapstructure:"player_nickname"`
 	PlayerID       string `mapstructure:"player_id"`
@@ -66,6 +71,40 @@ func (s *server) handleCreateRoomEvent(ctx context.Context, client *client, mess
 	return nil
 }
 
+func (s *server) handleJoinRoomEvent(ctx context.Context, client *client, message message) error {
+	var event JoinRoomEvent
+	if err := mapstructure.Decode(message.ExtraFields, &event); err != nil {
+		return fmt.Errorf("failed to decode join_room event: %w", err)
+	}
+
+	room, ok := s.rooms[event.RoomCode]
+	if !ok {
+		return fmt.Errorf("room with code %s does not exist", event.RoomCode)
+	}
+	room.addClient(client)
+
+	roomInfo, err := s.roomServicer.Join(ctx, event.RoomCode, client.playerID, event.PlayerNickname)
+	if err != nil {
+		return err
+	}
+
+	var buf bytes.Buffer
+
+	// TODO: refactor this to a function
+	clientsInRoom := s.rooms[roomInfo.Code].clients
+	for _, player := range roomInfo.Players {
+		client := clientsInRoom[player.ID]
+		component := views.Room(roomInfo.Code, roomInfo.Players, player)
+		err = component.Render(ctx, &buf)
+		if err != nil {
+			return err
+		}
+		client.messages <- buf.Bytes()
+
+	}
+	return nil
+}
+
 // TODO: check room state to see if possible
 func (s *server) handleUpdateNicknameEvent(ctx context.Context, client *client, message message) error {
 	var event UpdateNicknameEvent
@@ -80,6 +119,7 @@ func (s *server) handleUpdateNicknameEvent(ctx context.Context, client *client, 
 
 	var buf bytes.Buffer
 
+	// TODO: refactor this to a function
 	clientsInRoom := s.rooms[updatedRoom.Code].clients
 	for _, player := range updatedRoom.Players {
 		client := clientsInRoom[player.ID]

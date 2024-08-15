@@ -89,10 +89,10 @@ SELECT p.id, p.created_at, p.updated_at, p.avatar, p.nickname, r.room_code
 FROM players p
 JOIN rooms_players rp ON p.id = rp.player_id
 JOIN rooms r ON rp.room_id = r.id
-WHERE rp.room_id IN (
-    SELECT room_id
-    FROM rooms_players
-    WHERE rp.player_id = ?
+WHERE rp.room_id = (
+    SELECT rp_inner.room_id
+    FROM rooms_players rp_inner
+    WHERE rp_inner.player_id = ?
 )
 `
 
@@ -133,6 +133,17 @@ func (q *Queries) GetAllPlayersInRoom(ctx context.Context, playerID string) ([]G
 		return nil, err
 	}
 	return items, nil
+}
+
+const getRoomByCode = `-- name: GetRoomByCode :one
+SELECT id FROM rooms WHERE room_code = ?
+`
+
+func (q *Queries) GetRoomByCode(ctx context.Context, roomCode string) (string, error) {
+	row := q.db.QueryRowContext(ctx, getRoomByCode, roomCode)
+	var id string
+	err := row.Scan(&id)
+	return id, err
 }
 
 const updateAvatar = `-- name: UpdateAvatar :one

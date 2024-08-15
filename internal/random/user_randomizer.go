@@ -21,6 +21,13 @@ var colors = []string{
 	"Purple",
 	"Tangerine",
 	"Mandarin",
+	"Pink",
+	"Turquoise",
+	"Magenta",
+	"Crimson",
+	"Amber",
+	"Violet",
+	"Indigo",
 }
 
 var adjectives = []string{
@@ -32,6 +39,18 @@ var adjectives = []string{
 	"Small",
 	"Joyous",
 	"Smelly",
+	"Brave",
+	"Curious",
+	"Fierce",
+	"Lazy",
+	"Playful",
+	"Grumpy",
+	"Cheerful",
+	"Sleepy",
+	"Excited",
+	"Angry",
+	"Friendly",
+	"Mysterious",
 }
 
 var animals = []string{
@@ -41,6 +60,20 @@ var animals = []string{
 	"Tiger",
 	"Bear",
 	"Elephant",
+	"Giraffe",
+	"Zebra",
+	"Kangaroo",
+	"Panda",
+	"Koala",
+	"Penguin",
+	"Monkey",
+	"Rabbit",
+	"Fox",
+	"Wolf",
+	"Deer",
+	"Otter",
+	"Raccoon",
+	"Leopard",
 }
 
 func (UserRandomizer) GetNickname() string {

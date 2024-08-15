@@ -18,6 +18,7 @@ import (
 
 type RoomServicer interface {
 	Create(ctx context.Context, roomCode string, playerID string, playerNickname string) (entities.Room, error)
+	Join(ctx context.Context, roomCode string, playerID string, playerNickname string) (entities.Room, error)
 }
 
 type PlayerServicer interface {
@@ -52,6 +53,7 @@ func NewHTTPServer(roomServicer RoomServicer, playerServicer PlayerServicer, roo
 		"create_room":            s.handleCreateRoomEvent,
 		"update_player_nickname": s.handleUpdateNicknameEvent,
 		"generate_new_avatar":    s.handleGenerateNewAvatarEvent,
+		"join_room":              s.handleJoinRoomEvent,
 	}
 	s.mux.Handle("/", http.FileServer(http.Dir("./static")))
 	s.mux.HandleFunc("/ws", s.subscribeHandler)

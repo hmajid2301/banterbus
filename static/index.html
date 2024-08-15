@@ -18,6 +18,11 @@
           <input type="text" name="player_nickname" placeholder="Enter your nickname here ...">
           <button>Create Room</button>
         </form>
+        <form id="join_room_form" hx-vals='{"event_name": "join_room"}' ws-send>
+          <input type="text" name="player_nickname" placeholder="Enter your nickname here ...">
+          <input type="text" name="room_code" placeholder="Enter your room code ...">
+          <button>Join Room</button>
+        </form>
       </div>
     </div>
     <div id="spinner" class="grid hidden overflow-x-scroll place-items-center p-6 w-full bg-indigo-500 rounded-lg lg:overflow-visible min-h-[140px]">
