@@ -1,5 +1,5 @@
 -- name: AddRoom :one
-INSERT INTO rooms (id, game_name, host_player, room_code) VALUES (?, ?, ?, ?) RETURNING *;
+INSERT INTO rooms (id, game_name, host_player, room_code, room_state)  VALUES (?, ?, ?, ?, ?) RETURNING *;
 
 -- name: AddPlayer :one
 INSERT INTO players (id, avatar, nickname) VALUES (?, ?, ?) RETURNING *;
@@ -18,8 +18,11 @@ WHERE rp.room_id = (
     WHERE rp_inner.player_id = ?
 );
 
+-- name: GetRoomByPlayerID :one
+SELECT r.* FROM rooms r JOIN rooms_players rp ON r.id = rp.room_id WHERE rp.player_id = ?;
+
 -- name: GetRoomByCode :one
-SELECT id FROM rooms WHERE room_code = ?;
+SELECT * FROM rooms WHERE room_code = ?;
 
 -- name: UpdateNickname :one
 UPDATE players SET nickname = ? WHERE id = ? RETURNING *;

@@ -41,10 +41,10 @@ func TestIntegrationCreateRoom(t *testing.T) {
 
 		newRoom := entities.NewRoom{
 			GameName: "fibbing_it",
-			RoomCode: "1234",
 		}
 
-		err = myStore.CreateRoom(ctx, newPlayer, newRoom)
+		roomCode, err := myStore.CreateRoom(ctx, newPlayer, newRoom)
+		assert.NotEmpty(t, roomCode, "room code should not be empty")
 		assert.NoError(t, err)
 
 		var count int
@@ -83,10 +83,9 @@ func TestIntegrationUpdateNickname(t *testing.T) {
 
 		newRoom := entities.NewRoom{
 			GameName: "fibbing_it",
-			RoomCode: "1234",
 		}
 
-		err = myStore.CreateRoom(ctx, newPlayer, newRoom)
+		_, err = myStore.CreateRoom(ctx, newPlayer, newRoom)
 		assert.NoError(t, err)
 
 		players, err := myStore.UpdateNickname(ctx, "Majiy01", newPlayer.ID)

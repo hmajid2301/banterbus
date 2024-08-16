@@ -34,7 +34,7 @@ func (q *Queries) AddPlayer(ctx context.Context, arg AddPlayerParams) (Player, e
 }
 
 const addRoom = `-- name: AddRoom :one
-INSERT INTO rooms (id, game_name, host_player, room_code) VALUES (?, ?, ?, ?) RETURNING id, created_at, updated_at, game_name, host_player, room_code
+INSERT INTO rooms (id, game_name, host_player, room_code, room_state)  VALUES (?, ?, ?, ?, ?) RETURNING id, created_at, updated_at, game_name, host_player, room_state, room_code
 `
 
 type AddRoomParams struct {
@@ -42,6 +42,7 @@ type AddRoomParams struct {
 	GameName   string
 	HostPlayer string
 	RoomCode   string
+	RoomState  string
 }
 
 func (q *Queries) AddRoom(ctx context.Context, arg AddRoomParams) (Room, error) {
@@ -50,6 +51,7 @@ func (q *Queries) AddRoom(ctx context.Context, arg AddRoomParams) (Room, error) 
 		arg.GameName,
 		arg.HostPlayer,
 		arg.RoomCode,
+		arg.RoomState,
 	)
 	var i Room
 	err := row.Scan(
@@ -58,6 +60,7 @@ func (q *Queries) AddRoom(ctx context.Context, arg AddRoomParams) (Room, error) 
 		&i.UpdatedAt,
 		&i.GameName,
 		&i.HostPlayer,
+		&i.RoomState,
 		&i.RoomCode,
 	)
 	return i, err
@@ -136,14 +139,41 @@ func (q *Queries) GetAllPlayersInRoom(ctx context.Context, playerID string) ([]G
 }
 
 const getRoomByCode = `-- name: GetRoomByCode :one
-SELECT id FROM rooms WHERE room_code = ?
+SELECT id, created_at, updated_at, game_name, host_player, room_state, room_code FROM rooms WHERE room_code = ?
 `
 
-func (q *Queries) GetRoomByCode(ctx context.Context, roomCode string) (string, error) {
+func (q *Queries) GetRoomByCode(ctx context.Context, roomCode string) (Room, error) {
 	row := q.db.QueryRowContext(ctx, getRoomByCode, roomCode)
-	var id string
-	err := row.Scan(&id)
-	return id, err
+	var i Room
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.GameName,
+		&i.HostPlayer,
+		&i.RoomState,
+		&i.RoomCode,
+	)
+	return i, err
+}
+
+const getRoomByPlayerID = `-- name: GetRoomByPlayerID :one
+SELECT r.id, r.created_at, r.updated_at, r.game_name, r.host_player, r.room_state, r.room_code FROM rooms r JOIN rooms_players rp ON r.id = rp.room_id WHERE rp.player_id = ?
+`
+
+func (q *Queries) GetRoomByPlayerID(ctx context.Context, playerID string) (Room, error) {
+	row := q.db.QueryRowContext(ctx, getRoomByPlayerID, playerID)
+	var i Room
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.GameName,
+		&i.HostPlayer,
+		&i.RoomState,
+		&i.RoomCode,
+	)
+	return i, err
 }
 
 const updateAvatar = `-- name: UpdateAvatar :one

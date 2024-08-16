@@ -23,27 +23,11 @@ func (p *PlayerService) UpdateNickname(ctx context.Context, nickname string, pla
 		return entities.Room{}, err
 	}
 
-	// TODO: refactor this room data
-	var players []entities.Player
-	for _, player := range playerRows {
-		p := entities.Player{
-			ID:       player.ID,
-			Nickname: player.Nickname,
-			Avatar:   string(player.Avatar),
-		}
-
-		players = append(players, p)
+	if len(playerRows) == 0 {
+		return entities.Room{}, fmt.Errorf("no players in room")
 	}
 
-	if len(players) == 0 {
-		return entities.Room{}, fmt.Errorf("no players in room, playerID: %s", playerID)
-	}
-
-	room := entities.Room{
-		Code:    playerRows[0].RoomCode,
-		Players: players,
-	}
-
+	room := getRoom(playerRows, playerRows[0].RoomCode)
 	return room, err
 }
 
@@ -55,26 +39,10 @@ func (p *PlayerService) GenerateNewAvatar(ctx context.Context, playerID string) 
 		return entities.Room{}, err
 	}
 
-	// TODO: refactor this room data
-	var players []entities.Player
-	for _, player := range playerRows {
-		p := entities.Player{
-			ID:       player.ID,
-			Nickname: player.Nickname,
-			Avatar:   string(player.Avatar),
-		}
-
-		players = append(players, p)
+	if len(playerRows) == 0 {
+		return entities.Room{}, fmt.Errorf("no players in room")
 	}
 
-	if len(players) == 0 {
-		return entities.Room{}, fmt.Errorf("no players in room, playerID: %s", playerID)
-	}
-
-	room := entities.Room{
-		Code:    playerRows[0].RoomCode,
-		Players: players,
-	}
-
+	room := getRoom(playerRows, playerRows[0].RoomCode)
 	return room, err
 }

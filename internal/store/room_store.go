@@ -3,7 +3,10 @@ package store
 import (
 	"context"
 	"database/sql"
+	"errors"
+	"fmt"
 	"io/fs"
+	"math/rand/v2"
 	"os"
 	"path/filepath"
 
@@ -18,6 +21,20 @@ type Store struct {
 	queries *sqlc.Queries
 }
 
+type RoomState int
+
+const (
+	CREATED RoomState = iota
+	STARTED
+	PAUSED
+	FINISHED
+	ABOUNDED
+)
+
+func (rs RoomState) String() string {
+	return [...]string{"CREATED", "STARTED", "PAUSED", "FINISHED", "ABANDONED"}[rs]
+}
+
 func NewStore(db *sql.DB) (Store, error) {
 	queries := sqlc.New(db)
 	store := Store{
@@ -28,10 +45,10 @@ func NewStore(db *sql.DB) (Store, error) {
 	return store, nil
 }
 
-func (s Store) CreateRoom(ctx context.Context, player entities.NewPlayer, room entities.NewRoom) (err error) {
+func (s Store) CreateRoom(ctx context.Context, player entities.NewPlayer, room entities.NewRoom) (roomCode string, err error) {
 	tx, err := s.db.Begin()
 	if err != nil {
-		return err
+		return roomCode, err
 	}
 
 	defer func() {
@@ -40,24 +57,41 @@ func (s Store) CreateRoom(ctx context.Context, player entities.NewPlayer, room e
 		}
 	}()
 
+	for {
+		roomCode = randomRoomCode()
+		room, err := s.queries.WithTx(tx).GetRoomByCode(ctx, roomCode)
+		if err != nil {
+			if errors.Is(err, sql.ErrNoRows) {
+				break
+			}
+
+			return roomCode, err
+		}
+
+		if room.RoomState == FINISHED.String() || room.RoomState == ABOUNDED.String() {
+			break
+		}
+	}
+
 	newPlayer, err := s.queries.WithTx(tx).AddPlayer(ctx, sqlc.AddPlayerParams{
 		ID:       player.ID,
 		Avatar:   player.Avatar,
 		Nickname: player.Nickname,
 	})
 	if err != nil {
-		return err
+		return roomCode, err
 	}
 
 	u := uuid.Must(uuid.NewV7())
 	newRoom, err := s.queries.WithTx(tx).AddRoom(ctx, sqlc.AddRoomParams{
 		ID:         u.String(),
 		GameName:   room.GameName,
-		RoomCode:   room.RoomCode,
+		RoomCode:   roomCode,
+		RoomState:  CREATED.String(),
 		HostPlayer: newPlayer.ID,
 	})
 	if err != nil {
-		return err
+		return roomCode, err
 	}
 
 	_, err = s.queries.WithTx(tx).AddRoomPlayer(ctx, sqlc.AddRoomPlayerParams{
@@ -65,9 +99,9 @@ func (s Store) CreateRoom(ctx context.Context, player entities.NewPlayer, room e
 		PlayerID: newPlayer.ID,
 	})
 	if err != nil {
-		return err
+		return roomCode, err
 	}
-	return tx.Commit()
+	return roomCode, tx.Commit()
 }
 
 func (s Store) AddPlayerToRoom(ctx context.Context, player entities.NewPlayer, roomCode string) (players []sqlc.GetAllPlayersInRoomRow, err error) {
@@ -82,6 +116,15 @@ func (s Store) AddPlayerToRoom(ctx context.Context, player entities.NewPlayer, r
 		}
 	}()
 
+	room, err := s.queries.WithTx(tx).GetRoomByCode(ctx, roomCode)
+	if err != nil {
+		return players, err
+	}
+
+	if room.RoomState != CREATED.String() {
+		return players, fmt.Errorf("room is not in CREATED state")
+	}
+
 	newPlayer, err := s.queries.WithTx(tx).AddPlayer(ctx, sqlc.AddPlayerParams{
 		ID:       player.ID,
 		Avatar:   player.Avatar,
@@ -91,13 +134,8 @@ func (s Store) AddPlayerToRoom(ctx context.Context, player entities.NewPlayer, r
 		return players, err
 	}
 
-	roomID, err := s.queries.WithTx(tx).GetRoomByCode(ctx, roomCode)
-	if err != nil {
-		return players, err
-	}
-
 	_, err = s.queries.WithTx(tx).AddRoomPlayer(ctx, sqlc.AddRoomPlayerParams{
-		RoomID:   roomID,
+		RoomID:   room.ID,
 		PlayerID: newPlayer.ID,
 	})
 	if err != nil {
@@ -105,62 +143,6 @@ func (s Store) AddPlayerToRoom(ctx context.Context, player entities.NewPlayer, r
 	}
 
 	players, err = s.queries.WithTx(tx).GetAllPlayersInRoom(ctx, player.ID)
-	if err != nil {
-		return players, err
-	}
-
-	return players, tx.Commit()
-}
-
-func (s Store) UpdateNickname(ctx context.Context, nickname string, playerID string) (players []sqlc.GetAllPlayersInRoomRow, err error) {
-	tx, err := s.db.Begin()
-	if err != nil {
-		return players, err
-	}
-
-	defer func() {
-		if err != nil {
-			err = tx.Rollback()
-		}
-	}()
-
-	_, err = s.queries.WithTx(tx).UpdateNickname(ctx, sqlc.UpdateNicknameParams{
-		Nickname: nickname,
-		ID:       playerID,
-	})
-	if err != nil {
-		return players, err
-	}
-
-	players, err = s.queries.WithTx(tx).GetAllPlayersInRoom(ctx, playerID)
-	if err != nil {
-		return players, err
-	}
-
-	return players, tx.Commit()
-}
-
-func (s Store) UpdateAvatar(ctx context.Context, avatar []byte, playerID string) (players []sqlc.GetAllPlayersInRoomRow, err error) {
-	tx, err := s.db.Begin()
-	if err != nil {
-		return players, err
-	}
-
-	defer func() {
-		if err != nil {
-			err = tx.Rollback()
-		}
-	}()
-
-	_, err = s.queries.WithTx(tx).UpdateAvatar(ctx, sqlc.UpdateAvatarParams{
-		Avatar: avatar,
-		ID:     playerID,
-	})
-	if err != nil {
-		return players, err
-	}
-
-	players, err = s.queries.WithTx(tx).GetAllPlayersInRoom(ctx, playerID)
 	if err != nil {
 		return players, err
 	}
@@ -185,4 +167,15 @@ func GetDB(dbFolder string) (*sql.DB, error) {
 
 	_, err = db.Exec("PRAGMA journal_mode=WAL")
 	return db, err
+}
+
+func randomRoomCode() string {
+	const charset = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+
+	codeByte := make([]byte, 5)
+	for i := range codeByte {
+		codeByte[i] = charset[rand.IntN(len(charset))]
+	}
+	code := string(codeByte)
+	return code
 }

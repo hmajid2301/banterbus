@@ -1,5 +1,10 @@
 package entities
 
+type CreateRoomPlayer struct {
+	ID       string
+	Nickname string
+}
+
 type NewPlayer struct {
 	ID       string
 	Nickname string
@@ -8,7 +13,6 @@ type NewPlayer struct {
 
 type NewRoom struct {
 	GameName string
-	RoomCode string
 }
 
 type Player struct {

@@ -22,6 +22,7 @@ type Room struct {
 	UpdatedAt  sql.NullTime
 	GameName   string
 	HostPlayer string
+	RoomState  string
 	RoomCode   string
 }
 

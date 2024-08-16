@@ -17,7 +17,7 @@ import (
 )
 
 type RoomServicer interface {
-	Create(ctx context.Context, roomCode string, playerID string, playerNickname string) (entities.Room, error)
+	Create(ctx context.Context, gameName string, player entities.CreateRoomPlayer) (entities.Room, error)
 	Join(ctx context.Context, roomCode string, playerID string, playerNickname string) (entities.Room, error)
 }
 
@@ -26,13 +26,8 @@ type PlayerServicer interface {
 	GenerateNewAvatar(ctx context.Context, playerID string) (entities.Room, error)
 }
 
-type RoomRandomizer interface {
-	GetRoomCode() string
-}
-
 type server struct {
 	rooms          map[string]*room
-	roomRandomizer RoomRandomizer
 	eventHandlers  map[string]func(context.Context, *client, message) error
 	roomServicer   RoomServicer
 	playerServicer PlayerServicer
@@ -40,12 +35,11 @@ type server struct {
 	mux            http.ServeMux
 }
 
-func NewHTTPServer(roomServicer RoomServicer, playerServicer PlayerServicer, roomRandomizer RoomRandomizer, logger *slog.Logger) *server {
+func NewHTTPServer(roomServicer RoomServicer, playerServicer PlayerServicer, logger *slog.Logger) *server {
 	s := &server{
 		rooms:          make(map[string]*room),
 		roomServicer:   roomServicer,
 		playerServicer: playerServicer,
-		roomRandomizer: roomRandomizer,
 		logger:         logger,
 	}
 
@@ -123,6 +117,7 @@ func (s *server) subscribe(ctx context.Context, r *http.Request, w http.Response
 	incomingMessages := make(chan message)
 	quit := make(chan struct{})
 
+	// TODO: refactor
 	// TODO: how to handle error?
 	go func() {
 		for {

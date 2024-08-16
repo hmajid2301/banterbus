@@ -4,6 +4,7 @@ CREATE TABLE IF NOT EXISTS rooms (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     game_name TEXT NOT NULL,
     host_player TEXT NOT NULL,
+    room_state TEXT NOT NULL,
     room_code TEXT NOT NULL,
     FOREIGN KEY (host_player) REFERENCES players (id)
 );

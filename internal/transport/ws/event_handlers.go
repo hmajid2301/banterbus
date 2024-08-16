@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 
+	"gitlab.com/hmajid2301/banterbus/internal/entities"
 	"gitlab.com/hmajid2301/banterbus/internal/views"
 
 	"github.com/go-viper/mapstructure/v2"
@@ -16,6 +17,7 @@ type message struct {
 }
 
 type CreateRoomEvent struct {
+	GameName       string `mapstructure:"game_name"`
 	PlayerNickname string `mapstructure:"player_nickname"`
 }
 
@@ -34,41 +36,29 @@ type GenerateNewAvatarEvent struct {
 }
 
 func (s *server) handleCreateRoomEvent(ctx context.Context, client *client, message message) error {
-	room := NewRoom()
-
-	var code string
-	for {
-		code = s.roomRandomizer.GetRoomCode()
-		if _, exists := s.rooms[code]; !exists {
-			break
-		}
-	}
 	var event CreateRoomEvent
 	if err := mapstructure.Decode(message.ExtraFields, &event); err != nil {
 		return fmt.Errorf("failed to decode create_room event: %w", err)
 	}
 
-	room.addClient(client)
-	s.rooms[code] = room
-
-	newRoom, err := s.roomServicer.Create(ctx, code, client.playerID, event.PlayerNickname)
+	newPlayer := entities.CreateRoomPlayer{
+		ID:       client.playerID,
+		Nickname: event.PlayerNickname,
+	}
+	newRoom, err := s.roomServicer.Create(ctx, event.GameName, newPlayer)
 	if err != nil {
 		return err
 	}
+
+	room := NewRoom()
+
+	room.addClient(client)
+	s.rooms[newRoom.Code] = room
 
 	go room.runRoom()
 
-	var buf bytes.Buffer
-	component := views.Room(newRoom.Code, newRoom.Players, newRoom.Players[0])
-	err = component.Render(ctx, &buf)
-	if err != nil {
-		return err
-	}
-
-	// INFO: only one client in room, as the room has just been created by this client.
-	// So doesn't matter if we broadcast the data (HTML) back or not.
-	room.broadcast <- buf.Bytes()
-	return nil
+	err = s.updateClients(ctx, newRoom)
+	return err
 }
 
 func (s *server) handleJoinRoomEvent(ctx context.Context, client *client, message message) error {
@@ -83,29 +73,15 @@ func (s *server) handleJoinRoomEvent(ctx context.Context, client *client, messag
 	}
 	room.addClient(client)
 
-	roomInfo, err := s.roomServicer.Join(ctx, event.RoomCode, client.playerID, event.PlayerNickname)
+	updatedRoom, err := s.roomServicer.Join(ctx, event.RoomCode, client.playerID, event.PlayerNickname)
 	if err != nil {
 		return err
 	}
 
-	var buf bytes.Buffer
-
-	// TODO: refactor this to a function
-	clientsInRoom := s.rooms[roomInfo.Code].clients
-	for _, player := range roomInfo.Players {
-		client := clientsInRoom[player.ID]
-		component := views.Room(roomInfo.Code, roomInfo.Players, player)
-		err = component.Render(ctx, &buf)
-		if err != nil {
-			return err
-		}
-		client.messages <- buf.Bytes()
-
-	}
-	return nil
+	err = s.updateClients(ctx, updatedRoom)
+	return err
 }
 
-// TODO: check room state to see if possible
 func (s *server) handleUpdateNicknameEvent(ctx context.Context, client *client, message message) error {
 	var event UpdateNicknameEvent
 	if err := mapstructure.Decode(message.ExtraFields, &event); err != nil {
@@ -117,25 +93,10 @@ func (s *server) handleUpdateNicknameEvent(ctx context.Context, client *client, 
 		return err
 	}
 
-	var buf bytes.Buffer
-
-	// TODO: refactor this to a function
-	clientsInRoom := s.rooms[updatedRoom.Code].clients
-	for _, player := range updatedRoom.Players {
-		client := clientsInRoom[player.ID]
-		component := views.Room(updatedRoom.Code, updatedRoom.Players, player)
-		err = component.Render(ctx, &buf)
-		if err != nil {
-			return err
-		}
-		client.messages <- buf.Bytes()
-
-	}
-
-	return nil
+	err = s.updateClients(ctx, updatedRoom)
+	return err
 }
 
-// TODO: check room state
 func (s *server) handleGenerateNewAvatarEvent(ctx context.Context, client *client, message message) error {
 	var event GenerateNewAvatarEvent
 	if err := mapstructure.Decode(message.ExtraFields, &event); err != nil {
@@ -147,20 +108,22 @@ func (s *server) handleGenerateNewAvatarEvent(ctx context.Context, client *clien
 		return err
 	}
 
-	var buf bytes.Buffer
+	err = s.updateClients(ctx, updatedRoom)
+	return err
+}
 
-	// TODO: refactor this to a function
+func (s *server) updateClients(ctx context.Context, updatedRoom entities.Room) error {
+	var buf bytes.Buffer
 	clientsInRoom := s.rooms[updatedRoom.Code].clients
 	for _, player := range updatedRoom.Players {
 		client := clientsInRoom[player.ID]
 		component := views.Room(updatedRoom.Code, updatedRoom.Players, player)
-		err = component.Render(ctx, &buf)
+		err := component.Render(ctx, &buf)
 		if err != nil {
 			return err
 		}
 		client.messages <- buf.Bytes()
 
 	}
-
 	return nil
 }
