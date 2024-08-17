@@ -16,6 +16,7 @@ import (
 	"gitlab.com/hmajid2301/banterbus/internal/random"
 	"gitlab.com/hmajid2301/banterbus/internal/service"
 	"gitlab.com/hmajid2301/banterbus/internal/store"
+	transporthttp "gitlab.com/hmajid2301/banterbus/internal/transport/http"
 	"gitlab.com/hmajid2301/banterbus/internal/transport/ws"
 )
 
@@ -66,7 +67,8 @@ func mainLogic(ctx context.Context, logger *slog.Logger) error {
 	userRandomizer := random.NewUserRandomizer()
 	roomServicer := service.NewRoomService(myStore, userRandomizer)
 	playerServicer := service.NewPlayerService(myStore, userRandomizer)
-	server := ws.NewHTTPServer(roomServicer, playerServicer, logger)
+	subscriber := ws.NewSubscriber(roomServicer, playerServicer, logger)
+	server := transporthttp.NewServer(subscriber, logger)
 
 	err = server.Serve()
 	if err != nil {

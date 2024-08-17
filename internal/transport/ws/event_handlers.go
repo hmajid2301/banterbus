@@ -11,9 +11,15 @@ import (
 	"github.com/go-viper/mapstructure/v2"
 )
 
-type message struct {
-	ExtraFields map[string]interface{} `json:"-"`
-	EventName   string                 `json:"event_name"`
+// TODO: refactor to anotther package
+type RoomServicer interface {
+	Create(ctx context.Context, gameName string, player entities.CreateRoomPlayer) (entities.Room, error)
+	Join(ctx context.Context, roomCode string, playerID string, playerNickname string) (entities.Room, error)
+}
+
+type PlayerServicer interface {
+	UpdateNickname(ctx context.Context, nickname string, playerID string) (entities.Room, error)
+	GenerateNewAvatar(ctx context.Context, playerID string) (entities.Room, error)
 }
 
 type CreateRoomEvent struct {
@@ -35,7 +41,7 @@ type GenerateNewAvatarEvent struct {
 	PlayerID string `mapstructure:"player_id"`
 }
 
-func (s *server) handleCreateRoomEvent(ctx context.Context, client *client, message message) error {
+func (s *subscriber) handleCreateRoomEvent(ctx context.Context, client *client, message message) error {
 	var event CreateRoomEvent
 	if err := mapstructure.Decode(message.ExtraFields, &event); err != nil {
 		return fmt.Errorf("failed to decode create_room event: %w", err)
@@ -61,7 +67,7 @@ func (s *server) handleCreateRoomEvent(ctx context.Context, client *client, mess
 	return err
 }
 
-func (s *server) handleJoinRoomEvent(ctx context.Context, client *client, message message) error {
+func (s *subscriber) handleJoinRoomEvent(ctx context.Context, client *client, message message) error {
 	var event JoinRoomEvent
 	if err := mapstructure.Decode(message.ExtraFields, &event); err != nil {
 		return fmt.Errorf("failed to decode join_room event: %w", err)
@@ -82,7 +88,7 @@ func (s *server) handleJoinRoomEvent(ctx context.Context, client *client, messag
 	return err
 }
 
-func (s *server) handleUpdateNicknameEvent(ctx context.Context, client *client, message message) error {
+func (s *subscriber) handleUpdateNicknameEvent(ctx context.Context, client *client, message message) error {
 	var event UpdateNicknameEvent
 	if err := mapstructure.Decode(message.ExtraFields, &event); err != nil {
 		return fmt.Errorf("failed to decode update_player_nickname event: %w", err)
@@ -97,7 +103,7 @@ func (s *server) handleUpdateNicknameEvent(ctx context.Context, client *client, 
 	return err
 }
 
-func (s *server) handleGenerateNewAvatarEvent(ctx context.Context, client *client, message message) error {
+func (s *subscriber) handleGenerateNewAvatarEvent(ctx context.Context, client *client, message message) error {
 	var event GenerateNewAvatarEvent
 	if err := mapstructure.Decode(message.ExtraFields, &event); err != nil {
 		return fmt.Errorf("failed to decode generate_new_avatar event: %w", err)
@@ -112,7 +118,7 @@ func (s *server) handleGenerateNewAvatarEvent(ctx context.Context, client *clien
 	return err
 }
 
-func (s *server) updateClients(ctx context.Context, updatedRoom entities.Room) error {
+func (s *subscriber) updateClients(ctx context.Context, updatedRoom entities.Room) error {
 	var buf bytes.Buffer
 	clientsInRoom := s.rooms[updatedRoom.Code].clients
 	for _, player := range updatedRoom.Players {
