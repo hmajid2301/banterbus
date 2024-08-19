@@ -20,7 +20,15 @@ type subscriber struct {
 	roomServicer   RoomServicer
 	playerServicer PlayerServicer
 	logger         *slog.Logger
-	eventHandlers  map[string]func(context.Context, *client, message) error
+	eventHandlers  map[string]WSHandler
+}
+
+type message struct {
+	MessageType string `json:"message_type"`
+}
+
+type WSHandler interface {
+	Handle(ctx context.Context, client *client, sub *subscriber) error
 }
 
 func NewSubscriber(roomServicer RoomServicer, playerServicer PlayerServicer, logger *slog.Logger) *subscriber {
@@ -30,11 +38,11 @@ func NewSubscriber(roomServicer RoomServicer, playerServicer PlayerServicer, log
 		logger:         logger,
 	}
 
-	s.eventHandlers = map[string]func(context.Context, *client, message) error{
-		"create_room":            s.handleCreateRoomEvent,
-		"update_player_nickname": s.handleUpdateNicknameEvent,
-		"generate_new_avatar":    s.handleGenerateNewAvatarEvent,
-		"join_room":              s.handleJoinRoomEvent,
+	s.eventHandlers = map[string]WSHandler{
+		"create_room":            &CreateRoomEvent{},
+		"update_player_nickname": &UpdateNicknameEvent{},
+		"generate_new_avatar":    &GenerateNewAvatarEvent{},
+		"join_room":              &JoinRoomEvent{},
 	}
 
 	return s
@@ -52,11 +60,8 @@ func (s *subscriber) Subscribe(ctx context.Context, r *http.Request, w http.Resp
 		err = connection.Close()
 	}()
 
-	tracer := otel.Tracer("subscribe")
-	incomingMessages := make(chan message)
 	quit := make(chan struct{})
-
-	go s.handleMessage(quit, connection, incomingMessages)
+	go s.handleMessage(ctx, quit, connection, client)
 
 	for {
 		select {
@@ -73,30 +78,18 @@ func (s *subscriber) Subscribe(ctx context.Context, r *http.Request, w http.Resp
 		case <-ctx.Done():
 			quit <- struct{}{}
 			return ctx.Err()
-		case message := <-incomingMessages:
-			ctx, span := tracer.Start(ctx, message.EventName)
-			s.logger.DebugContext(ctx, fmt.Sprintf("handle `%s` event", message.EventName))
-			handlerFunc, ok := s.eventHandlers[message.EventName]
-			if !ok {
-				return fmt.Errorf("no handler for event %s", message.EventName)
-			}
-
-			err := handlerFunc(ctx, client, message)
-			if err != nil {
-				return err
-			}
-			span.End()
 		}
 	}
 }
 
-func (s *subscriber) handleMessage(quit chan struct{}, connection net.Conn, incomingMessages chan message) {
+func (s *subscriber) handleMessage(ctx context.Context, quit <-chan struct{}, connection net.Conn, client *client) {
 	// TODO: how to handle error?
 	for {
 		select {
 		case <-quit:
 			return
 		default:
+			tracer := otel.Tracer("subscribe")
 			_, r, err := wsutil.NextReader(connection, ws.StateServerSide)
 			if err != nil {
 				s.logger.Error("failed to get next message", slog.Any("error", err))
@@ -116,7 +109,27 @@ func (s *subscriber) handleMessage(quit chan struct{}, connection net.Conn, inco
 				s.logger.Error("failed to unmarshal message", slog.Any("error", err))
 				return
 			}
-			incomingMessages <- message
+			ctx, span := tracer.Start(ctx, message.MessageType)
+			s.logger.DebugContext(ctx, fmt.Sprintf("handle `%s` event", message.MessageType))
+			handler, ok := s.eventHandlers[message.MessageType]
+			if !ok {
+				s.logger.Error("handler not found for event", slog.Any("error", err))
+				return
+			}
+
+			err = json.Unmarshal(data, &handler)
+			s.logger.Debug("trying to unmarshal handler message", slog.Any("message", message))
+			if err != nil {
+				s.logger.Error("failed to unmarshal for handler", slog.Any("error", err))
+				return
+			}
+
+			err = handler.Handle(ctx, client, s)
+			if err != nil {
+				s.logger.Error("error in handler function", slog.Any("error", err))
+				return
+			}
+			span.End()
 		}
 	}
 }
