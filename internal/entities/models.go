@@ -1,6 +1,6 @@
 package entities
 
-type CreateRoomPlayer struct {
+type NewHostPlayer struct {
 	ID       string
 	Nickname string
 }

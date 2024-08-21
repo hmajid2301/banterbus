@@ -12,7 +12,7 @@ import (
 type Config struct {
 	DBFolder    string `env:"BANTERBUS_DB_FOLDER"`
 	Environment string `env:"BANTERBUS_ENVIRONMENT" default:"dev"`
-	LogLevel    string `env:"BANTERBUS_LOG_LEVEL" default:"info"`
+	LogLevel    string `env:"BANTERBUS_LOG_LEVEL"   default:"info"`
 }
 
 func LoadConfig(ctx context.Context) (Config, error) {

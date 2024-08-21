@@ -14,11 +14,11 @@
     <div hx-ext="ws" ws-connect="/ws">
       <div>Banter Bus</div>
       <div id="page">
-        <form id="create_room_form" hx-vals='{"event_name": "create_room", "game_name": "fibbing_it"}' ws-send>
+        <form id="create_room_form" hx-vals='{"message_type": "create_room", "game_name": "fibbing_it"}' ws-send>
           <input type="text" name="player_nickname" placeholder="Enter your nickname here ...">
           <button>Create Room</button>
         </form>
-        <form id="join_room_form" hx-vals='{"event_name": "join_room"}' ws-send>
+        <form id="join_room_form" hx-vals='{"message_type": "join_room"}' ws-send>
           <input type="text" name="player_nickname" placeholder="Enter your nickname here ...">
           <input type="text" name="room_code" placeholder="Enter your room code ...">
           <button>Join Room</button>

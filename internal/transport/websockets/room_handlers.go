@@ -1,4 +1,4 @@
-package ws
+package websockets
 
 import (
 	"bytes"
@@ -6,27 +6,36 @@ import (
 	"fmt"
 
 	"gitlab.com/hmajid2301/banterbus/internal/entities"
-	"gitlab.com/hmajid2301/banterbus/internal/views"
+	"gitlab.com/hmajid2301/banterbus/internal/transport/websockets/views"
 )
 
 // TODO: refactor to another package
 type RoomServicer interface {
-	Create(ctx context.Context, gameName string, player entities.CreateRoomPlayer) (entities.Room, error)
-	Join(ctx context.Context, roomCode string, playerID string, playerNickname string) (entities.Room, error)
+	Create(
+		ctx context.Context,
+		gameName string,
+		player entities.NewHostPlayer,
+	) (entities.Room, error)
+	Join(
+		ctx context.Context,
+		roomCode string,
+		playerID string,
+		playerNickname string,
+	) (entities.Room, error)
 }
 
-type CreateRoomEvent struct {
+type CreateRoom struct {
 	GameName       string `json:"game_name"`
 	PlayerNickname string `json:"player_nickname"`
 }
 
-type JoinRoomEvent struct {
+type JoinRoom struct {
 	PlayerNickname string `json:"player_nickname"`
 	RoomCode       string `json:"room_code"`
 }
 
-func (h *CreateRoomEvent) Handle(ctx context.Context, client *client, sub *subscriber) error {
-	newPlayer := entities.CreateRoomPlayer{
+func (h *CreateRoom) Handle(ctx context.Context, client *client, sub *Subscriber) error {
+	newPlayer := entities.NewHostPlayer{
 		ID:       client.playerID,
 		Nickname: h.PlayerNickname,
 	}
@@ -46,7 +55,7 @@ func (h *CreateRoomEvent) Handle(ctx context.Context, client *client, sub *subsc
 	return err
 }
 
-func (h *JoinRoomEvent) Handle(ctx context.Context, client *client, sub *subscriber) error {
+func (h *JoinRoom) Handle(ctx context.Context, client *client, sub *Subscriber) error {
 	room, ok := sub.rooms[h.RoomCode]
 	if !ok {
 		return fmt.Errorf("room with code %s does not exist", h.RoomCode)
@@ -63,7 +72,7 @@ func (h *JoinRoomEvent) Handle(ctx context.Context, client *client, sub *subscri
 }
 
 // TODO: refactor to
-func (s *subscriber) updateClients(ctx context.Context, updatedRoom entities.Room) error {
+func (s *Subscriber) updateClients(ctx context.Context, updatedRoom entities.Room) error {
 	var buf bytes.Buffer
 	clientsInRoom := s.rooms[updatedRoom.Code].clients
 	for _, player := range updatedRoom.Players {

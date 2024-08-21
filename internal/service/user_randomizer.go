@@ -1,4 +1,4 @@
-package random
+package service
 
 import (
 	"fmt"

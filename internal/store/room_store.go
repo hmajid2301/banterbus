@@ -25,14 +25,14 @@ type RoomState int
 
 const (
 	CREATED RoomState = iota
-	STARTED
+	PLAYING
 	PAUSED
 	FINISHED
-	ABOUNDED
+	ABANDONED
 )
 
 func (rs RoomState) String() string {
-	return [...]string{"CREATED", "STARTED", "PAUSED", "FINISHED", "ABANDONED"}[rs]
+	return [...]string{"CREATED", "PLAYING", "PAUSED", "FINISHED", "ABANDONED"}[rs]
 }
 
 func NewStore(db *sql.DB) (Store, error) {
@@ -45,7 +45,11 @@ func NewStore(db *sql.DB) (Store, error) {
 	return store, nil
 }
 
-func (s Store) CreateRoom(ctx context.Context, player entities.NewPlayer, room entities.NewRoom) (roomCode string, err error) {
+func (s Store) CreateRoom(
+	ctx context.Context,
+	player entities.NewPlayer,
+	room entities.NewRoom,
+) (roomCode string, err error) {
 	tx, err := s.db.Begin()
 	if err != nil {
 		return roomCode, err
@@ -53,7 +57,14 @@ func (s Store) CreateRoom(ctx context.Context, player entities.NewPlayer, room e
 
 	defer func() {
 		if err != nil {
-			err = tx.Rollback()
+			rbErr := tx.Rollback()
+			if rbErr != nil {
+				err = fmt.Errorf(
+					"failed to rollback: %w; while handling this error: %w",
+					rbErr,
+					err,
+				)
+			}
 		}
 	}()
 
@@ -68,7 +79,7 @@ func (s Store) CreateRoom(ctx context.Context, player entities.NewPlayer, room e
 			return roomCode, err
 		}
 
-		if room.RoomState == FINISHED.String() || room.RoomState == ABOUNDED.String() {
+		if room.RoomState == FINISHED.String() || room.RoomState == ABANDONED.String() {
 			break
 		}
 	}
@@ -104,7 +115,11 @@ func (s Store) CreateRoom(ctx context.Context, player entities.NewPlayer, room e
 	return roomCode, tx.Commit()
 }
 
-func (s Store) AddPlayerToRoom(ctx context.Context, player entities.NewPlayer, roomCode string) (players []sqlc.GetAllPlayersInRoomRow, err error) {
+func (s Store) AddPlayerToRoom(
+	ctx context.Context,
+	player entities.NewPlayer,
+	roomCode string,
+) (players []sqlc.GetAllPlayersInRoomRow, err error) {
 	tx, err := s.db.Begin()
 	if err != nil {
 		return players, err
@@ -112,7 +127,14 @@ func (s Store) AddPlayerToRoom(ctx context.Context, player entities.NewPlayer, r
 
 	defer func() {
 		if err != nil {
-			err = tx.Rollback()
+			rbErr := tx.Rollback()
+			if rbErr != nil {
+				err = fmt.Errorf(
+					"failed to rollback: %w; while handling this error: %w",
+					rbErr,
+					err,
+				)
+			}
 		}
 	}()
 

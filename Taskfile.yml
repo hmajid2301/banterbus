@@ -43,6 +43,7 @@ tasks:
     desc: Runs the formatter.
     cmds:
       - goimports -local gitlab.com/hmajid2301/banterbus -w .
+      - golines -m 120 .
 
   tests:unit:
     desc: Runs all the unit tests.

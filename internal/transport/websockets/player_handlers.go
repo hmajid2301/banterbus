@@ -1,4 +1,4 @@
-package ws
+package websockets
 
 import (
 	"context"
@@ -11,16 +11,16 @@ type PlayerServicer interface {
 	GenerateNewAvatar(ctx context.Context, playerID string) (entities.Room, error)
 }
 
-type UpdateNicknameEvent struct {
+type UpdateNickname struct {
 	PlayerNickname string `mapstructure:"player_nickname"`
 	PlayerID       string `mapstructure:"player_id"`
 }
 
-type GenerateNewAvatarEvent struct {
+type GenerateNewAvatar struct {
 	PlayerID string `mapstructure:"player_id"`
 }
 
-func (h *UpdateNicknameEvent) Handle(ctx context.Context, client *client, sub *subscriber) error {
+func (h *UpdateNickname) Handle(ctx context.Context, client *client, sub *Subscriber) error {
 	updatedRoom, err := sub.playerServicer.UpdateNickname(ctx, h.PlayerNickname, h.PlayerID)
 	if err != nil {
 		return err
@@ -30,7 +30,11 @@ func (h *UpdateNicknameEvent) Handle(ctx context.Context, client *client, sub *s
 	return err
 }
 
-func (h *GenerateNewAvatarEvent) Handle(ctx context.Context, client *client, sub *subscriber) error {
+func (h *GenerateNewAvatar) Handle(
+	ctx context.Context,
+	client *client,
+	sub *Subscriber,
+) error {
 	updatedRoom, err := sub.playerServicer.GenerateNewAvatar(ctx, h.PlayerID)
 	if err != nil {
 		return err

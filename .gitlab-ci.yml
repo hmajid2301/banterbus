@@ -20,6 +20,12 @@ lint:
   script:
     - nix develop -c task lint
 
+format:
+  extends:
+    - .task
+  script:
+    - nix develop -c task format
+
 tests:unit:
   extends:
     - .task

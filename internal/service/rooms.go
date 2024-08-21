@@ -4,35 +4,52 @@ import (
 	"context"
 
 	"gitlab.com/hmajid2301/banterbus/internal/entities"
-	"gitlab.com/hmajid2301/banterbus/internal/store"
+	sqlc "gitlab.com/hmajid2301/banterbus/internal/store/db"
 )
 
 type RoomService struct {
-	store      store.Store
-	Randomizer UserRandomizer
+	store      Storer
+	randomizer Randomizer
 }
 
-type UserRandomizer interface {
+type Randomizer interface {
 	GetNickname() string
 	GetAvatar() []byte
 }
 
-func NewRoomService(store store.Store, randomizer UserRandomizer) *RoomService {
-	return &RoomService{store: store, Randomizer: randomizer}
+type Storer interface {
+	CreateRoom(
+		ctx context.Context,
+		player entities.NewPlayer,
+		room entities.NewRoom,
+	) (roomCode string, err error)
+	AddPlayerToRoom(
+		ctx context.Context,
+		player entities.NewPlayer,
+		roomCode string,
+	) (players []sqlc.GetAllPlayersInRoomRow, err error)
+	UpdateNickname(
+		ctx context.Context,
+		nickname string,
+		playerID string,
+	) (players []sqlc.GetAllPlayersInRoomRow, err error)
+	UpdateAvatar(
+		ctx context.Context,
+		avatar []byte,
+		playerID string,
+	) (players []sqlc.GetAllPlayersInRoomRow, err error)
 }
 
-func (r *RoomService) Create(ctx context.Context, gameName string, player entities.CreateRoomPlayer) (entities.Room, error) {
-	nickname := player.Nickname
-	if player.Nickname == "" {
-		nickname = r.Randomizer.GetNickname()
-	}
+func NewRoomService(store Storer, randomizer Randomizer) *RoomService {
+	return &RoomService{store: store, randomizer: randomizer}
+}
 
-	avatar := r.Randomizer.GetAvatar()
-	newPlayer := entities.NewPlayer{
-		ID:       player.ID,
-		Nickname: nickname,
-		Avatar:   avatar,
-	}
+func (r *RoomService) Create(
+	ctx context.Context,
+	gameName string,
+	player entities.NewHostPlayer,
+) (entities.Room, error) {
+	newPlayer := r.getNewPlayer(player.Nickname, player.ID)
 
 	newRoom := entities.NewRoom{
 		GameName: gameName,
@@ -47,27 +64,22 @@ func (r *RoomService) Create(ctx context.Context, gameName string, player entiti
 		Players: []entities.Player{
 			{
 				ID:       player.ID,
-				Nickname: nickname,
-				Avatar:   string(avatar),
+				Nickname: newPlayer.Nickname,
+				Avatar:   string(newPlayer.Avatar),
 			},
 		},
 	}
 	return room, nil
 }
 
-func (r *RoomService) Join(ctx context.Context, roomCode string, playerID string, playerNickname string) (entities.Room, error) {
-	nickname := playerNickname
-	if playerNickname == "" {
-		nickname = r.Randomizer.GetNickname()
-	}
-
-	avatar := r.Randomizer.GetAvatar()
-	newPlayer := entities.NewPlayer{
-		ID:       playerID,
-		Nickname: nickname,
-		Avatar:   avatar,
-	}
-
+func (r *RoomService) Join(
+	ctx context.Context,
+	roomCode string,
+	playerID string,
+	playerNickname string,
+) (entities.Room, error) {
+	newPlayer := r.getNewPlayer(playerNickname, playerID)
+	// TODO: nickname exists in room
 	playerRows, err := r.store.AddPlayerToRoom(ctx, newPlayer, roomCode)
 	if err != nil {
 		return entities.Room{}, err
@@ -75,4 +87,19 @@ func (r *RoomService) Join(ctx context.Context, roomCode string, playerID string
 
 	room := getRoom(playerRows, roomCode)
 	return room, nil
+}
+
+func (r *RoomService) getNewPlayer(playerNickname string, playerID string) entities.NewPlayer {
+	nickname := playerNickname
+	if playerNickname == "" {
+		nickname = r.randomizer.GetNickname()
+	}
+
+	avatar := r.randomizer.GetAvatar()
+	newPlayer := entities.NewPlayer{
+		ID:       playerID,
+		Nickname: nickname,
+		Avatar:   avatar,
+	}
+	return newPlayer
 }

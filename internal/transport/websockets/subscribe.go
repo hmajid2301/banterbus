@@ -1,4 +1,4 @@
-package ws
+package websockets
 
 import (
 	"context"
@@ -15,12 +15,12 @@ import (
 	"go.opentelemetry.io/otel"
 )
 
-type subscriber struct {
+type Subscriber struct {
 	rooms          map[string]*room
 	roomServicer   RoomServicer
 	playerServicer PlayerServicer
 	logger         *slog.Logger
-	eventHandlers  map[string]WSHandler
+	handlers       map[string]WSHandler
 }
 
 type message struct {
@@ -28,27 +28,36 @@ type message struct {
 }
 
 type WSHandler interface {
-	Handle(ctx context.Context, client *client, sub *subscriber) error
+	Handle(ctx context.Context, client *client, sub *Subscriber) error
 }
 
-func NewSubscriber(roomServicer RoomServicer, playerServicer PlayerServicer, logger *slog.Logger) *subscriber {
-	s := &subscriber{
+func NewSubscriber(
+	roomServicer RoomServicer,
+	playerServicer PlayerServicer,
+	logger *slog.Logger,
+) *Subscriber {
+	s := &Subscriber{
 		roomServicer:   roomServicer,
 		playerServicer: playerServicer,
 		logger:         logger,
+		rooms:          make(map[string]*room),
 	}
 
-	s.eventHandlers = map[string]WSHandler{
-		"create_room":            &CreateRoomEvent{},
-		"update_player_nickname": &UpdateNicknameEvent{},
-		"generate_new_avatar":    &GenerateNewAvatarEvent{},
-		"join_room":              &JoinRoomEvent{},
+	s.handlers = map[string]WSHandler{
+		"create_room":            &CreateRoom{},
+		"update_player_nickname": &UpdateNickname{},
+		"generate_new_avatar":    &GenerateNewAvatar{},
+		"join_room":              &JoinRoom{},
 	}
 
 	return s
 }
 
-func (s *subscriber) Subscribe(ctx context.Context, r *http.Request, w http.ResponseWriter) (err error) {
+func (s *Subscriber) Subscribe(
+	ctx context.Context,
+	r *http.Request,
+	w http.ResponseWriter,
+) (err error) {
 	connection, _, _, err := ws.UpgradeHTTP(r, w)
 	if err != nil {
 		return err
@@ -82,7 +91,12 @@ func (s *subscriber) Subscribe(ctx context.Context, r *http.Request, w http.Resp
 	}
 }
 
-func (s *subscriber) handleMessage(ctx context.Context, quit <-chan struct{}, connection net.Conn, client *client) {
+func (s *Subscriber) handleMessage(
+	ctx context.Context,
+	quit <-chan struct{},
+	connection net.Conn,
+	client *client,
+) {
 	// TODO: how to handle error?
 	for {
 		select {
@@ -110,10 +124,10 @@ func (s *subscriber) handleMessage(ctx context.Context, quit <-chan struct{}, co
 				return
 			}
 			ctx, span := tracer.Start(ctx, message.MessageType)
-			s.logger.DebugContext(ctx, fmt.Sprintf("handle `%s` event", message.MessageType))
-			handler, ok := s.eventHandlers[message.MessageType]
+			s.logger.DebugContext(ctx, fmt.Sprintf("handle `%s`", message.MessageType))
+			handler, ok := s.handlers[message.MessageType]
 			if !ok {
-				s.logger.Error("handler not found for event", slog.Any("error", err))
+				s.logger.Error("handler not found for message type", slog.Any("error", err))
 				return
 			}
 

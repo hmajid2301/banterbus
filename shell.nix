@@ -39,10 +39,13 @@ in
       air
       golangci-lint
       gotools
+      gotestsum
       go-junit-report
       gocover-cobertura
       go-task
+      go-mockery
       goreleaser
+      golines
       templ
 
       sqlc

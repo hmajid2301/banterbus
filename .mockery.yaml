@@ -1,0 +1,7 @@
+with-expecter: true
+dir: "internal/mocks/{{.PackageName}}"
+packages:
+  gitlab.com/hmajid2301/banterbus/internal/service:
+    interfaces:
+      Storer: {}
+      Randomizer: {}
