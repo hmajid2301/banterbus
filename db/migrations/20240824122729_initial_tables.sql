@@ -1,3 +1,5 @@
+-- +goose Up
+-- +goose StatementBegin
 CREATE TABLE IF NOT EXISTS rooms (
     id TEXT PRIMARY KEY,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -27,3 +29,11 @@ CREATE TABLE IF NOT EXISTS rooms_players (
     FOREIGN KEY (room_id) REFERENCES rooms (id),
     FOREIGN KEY (player_id) REFERENCES players (id)
 );
+-- +goose StatementEnd
+
+-- +goose Down
+-- +goose StatementBegin
+DROP TABLE IF EXISTS rooms;
+DROP TABLE IF EXISTS players;
+DROP TABLE IF EXISTS rooms_players;
+-- +goose StatementEnd

@@ -2,14 +2,16 @@ package main
 
 import (
 	"context"
-	_ "embed"
+	"database/sql"
+	"embed"
 	"fmt"
 	"log/slog"
 	"os"
 	"os/signal"
 
-	// used to connect to sqlite
 	slogotel "github.com/remychantenay/slog-otel"
+	// used to connect to sqlite
+	"github.com/pressly/goose/v3"
 	_ "modernc.org/sqlite"
 
 	"gitlab.com/hmajid2301/banterbus/internal/config"
@@ -19,8 +21,8 @@ import (
 	"gitlab.com/hmajid2301/banterbus/internal/transport/websockets"
 )
 
-//go:embed db/schema.sql
-var ddl string
+//go:embed db/migrations/*.sql
+var fs embed.FS
 
 func main() {
 	var exitCode int
@@ -54,8 +56,10 @@ func mainLogic(ctx context.Context, logger *slog.Logger) error {
 		return fmt.Errorf("failed to get database: %w", err)
 	}
 
-	if _, err := db.ExecContext(ctx, ddl); err != nil {
-		return fmt.Errorf("failed to create database schema: %w", err)
+	logger.Info("Applying migrations")
+	err = runDBMigrations(db)
+	if err != nil {
+		return fmt.Errorf("failed to run migrations: %w", err)
 	}
 
 	myStore, err := store.NewStore(db)
@@ -90,4 +94,17 @@ func gracefulShutdown(logger *slog.Logger) context.Context {
 	}()
 
 	return ctx
+}
+
+func runDBMigrations(db *sql.DB) error {
+	goose.SetBaseFS(fs)
+
+	if err := goose.SetDialect("sqlite3"); err != nil {
+		return err
+	}
+
+	if err := goose.Up(db, "db/migrations"); err != nil {
+		return err
+	}
+	return nil
 }

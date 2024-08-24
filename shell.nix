@@ -33,21 +33,20 @@ in
       gomod2nix
       go_1_22
 
-      tailwindcss
-      docker
-
+      goose
       air
       golangci-lint
       gotools
       gotestsum
-      go-junit-report
       gocover-cobertura
+      go-junit-report
       go-task
       go-mockery
       goreleaser
       golines
-      templ
 
+      tailwindcss
+      templ
       sqlc
     ];
   }
