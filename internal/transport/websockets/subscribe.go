@@ -48,6 +48,7 @@ func NewSubscriber(
 		"update_player_nickname": &UpdateNickname{},
 		"generate_new_avatar":    &GenerateNewAvatar{},
 		"join_room":              &JoinRoom{},
+		"toggle_player_is_ready": &TogglePlayerIsReady{},
 	}
 
 	return s

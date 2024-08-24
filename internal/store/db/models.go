@@ -14,6 +14,7 @@ type Player struct {
 	UpdatedAt sql.NullTime
 	Avatar    []byte
 	Nickname  string
+	IsReady   sql.NullBool
 }
 
 type Room struct {

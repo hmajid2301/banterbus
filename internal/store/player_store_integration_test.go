@@ -137,3 +137,67 @@ func TestIntegrationUpdatePlayer(t *testing.T) {
 		assert.Error(t, err)
 	})
 }
+
+func TestIntegrationToggleIsReady(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping integration test")
+	}
+
+	t.Run("Should toggle player ready state in DB successfully", func(t *testing.T) {
+		db, teardown := setupSubtest(t)
+		defer teardown()
+
+		myStore, err := store.NewStore(db)
+		assert.NoError(t, err)
+
+		ctx := context.Background()
+		newPlayer := entities.NewPlayer{
+			ID:       "fbb75599-9f7a-4392-b523-fd433b3208ea",
+			Nickname: "Majiy00",
+			Avatar:   []byte("1234"),
+		}
+
+		newRoom := entities.NewRoom{
+			GameName: "fibbing_it",
+		}
+
+		_, err = myStore.CreateRoom(ctx, newPlayer, newRoom)
+		assert.NoError(t, err)
+
+		players, err := myStore.ToggleIsReady(ctx, newPlayer.ID)
+		assert.NoError(t, err)
+		assert.True(t, players[0].IsReady.Bool)
+	})
+
+	t.Run("Should fail to toggle is ready state not in CREATED state", func(t *testing.T) {
+		db, teardown := setupSubtest(t)
+		defer teardown()
+
+		myStore, err := store.NewStore(db)
+		assert.NoError(t, err)
+
+		newPlayer := entities.NewPlayer{
+			ID:       "fbb75599-9f7a-4392-b523-fd433b3208ea",
+			Nickname: "Majiy00",
+			Avatar:   []byte(""),
+		}
+
+		newRoom := entities.NewRoom{
+			GameName: "fibbing_it",
+		}
+
+		ctx := context.Background()
+		roomCode, err := myStore.CreateRoom(ctx, newPlayer, newRoom)
+		assert.NoError(t, err)
+
+		_, err = db.ExecContext(
+			ctx,
+			"UPDATE rooms SET room_state = 'PLAYING' WHERE room_code = ?",
+			roomCode,
+		)
+		assert.NoError(t, err)
+
+		_, err = myStore.ToggleIsReady(ctx, newPlayer.ID)
+		assert.Error(t, err)
+	})
+}

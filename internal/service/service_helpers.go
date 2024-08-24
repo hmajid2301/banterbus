@@ -13,6 +13,7 @@ func getRoom(playerRows []sqlc.GetAllPlayersInRoomRow, roomCode string) entities
 			ID:       player.ID,
 			Nickname: player.Nickname,
 			Avatar:   string(player.Avatar),
+			IsReady:  player.IsReady.Bool,
 		}
 
 		players = append(players, p)

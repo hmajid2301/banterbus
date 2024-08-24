@@ -18,24 +18,23 @@ type Randomizer interface {
 }
 
 type Storer interface {
-	CreateRoom(
-		ctx context.Context,
-		player entities.NewPlayer,
-		room entities.NewRoom,
-	) (roomCode string, err error)
+	CreateRoom(ctx context.Context, player entities.NewPlayer, room entities.NewRoom) (roomCode string, err error)
 	AddPlayerToRoom(
 		ctx context.Context,
 		player entities.NewPlayer,
 		roomCode string,
 	) (players []sqlc.GetAllPlayersInRoomRow, err error)
-	UpdateNickname(
-		ctx context.Context,
+	UpdateNickname(ctx context.Context,
 		nickname string,
 		playerID string,
 	) (players []sqlc.GetAllPlayersInRoomRow, err error)
 	UpdateAvatar(
 		ctx context.Context,
 		avatar []byte,
+		playerID string,
+	) (players []sqlc.GetAllPlayersInRoomRow, err error)
+	ToggleIsReady(
+		ctx context.Context,
 		playerID string,
 	) (players []sqlc.GetAllPlayersInRoomRow, err error)
 }

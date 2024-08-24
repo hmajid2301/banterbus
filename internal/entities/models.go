@@ -19,6 +19,7 @@ type Player struct {
 	ID       string
 	Nickname string
 	Avatar   string
+	IsReady  bool
 }
 
 type Room struct {

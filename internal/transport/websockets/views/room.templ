@@ -7,9 +7,8 @@ templ Room(code string, players []entities.Player, currentPlayer entities.Player
 		<div>Code: { code }</div>
 		for _, player := range players {
 			if currentPlayer == player {
-				<form id="update_nickname_form" hx-vals='{"event_name": "update_player_nickname"}' ws-send>
+				<form id="update_nickname_form" hx-vals='{{ printf "{\"event_name\": \"update_player_nickname\", \"player_id\": \"%s\"}" player.ID }}' ws-send>
 					<input name="player_nickname" value={ player.Nickname }/>
-					<input name="player_id" class="hidden" value={ player.ID }/>
 					<button>Update Nickname</button>
 				</form>
 			} else {
@@ -35,6 +34,22 @@ templ Room(code string, players []entities.Player, currentPlayer entities.Player
 						</svg>
 				}
 				<img src={ player.Avatar }/>
+			</div>
+
+			<div class="w-5 h-6">
+            if player.IsReady {
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                </svg>
+            } else {
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                </svg>
+            }
+
+            if currentPlayer == player {
+                <p hx-vals='{"event_name": "toggle_player_is_ready"}'>Toggle Ready</p>
+            }
 			</div>
 		}
 	</div>

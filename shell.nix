@@ -39,7 +39,6 @@ in
       gotools
       gotestsum
       gocover-cobertura
-      go-junit-report
       go-task
       go-mockery
       goreleaser

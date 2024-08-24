@@ -2,6 +2,7 @@ package service_test
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"testing"
 
@@ -12,7 +13,7 @@ import (
 	sqlc "gitlab.com/hmajid2301/banterbus/internal/store/db"
 )
 
-func TestPlayerServiceUpdateNickname(t *testing.T) {
+func TestUpdateNickname(t *testing.T) {
 	t.Run("Should update nickname successfully", func(t *testing.T) {
 		mockStore := mockService.NewMockStorer(t)
 		mockRandom := mockService.NewMockRandomizer(t)
@@ -60,7 +61,7 @@ func TestPlayerServiceUpdateNickname(t *testing.T) {
 	})
 }
 
-func TestPlayerServiceGenerateAvatar(t *testing.T) {
+func TestGenerateAvatar(t *testing.T) {
 	t.Run("Should generate new avatar successfully", func(t *testing.T) {
 		mockStore := mockService.NewMockStorer(t)
 		mockRandom := mockService.NewMockRandomizer(t)
@@ -98,6 +99,46 @@ func TestPlayerServiceGenerateAvatar(t *testing.T) {
 			UpdateAvatar(ctx, []byte("123"), "fbb75599-9f7a-4392-b523-fd433b3208ea").
 			Return([]sqlc.GetAllPlayersInRoomRow{}, fmt.Errorf("failed to generate new avatar"))
 		_, err := service.GenerateNewAvatar(ctx, "fbb75599-9f7a-4392-b523-fd433b3208ea")
+		assert.Error(t, err)
+	})
+}
+
+func TestToggleIsReady(t *testing.T) {
+	t.Run("Should toggle player ready status successfully", func(t *testing.T) {
+		mockStore := mockService.NewMockStorer(t)
+		mockRandom := mockService.NewMockRandomizer(t)
+		service := service.NewPlayerService(mockStore, mockRandom)
+
+		ctx := context.Background()
+		mockStore.EXPECT().
+			ToggleIsReady(ctx, "fbb75599-9f7a-4392-b523-fd433b3208ea").
+			Return([]sqlc.GetAllPlayersInRoomRow{
+				{
+					ID:       "fbb75599-9f7a-4392-b523-fd433b3208ea",
+					Nickname: "Majiy00",
+					Avatar:   []byte("123"),
+					RoomCode: "ABC12",
+					IsReady:  sql.NullBool{Bool: true, Valid: true},
+				},
+			}, nil)
+
+		room, err := service.TogglePlayerIsReady(ctx, "fbb75599-9f7a-4392-b523-fd433b3208ea")
+
+		assert.NoError(t, err)
+		assert.Len(t, room.Players, 1)
+		assert.True(t, room.Players[0].IsReady)
+	})
+
+	t.Run("Should throw error when fail to toggle player ready status in DB", func(t *testing.T) {
+		mockStore := mockService.NewMockStorer(t)
+		mockRandom := mockService.NewMockRandomizer(t)
+		service := service.NewPlayerService(mockStore, mockRandom)
+
+		ctx := context.Background()
+		mockStore.EXPECT().
+			ToggleIsReady(ctx, "fbb75599-9f7a-4392-b523-fd433b3208ea").
+			Return([]sqlc.GetAllPlayersInRoomRow{}, fmt.Errorf("failed to update is ready status"))
+		_, err := service.TogglePlayerIsReady(ctx, "fbb75599-9f7a-4392-b523-fd433b3208ea")
 		assert.Error(t, err)
 	})
 }

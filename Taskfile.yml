@@ -43,28 +43,27 @@ tasks:
     desc: Runs the formatter.
     cmds:
       - goimports -local gitlab.com/hmajid2301/banterbus -w .
-      - golines -m 120 .
+      - golines -m 120 -w .
 
   tests:unit:
     desc: Runs all the unit tests.
     cmds:
-      - go test -v -short ./...
+      - gotestsum --hide-summary=skipped -- -short
 
   tests:integration:
     desc: Runs all the integration tests.
     cmds:
-      - go test -run ^TestIntegration -v ./...
+      - gotestsum  -- -run ^TestIntegration
 
   tests:
     desc: Runs all the tests.
     cmds:
-      - go test -run ./...
+      - gotestsum
 
   coverage:
     desc: Run the integration tests and gets the code coverage
     cmds:
-      - go test -covermode count -coverprofile=coverage.txt -v ./... | tee output.txt
-      - cat output.txt | go-junit-report -set-exit-code > report.xml
+      - gotestsum --junitfile report.xml -- -coverprofile=coverage.txt
       - gocover-cobertura < coverage.txt > coverage.xml
 
   generate:sqlc:

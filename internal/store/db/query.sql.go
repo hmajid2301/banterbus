@@ -11,7 +11,7 @@ import (
 )
 
 const addPlayer = `-- name: AddPlayer :one
-INSERT INTO players (id, avatar, nickname) VALUES (?, ?, ?) RETURNING id, created_at, updated_at, avatar, nickname
+INSERT INTO players (id, avatar, nickname) VALUES (?, ?, ?) RETURNING id, created_at, updated_at, avatar, nickname, is_ready
 `
 
 type AddPlayerParams struct {
@@ -29,6 +29,7 @@ func (q *Queries) AddPlayer(ctx context.Context, arg AddPlayerParams) (Player, e
 		&i.UpdatedAt,
 		&i.Avatar,
 		&i.Nickname,
+		&i.IsReady,
 	)
 	return i, err
 }
@@ -88,7 +89,7 @@ func (q *Queries) AddRoomPlayer(ctx context.Context, arg AddRoomPlayerParams) (R
 }
 
 const getAllPlayersInRoom = `-- name: GetAllPlayersInRoom :many
-SELECT p.id, p.created_at, p.updated_at, p.avatar, p.nickname, r.room_code
+SELECT p.id, p.created_at, p.updated_at, p.avatar, p.nickname, p.is_ready, r.room_code
 FROM players p
 JOIN rooms_players rp ON p.id = rp.player_id
 JOIN rooms r ON rp.room_id = r.id
@@ -105,6 +106,7 @@ type GetAllPlayersInRoomRow struct {
 	UpdatedAt sql.NullTime
 	Avatar    []byte
 	Nickname  string
+	IsReady   sql.NullBool
 	RoomCode  string
 }
 
@@ -123,6 +125,7 @@ func (q *Queries) GetAllPlayersInRoom(ctx context.Context, playerID string) ([]G
 			&i.UpdatedAt,
 			&i.Avatar,
 			&i.Nickname,
+			&i.IsReady,
 			&i.RoomCode,
 		); err != nil {
 			return nil, err
@@ -136,6 +139,24 @@ func (q *Queries) GetAllPlayersInRoom(ctx context.Context, playerID string) ([]G
 		return nil, err
 	}
 	return items, nil
+}
+
+const getPlayerByID = `-- name: GetPlayerByID :one
+SELECT id, created_at, updated_at, avatar, nickname, is_ready FROM players WHERE id = ?
+`
+
+func (q *Queries) GetPlayerByID(ctx context.Context, id string) (Player, error) {
+	row := q.db.QueryRowContext(ctx, getPlayerByID, id)
+	var i Player
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.Avatar,
+		&i.Nickname,
+		&i.IsReady,
+	)
+	return i, err
 }
 
 const getRoomByCode = `-- name: GetRoomByCode :one
@@ -177,7 +198,7 @@ func (q *Queries) GetRoomByPlayerID(ctx context.Context, playerID string) (Room,
 }
 
 const updateAvatar = `-- name: UpdateAvatar :one
-UPDATE players SET avatar = ? WHERE id = ? RETURNING id, created_at, updated_at, avatar, nickname
+UPDATE players SET avatar = ? WHERE id = ? RETURNING id, created_at, updated_at, avatar, nickname, is_ready
 `
 
 type UpdateAvatarParams struct {
@@ -194,12 +215,36 @@ func (q *Queries) UpdateAvatar(ctx context.Context, arg UpdateAvatarParams) (Pla
 		&i.UpdatedAt,
 		&i.Avatar,
 		&i.Nickname,
+		&i.IsReady,
+	)
+	return i, err
+}
+
+const updateIsReady = `-- name: UpdateIsReady :one
+UPDATE players SET is_ready = ? WHERE id = ? RETURNING id, created_at, updated_at, avatar, nickname, is_ready
+`
+
+type UpdateIsReadyParams struct {
+	IsReady sql.NullBool
+	ID      string
+}
+
+func (q *Queries) UpdateIsReady(ctx context.Context, arg UpdateIsReadyParams) (Player, error) {
+	row := q.db.QueryRowContext(ctx, updateIsReady, arg.IsReady, arg.ID)
+	var i Player
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.Avatar,
+		&i.Nickname,
+		&i.IsReady,
 	)
 	return i, err
 }
 
 const updateNickname = `-- name: UpdateNickname :one
-UPDATE players SET nickname = ? WHERE id = ? RETURNING id, created_at, updated_at, avatar, nickname
+UPDATE players SET nickname = ? WHERE id = ? RETURNING id, created_at, updated_at, avatar, nickname, is_ready
 `
 
 type UpdateNicknameParams struct {
@@ -216,6 +261,7 @@ func (q *Queries) UpdateNickname(ctx context.Context, arg UpdateNicknameParams) 
 		&i.UpdatedAt,
 		&i.Avatar,
 		&i.Nickname,
+		&i.IsReady,
 	)
 	return i, err
 }
