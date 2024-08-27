@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"gitlab.com/hmajid2301/banterbus/internal/banterbustest"
 	"gitlab.com/hmajid2301/banterbus/internal/entities"
@@ -15,7 +16,8 @@ import (
 
 func setupSubtest(t *testing.T) (*sql.DB, func()) {
 	ctx := context.Background()
-	db := banterbustest.CreateDB(ctx, t)
+	db, err := banterbustest.CreateDB(ctx)
+	require.NoError(t, err)
 
 	return db, func() {
 		db.Close()

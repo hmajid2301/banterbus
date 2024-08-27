@@ -25,13 +25,19 @@
   };
 in
   pkgs.mkShell {
-    inherit (pre-commit-check) shellHook;
     hardeningDisable = ["all"];
+    shellHook = ''
+      export PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
+      export PLAYWRIGHT_BROWSERS_PATH="${pkgs.playwright-driver.browsers}"
+      ${pre-commit-check.shellHook}
+    '';
+    buildInputs = pre-commit-check.enabledPackages;
     packages = with pkgs; [
       # TODO: workout how to use go env
       # goEnv
       gomod2nix
       go_1_22
+      playwright-test
 
       goose
       air

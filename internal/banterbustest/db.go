@@ -3,32 +3,34 @@ package banterbustest
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"os"
 	"path"
 	"path/filepath"
 	"runtime"
-	"testing"
 
 	"github.com/pressly/goose/v3"
-	"github.com/stretchr/testify/assert"
 
 	// used to connect to sqlite
 	_ "modernc.org/sqlite"
 )
 
-func CreateDB(ctx context.Context, t *testing.T) *sql.DB {
+func CreateDB(ctx context.Context) (*sql.DB, error) {
 	db, err := sql.Open("sqlite", "file::memory:?cache=shared")
-	assert.NoError(t, err)
+	if err != nil {
+		return db, err
+	}
 
-	err = runDBMigrations(t, db)
-	assert.NoError(t, err)
-
-	return db
+	err = runDBMigrations(db)
+	return db, err
 }
 
-func runDBMigrations(t *testing.T, db *sql.DB) error {
+func runDBMigrations(db *sql.DB) error {
 	_, filename, _, ok := runtime.Caller(0)
-	assert.True(t, ok)
+	if !ok {
+		return fmt.Errorf("failed to get current filename")
+	}
+
 	dir := path.Join(path.Dir(filename), "..")
 	migrationFolder := filepath.Join(dir, "../")
 

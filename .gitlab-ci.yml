@@ -59,6 +59,15 @@ test:generate:
     - nix develop -c task generate:sqlc
     - git diff --exit-code
 
+# TODO: fix this
+# test:e2e:
+#   extends:
+#     - .task
+#   variables:
+#     HEADFUL: "true"
+#   script:
+#     - nix develop -c task tests:e2e
+
 # build:binary:
 #   stage: build
 #   only:

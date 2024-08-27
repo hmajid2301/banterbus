@@ -39,11 +39,9 @@
   <script src="https://unpkg.com/htmx-ext-ws@2.0.0/ws.js"></script>
   <script>
     htmx.on("htmx:wsAfterSend", (evt) => {
-        console.log("Messasge before opened", evt);
         document.getElementById('spinner').classList.remove('hidden');
     });
     htmx.on("htmx:wsAfterMessage", (evt) => {
-        console.log("Messasge after ", evt);
         document.getElementById('spinner').classList.add('hidden');
     });
   </script>
