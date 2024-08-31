@@ -142,6 +142,66 @@ func (_c *MockStorer_CreateRoom_Call) RunAndReturn(run func(context.Context, ent
 	return _c
 }
 
+// StartGame provides a mock function with given fields: ctx, roomCode, playerID
+func (_m *MockStorer) StartGame(ctx context.Context, roomCode string, playerID string) ([]sqlc.GetAllPlayersInRoomRow, error) {
+	ret := _m.Called(ctx, roomCode, playerID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for StartGame")
+	}
+
+	var r0 []sqlc.GetAllPlayersInRoomRow
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) ([]sqlc.GetAllPlayersInRoomRow, error)); ok {
+		return rf(ctx, roomCode, playerID)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) []sqlc.GetAllPlayersInRoomRow); ok {
+		r0 = rf(ctx, roomCode, playerID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]sqlc.GetAllPlayersInRoomRow)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
+		r1 = rf(ctx, roomCode, playerID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockStorer_StartGame_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'StartGame'
+type MockStorer_StartGame_Call struct {
+	*mock.Call
+}
+
+// StartGame is a helper method to define mock.On call
+//   - ctx context.Context
+//   - roomCode string
+//   - playerID string
+func (_e *MockStorer_Expecter) StartGame(ctx interface{}, roomCode interface{}, playerID interface{}) *MockStorer_StartGame_Call {
+	return &MockStorer_StartGame_Call{Call: _e.mock.On("StartGame", ctx, roomCode, playerID)}
+}
+
+func (_c *MockStorer_StartGame_Call) Run(run func(ctx context.Context, roomCode string, playerID string)) *MockStorer_StartGame_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string), args[2].(string))
+	})
+	return _c
+}
+
+func (_c *MockStorer_StartGame_Call) Return(players []sqlc.GetAllPlayersInRoomRow, err error) *MockStorer_StartGame_Call {
+	_c.Call.Return(players, err)
+	return _c
+}
+
+func (_c *MockStorer_StartGame_Call) RunAndReturn(run func(context.Context, string, string) ([]sqlc.GetAllPlayersInRoomRow, error)) *MockStorer_StartGame_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ToggleIsReady provides a mock function with given fields: ctx, playerID
 func (_m *MockStorer) ToggleIsReady(ctx context.Context, playerID string) ([]sqlc.GetAllPlayersInRoomRow, error) {
 	ret := _m.Called(ctx, playerID)

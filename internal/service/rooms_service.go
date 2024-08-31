@@ -24,19 +24,14 @@ type Storer interface {
 		player entities.NewPlayer,
 		roomCode string,
 	) (players []sqlc.GetAllPlayersInRoomRow, err error)
-	UpdateNickname(ctx context.Context,
+	UpdateNickname(
+		ctx context.Context,
 		nickname string,
 		playerID string,
 	) (players []sqlc.GetAllPlayersInRoomRow, err error)
-	UpdateAvatar(
-		ctx context.Context,
-		avatar []byte,
-		playerID string,
-	) (players []sqlc.GetAllPlayersInRoomRow, err error)
-	ToggleIsReady(
-		ctx context.Context,
-		playerID string,
-	) (players []sqlc.GetAllPlayersInRoomRow, err error)
+	UpdateAvatar(ctx context.Context, avatar []byte, playerID string) (players []sqlc.GetAllPlayersInRoomRow, err error)
+	ToggleIsReady(ctx context.Context, playerID string) (players []sqlc.GetAllPlayersInRoomRow, err error)
+	StartGame(ctx context.Context, roomCode string, playerID string) (players []sqlc.GetAllPlayersInRoomRow, err error)
 }
 
 func NewRoomService(store Storer, randomizer Randomizer) *RoomService {
@@ -80,6 +75,16 @@ func (r *RoomService) Join(
 	newPlayer := r.getNewPlayer(playerNickname, playerID)
 	// TODO: nickname exists in room
 	playerRows, err := r.store.AddPlayerToRoom(ctx, newPlayer, roomCode)
+	if err != nil {
+		return entities.Room{}, err
+	}
+
+	room := getRoom(playerRows, roomCode)
+	return room, nil
+}
+
+func (r *RoomService) Start(ctx context.Context, roomCode string, playerID string) (entities.Room, error) {
+	playerRows, err := r.store.StartGame(ctx, roomCode, playerID)
 	if err != nil {
 		return entities.Room{}, err
 	}

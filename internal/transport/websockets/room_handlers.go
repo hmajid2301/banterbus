@@ -11,17 +11,9 @@ import (
 
 // TODO: refactor to another package
 type RoomServicer interface {
-	Create(
-		ctx context.Context,
-		gameName string,
-		player entities.NewHostPlayer,
-	) (entities.Room, error)
-	Join(
-		ctx context.Context,
-		roomCode string,
-		playerID string,
-		playerNickname string,
-	) (entities.Room, error)
+	Create(ctx context.Context, gameName string, player entities.NewHostPlayer) (entities.Room, error)
+	Join(ctx context.Context, roomCode string, playerID string, playerNickname string) (entities.Room, error)
+	Start(ctx context.Context, roomCode string, playerID string) (entities.Room, error)
 }
 
 type CreateRoom struct {
@@ -32,6 +24,11 @@ type CreateRoom struct {
 type JoinRoom struct {
 	PlayerNickname string `json:"player_nickname"`
 	RoomCode       string `json:"room_code"`
+}
+
+type StartGame struct {
+	RoomCode string `json:"room_code"`
+	PlayerID string `json:"player_id"`
 }
 
 func (h *CreateRoom) Handle(ctx context.Context, client *client, sub *Subscriber) error {
@@ -69,6 +66,27 @@ func (h *JoinRoom) Handle(ctx context.Context, client *client, sub *Subscriber) 
 
 	err = sub.updateClients(ctx, updatedRoom)
 	return err
+}
+
+func (h *StartGame) Handle(ctx context.Context, client *client, sub *Subscriber) error {
+	updatedRoom, err := sub.roomServicer.Start(ctx, h.RoomCode, client.playerID)
+	if err != nil {
+		return err
+	}
+
+	var buf bytes.Buffer
+	clientsInRoom := sub.rooms[updatedRoom.Code].clients
+	for _, player := range updatedRoom.Players {
+		client := clientsInRoom[player.ID]
+		component := views.Game(updatedRoom.Players, player)
+		err := component.Render(ctx, &buf)
+		if err != nil {
+			return err
+		}
+		client.messages <- buf.Bytes()
+
+	}
+	return nil
 }
 
 // TODO: refactor to

@@ -24,6 +24,9 @@ SELECT r.* FROM rooms r JOIN rooms_players rp ON r.id = rp.room_id WHERE rp.play
 -- name: GetRoomByCode :one
 SELECT * FROM rooms WHERE room_code = ?;
 
+-- name: UpdateRoomState :one
+UPDATE rooms SET room_state = ? WHERE id = ? RETURNING *;
+
 -- name: GetPlayerByID :one
 SELECT * FROM players WHERE id = ?;
 
@@ -35,3 +38,4 @@ UPDATE players SET avatar = ? WHERE id = ? RETURNING *;
 
 -- name: UpdateIsReady :one
 UPDATE players SET is_ready = ? WHERE id = ? RETURNING *;
+

@@ -172,6 +172,63 @@ func (s Store) AddPlayerToRoom(
 	return players, tx.Commit()
 }
 
+func (s Store) StartGame(
+	ctx context.Context,
+	roomCode string,
+	playerID string,
+) (players []sqlc.GetAllPlayersInRoomRow, err error) {
+	tx, err := s.db.Begin()
+	if err != nil {
+		return players, err
+	}
+
+	defer func() {
+		if err != nil {
+			if rbErr := tx.Rollback(); rbErr != nil {
+				err = fmt.Errorf("failed to rollback: %w; while handling this error: %w", rbErr, err)
+			}
+		}
+	}()
+
+	room, err := s.queries.WithTx(tx).GetRoomByCode(ctx, roomCode)
+	if err != nil {
+		return players, err
+	}
+
+	if room.HostPlayer != playerID {
+		return players, fmt.Errorf("player is not the host of the room")
+	}
+
+	if room.RoomState != CREATED.String() {
+		return players, fmt.Errorf("room is not in CREATED state")
+	}
+
+	players, err = s.queries.WithTx(tx).GetAllPlayersInRoom(ctx, playerID)
+	if err != nil {
+		return players, err
+	}
+
+	if len(players) < 2 {
+		return players, fmt.Errorf("not enough players to start the game")
+	}
+
+	for _, player := range players {
+		if !player.IsReady.Bool {
+			return players, fmt.Errorf("not all players are ready: %s", player.ID)
+		}
+	}
+
+	_, err = s.queries.WithTx(tx).UpdateRoomState(ctx, sqlc.UpdateRoomStateParams{
+		RoomState: PLAYING.String(),
+		ID:        room.ID,
+	})
+	if err != nil {
+		return players, err
+	}
+
+	return players, tx.Commit()
+}
+
 func GetDB(dbFolder string) (*sql.DB, error) {
 	if _, err := os.Stat(dbFolder); os.IsNotExist(err) {
 		permissions := 0755

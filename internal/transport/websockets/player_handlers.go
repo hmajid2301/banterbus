@@ -13,16 +13,16 @@ type PlayerServicer interface {
 }
 
 type UpdateNickname struct {
-	PlayerNickname string `mapstructure:"player_nickname"`
-	PlayerID       string `mapstructure:"player_id"`
+	PlayerNickname string `json:"player_nickname"`
+	PlayerID       string `json:"player_id"`
 }
 
 type GenerateNewAvatar struct {
-	PlayerID string `mapstructure:"player_id"`
+	PlayerID string `json:"player_id"`
 }
 
 type TogglePlayerIsReady struct {
-	PlayerID string `mapstructure:"player_id"`
+	PlayerID string `json:"player_id"`
 }
 
 func (h *UpdateNickname) Handle(ctx context.Context, client *client, sub *Subscriber) error {

@@ -217,3 +217,63 @@ func TestRoomServiceJoin(t *testing.T) {
 		assert.Error(t, err)
 	})
 }
+
+func TestRoomServiceStartGame(t *testing.T) {
+	t.Run("Should start game successfully", func(t *testing.T) {
+		mockStore := mockService.NewMockStorer(t)
+		mockRandom := mockService.NewMockRandomizer(t)
+
+		service := service.NewRoomService(mockStore, mockRandom)
+
+		newPlayer := entities.NewHostPlayer{
+			ID: "fbb75599-9f7a-4392-b523-fd433b3208ea",
+		}
+
+		newCreatedPlayer := entities.NewPlayer{
+			ID:       newPlayer.ID,
+			Nickname: "Majiy00",
+		}
+
+		ctx := context.Background()
+
+		mockStore.EXPECT().
+			StartGame(ctx, "ABC12", newPlayer.ID).
+			Return([]sqlc.GetAllPlayersInRoomRow{
+				{
+					ID:       "b75599-9f7a-4392-b523-fd433b3208ea",
+					Nickname: "EmotionalTiger",
+					Avatar:   []byte(""),
+					RoomCode: "ABC12",
+				},
+				{
+					ID:       newCreatedPlayer.ID,
+					Nickname: newCreatedPlayer.Nickname,
+					Avatar:   []byte(""),
+					RoomCode: "ABC12",
+				},
+			}, nil)
+		room, err := service.Start(ctx, "ABC12", newPlayer.ID)
+
+		assert.NoError(t, err)
+		assert.Equal(t, "ABC12", room.Code, "room code should be the one the player tries to join")
+		assert.Len(t, room.Players, 2, "should be two players in the room")
+	})
+
+	t.Run("Should fail to start game", func(t *testing.T) {
+		mockStore := mockService.NewMockStorer(t)
+		mockRandom := mockService.NewMockRandomizer(t)
+
+		service := service.NewRoomService(mockStore, mockRandom)
+
+		newPlayer := entities.NewHostPlayer{
+			ID: "fbb75599-9f7a-4392-b523-fd433b3208ea",
+		}
+
+		ctx := context.Background()
+		mockStore.EXPECT().
+			StartGame(ctx, "ABC12", newPlayer.ID).
+			Return([]sqlc.GetAllPlayersInRoomRow{}, fmt.Errorf("failed to start game"))
+		_, err := service.Start(ctx, "ABC12", newPlayer.ID)
+		assert.Error(t, err)
+	})
+}

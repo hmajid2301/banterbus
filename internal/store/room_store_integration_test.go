@@ -178,3 +178,165 @@ func TestIntegrationAddPlayerToRoom(t *testing.T) {
 		assert.Empty(t, player)
 	})
 }
+
+func TestIntegrationStartGame(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping integration test")
+	}
+
+	t.Run("Should successfully start game", func(t *testing.T) {
+		db, teardown := setupSubtest(t)
+		defer teardown()
+
+		myStore, err := store.NewStore(db)
+		assert.NoError(t, err)
+
+		ctx := context.Background()
+		roomCode, err := createRoom(ctx, myStore)
+		assert.NoError(t, err)
+
+		newPlayer := entities.NewPlayer{
+			ID:       "123",
+			Nickname: "AnotherPlayer",
+			Avatar:   []byte(""),
+		}
+		players, err := myStore.AddPlayerToRoom(ctx, newPlayer, roomCode)
+		assert.NoError(t, err)
+
+		for _, player := range players {
+			_, err = myStore.ToggleIsReady(ctx, player.ID)
+			require.NoError(t, err)
+		}
+
+		// INFO: first player is the host, so only they can start the game
+		players, err = myStore.StartGame(ctx, roomCode, players[0].ID)
+		assert.NoError(t, err)
+		assert.Len(t, players, 2, "There should be 2 players in the room")
+
+		var roomState string
+		err = db.QueryRowContext(ctx, "SELECT room_state FROM rooms WHERE room_code = ?", roomCode).Scan(&roomState)
+		assert.NoError(t, err)
+
+		assert.Equal(t, store.PLAYING.String(), roomState, "Room should be in PLAYING state after starting game")
+		assert.NoError(t, err)
+	})
+
+	t.Run("Should fail to start game, player is not host", func(t *testing.T) {
+		db, teardown := setupSubtest(t)
+		defer teardown()
+
+		myStore, err := store.NewStore(db)
+		assert.NoError(t, err)
+
+		ctx := context.Background()
+		roomCode, err := createRoom(ctx, myStore)
+		assert.NoError(t, err)
+
+		newPlayer := entities.NewPlayer{
+			ID:       "123",
+			Nickname: "AnotherPlayer",
+			Avatar:   []byte(""),
+		}
+		players, err := myStore.AddPlayerToRoom(ctx, newPlayer, roomCode)
+		assert.NoError(t, err)
+
+		for _, player := range players {
+			_, err = myStore.ToggleIsReady(ctx, player.ID)
+			require.NoError(t, err)
+		}
+
+		_, err = myStore.StartGame(ctx, roomCode, players[1].ID)
+		assert.Error(t, err)
+	})
+
+	t.Run("Should fail to start game, game state is not CREATED", func(t *testing.T) {
+		db, teardown := setupSubtest(t)
+		defer teardown()
+
+		myStore, err := store.NewStore(db)
+		assert.NoError(t, err)
+
+		ctx := context.Background()
+		roomCode, err := createRoom(ctx, myStore)
+		assert.NoError(t, err)
+
+		newPlayer := entities.NewPlayer{
+			ID:       "123",
+			Nickname: "AnotherPlayer",
+			Avatar:   []byte(""),
+		}
+		players, err := myStore.AddPlayerToRoom(ctx, newPlayer, roomCode)
+		assert.NoError(t, err)
+
+		for _, player := range players {
+			_, err = myStore.ToggleIsReady(ctx, player.ID)
+			require.NoError(t, err)
+		}
+
+		_, err = db.ExecContext(
+			ctx,
+			"UPDATE rooms SET room_state = 'PLAYING' WHERE room_code = ?",
+			roomCode,
+		)
+		assert.NoError(t, err)
+
+		_, err = myStore.StartGame(ctx, roomCode, players[0].ID)
+		assert.Error(t, err)
+	})
+
+	t.Run("Should fail to start game, not enough players in the game", func(t *testing.T) {
+		db, teardown := setupSubtest(t)
+		defer teardown()
+
+		myStore, err := store.NewStore(db)
+		assert.NoError(t, err)
+
+		ctx := context.Background()
+		roomCode, err := createRoom(ctx, myStore)
+		assert.NoError(t, err)
+
+		var player sqlc.Player
+		query := `
+            SELECT p.id, p.created_at, p.updated_at, p.avatar, p.nickname, p.is_ready
+            FROM players p
+            JOIN rooms_players rp ON p.id = rp.player_id
+            JOIN rooms r ON rp.room_id = r.id
+            WHERE r.room_code = ? LIMIT 1;
+        `
+		err = db.QueryRowContext(ctx, query, roomCode).Scan(
+			&player.ID,
+			&player.CreatedAt,
+			&player.UpdatedAt,
+			&player.Avatar,
+			&player.Nickname,
+			&player.IsReady,
+		)
+		assert.NoError(t, err)
+
+		_, err = myStore.StartGame(ctx, roomCode, player.ID)
+		assert.Error(t, err)
+	})
+
+	t.Run("Should fail to start game, not all players are ready", func(t *testing.T) {
+		db, teardown := setupSubtest(t)
+		defer teardown()
+
+		myStore, err := store.NewStore(db)
+		assert.NoError(t, err)
+
+		ctx := context.Background()
+		roomCode, err := createRoom(ctx, myStore)
+		assert.NoError(t, err)
+
+		newPlayer := entities.NewPlayer{
+			ID:       "123",
+			Nickname: "AnotherPlayer",
+			Avatar:   []byte(""),
+		}
+		players, err := myStore.AddPlayerToRoom(ctx, newPlayer, roomCode)
+		assert.NoError(t, err)
+
+		_, err = myStore.StartGame(ctx, roomCode, players[0].ID)
+		assert.Error(t, err)
+	})
+}

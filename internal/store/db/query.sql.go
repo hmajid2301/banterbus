@@ -265,3 +265,27 @@ func (q *Queries) UpdateNickname(ctx context.Context, arg UpdateNicknameParams) 
 	)
 	return i, err
 }
+
+const updateRoomState = `-- name: UpdateRoomState :one
+UPDATE rooms SET room_state = ? WHERE id = ? RETURNING id, created_at, updated_at, game_name, host_player, room_state, room_code
+`
+
+type UpdateRoomStateParams struct {
+	RoomState string
+	ID        string
+}
+
+func (q *Queries) UpdateRoomState(ctx context.Context, arg UpdateRoomStateParams) (Room, error) {
+	row := q.db.QueryRowContext(ctx, updateRoomState, arg.RoomState, arg.ID)
+	var i Room
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.GameName,
+		&i.HostPlayer,
+		&i.RoomState,
+		&i.RoomCode,
+	)
+	return i, err
+}

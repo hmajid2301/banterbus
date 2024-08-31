@@ -1,0 +1,14 @@
+package views
+
+import "gitlab.com/hmajid2301/banterbus/internal/entities"
+
+templ Game( players []entities.Player, currentPlayer entities.Player) {
+	<div hx-swap-oob="innerHTML:#page">
+		for _, player := range players {
+			<div class="w-5 h-6">
+				<img src={ player.Avatar }/>
+				<p>{player.Nickname}</p>
+			</div>
+		}
+	</div>
+}

@@ -49,6 +49,7 @@ func NewSubscriber(
 		"generate_new_avatar":    &GenerateNewAvatar{},
 		"join_room":              &JoinRoom{},
 		"toggle_player_is_ready": &TogglePlayerIsReady{},
+		"start_game":             &StartGame{},
 	}
 
 	return s
