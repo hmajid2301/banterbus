@@ -2,6 +2,7 @@ package websockets
 
 import (
 	"context"
+	"fmt"
 
 	"gitlab.com/hmajid2301/banterbus/internal/entities"
 )
@@ -28,10 +29,15 @@ type TogglePlayerIsReady struct {
 func (h *UpdateNickname) Handle(ctx context.Context, client *client, sub *Subscriber) error {
 	updatedRoom, err := sub.playerServicer.UpdateNickname(ctx, h.PlayerNickname, h.PlayerID)
 	if err != nil {
-		return err
+		errStr := "failed to update nickname"
+		if err == entities.ErrNicknameExists {
+			errStr = err.Error()
+		}
+		clientErr := sub.updateClientAboutErr(ctx, client, errStr)
+		return fmt.Errorf("%w: %w", err, clientErr)
 	}
 
-	err = sub.updateClients(ctx, updatedRoom)
+	err = sub.updateClientsRoom(ctx, updatedRoom)
 	return err
 }
 
@@ -42,10 +48,12 @@ func (h *GenerateNewAvatar) Handle(
 ) error {
 	updatedRoom, err := sub.playerServicer.GenerateNewAvatar(ctx, h.PlayerID)
 	if err != nil {
-		return err
+		errStr := "failed to generate new avatar"
+		clientErr := sub.updateClientAboutErr(ctx, client, errStr)
+		return fmt.Errorf("%w: %w", err, clientErr)
 	}
 
-	err = sub.updateClients(ctx, updatedRoom)
+	err = sub.updateClientsRoom(ctx, updatedRoom)
 	return err
 }
 
@@ -56,9 +64,11 @@ func (h *TogglePlayerIsReady) Handle(
 ) error {
 	updatedRoom, err := sub.playerServicer.TogglePlayerIsReady(ctx, h.PlayerID)
 	if err != nil {
-		return err
+		errStr := "failed to update ready status"
+		clientErr := sub.updateClientAboutErr(ctx, client, errStr)
+		return fmt.Errorf("%w: %w", err, clientErr)
 	}
 
-	err = sub.updateClients(ctx, updatedRoom)
+	err = sub.updateClientsRoom(ctx, updatedRoom)
 	return err
 }

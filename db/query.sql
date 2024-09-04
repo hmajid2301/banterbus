@@ -18,6 +18,17 @@ WHERE rp.room_id = (
     WHERE rp_inner.player_id = ?
 );
 
+-- name: GetAllPlayerByRoomCode :many
+SELECT p.id, p.created_at, p.updated_at, p.avatar, p.nickname, p.is_ready, r.room_code
+FROM players p
+JOIN rooms_players rp ON p.id = rp.player_id
+JOIN rooms r ON rp.room_id = r.id
+WHERE rp.room_id = (
+    SELECT r_inner.id
+    FROM rooms r_inner
+    WHERE r_inner.room_code = ? AND (r_inner.room_state = "CREATED" OR r_inner.room_state = "PLAYING")
+);
+
 -- name: GetRoomByPlayerID :one
 SELECT r.* FROM rooms r JOIN rooms_players rp ON r.id = rp.room_id WHERE rp.player_id = ?;
 

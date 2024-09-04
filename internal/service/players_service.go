@@ -16,7 +16,6 @@ func NewPlayerService(store Storer, randomizer Randomizer) *PlayerService {
 	return &PlayerService{store: store, randomizer: randomizer}
 }
 
-// TODO: add nickname check exists
 func (p *PlayerService) UpdateNickname(ctx context.Context, nickname string, playerID string) (entities.Room, error) {
 	playerRows, err := p.store.UpdateNickname(ctx, nickname, playerID)
 	if err != nil {

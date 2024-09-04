@@ -41,6 +41,31 @@ func TestIntegrationUpdateNickname(t *testing.T) {
 		assert.NoError(t, err)
 	})
 
+	t.Run("Should fail to update nickname, nickname already exists", func(t *testing.T) {
+		db, teardown := setupSubtest(t)
+		defer teardown()
+
+		myStore, err := store.NewStore(db)
+		assert.NoError(t, err)
+
+		newPlayer := entities.NewPlayer{
+			ID:       "fbb75599-9f7a-4392-b523-fd433b3208ea",
+			Nickname: "Majiy00",
+			Avatar:   []byte(""),
+		}
+
+		newRoom := entities.NewRoom{
+			GameName: "fibbing_it",
+		}
+
+		ctx := context.Background()
+		_, err = myStore.CreateRoom(ctx, newPlayer, newRoom)
+		assert.NoError(t, err)
+
+		_, err = myStore.UpdateNickname(ctx, newPlayer.Nickname, newPlayer.ID)
+		assert.Error(t, err)
+	})
+
 	t.Run("Should fail to update nickname not in CREATED state", func(t *testing.T) {
 		db, teardown := setupSubtest(t)
 		defer teardown()

@@ -73,7 +73,6 @@ func (r *RoomService) Join(
 	playerNickname string,
 ) (entities.Room, error) {
 	newPlayer := r.getNewPlayer(playerNickname, playerID)
-	// TODO: nickname exists in room
 	playerRows, err := r.store.AddPlayerToRoom(ctx, newPlayer, roomCode)
 	if err != nil {
 		return entities.Room{}, err

@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 
+	"gitlab.com/hmajid2301/banterbus/internal/entities"
 	sqlc "gitlab.com/hmajid2301/banterbus/internal/store/db"
 )
 
@@ -87,6 +88,17 @@ func (s Store) UpdateNickname(
 	if room.RoomState != CREATED.String() {
 		return players, fmt.Errorf("room is not in CREATED state")
 
+	}
+
+	playersInRoom, err := s.queries.WithTx(tx).GetAllPlayersInRoom(ctx, playerID)
+	if err != nil {
+		return players, err
+	}
+
+	for _, p := range playersInRoom {
+		if p.Nickname == nickname {
+			return players, entities.ErrNicknameExists
+		}
 	}
 
 	_, err = s.queries.WithTx(tx).UpdateNickname(ctx, sqlc.UpdateNicknameParams{

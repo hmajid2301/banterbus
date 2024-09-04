@@ -147,6 +147,17 @@ func (s Store) AddPlayerToRoom(
 		return players, fmt.Errorf("room is not in CREATED state")
 	}
 
+	playersInRoom, err := s.queries.WithTx(tx).GetAllPlayerByRoomCode(ctx, roomCode)
+	if err != nil {
+		return players, err
+	}
+
+	for _, p := range playersInRoom {
+		if p.Nickname == player.Nickname {
+			return players, entities.ErrNicknameExists
+		}
+	}
+
 	newPlayer, err := s.queries.WithTx(tx).AddPlayer(ctx, sqlc.AddPlayerParams{
 		ID:       player.ID,
 		Avatar:   player.Avatar,

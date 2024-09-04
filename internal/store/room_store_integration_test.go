@@ -150,6 +150,28 @@ func TestIntegrationAddPlayerToRoom(t *testing.T) {
 		assert.NoError(t, err)
 	})
 
+	t.Run("Should fail to join room, nickname already exists", func(t *testing.T) {
+		db, teardown := setupSubtest(t)
+		defer teardown()
+
+		myStore, err := store.NewStore(db)
+		assert.NoError(t, err)
+
+		ctx := context.Background()
+		roomCode, err := createRoom(ctx, myStore)
+		assert.NoError(t, err)
+
+		newPlayer := entities.NewPlayer{
+			ID: "123",
+			//TODO: taken from create room function
+			Nickname: "Majiy00",
+			Avatar:   []byte(""),
+		}
+		player, err := myStore.AddPlayerToRoom(ctx, newPlayer, roomCode)
+		assert.Error(t, err)
+		assert.Empty(t, player)
+	})
+
 	t.Run("Should fail to join room not in CREATED state", func(t *testing.T) {
 		db, teardown := setupSubtest(t)
 		defer teardown()

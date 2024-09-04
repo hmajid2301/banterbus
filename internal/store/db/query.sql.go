@@ -88,6 +88,59 @@ func (q *Queries) AddRoomPlayer(ctx context.Context, arg AddRoomPlayerParams) (R
 	return i, err
 }
 
+const getAllPlayerByRoomCode = `-- name: GetAllPlayerByRoomCode :many
+SELECT p.id, p.created_at, p.updated_at, p.avatar, p.nickname, p.is_ready, r.room_code
+FROM players p
+JOIN rooms_players rp ON p.id = rp.player_id
+JOIN rooms r ON rp.room_id = r.id
+WHERE rp.room_id = (
+    SELECT r_inner.id
+    FROM rooms r_inner
+    WHERE r_inner.room_code = ? AND (r_inner.room_state = "CREATED" OR r_inner.room_state = "PLAYING")
+)
+`
+
+type GetAllPlayerByRoomCodeRow struct {
+	ID        string
+	CreatedAt sql.NullTime
+	UpdatedAt sql.NullTime
+	Avatar    []byte
+	Nickname  string
+	IsReady   sql.NullBool
+	RoomCode  string
+}
+
+func (q *Queries) GetAllPlayerByRoomCode(ctx context.Context, roomCode string) ([]GetAllPlayerByRoomCodeRow, error) {
+	rows, err := q.db.QueryContext(ctx, getAllPlayerByRoomCode, roomCode)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetAllPlayerByRoomCodeRow
+	for rows.Next() {
+		var i GetAllPlayerByRoomCodeRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.Avatar,
+			&i.Nickname,
+			&i.IsReady,
+			&i.RoomCode,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getAllPlayersInRoom = `-- name: GetAllPlayersInRoom :many
 SELECT p.id, p.created_at, p.updated_at, p.avatar, p.nickname, p.is_ready, r.room_code
 FROM players p
