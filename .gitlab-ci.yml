@@ -1,12 +1,19 @@
 image: nixos/nix
 
+workflow:
+  auto_cancel:
+    on_new_commit: interruptible
+
+default:
+  interruptible: true
+
 .task:
   stage: test
   tags: []
   only:
     - merge_request
   before_script:
-    - echo "experimental-features = nix-command flakes" >>/etc/nix/nix.conf
+    - echo "experimental-features = nix-command flakes" > /etc/nix/nix.conf
     - nix develop -c task build:dev
 
 stages:
@@ -59,23 +66,26 @@ test:generate:
     - nix develop -c task generate:sqlc
     - git diff --exit-code
 
-# TODO: fix this
-# test:e2e:
-#   extends:
-#     - .task
-#   variables:
-#     HEADFUL: "true"
-#   script:
-#     - nix develop -c task tests:e2e
+test:e2e:
+  extends:
+    - .task
+  script:
+    - nix develop -c go run github.com/playwright-community/playwright-go/cmd/playwright@latest install --with-deps || true
+    - nix develop -c task tests:e2e
+  allow_failure: true
+  artifacts:
+    when: always
+    paths:
+      - tests/e2e/videos/*
 
-# build:binary:
-#   stage: build
-#   only:
-#     - main
-#   extends:
-#     - .task
-#   script:
-#     - nix build
+build:binary:
+  stage: build
+  only:
+    - main
+  extends:
+    - .task
+  script:
+    - nix build
 
 build:docker:
   stage: build

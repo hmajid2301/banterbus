@@ -45,6 +45,11 @@ tasks:
       - goimports -local gitlab.com/hmajid2301/banterbus -w .
       - golines -m 120 -w .
 
+  tests:
+    desc: Runs all the tests.
+    cmds:
+      - gotestsum
+
   tests:unit:
     desc: Runs all the unit tests.
     cmds:
@@ -55,16 +60,11 @@ tasks:
     cmds:
       - gotestsum  -- -run ^TestIntegration ./internal/...
 
-  tests:
-    desc: Runs all the tests.
-    cmds:
-      - gotestsum
-
   tests:e2e:
     desc: Runs e2e tests with playwright.
     cmds:
-      - playwright --version
-      - gotestsum -- ./tests/e2e/...
+      - gotestsum --format standard-verbose -- ./tests/e2e/...
+      # - gotestsum -- -v ./tests/e2e/...
 
   coverage:
     desc: Run the integration tests and gets the code coverage

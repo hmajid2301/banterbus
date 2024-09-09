@@ -60,11 +60,9 @@ func BeforeAll() *httptest.Server {
 		browserType = pw.WebKit
 	}
 
-	execPath := "/nix/store/7c9hmhxkkqxcvikz6g2zcy1gvkkg8zg3-playwright-browsers-chromium/chromium-1129/chrome-linux/chrome"
 	// launch browser, headless or not depending on HEADFUL env
 	browser, err = browserType.Launch(playwright.BrowserTypeLaunchOptions{
-		Headless:       playwright.Bool(headless),
-		ExecutablePath: &execPath,
+		Headless: playwright.Bool(headless),
 	})
 	if err != nil {
 		log.Fatalf("could not launch: %v", err)
@@ -113,7 +111,10 @@ func newTestServer() (*httptest.Server, error) {
 	userRandomizer := service.NewUserRandomizer()
 	roomServicer := service.NewRoomService(myStore, userRandomizer)
 	playerServicer := service.NewPlayerService(myStore, userRandomizer)
-	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
+	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
+		Level: slog.LevelDebug,
+	}))
+	logger.Info("This is a test")
 
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == "/ws" {
