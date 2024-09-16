@@ -44,7 +44,11 @@
         inherit (gomod2nix.legacyPackages.${system}) mkGoEnv gomod2nix;
         inherit pre-commit-hooks;
       };
-      packages.container = pkgs.callPackage ./container.nix {package = packages.default;};
+      packages.container = pkgs.callPackage ./containers/service.nix {package = packages.default;};
+      packages.container-ci = pkgs.callPackage ./containers/ci.nix {
+        inherit (gomod2nix.legacyPackages.${system}) mkGoEnv gomod2nix;
+        inherit pre-commit-hooks;
+      };
     })
   );
 }

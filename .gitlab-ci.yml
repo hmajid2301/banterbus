@@ -7,31 +7,81 @@ workflow:
 default:
   interruptible: true
 
-.task:
-  stage: test
-  tags: []
-  only:
-    - merge_request
-  before_script:
-    - echo "experimental-features = nix-command flakes" > /etc/nix/nix.conf
-    - nix develop -c task build:dev
+variables:
+  BANTERBUS_CI_IMAGE: $CI_REGISTRY_IMAGE/ci:0.1
 
 stages:
+  - pre
   - test
   - build
   - release
+
+.task:
+  stage: test
+  # TODO: versioning?
+  image:
+    name: $BANTERBUS_CI_IMAGE
+  variables:
+    GOPATH: $CI_PROJECT_DIR/.go
+  cache:
+    paths:
+      - ${GOPATH}/pkg/mod
+    policy: pull
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+  before_script:
+    # - echo "experimental-features = nix-command flakes" > /etc/nix/nix.conf
+    - task build:dev
+
+go-mod-download:
+  extends: .task
+  stage: pre
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      changes:
+        - go.mod
+        - go.sum
+  script:
+    - go mod download
+  cache:
+    policy: pull-push
+
+publish:docker:ci:
+  stage: pre
+  variables:
+    DOCKER_HOST: tcp://docker:2375
+    DOCKER_DRIVER: overlay2
+    DOCKER_TLS_CERTDIR: ""
+    IMAGE_TAG: $CI_REGISTRY_IMAGE/ci
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      changes:
+        - "containers/ci.nix"
+  services:
+    - docker:25-dind
+  script:
+    - echo "experimental-features = nix-command flakes" > /etc/nix/nix.conf
+    - nix-env -iA nixpkgs.docker
+    - nix build .#container-ci
+    - docker load < ./result
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    # TODO: work out how to do versioning to make this pipeline reproducible
+    - docker image tag banterbus-dev:latest $IMAGE_TAG:latest
+    - docker image tag banterbus-dev:latest $IMAGE_TAG:0.1
+    - docker push $CI_REGISTRY_IMAGE/ci:latest
+    - docker push $IMAGE_TAG:0.1
 
 lint:
   extends:
     - .task
   script:
-    - nix develop -c task lint
+    - task lint
 
 format:
   extends:
     - .task
   script:
-    - nix develop -c task format
+    -  task format
 
 tests:unit:
   extends:
@@ -39,18 +89,18 @@ tests:unit:
   variables:
     XDG_DATA_HOME: "/tmp/"
   script:
-    - nix develop -c task tests:unit
+    -  task tests:unit
 
 coverage:
   extends:
     - .task
-  only:
-    - main
-    - merge_request
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
   variables:
     XDG_DATA_HOME: "/tmp/"
   script:
-    - nix develop -c task coverage
+    - task coverage
   coverage: /^coverage:\s(\d+(?:\.\d+)?%)/
   artifacts:
     reports:
@@ -63,13 +113,17 @@ test:generate:
   extends:
     - .task
   script:
-    - nix develop -c task generate:sqlc
+    - task generate:sqlc
     - git diff --exit-code
 
+# TODO: use other image for faster load
 test:e2e:
-  extends:
-    - .task
+  image: nixos/nix
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
   script:
+    - echo "experimental-features = nix-command flakes" > /etc/nix/nix.conf
+    - nix develop -c task build:dev
     - nix develop -c go run github.com/playwright-community/playwright-go/cmd/playwright@latest install --with-deps || true
     - nix develop -c task tests:e2e
   allow_failure: true
@@ -78,19 +132,20 @@ test:e2e:
     paths:
       - tests/e2e/videos/*
 
-build:binary:
-  stage: build
-  only:
-    - main
-  extends:
-    - .task
-  script:
-    - nix build
+# build:binary:
+#   stage: test
+#   image: nixos/nix
+#   rules:
+#     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+#   script:
+#     - echo "experimental-features = nix-command flakes" > /etc/nix/nix.conf
+#     - nix develop -c task build:dev
+#     - nix build
 
-build:docker:
+publish:docker:service:
   stage: build
-  only:
-    - tags
+  rules:
+    - if: $CI_COMMIT_TAG
   needs: []
   extends:
     - .task
@@ -98,18 +153,19 @@ build:docker:
     DOCKER_HOST: tcp://docker:2375
     DOCKER_DRIVER: overlay2
   services:
-    - docker:27.0.3-dind
+    - docker:25.0.6-dind
   script:
+    - task build:dev
     - nix build .#container
-    - nix develop -c task docker:publish
+    - task docker:publish
 
 release:
   stage: release
+  rules:
+    - if: $CI_COMMIT_TAG
   extends:
     - .task
-  only:
-    - tags
   variables:
     GIT_DEPTH: 0
   script:
-    - nix develop -c task release
+    - task release
