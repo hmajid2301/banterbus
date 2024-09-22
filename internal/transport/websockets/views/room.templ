@@ -7,7 +7,7 @@ templ Room(code string, players []entities.Player, currentPlayer entities.Player
 		<div>Code: { code }</div>
 		for _, player := range players {
 			if currentPlayer == player {
-				<form id="update_nickname_form" hx-vals='{"event_name": "update_player_nickname" }' ws-send>
+				<form id="update_nickname_form" hx-vals='{"message_type": "update_player_nickname" }' ws-send>
 					<input name="player_nickname" value={ player.Nickname }/>
 					<input class="hidden" name="player_id" value={ player.ID }/>
 					<button>Update Nickname</button>
@@ -18,23 +18,12 @@ templ Room(code string, players []entities.Player, currentPlayer entities.Player
 
 			<div class="w-5 h-6">
 				if currentPlayer == player {
-						<svg hx-vals='{"event_name": "generate_new_avatar"}'
-                            ws-send
-							xmlns="http://www.w3.org/2000/svg"
-							fill="none"
-							viewBox="0 0 24 24"
-							stroke-width="1.5"
-							stroke="currentColor"
-							class="size-6"
-						>
-							<path
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								d="M19.5 12c0-1.232-.046-2.453-.138-3.662a4.006 4.006 0 0 0-3.7-3.7 48.678 48.678 0 0 0-7.324 0 4.006 4.006 0 0 0-3.7 3.7c-.017.22-.032.441-.046.662M19.5 12l3-3m-3 3-3-3m-12 3c0 1.232.046 2.453.138 3.662a4.006 4.006 0 0 0 3.7 3.7 48.656 48.656 0 0 0 7.324 0 4.006 4.006 0 0 0 3.7-3.7c.017-.22.032-.441.046-.662M4.5 12l3 3m-3-3-3 3"
-							></path>
-						</svg>
+                    <form id="update_avatar_form"  hx-vals='{"message_type": "generate_new_avatar" }' ws-send>
+                        <input class="hidden" name="player_id" value={ player.ID }/>
+                        <button>Update Avatar</button>
+                    </form>
 				}
-				<img src={ player.Avatar }/>
+				<img src={ player.Avatar } alt="avatar" />
 			</div>
 
 			<div class="w-5 h-6">
@@ -49,9 +38,31 @@ templ Room(code string, players []entities.Player, currentPlayer entities.Player
             }
 
             if currentPlayer == player {
-                <p hx-vals='{"event_name": "toggle_player_is_ready"}'>Toggle Ready</p>
+				<form id="toggle_ready_form" hx-vals='{"message_type": "toggle_player_is_ready" }' ws-send>
+					<input class="hidden" name="player_id" value={ player.ID }/>
+					<button>Toggle Ready</button>
+				</form>
+            }
+
+
+            if player.IsHost && allPlayersReady(players) {
+				<form id="start_game_form" hx-vals='{"message_type": "start_game" }' ws-send>
+					<input class="hidden" name="player_id" value={ player.ID }/>
+					<input class="hidden" name="room_code" value={ code }/>
+					<button>Start Game</button>
+				</form>
             }
 			</div>
 		}
 	</div>
+}
+
+
+func allPlayersReady(players []entities.Player) bool {
+	for _, player := range players {
+		if !player.IsReady {
+			return false
+		}
+	}
+	return true
 }

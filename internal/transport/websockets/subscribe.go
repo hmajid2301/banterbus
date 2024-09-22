@@ -8,6 +8,7 @@ import (
 	"log/slog"
 	"net"
 	"net/http"
+	"regexp"
 	"time"
 
 	"github.com/gobwas/ws"
@@ -77,7 +78,10 @@ func (s *Subscriber) Subscribe(
 	for {
 		select {
 		case msg := <-client.messages:
-			s.logger.Debug("sending message", slog.String("message", string(msg)))
+			var imgSrcRegex = regexp.MustCompile(`src="[^"]*"`)
+			cleanedMsg := imgSrcRegex.ReplaceAllString(string(msg), "")
+
+			s.logger.Debug("sending message", slog.String("message", cleanedMsg))
 			err := connection.SetWriteDeadline(time.Now().Add(time.Second * 10))
 			if err != nil {
 				s.logger.Error("failed to set timeout", slog.Any("error", err))

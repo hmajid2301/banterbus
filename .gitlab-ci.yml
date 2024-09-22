@@ -8,7 +8,9 @@ default:
   interruptible: true
 
 variables:
-  BANTERBUS_CI_IMAGE: $CI_REGISTRY_IMAGE/ci:0.1
+  # TODO: versioning?
+  IMAGE_TAG: 0.1
+  BANTERBUS_CI_IMAGE: $CI_REGISTRY_IMAGE/ci:$IMAGE_TAG
 
 stages:
   - pre
@@ -18,7 +20,6 @@ stages:
 
 .task:
   stage: test
-  # TODO: versioning?
   image:
     name: $BANTERBUS_CI_IMAGE
   variables:
@@ -30,7 +31,6 @@ stages:
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
   before_script:
-    # - echo "experimental-features = nix-command flakes" > /etc/nix/nix.conf
     - task build:dev
 
 go-mod-download:
@@ -38,9 +38,10 @@ go-mod-download:
   stage: pre
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-      changes:
-        - go.mod
-        - go.sum
+      # INFO: until cache works with custom runner
+      # changes:
+      #   - go.mod
+      #   - go.sum
   script:
     - go mod download
   cache:
@@ -52,7 +53,7 @@ publish:docker:ci:
     DOCKER_HOST: tcp://docker:2375
     DOCKER_DRIVER: overlay2
     DOCKER_TLS_CERTDIR: ""
-    IMAGE_TAG: $CI_REGISTRY_IMAGE/ci
+    IMAGE: $CI_REGISTRY_IMAGE/ci
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
       changes:
@@ -66,10 +67,16 @@ publish:docker:ci:
     - docker load < ./result
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
     # TODO: work out how to do versioning to make this pipeline reproducible
-    - docker image tag banterbus-dev:latest $IMAGE_TAG:latest
-    - docker image tag banterbus-dev:latest $IMAGE_TAG:0.1
+    # Check if the image tag already exists, until immutable tags are ready
+    - |
+      if docker pull $IMAGE:$IMAGE_TAG; then
+        echo "Image with tag $IMAGE_TAG already exists. Failing the pipeline."
+        exit 1
+      fi
+    - docker image tag banterbus-dev:latest $IMAGE:latest
+    - docker image tag banterbus-dev:latest $IMAGE:$IMAGE_ATG
     - docker push $CI_REGISTRY_IMAGE/ci:latest
-    - docker push $IMAGE_TAG:0.1
+    - docker push $IMAGE:$IMAGE_TAG
 
 lint:
   extends:

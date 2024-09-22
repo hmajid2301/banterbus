@@ -8,7 +8,7 @@ INSERT INTO players (id, avatar, nickname) VALUES (?, ?, ?) RETURNING *;
 INSERT INTO rooms_players (room_id, player_id) VALUES (?, ?) RETURNING *;
 
 -- name: GetAllPlayersInRoom :many
-SELECT p.id, p.created_at, p.updated_at, p.avatar, p.nickname, p.is_ready, r.room_code
+SELECT p.id, p.created_at, p.updated_at, p.avatar, p.nickname, p.is_ready, r.room_code, r.host_player
 FROM players p
 JOIN rooms_players rp ON p.id = rp.player_id
 JOIN rooms r ON rp.room_id = r.id
@@ -19,7 +19,7 @@ WHERE rp.room_id = (
 );
 
 -- name: GetAllPlayerByRoomCode :many
-SELECT p.id, p.created_at, p.updated_at, p.avatar, p.nickname, p.is_ready, r.room_code
+SELECT p.id, p.created_at, p.updated_at, p.avatar, p.nickname, p.is_ready, r.room_code, r.host_player
 FROM players p
 JOIN rooms_players rp ON p.id = rp.player_id
 JOIN rooms r ON rp.room_id = r.id

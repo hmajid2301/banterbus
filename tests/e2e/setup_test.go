@@ -18,26 +18,20 @@ import (
 )
 
 var (
-	pw      *playwright.Playwright
-	browser playwright.Browser
-	//  TODO: set this vars
-	// browsercontext playwright.BrowserContext
-	// page           playwright.Page
-	expect        playwright.PlaywrightAssertions
-	headless      = os.Getenv("HEADFUL") == ""
-	isChromium    bool
-	isFirefox     bool
-	isWebKit      bool
-	browserName   = getBrowserName()
-	browserType   playwright.BrowserType
-	serverAddress string
+	pw              *playwright.Playwright
+	browser         playwright.Browser
+	browserContexts []playwright.BrowserContext
+	pages           []playwright.Page
+	expect          playwright.PlaywrightAssertions
+	headless        = os.Getenv("HEADFUL") == ""
+	isChromium      bool
+	isFirefox       bool
+	isWebKit        bool
+	browserName     = getBrowserName()
+	browserType     playwright.BrowserType
+	serverAddress   string
+	testUserNum     = 2
 )
-
-// default context options for most tests
-var DEFAULT_CONTEXT_OPTIONS = playwright.BrowserNewContextOptions{
-	AcceptDownloads: playwright.Bool(true),
-	HasTouch:        playwright.Bool(true),
-}
 
 func TestMain(m *testing.M) {
 	server := BeforeAll()
@@ -77,12 +71,17 @@ func BeforeAll() *httptest.Server {
 	if err != nil {
 		log.Fatalf("could not start server: %v", err)
 	}
+
+	ResetBrowserContexts()
 	return server
 }
 
 // AfterAll does cleanup, e.g. stop playwright driver
 func AfterAll(server *httptest.Server) {
 	server.Close()
+	for i := 0; i < testUserNum; i++ {
+		browserContexts[i].Close()
+	}
 	if err := pw.Stop(); err != nil {
 		log.Fatalf("could not start Playwright: %v", err)
 	}
@@ -115,10 +114,10 @@ func newTestServer() (*httptest.Server, error) {
 		Level: slog.LevelDebug,
 	}))
 	logger.Info("This is a test")
+	subscriber := websockets.NewSubscriber(roomServicer, playerServicer, logger)
 
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == "/ws" {
-			subscriber := websockets.NewSubscriber(roomServicer, playerServicer, logger)
 			_ = subscriber.Subscribe(context.Background(), r, w)
 		} else if r.URL.Path == "/" {
 			http.ServeFile(w, r, "../../static")
@@ -131,4 +130,32 @@ func newTestServer() (*httptest.Server, error) {
 	serverAddress = server.Listener.Addr().String()
 	return server, nil
 
+}
+
+func ResetBrowserContexts() {
+	var err error
+	browserContexts = make([]playwright.BrowserContext, testUserNum)
+	pages = make([]playwright.Page, testUserNum)
+
+	for i := 0; i < testUserNum; i++ {
+		browserContexts[i], err = browser.NewContext(playwright.BrowserNewContextOptions{
+			RecordVideo: &playwright.RecordVideo{
+				Dir: "videos/",
+			},
+		})
+		if err != nil {
+			log.Fatalf("could not create a new browser context: %v", err)
+		}
+		page, err := browserContexts[i].NewPage()
+		if err != nil {
+			log.Fatalf("could not create page: %v", err)
+		}
+
+		_, err = page.Goto(serverAddress)
+		if err != nil {
+			log.Fatalf("could not go to page: %v", err)
+		}
+
+		pages[i] = page
+	}
 }

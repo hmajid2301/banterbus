@@ -20,6 +20,7 @@ type Player struct {
 	Nickname string
 	Avatar   string
 	IsReady  bool
+	IsHost   bool
 }
 
 type Room struct {

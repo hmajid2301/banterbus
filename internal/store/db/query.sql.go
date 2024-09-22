@@ -89,7 +89,7 @@ func (q *Queries) AddRoomPlayer(ctx context.Context, arg AddRoomPlayerParams) (R
 }
 
 const getAllPlayerByRoomCode = `-- name: GetAllPlayerByRoomCode :many
-SELECT p.id, p.created_at, p.updated_at, p.avatar, p.nickname, p.is_ready, r.room_code
+SELECT p.id, p.created_at, p.updated_at, p.avatar, p.nickname, p.is_ready, r.room_code, r.host_player
 FROM players p
 JOIN rooms_players rp ON p.id = rp.player_id
 JOIN rooms r ON rp.room_id = r.id
@@ -101,13 +101,14 @@ WHERE rp.room_id = (
 `
 
 type GetAllPlayerByRoomCodeRow struct {
-	ID        string
-	CreatedAt sql.NullTime
-	UpdatedAt sql.NullTime
-	Avatar    []byte
-	Nickname  string
-	IsReady   sql.NullBool
-	RoomCode  string
+	ID         string
+	CreatedAt  sql.NullTime
+	UpdatedAt  sql.NullTime
+	Avatar     []byte
+	Nickname   string
+	IsReady    sql.NullBool
+	RoomCode   string
+	HostPlayer string
 }
 
 func (q *Queries) GetAllPlayerByRoomCode(ctx context.Context, roomCode string) ([]GetAllPlayerByRoomCodeRow, error) {
@@ -127,6 +128,7 @@ func (q *Queries) GetAllPlayerByRoomCode(ctx context.Context, roomCode string) (
 			&i.Nickname,
 			&i.IsReady,
 			&i.RoomCode,
+			&i.HostPlayer,
 		); err != nil {
 			return nil, err
 		}
@@ -142,7 +144,7 @@ func (q *Queries) GetAllPlayerByRoomCode(ctx context.Context, roomCode string) (
 }
 
 const getAllPlayersInRoom = `-- name: GetAllPlayersInRoom :many
-SELECT p.id, p.created_at, p.updated_at, p.avatar, p.nickname, p.is_ready, r.room_code
+SELECT p.id, p.created_at, p.updated_at, p.avatar, p.nickname, p.is_ready, r.room_code, r.host_player
 FROM players p
 JOIN rooms_players rp ON p.id = rp.player_id
 JOIN rooms r ON rp.room_id = r.id
@@ -154,13 +156,14 @@ WHERE rp.room_id = (
 `
 
 type GetAllPlayersInRoomRow struct {
-	ID        string
-	CreatedAt sql.NullTime
-	UpdatedAt sql.NullTime
-	Avatar    []byte
-	Nickname  string
-	IsReady   sql.NullBool
-	RoomCode  string
+	ID         string
+	CreatedAt  sql.NullTime
+	UpdatedAt  sql.NullTime
+	Avatar     []byte
+	Nickname   string
+	IsReady    sql.NullBool
+	RoomCode   string
+	HostPlayer string
 }
 
 func (q *Queries) GetAllPlayersInRoom(ctx context.Context, playerID string) ([]GetAllPlayersInRoomRow, error) {
@@ -180,6 +183,7 @@ func (q *Queries) GetAllPlayersInRoom(ctx context.Context, playerID string) ([]G
 			&i.Nickname,
 			&i.IsReady,
 			&i.RoomCode,
+			&i.HostPlayer,
 		); err != nil {
 			return nil, err
 		}

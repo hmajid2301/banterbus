@@ -4,9 +4,10 @@ import "gitlab.com/hmajid2301/banterbus/internal/entities"
 
 templ Game( players []entities.Player, currentPlayer entities.Player) {
 	<div hx-swap-oob="innerHTML:#page">
+        <p>Fibbing It Starting ...</p>
 		for _, player := range players {
 			<div class="w-5 h-6">
-				<img src={ player.Avatar }/>
+				<img src={ player.Avatar } alt="avatar"/>
 				<p>{player.Nickname}</p>
 			</div>
 		}

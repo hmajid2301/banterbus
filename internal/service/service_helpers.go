@@ -9,11 +9,17 @@ import (
 func getRoom(playerRows []sqlc.GetAllPlayersInRoomRow, roomCode string) entities.Room {
 	var players []entities.Player
 	for _, player := range playerRows {
+		isHost := false
+		if player.ID == player.HostPlayer {
+			isHost = true
+		}
+
 		p := entities.Player{
 			ID:       player.ID,
 			Nickname: player.Nickname,
 			Avatar:   string(player.Avatar),
 			IsReady:  player.IsReady.Bool,
+			IsHost:   isHost,
 		}
 
 		players = append(players, p)

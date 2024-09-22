@@ -9,10 +9,10 @@ import (
 	"os"
 	"os/signal"
 
-	// used to connect to sqlite
-
 	"github.com/pressly/goose/v3"
 	slogotel "github.com/remychantenay/slog-otel"
+
+	// used to connect to sqlite
 	_ "modernc.org/sqlite"
 
 	"gitlab.com/hmajid2301/banterbus/internal/config"
