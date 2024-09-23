@@ -13,21 +13,8 @@ type PlayerServicer interface {
 	TogglePlayerIsReady(ctx context.Context, playerID string) (entities.Room, error)
 }
 
-type UpdateNickname struct {
-	PlayerNickname string `json:"player_nickname"`
-	PlayerID       string `json:"player_id"`
-}
-
-type GenerateNewAvatar struct {
-	PlayerID string `json:"player_id"`
-}
-
-type TogglePlayerIsReady struct {
-	PlayerID string `json:"player_id"`
-}
-
 func (h *UpdateNickname) Handle(ctx context.Context, client *client, sub *Subscriber) error {
-	updatedRoom, err := sub.playerServicer.UpdateNickname(ctx, h.PlayerNickname, h.PlayerID)
+	updatedRoom, err := sub.playerService.UpdateNickname(ctx, h.PlayerNickname, h.PlayerID)
 	if err != nil {
 		errStr := "failed to update nickname"
 		if err == entities.ErrNicknameExists {
@@ -46,7 +33,7 @@ func (h *GenerateNewAvatar) Handle(
 	client *client,
 	sub *Subscriber,
 ) error {
-	updatedRoom, err := sub.playerServicer.GenerateNewAvatar(ctx, h.PlayerID)
+	updatedRoom, err := sub.playerService.GenerateNewAvatar(ctx, h.PlayerID)
 	if err != nil {
 		errStr := "failed to generate new avatar"
 		clientErr := sub.updateClientAboutErr(ctx, client, errStr)
@@ -62,7 +49,7 @@ func (h *TogglePlayerIsReady) Handle(
 	client *client,
 	sub *Subscriber,
 ) error {
-	updatedRoom, err := sub.playerServicer.TogglePlayerIsReady(ctx, h.PlayerID)
+	updatedRoom, err := sub.playerService.TogglePlayerIsReady(ctx, h.PlayerID)
 	if err != nil {
 		errStr := "failed to update ready status"
 		clientErr := sub.updateClientAboutErr(ctx, client, errStr)

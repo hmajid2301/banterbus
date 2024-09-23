@@ -18,7 +18,7 @@ func TestRoomServiceCreate(t *testing.T) {
 		mockStore := mockService.NewMockStorer(t)
 		mockRandom := mockService.NewMockRandomizer(t)
 
-		service := service.NewRoomService(mockStore, mockRandom)
+		service := service.NewLobbyService(mockStore, mockRandom)
 
 		newPlayer := entities.NewHostPlayer{
 			ID: "fbb75599-9f7a-4392-b523-fd433b3208ea",
@@ -48,7 +48,7 @@ func TestRoomServiceCreate(t *testing.T) {
 		mockStore := mockService.NewMockStorer(t)
 		mockRandom := mockService.NewMockRandomizer(t)
 
-		service := service.NewRoomService(mockStore, mockRandom)
+		service := service.NewLobbyService(mockStore, mockRandom)
 
 		newPlayer := entities.NewHostPlayer{
 			ID:       "fbb75599-9f7a-4392-b523-fd433b3208ea",
@@ -77,7 +77,7 @@ func TestRoomServiceCreate(t *testing.T) {
 		mockStore := mockService.NewMockStorer(t)
 		mockRandom := mockService.NewMockRandomizer(t)
 
-		service := service.NewRoomService(mockStore, mockRandom)
+		service := service.NewLobbyService(mockStore, mockRandom)
 
 		newPlayer := entities.NewHostPlayer{
 			ID:       "fbb75599-9f7a-4392-b523-fd433b3208ea",
@@ -106,7 +106,7 @@ func TestRoomServiceJoin(t *testing.T) {
 		mockStore := mockService.NewMockStorer(t)
 		mockRandom := mockService.NewMockRandomizer(t)
 
-		service := service.NewRoomService(mockStore, mockRandom)
+		service := service.NewLobbyService(mockStore, mockRandom)
 
 		newPlayer := entities.NewHostPlayer{
 			ID: "fbb75599-9f7a-4392-b523-fd433b3208ea",
@@ -153,7 +153,7 @@ func TestRoomServiceJoin(t *testing.T) {
 		mockStore := mockService.NewMockStorer(t)
 		mockRandom := mockService.NewMockRandomizer(t)
 
-		service := service.NewRoomService(mockStore, mockRandom)
+		service := service.NewLobbyService(mockStore, mockRandom)
 
 		newPlayer := entities.NewHostPlayer{
 			ID:       "fbb75599-9f7a-4392-b523-fd433b3208ea",
@@ -200,7 +200,7 @@ func TestRoomServiceJoin(t *testing.T) {
 		mockStore := mockService.NewMockStorer(t)
 		mockRandom := mockService.NewMockRandomizer(t)
 
-		service := service.NewRoomService(mockStore, mockRandom)
+		service := service.NewLobbyService(mockStore, mockRandom)
 		newCreatedPlayer := entities.NewPlayer{
 			ID:       "fbb75599-9f7a-4392-b523-fd433b3208ea",
 			Nickname: "Majiy01",
@@ -223,7 +223,7 @@ func TestRoomServiceStartGame(t *testing.T) {
 		mockStore := mockService.NewMockStorer(t)
 		mockRandom := mockService.NewMockRandomizer(t)
 
-		service := service.NewRoomService(mockStore, mockRandom)
+		service := service.NewLobbyService(mockStore, mockRandom)
 
 		newPlayer := entities.NewHostPlayer{
 			ID: "fbb75599-9f7a-4392-b523-fd433b3208ea",
@@ -263,7 +263,7 @@ func TestRoomServiceStartGame(t *testing.T) {
 		mockStore := mockService.NewMockStorer(t)
 		mockRandom := mockService.NewMockRandomizer(t)
 
-		service := service.NewRoomService(mockStore, mockRandom)
+		service := service.NewLobbyService(mockStore, mockRandom)
 
 		newPlayer := entities.NewHostPlayer{
 			ID: "fbb75599-9f7a-4392-b523-fd433b3208ea",

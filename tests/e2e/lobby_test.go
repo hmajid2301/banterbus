@@ -10,7 +10,6 @@ import (
 )
 
 func TestE2ELobby(t *testing.T) {
-
 	t.Run("Should not be able to join game that doesn't exist", func(t *testing.T) {
 		t.Cleanup(ResetBrowserContexts)
 		hostPlayerPage := pages[0]
@@ -18,11 +17,12 @@ func TestE2ELobby(t *testing.T) {
 
 		err := hostPlayerPage.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Create Room"}).Click()
 		require.NoError(t, err)
-
 		err = otherPlayerPage.Locator("#join_room_form").GetByPlaceholder("Enter your room code").Fill("FAKE_CODE")
 		require.NoError(t, err)
-
 		err = otherPlayerPage.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Join Room"}).Click()
+		require.NoError(t, err)
+
+		err = expect.Locator(otherPlayerPage.Locator("text=Room with code FAKE_CODE does not exist")).ToBeVisible()
 		require.NoError(t, err)
 	})
 

@@ -108,7 +108,7 @@ func newTestServer() (*httptest.Server, error) {
 	}
 
 	userRandomizer := service.NewUserRandomizer()
-	roomServicer := service.NewRoomService(myStore, userRandomizer)
+	roomServicer := service.NewLobbyService(myStore, userRandomizer)
 	playerServicer := service.NewPlayerService(myStore, userRandomizer)
 	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
 		Level: slog.LevelDebug,

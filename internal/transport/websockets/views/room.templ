@@ -15,48 +15,64 @@ templ Room(code string, players []entities.Player, currentPlayer entities.Player
 			} else {
 				<p>{ player.Nickname }</p>
 			}
-
 			<div class="w-5 h-6">
 				if currentPlayer == player {
-                    <form id="update_avatar_form"  hx-vals='{"message_type": "generate_new_avatar" }' ws-send>
-                        <input class="hidden" name="player_id" value={ player.ID }/>
-                        <button>Update Avatar</button>
-                    </form>
+					<form id="update_avatar_form" hx-vals='{"message_type": "generate_new_avatar" }' ws-send>
+						<input class="hidden" name="player_id" value={ player.ID }/>
+						<button>Update Avatar</button>
+					</form>
 				}
-				<img src={ player.Avatar } alt="avatar" />
+				<img src={ player.Avatar } alt="avatar"/>
 			</div>
-
 			<div class="w-5 h-6">
-            if player.IsReady {
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-                </svg>
-            } else {
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-                </svg>
-            }
-
-            if currentPlayer == player {
-				<form id="toggle_ready_form" hx-vals='{"message_type": "toggle_player_is_ready" }' ws-send>
-					<input class="hidden" name="player_id" value={ player.ID }/>
-					<button>Toggle Ready</button>
-				</form>
-            }
-
-
-            if player.IsHost && allPlayersReady(players) {
-				<form id="start_game_form" hx-vals='{"message_type": "start_game" }' ws-send>
-					<input class="hidden" name="player_id" value={ player.ID }/>
-					<input class="hidden" name="room_code" value={ code }/>
-					<button>Start Game</button>
-				</form>
-            }
+				if player.IsReady {
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						fill="none"
+						viewBox="0 0 24 24"
+						stroke-width="1.5"
+						stroke="currentColor"
+						class="size-6"
+					>
+						<path
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
+						></path>
+					</svg>
+				} else {
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						fill="none"
+						viewBox="0 0 24 24"
+						stroke-width="1.5"
+						stroke="currentColor"
+						class="size-6"
+					>
+						<path
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
+						></path>
+					</svg>
+				}
+				if currentPlayer == player {
+					<form id="toggle_ready_form" hx-vals='{"message_type": "toggle_player_is_ready" }' ws-send>
+						<input class="hidden" name="player_id" value={ player.ID }/>
+						<button>Toggle Ready</button>
+					</form>
+				}
+				if player.IsHost && allPlayersReady(players) {
+					<form id="start_game_form" hx-vals='{"message_type": "start_game" }' ws-send>
+						<input class="hidden" name="player_id" value={ player.ID }/>
+						<input class="hidden" name="room_code" value={ code }/>
+						<button>Start Game</button>
+					</form>
+				}
 			</div>
 		}
 	</div>
 }
-
 
 func allPlayersReady(players []entities.Player) bool {
 	for _, player := range players {

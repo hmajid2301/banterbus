@@ -4,6 +4,7 @@ go 1.22
 
 require (
 	github.com/a-h/templ v0.2.747
+	github.com/fatih/color v1.17.0
 	github.com/flexstack/uuid v1.0.0
 	github.com/gobwas/ws v1.4.0
 	github.com/gomig/avatar v1.0.2
@@ -32,6 +33,7 @@ require (
 	github.com/gomig/utils v1.0.0 // indirect
 	github.com/hashicorp/golang-lru/v2 v2.0.7 // indirect
 	github.com/kr/text v0.2.0 // indirect
+	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mfridman/interpolate v0.0.2 // indirect
 	github.com/mitchellh/go-homedir v1.1.0 // indirect

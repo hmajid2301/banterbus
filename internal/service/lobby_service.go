@@ -7,7 +7,7 @@ import (
 	sqlc "gitlab.com/hmajid2301/banterbus/internal/store/db"
 )
 
-type RoomService struct {
+type LobbyService struct {
 	store      Storer
 	randomizer Randomizer
 }
@@ -34,11 +34,11 @@ type Storer interface {
 	StartGame(ctx context.Context, roomCode string, playerID string) (players []sqlc.GetAllPlayersInRoomRow, err error)
 }
 
-func NewRoomService(store Storer, randomizer Randomizer) *RoomService {
-	return &RoomService{store: store, randomizer: randomizer}
+func NewLobbyService(store Storer, randomizer Randomizer) *LobbyService {
+	return &LobbyService{store: store, randomizer: randomizer}
 }
 
-func (r *RoomService) Create(
+func (r *LobbyService) Create(
 	ctx context.Context,
 	gameName string,
 	player entities.NewHostPlayer,
@@ -66,7 +66,7 @@ func (r *RoomService) Create(
 	return room, nil
 }
 
-func (r *RoomService) Join(
+func (r *LobbyService) Join(
 	ctx context.Context,
 	roomCode string,
 	playerID string,
@@ -82,7 +82,7 @@ func (r *RoomService) Join(
 	return room, nil
 }
 
-func (r *RoomService) Start(ctx context.Context, roomCode string, playerID string) (entities.Room, error) {
+func (r *LobbyService) Start(ctx context.Context, roomCode string, playerID string) (entities.Room, error) {
 	playerRows, err := r.store.StartGame(ctx, roomCode, playerID)
 	if err != nil {
 		return entities.Room{}, err
@@ -92,7 +92,7 @@ func (r *RoomService) Start(ctx context.Context, roomCode string, playerID strin
 	return room, nil
 }
 
-func (r *RoomService) getNewPlayer(playerNickname string, playerID string) entities.NewPlayer {
+func (r *LobbyService) getNewPlayer(playerNickname string, playerID string) entities.NewPlayer {
 	nickname := playerNickname
 	if playerNickname == "" {
 		nickname = r.randomizer.GetNickname()

@@ -1,6 +1,7 @@
 package websockets
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -8,20 +9,22 @@ import (
 	"log/slog"
 	"net"
 	"net/http"
-	"regexp"
 	"time"
 
 	"github.com/gobwas/ws"
 	"github.com/gobwas/ws/wsutil"
 	"go.opentelemetry.io/otel"
+
+	"gitlab.com/hmajid2301/banterbus/internal/entities"
+	"gitlab.com/hmajid2301/banterbus/internal/transport/websockets/views"
 )
 
 type Subscriber struct {
-	rooms          map[string]*room
-	roomServicer   RoomServicer
-	playerServicer PlayerServicer
-	logger         *slog.Logger
-	handlers       map[string]WSHandler
+	rooms         map[string]*room
+	lobbyService  LobbyServicer
+	playerService PlayerServicer
+	logger        *slog.Logger
+	handlers      map[string]WSHandler
 }
 
 type message struct {
@@ -30,25 +33,22 @@ type message struct {
 
 type WSHandler interface {
 	Handle(ctx context.Context, client *client, sub *Subscriber) error
+	Validate() error
 }
 
-func NewSubscriber(
-	roomServicer RoomServicer,
-	playerServicer PlayerServicer,
-	logger *slog.Logger,
-) *Subscriber {
+func NewSubscriber(lobbyService LobbyServicer, playerService PlayerServicer, logger *slog.Logger) *Subscriber {
 	s := &Subscriber{
-		roomServicer:   roomServicer,
-		playerServicer: playerServicer,
-		logger:         logger,
-		rooms:          make(map[string]*room),
+		lobbyService:  lobbyService,
+		playerService: playerService,
+		logger:        logger,
+		rooms:         make(map[string]*room),
 	}
 
 	s.handlers = map[string]WSHandler{
 		"create_room":            &CreateRoom{},
 		"update_player_nickname": &UpdateNickname{},
 		"generate_new_avatar":    &GenerateNewAvatar{},
-		"join_room":              &JoinRoom{},
+		"join_lobby":             &JoinLobby{},
 		"toggle_player_is_ready": &TogglePlayerIsReady{},
 		"start_game":             &StartGame{},
 	}
@@ -56,11 +56,7 @@ func NewSubscriber(
 	return s
 }
 
-func (s *Subscriber) Subscribe(
-	ctx context.Context,
-	r *http.Request,
-	w http.ResponseWriter,
-) (err error) {
+func (s *Subscriber) Subscribe(ctx context.Context, r *http.Request, w http.ResponseWriter) (err error) {
 	connection, _, _, err := ws.UpgradeHTTP(r, w)
 	if err != nil {
 		return err
@@ -78,10 +74,7 @@ func (s *Subscriber) Subscribe(
 	for {
 		select {
 		case msg := <-client.messages:
-			var imgSrcRegex = regexp.MustCompile(`src="[^"]*"`)
-			cleanedMsg := imgSrcRegex.ReplaceAllString(string(msg), "")
-
-			s.logger.Debug("sending message", slog.String("message", cleanedMsg))
+			s.logger.Debug("sending message", slog.String("message", string(msg)))
 			err := connection.SetWriteDeadline(time.Now().Add(time.Second * 10))
 			if err != nil {
 				s.logger.Error("failed to set timeout", slog.Any("error", err))
@@ -97,12 +90,7 @@ func (s *Subscriber) Subscribe(
 	}
 }
 
-func (s *Subscriber) handleMessage(
-	ctx context.Context,
-	quit <-chan struct{},
-	connection net.Conn,
-	client *client,
-) {
+func (s *Subscriber) handleMessage(ctx context.Context, quit <-chan struct{}, connection net.Conn, client *client) {
 	// TODO: how to handle error?
 	for {
 		select {
@@ -144,6 +132,12 @@ func (s *Subscriber) handleMessage(
 				return
 			}
 
+			err = handler.Validate()
+			if err != nil {
+				s.logger.Error("error validating handler message", slog.Any("error", err))
+				return
+			}
+
 			err = handler.Handle(ctx, client, s)
 			if err != nil {
 				s.logger.Error("error in handler function", slog.Any("error", err))
@@ -152,4 +146,49 @@ func (s *Subscriber) handleMessage(
 			span.End()
 		}
 	}
+}
+
+// TODO: refactor to another file
+func (s *Subscriber) updateClientsRoom(ctx context.Context, updatedRoom entities.Room) error {
+	var buf bytes.Buffer
+	clientsInRoom := s.rooms[updatedRoom.Code].clients
+	for _, player := range updatedRoom.Players {
+		client := clientsInRoom[player.ID]
+		component := views.Room(updatedRoom.Code, updatedRoom.Players, player)
+		err := component.Render(ctx, &buf)
+		if err != nil {
+			return err
+		}
+		client.messages <- buf.Bytes()
+
+	}
+	return nil
+}
+
+func (s *Subscriber) updateClientAboutErr(ctx context.Context, client *client, errStr string) error {
+	var buf bytes.Buffer
+	component := views.Error(errStr)
+	err := component.Render(ctx, &buf)
+	if err != nil {
+		return err
+	}
+
+	client.messages <- buf.Bytes()
+	return nil
+}
+
+func (s *Subscriber) updateClientsGame(ctx context.Context, updatedRoom entities.Room) error {
+	var buf bytes.Buffer
+	clientsInRoom := s.rooms[updatedRoom.Code].clients
+	for _, player := range updatedRoom.Players {
+		client := clientsInRoom[player.ID]
+		component := views.Game(updatedRoom.Players, player)
+		err := component.Render(ctx, &buf)
+		if err != nil {
+			return err
+		}
+		client.messages <- buf.Bytes()
+
+	}
+	return nil
 }

@@ -33,7 +33,7 @@ func TestIntegrationSubscribe(t *testing.T) {
 	require.NoError(t, err)
 
 	userRandomizer := service.NewUserRandomizer()
-	roomServicer := service.NewRoomService(myStore, userRandomizer)
+	roomServicer := service.NewLobbyService(myStore, userRandomizer)
 	playerServicer := service.NewPlayerService(myStore, userRandomizer)
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
 	subscriber := websockets.NewSubscriber(roomServicer, playerServicer, logger)
@@ -99,7 +99,7 @@ func TestIntegrationSubscribe(t *testing.T) {
 		message = map[string]string{
 			"room_code":       roomCode,
 			"player_nickname": playerNickname,
-			"message_type":    "join_room",
+			"message_type":    "join_lobby",
 		}
 
 		msg = sendMessage(message, t, conn2)
@@ -142,7 +142,7 @@ func TestIntegrationSubscribe(t *testing.T) {
 		message = map[string]string{
 			"room_code":       roomCode,
 			"player_nickname": playerNickname,
-			"message_type":    "join_room",
+			"message_type":    "join_lobby",
 		}
 		msg = sendMessage(message, t, conn2)
 		player2ID, err := getPlayerIDFromHTML(msg)
@@ -201,7 +201,7 @@ func TestIntegrationSubscribe(t *testing.T) {
 		message = map[string]string{
 			"room_code":       roomCode,
 			"player_nickname": playerNickname,
-			"message_type":    "join_room",
+			"message_type":    "join_lobby",
 		}
 
 		msg = sendMessage(message, t, conn2)

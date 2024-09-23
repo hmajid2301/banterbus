@@ -10,12 +10,12 @@ import (
 	"os/signal"
 
 	"github.com/pressly/goose/v3"
-	slogotel "github.com/remychantenay/slog-otel"
 
 	// used to connect to sqlite
 	_ "modernc.org/sqlite"
 
 	"gitlab.com/hmajid2301/banterbus/internal/config"
+	"gitlab.com/hmajid2301/banterbus/internal/logger"
 	"gitlab.com/hmajid2301/banterbus/internal/service"
 	"gitlab.com/hmajid2301/banterbus/internal/store"
 	transporthttp "gitlab.com/hmajid2301/banterbus/internal/transport/http"
@@ -27,11 +27,8 @@ var fs embed.FS
 
 func main() {
 	var exitCode int
-	slog.SetDefault(slog.New(slogotel.OtelHandler{
-		Next: slog.NewJSONHandler(os.Stdout, nil),
-	}))
 
-	logger := slog.Default()
+	logger := logger.New()
 	ctx := gracefulShutdown(logger)
 
 	err := mainLogic(ctx, logger)
@@ -46,10 +43,6 @@ func mainLogic(ctx context.Context, logger *slog.Logger) error {
 	conf, err := config.LoadConfig(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to load config: %w", err)
-	}
-
-	if conf.Environment == "dev" {
-		logger = slog.New(slog.NewTextHandler(os.Stdout, nil))
 	}
 
 	db, err := store.GetDB(conf.DBFolder)
@@ -69,10 +62,10 @@ func mainLogic(ctx context.Context, logger *slog.Logger) error {
 	}
 
 	userRandomizer := service.NewUserRandomizer()
-	roomServicer := service.NewRoomService(myStore, userRandomizer)
-	playerServicer := service.NewPlayerService(myStore, userRandomizer)
+	lobbyService := service.NewLobbyService(myStore, userRandomizer)
+	playerService := service.NewPlayerService(myStore, userRandomizer)
 
-	subscriber := websockets.NewSubscriber(roomServicer, playerServicer, logger)
+	subscriber := websockets.NewSubscriber(lobbyService, playerService, logger)
 	server := transporthttp.NewServer(subscriber, logger)
 
 	err = server.Serve()
