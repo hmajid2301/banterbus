@@ -162,8 +162,7 @@ func TestIntegrationAddPlayerToRoom(t *testing.T) {
 		assert.NoError(t, err)
 
 		newPlayer := entities.NewPlayer{
-			ID: "123",
-			//TODO: taken from create room function
+			ID:       "123",
 			Nickname: "Majiy00",
 			Avatar:   []byte(""),
 		}

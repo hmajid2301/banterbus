@@ -1,11 +1,10 @@
 package e2e
 
 import (
+	"fmt"
 	"testing"
-	"time"
 
 	"github.com/playwright-community/playwright-go"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -40,13 +39,11 @@ func TestE2ELobby(t *testing.T) {
 		err = hostPlayerPage.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Update Avatar"}).Click()
 		require.NoError(t, err)
 
-		// TODO: work out how to wait for image to change
-		time.Sleep(100 * time.Millisecond)
-
-		hostAvatar = hostPlayerPage.GetByAltText("avatar").First()
-		newSrc, err := hostAvatar.GetAttribute("src")
+		_, err = hostPlayerPage.WaitForFunction(fmt.Sprintf(`() => {
+            const avatar = document.querySelector('img[alt="avatar"]');
+            return avatar && avatar.src !== '%s';
+        }`, oldSrc), nil)
 		require.NoError(t, err)
-		assert.NotEqual(t, oldSrc, newSrc)
 
 		err = hostPlayerPage.Locator("#update_nickname_form").Locator(`input[name="player_nickname"]`).Fill("test_nickname")
 		require.NoError(t, err)

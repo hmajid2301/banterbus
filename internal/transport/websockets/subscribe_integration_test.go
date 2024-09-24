@@ -10,6 +10,7 @@ import (
 	"net/http/httptest"
 	"os"
 	"regexp"
+	"strings"
 	"testing"
 	"time"
 
@@ -45,7 +46,6 @@ func TestIntegrationSubscribe(t *testing.T) {
 
 	defer server.Close()
 
-	// TODO: this can be just one test?
 	t.Run("Should successfully handle create room message", func(t *testing.T) {
 		conn, _, _, err := ws.Dial(context.Background(), fmt.Sprintf("ws://%s", server.Listener.Addr().String()))
 		require.NoError(t, err)
@@ -92,8 +92,7 @@ func TestIntegrationSubscribe(t *testing.T) {
 		conn2, _, _, err := ws.Dial(context.Background(), fmt.Sprintf("ws://%s", server.Listener.Addr().String()))
 		require.NoError(t, err)
 		defer conn2.Close()
-		// INFO: remove "Code: " from room code
-		roomCode = roomCode[6:]
+		roomCode = strings.TrimPrefix(roomCode, "Code: ")
 
 		playerNickname = "test"
 		message = map[string]string{
@@ -135,8 +134,7 @@ func TestIntegrationSubscribe(t *testing.T) {
 		conn2, _, _, err := ws.Dial(context.Background(), fmt.Sprintf("ws://%s", server.Listener.Addr().String()))
 		require.NoError(t, err)
 		defer conn2.Close()
-		// INFO: remove "Code: " from room code
-		roomCode = roomCode[6:]
+		roomCode = strings.TrimPrefix(roomCode, "Code: ")
 
 		playerNickname = "test"
 		message = map[string]string{
@@ -156,7 +154,6 @@ func TestIntegrationSubscribe(t *testing.T) {
 		msg = sendMessage(message, t, conn2)
 		assert.Contains(t, msg, "test2")
 
-		// TODO: fix this for ci
 		message = map[string]string{
 			"player_id":    player2ID,
 			"message_type": "generate_new_avatar",
@@ -194,8 +191,7 @@ func TestIntegrationSubscribe(t *testing.T) {
 		conn2, _, _, err := ws.Dial(context.Background(), fmt.Sprintf("ws://%s", server.Listener.Addr().String()))
 		require.NoError(t, err)
 		defer conn2.Close()
-		// INFO: remove "Code: " from room code
-		roomCode = roomCode[6:]
+		roomCode = strings.TrimPrefix(roomCode, "Code: ")
 
 		playerNickname = "test"
 		message = map[string]string{

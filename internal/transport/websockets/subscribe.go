@@ -87,14 +87,12 @@ func (s *Subscriber) Subscribe(ctx context.Context, r *http.Request, w http.Resp
 }
 
 func (s *Subscriber) handleMessage(ctx context.Context, quit <-chan struct{}, connection net.Conn, client *client) {
-	// TODO: how to handle error?
 	for {
 		select {
 		case <-quit:
 			return
 		default:
 			tracer := otel.Tracer("subscribe")
-			s.logger = s.logger.With("component", "server")
 			_, r, err := wsutil.NextReader(connection, ws.StateServerSide)
 			if err != nil {
 				s.logger.Error("failed to get next message", slog.Any("error", err))
