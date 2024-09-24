@@ -15,7 +15,7 @@ import (
 	_ "modernc.org/sqlite"
 
 	"gitlab.com/hmajid2301/banterbus/internal/config"
-	"gitlab.com/hmajid2301/banterbus/internal/logger"
+	"gitlab.com/hmajid2301/banterbus/internal/logging"
 	"gitlab.com/hmajid2301/banterbus/internal/service"
 	"gitlab.com/hmajid2301/banterbus/internal/store"
 	transporthttp "gitlab.com/hmajid2301/banterbus/internal/transport/http"
@@ -28,10 +28,10 @@ var fs embed.FS
 func main() {
 	var exitCode int
 
-	logger := logger.New()
+	logger := logging.New(slog.LevelInfo)
 	ctx := gracefulShutdown(logger)
 
-	err := mainLogic(ctx, logger)
+	err := mainLogic(ctx)
 	if err != nil {
 		logger.Error("failed to run main logic", slog.Any("error", err))
 		exitCode = 1
@@ -39,11 +39,13 @@ func main() {
 	defer func() { os.Exit(exitCode) }()
 }
 
-func mainLogic(ctx context.Context, logger *slog.Logger) error {
+func mainLogic(ctx context.Context) error {
 	conf, err := config.LoadConfig(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to load config: %w", err)
 	}
+
+	logger := logging.New(conf.LogLevel)
 
 	db, err := store.GetDB(conf.DBFolder)
 	if err != nil {

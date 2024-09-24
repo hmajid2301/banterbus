@@ -13,6 +13,7 @@
   mkGoEnv ? pkgs.mkGoEnv,
   gomod2nix ? pkgs.gomod2nix,
   pre-commit-hooks,
+  myPackages,
   ...
 }: let
   goEnv = mkGoEnv {pwd = ./.;};
@@ -34,26 +35,10 @@ in
       ${pre-commit-check.shellHook}
     '';
     buildInputs = pre-commit-check.enabledPackages;
-    packages = with pkgs; [
-      # TODO: workout how to use go env
-      # goEnv
-      gomod2nix
-      go_1_22
-      playwright-test
-
-      goose
-      air
-      golangci-lint
-      gotools
-      gotestsum
-      gocover-cobertura
-      go-task
-      go-mockery
-      goreleaser
-      golines
-
-      tailwindcss
-      templ
-      sqlc
-    ];
+    packages =
+      myPackages
+      ++ [
+        # goEnv
+        gomod2nix
+      ];
   }

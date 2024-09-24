@@ -1,7 +1,6 @@
 package websockets
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -14,9 +13,6 @@ import (
 	"github.com/gobwas/ws"
 	"github.com/gobwas/ws/wsutil"
 	"go.opentelemetry.io/otel"
-
-	"gitlab.com/hmajid2301/banterbus/internal/entities"
-	"gitlab.com/hmajid2301/banterbus/internal/transport/websockets/views"
 )
 
 type Subscriber struct {
@@ -98,6 +94,7 @@ func (s *Subscriber) handleMessage(ctx context.Context, quit <-chan struct{}, co
 			return
 		default:
 			tracer := otel.Tracer("subscribe")
+			s.logger = s.logger.With("component", "server")
 			_, r, err := wsutil.NextReader(connection, ws.StateServerSide)
 			if err != nil {
 				s.logger.Error("failed to get next message", slog.Any("error", err))
@@ -117,18 +114,25 @@ func (s *Subscriber) handleMessage(ctx context.Context, quit <-chan struct{}, co
 				s.logger.Error("failed to unmarshal message", slog.Any("error", err))
 				return
 			}
-			ctx, span := tracer.Start(ctx, message.MessageType)
+
+			ctx, span := tracer.Start(ctx, "operation-name")
 			s.logger.DebugContext(ctx, fmt.Sprintf("handle `%s`", message.MessageType))
 			handler, ok := s.handlers[message.MessageType]
 			if !ok {
-				s.logger.Error("handler not found for message type", slog.Any("error", err))
+				s.logger.ErrorContext(ctx, "handler not found for message type", slog.Any("error", err))
 				return
 			}
 
 			err = json.Unmarshal(data, &handler)
-			s.logger.Debug("trying to unmarshal handler message", slog.Any("message", message))
+			s.logger.DebugContext(ctx, "trying to unmarshal handler message", slog.Any("message", message))
 			if err != nil {
-				s.logger.Error("failed to unmarshal for handler", slog.Any("error", err))
+				s.logger.ErrorContext(ctx, "failed to unmarshal for handler", slog.Any("error", err))
+				return
+			}
+
+			err = handler.Validate()
+			if err != nil {
+				s.logger.ErrorContext(ctx, "error validating handler message", slog.Any("error", err))
 				return
 			}
 
@@ -140,55 +144,12 @@ func (s *Subscriber) handleMessage(ctx context.Context, quit <-chan struct{}, co
 
 			err = handler.Handle(ctx, client, s)
 			if err != nil {
-				s.logger.Error("error in handler function", slog.Any("error", err))
+				s.logger.ErrorContext(ctx, "error in handler function", slog.Any("error", err))
 				return
 			}
+			s.logger.DebugContext(ctx, "finished handling request")
+			s.logger.InfoContext(ctx, "Hello world!", "locale", "en_US")
 			span.End()
 		}
 	}
-}
-
-// TODO: refactor to another file
-func (s *Subscriber) updateClientsRoom(ctx context.Context, updatedRoom entities.Room) error {
-	var buf bytes.Buffer
-	clientsInRoom := s.rooms[updatedRoom.Code].clients
-	for _, player := range updatedRoom.Players {
-		client := clientsInRoom[player.ID]
-		component := views.Room(updatedRoom.Code, updatedRoom.Players, player)
-		err := component.Render(ctx, &buf)
-		if err != nil {
-			return err
-		}
-		client.messages <- buf.Bytes()
-
-	}
-	return nil
-}
-
-func (s *Subscriber) updateClientAboutErr(ctx context.Context, client *client, errStr string) error {
-	var buf bytes.Buffer
-	component := views.Error(errStr)
-	err := component.Render(ctx, &buf)
-	if err != nil {
-		return err
-	}
-
-	client.messages <- buf.Bytes()
-	return nil
-}
-
-func (s *Subscriber) updateClientsGame(ctx context.Context, updatedRoom entities.Room) error {
-	var buf bytes.Buffer
-	clientsInRoom := s.rooms[updatedRoom.Code].clients
-	for _, player := range updatedRoom.Players {
-		client := clientsInRoom[player.ID]
-		component := views.Game(updatedRoom.Players, player)
-		err := component.Render(ctx, &buf)
-		if err != nil {
-			return err
-		}
-		client.messages <- buf.Bytes()
-
-	}
-	return nil
 }

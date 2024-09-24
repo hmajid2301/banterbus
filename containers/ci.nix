@@ -1,53 +1,27 @@
 {
   pkgs,
-  mkGoEnv,
-  gomod2nix,
-  pre-commit-hooks,
+  myPackages,
   ...
 }:
-# INFO: this creates an image from the dev shell, but doesn't work with gitlab.
-# So we are now using the image below for now.
-# pkgs.dockerTools.buildNixShellImage {
-#   name = "banterbus-dev";
-#   tag = "latest";
-#   drv = (import ./shell.nix) {
-#     inherit pkgs mkGoEnv gomod2nix pre-commit-hooks;
-#   };
-#   shell = "${pkgs.bash}/bin/sh";
-# }
 pkgs.dockerTools.buildImage {
   name = "banterbus-dev";
   tag = "latest";
   copyToRoot = pkgs.buildEnv {
     name = "banterbus-dev";
     pathsToLink = ["/bin"];
-    # TODO: pull from shell.nix
-    paths = with pkgs; [
-      coreutils
-      gnugrep
-      nix
-      bash
-      go_1_22
-      goose
-      air
-      golangci-lint
-      gotools
-      gotestsum
-      gocover-cobertura
-      go-task
-      go-mockery
-      goreleaser
-      golines
-
-      tailwindcss
-      templ
-      sqlc
-      dockerTools.caCertificates
-      cacert.out
-      which
-      curl
-      git
-    ];
+    paths = with pkgs;
+      [
+        coreutils
+        gnugrep
+        nix
+        bash
+        dockerTools.caCertificates
+        cacert.out
+        which
+        curl
+        git
+      ]
+      ++ myPackages;
   };
   config = {
     Env = [

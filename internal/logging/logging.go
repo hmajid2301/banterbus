@@ -1,4 +1,4 @@
-package logger
+package logging
 
 import (
 	"log/slog"
@@ -7,14 +7,20 @@ import (
 	slogotel "github.com/remychantenay/slog-otel"
 )
 
-func New() *slog.Logger {
+func New(logLevel slog.Level) *slog.Logger {
 	var handler slog.Handler
 	if os.Getenv("BANTERBUS_ENVIRONMENT") == "production" {
 		handler = slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
 			AddSource: true,
+			Level:     logLevel,
 		})
 	} else {
-		handler = NewPrettyHandler(os.Stdout, PrettyHandlerOptions{})
+		handler = NewPrettyHandler(os.Stdout, PrettyHandlerOptions{
+			SlogOpts: slog.HandlerOptions{
+				AddSource: true,
+				Level:     logLevel,
+			},
+		})
 	}
 	slog.SetDefault(slog.New(slogotel.OtelHandler{
 		Next: handler,

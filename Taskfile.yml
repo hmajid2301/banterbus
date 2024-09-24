@@ -3,6 +3,8 @@ version: "3"
 tasks:
   dev:
     desc: Start the app in dev mode with live-reloading.
+    env:
+      BANTERBUS_LOG_LEVEL: debug
     cmds:
       - air
 

@@ -11,9 +11,6 @@ func (c *CreateRoom) Validate() error {
 	if c.GameName == "" {
 		return errors.New("game_name is required")
 	}
-	if c.PlayerNickname == "" {
-		return errors.New("player_nickname is required")
-	}
 	return nil
 }
 
@@ -23,9 +20,6 @@ type JoinLobby struct {
 }
 
 func (j *JoinLobby) Validate() error {
-	if j.PlayerNickname == "" {
-		return errors.New("player_nickname is required")
-	}
 	if j.RoomCode == "" {
 		return errors.New("room_code is required")
 	}

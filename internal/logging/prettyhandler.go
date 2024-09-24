@@ -1,5 +1,5 @@
 // Taken from this article: https://betterstack.com/community/guides/logging/logging-in-go/
-package logger
+package logging
 
 import (
 	"context"
@@ -36,8 +36,12 @@ func (h *PrettyHandler) Handle(ctx context.Context, r slog.Record) error {
 
 	fields := make(map[string]interface{}, r.NumAttrs())
 	r.Attrs(func(a slog.Attr) bool {
-		fields[a.Key] = a.Value.Any()
-
+		// Convert error values to their string representation
+		if err, ok := a.Value.Any().(error); ok {
+			fields[a.Key] = err.Error()
+		} else {
+			fields[a.Key] = a.Value.Any()
+		}
 		return true
 	})
 

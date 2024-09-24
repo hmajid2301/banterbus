@@ -7,7 +7,6 @@ import (
 	"gitlab.com/hmajid2301/banterbus/internal/entities"
 )
 
-// TODO: refactor to another package
 type LobbyServicer interface {
 	Create(ctx context.Context, gameName string, player entities.NewHostPlayer) (entities.Room, error)
 	Join(ctx context.Context, roomCode string, playerID string, playerNickname string) (entities.Room, error)
