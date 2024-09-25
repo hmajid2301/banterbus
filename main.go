@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"embed"
+	"errors"
 	"fmt"
 	"log/slog"
 	"os"
@@ -16,6 +17,7 @@ import (
 
 	"gitlab.com/hmajid2301/banterbus/internal/config"
 	"gitlab.com/hmajid2301/banterbus/internal/logging"
+	"gitlab.com/hmajid2301/banterbus/internal/otel"
 	"gitlab.com/hmajid2301/banterbus/internal/service"
 	"gitlab.com/hmajid2301/banterbus/internal/store"
 	transporthttp "gitlab.com/hmajid2301/banterbus/internal/transport/http"
@@ -62,6 +64,15 @@ func mainLogic(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("failed to setup store: %w", err)
 	}
+
+	otelShutdown, err := otel.SetupOTelSDK(ctx)
+	if err != nil {
+		return err
+	}
+
+	defer func() {
+		err = errors.Join(err, otelShutdown(ctx))
+	}()
 
 	userRandomizer := service.NewUserRandomizer()
 	lobbyService := service.NewLobbyService(myStore, userRandomizer)

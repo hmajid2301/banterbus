@@ -3,6 +3,7 @@ package store
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 
 	"gitlab.com/hmajid2301/banterbus/internal/entities"
@@ -21,14 +22,7 @@ func (s Store) UpdateAvatar(
 
 	defer func() {
 		if err != nil {
-			rbErr := tx.Rollback()
-			if rbErr != nil {
-				err = fmt.Errorf(
-					"failed to rollback: %w; while handling this error: %w",
-					rbErr,
-					err,
-				)
-			}
+			err = errors.Join(err, tx.Rollback())
 		}
 	}()
 
@@ -69,14 +63,7 @@ func (s Store) UpdateNickname(
 
 	defer func() {
 		if err != nil {
-			rbErr := tx.Rollback()
-			if rbErr != nil {
-				err = fmt.Errorf(
-					"failed to rollback: %w; while handling this error: %w",
-					rbErr,
-					err,
-				)
-			}
+			err = errors.Join(err, tx.Rollback())
 		}
 	}()
 
@@ -128,14 +115,7 @@ func (s Store) ToggleIsReady(
 
 	defer func() {
 		if err != nil {
-			rbErr := tx.Rollback()
-			if rbErr != nil {
-				err = fmt.Errorf(
-					"failed to rollback: %w; while handling this error: %w",
-					rbErr,
-					err,
-				)
-			}
+			err = errors.Join(err, tx.Rollback())
 		}
 	}()
 

@@ -93,10 +93,9 @@ format:
 tests:unit:
   extends:
     - .task
-  variables:
-    XDG_DATA_HOME: "/tmp/"
   script:
-    -  task tests:unit
+    - export XDG_DATA_HOME="/tmp/"
+    - task tests:unit
 
 coverage:
   extends:
@@ -104,9 +103,8 @@ coverage:
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
-  variables:
-    XDG_DATA_HOME: "/tmp/"
   script:
+    - export XDG_DATA_HOME="/tmp/"
     - task coverage
   coverage: /^coverage:\s(\d+(?:\.\d+)?%)/
   artifacts:

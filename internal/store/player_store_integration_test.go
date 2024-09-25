@@ -11,10 +11,6 @@ import (
 )
 
 func TestIntegrationUpdateNickname(t *testing.T) {
-	if testing.Short() {
-		t.Skip("skipping integration test")
-	}
-
 	t.Run("Should update player nickname in DB successfully", func(t *testing.T) {
 		db, teardown := setupSubtest(t)
 		defer teardown()
@@ -100,10 +96,6 @@ func TestIntegrationUpdateNickname(t *testing.T) {
 }
 
 func TestIntegrationUpdatePlayer(t *testing.T) {
-	if testing.Short() {
-		t.Skip("skipping integration test")
-	}
-
 	t.Run("Should update player avatar in DB successfully", func(t *testing.T) {
 		db, teardown := setupSubtest(t)
 		defer teardown()
@@ -164,10 +156,6 @@ func TestIntegrationUpdatePlayer(t *testing.T) {
 }
 
 func TestIntegrationToggleIsReady(t *testing.T) {
-	if testing.Short() {
-		t.Skip("skipping integration test")
-	}
-
 	t.Run("Should toggle player ready state in DB successfully", func(t *testing.T) {
 		db, teardown := setupSubtest(t)
 		defer teardown()

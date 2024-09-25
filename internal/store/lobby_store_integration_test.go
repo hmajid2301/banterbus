@@ -39,10 +39,6 @@ func createRoom(ctx context.Context, myStore store.Store) (string, error) {
 }
 
 func TestIntegrationCreateRoom(t *testing.T) {
-	if testing.Short() {
-		t.Skip("skipping integration test")
-	}
-
 	t.Run("Should create room in DB successfully", func(t *testing.T) {
 		db, teardown := setupSubtest(t)
 		defer teardown()
@@ -117,10 +113,6 @@ func TestIntegrationCreateRoom(t *testing.T) {
 }
 
 func TestIntegrationAddPlayerToRoom(t *testing.T) {
-	if testing.Short() {
-		t.Skip("skipping integration test")
-	}
-
 	t.Run("Should successfully join room", func(t *testing.T) {
 		db, teardown := setupSubtest(t)
 		defer teardown()
@@ -201,10 +193,6 @@ func TestIntegrationAddPlayerToRoom(t *testing.T) {
 }
 
 func TestIntegrationStartGame(t *testing.T) {
-	if testing.Short() {
-		t.Skip("skipping integration test")
-	}
-
 	t.Run("Should successfully start game", func(t *testing.T) {
 		db, teardown := setupSubtest(t)
 		defer teardown()

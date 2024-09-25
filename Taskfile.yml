@@ -55,7 +55,7 @@ tasks:
   tests:unit:
     desc: Runs all the unit tests.
     cmds:
-      - gotestsum --hide-summary=skipped -- -short ./internal/...
+      - gotestsum --format testname --hide-summary=skipped -- -skip '^TestIntegration' ./internal/...
 
   tests:integration:
     desc: Runs all the integration tests.
@@ -66,7 +66,6 @@ tasks:
     desc: Runs e2e tests with playwright.
     cmds:
       - gotestsum --format standard-verbose -- ./tests/e2e/...
-      # - gotestsum -- -v ./tests/e2e/...
 
   coverage:
     desc: Run the integration tests and gets the code coverage

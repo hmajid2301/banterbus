@@ -5,10 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"io/fs"
 	"math/rand/v2"
-	"os"
-	"path/filepath"
 
 	"github.com/google/uuid"
 
@@ -57,14 +54,7 @@ func (s Store) CreateRoom(
 
 	defer func() {
 		if err != nil {
-			rbErr := tx.Rollback()
-			if rbErr != nil {
-				err = fmt.Errorf(
-					"failed to rollback: %w; while handling this error: %w",
-					rbErr,
-					err,
-				)
-			}
+			err = errors.Join(err, tx.Rollback())
 		}
 	}()
 
@@ -127,14 +117,7 @@ func (s Store) AddPlayerToRoom(
 
 	defer func() {
 		if err != nil {
-			rbErr := tx.Rollback()
-			if rbErr != nil {
-				err = fmt.Errorf(
-					"failed to rollback: %w; while handling this error: %w",
-					rbErr,
-					err,
-				)
-			}
+			err = errors.Join(err, tx.Rollback())
 		}
 	}()
 
@@ -195,9 +178,7 @@ func (s Store) StartGame(
 
 	defer func() {
 		if err != nil {
-			if rbErr := tx.Rollback(); rbErr != nil {
-				err = fmt.Errorf("failed to rollback: %w; while handling this error: %w", rbErr, err)
-			}
+			err = errors.Join(err, tx.Rollback())
 		}
 	}()
 
@@ -238,25 +219,6 @@ func (s Store) StartGame(
 	}
 
 	return players, tx.Commit()
-}
-
-func GetDB(dbFolder string) (*sql.DB, error) {
-	if _, err := os.Stat(dbFolder); os.IsNotExist(err) {
-		permissions := 0755
-		err = os.Mkdir(dbFolder, fs.FileMode(permissions))
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	dbPath := filepath.Join(dbFolder, "banterbus.db")
-	db, err := sql.Open("sqlite", dbPath)
-	if err != nil {
-		return nil, err
-	}
-
-	_, err = db.Exec("PRAGMA journal_mode=WAL")
-	return db, err
 }
 
 func randomRoomCode() string {
