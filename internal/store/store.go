@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 
 	"github.com/XSAM/otelsql"
+	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
 )
 
 func GetDB(dbFolder string) (*sql.DB, error) {
@@ -19,7 +20,14 @@ func GetDB(dbFolder string) (*sql.DB, error) {
 	}
 
 	dbPath := filepath.Join(dbFolder, "banterbus.db")
-	db, err := otelsql.Open("sqlite", dbPath)
+	db, err := otelsql.Open("sqlite", dbPath, otelsql.WithAttributes(semconv.DBSystemSqlite))
+	if err != nil {
+		return nil, err
+	}
+
+	err = otelsql.RegisterDBStatsMetrics(db, otelsql.WithAttributes(
+		semconv.DBSystemSqlite,
+	))
 	if err != nil {
 		return nil, err
 	}
