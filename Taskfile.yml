@@ -55,23 +55,25 @@ tasks:
   tests:unit:
     desc: Runs all the unit tests.
     cmds:
-      - gotestsum --format testname --hide-summary=skipped -- -skip '^TestIntegration' ./internal/...
+      - gotestsum --format testname --hide-summary=skipped -- {{.CLI_ARGS}} -skip '^TestIntegration' ./internal/...
 
   tests:integration:
     desc: Runs all the integration tests.
     cmds:
-      - gotestsum  -- -run ^TestIntegration ./internal/...
+      - gotestsum --format testname --hide-summary=skipped -- {{.CLI_ARGS}} -run ^TestIntegration ./internal/...
 
   tests:e2e:
     desc: Runs e2e tests with playwright.
     cmds:
-      - gotestsum --format standard-verbose -- ./tests/e2e/...
+      - gotestsum --format standard-verbose -- {{.CLI_ARGS}} ./tests/e2e/...
 
   coverage:
-    desc: Run the integration tests and gets the code coverage
+    desc: show coverage
     cmds:
-      - gotestsum --junitfile report.xml -- -coverprofile=coverage.txt ./internal/...
+      - go tool cover -func coverage.txt
       - gocover-cobertura < coverage.txt > coverage.xml
+    preconditions:
+      - test -f coverage.txt
 
   generate:sqlc:
     desc: Generates the code to interact with SQL DB.

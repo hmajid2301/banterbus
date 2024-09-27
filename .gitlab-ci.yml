@@ -33,6 +33,21 @@ stages:
   before_script:
     - task build:dev
 
+.test:
+  coverage: /total:\s+\(statements\)\s+\d+.\d+%/
+  variables:
+     GOTESTSUM_JUNITFILE: "report.xml"
+     XDG_DATA_HOME: "/tmp/"
+     GOTEST_EXTRA_ARGS: "-coverprofile=coverage.txt"
+  after_script:
+    - task coverage
+  artifacts:
+    reports:
+      junit: report.xml
+      coverage_report:
+        coverage_format: cobertura
+        path: coverage.xml
+
 publish:docker:ci:
   stage: pre
   variables:
@@ -64,15 +79,15 @@ publish:docker:ci:
     - docker push $IMAGE:$IMAGE_TAG
 
 
-go-mod-download:
+download:dependency:
   extends: .task
   stage: deps
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
       # INFO: until cache works with custom runner
-      # changes:
-      #   - go.mod
-      #   - go.sum
+      changes:
+        - go.mod
+        - go.sum
   script:
     - go mod download
   cache:
@@ -90,40 +105,35 @@ format:
   script:
     -  task format
 
-tests:unit:
-  extends:
-    - .task
-  script:
-    - export XDG_DATA_HOME="/tmp/"
-    - task tests:unit
-
-coverage:
-  extends:
-    - .task
-  rules:
-    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
-  script:
-    - export XDG_DATA_HOME="/tmp/"
-    - task coverage
-  coverage: /^coverage:\s(\d+(?:\.\d+)?%)/
-  artifacts:
-    reports:
-      junit: report.xml
-      coverage_report:
-        coverage_format: cobertura
-        path: coverage.xml
-
-test:generate:
+generate:sqlc:
   extends:
     - .task
   script:
     - task generate:sqlc
     - git diff --exit-code
 
-# TODO: use other image for faster load
+tests:unit:
+  extends:
+    - .task
+    - .test
+  script:
+    - task tests:unit -- ${GOTEST_EXTRA_ARGS}
+
+tests:integration:
+  extends:
+    - .task
+    - .test
+  script:
+    - task tests:integration -- ${GOTEST_EXTRA_ARGS}
+
+# TODO: extend using .task and .test
 test:e2e:
   image: nixos/nix
+  coverage: /total:\s+\(statements\)\s+\d+.\d+%/
+  variables:
+     GOTESTSUM_JUNITFILE: "report.xml"
+     XDG_DATA_HOME: "/tmp/"
+     GOTEST_EXTRA_ARGS: "-coverprofile=coverage.txt"
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
   script:
@@ -131,8 +141,15 @@ test:e2e:
     - nix develop -c task build:dev
     - nix develop -c go run github.com/playwright-community/playwright-go/cmd/playwright@latest install --with-deps || true
     - nix develop -c task tests:e2e
+  after_script:
+    - nix develop -c task coverage
   allow_failure: true
   artifacts:
+    reports:
+      junit: report.xml
+      coverage_report:
+        coverage_format: cobertura
+        path: coverage.xml
     when: always
     paths:
       - tests/e2e/videos/*
@@ -174,3 +191,4 @@ release:
     GIT_DEPTH: 0
   script:
     - task release
+
