@@ -126,43 +126,18 @@ tests:integration:
   script:
     - task tests:integration -- ${GOTEST_EXTRA_ARGS}
 
-# TODO: extend using .task and .test
 test:e2e:
-  image: nixos/nix
-  coverage: /total:\s+\(statements\)\s+\d+.\d+%/
-  variables:
-     GOTESTSUM_JUNITFILE: "report.xml"
-     XDG_DATA_HOME: "/tmp/"
-     GOTEST_EXTRA_ARGS: "-coverprofile=coverage.txt"
-  rules:
-    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+  extends:
+    - .task
+    - .test
   script:
-    - echo "experimental-features = nix-command flakes" > /etc/nix/nix.conf
-    - nix develop -c task build:dev
-    - nix develop -c go run github.com/playwright-community/playwright-go/cmd/playwright@latest install --with-deps || true
-    - nix develop -c task tests:e2e
-  after_script:
-    - nix develop -c task coverage
+    - go run github.com/playwright-community/playwright-go/cmd/playwright@latest install --with-deps || true
+    - task tests:e2e -- ${GOTEST_EXTRA_ARGS}
   allow_failure: true
   artifacts:
-    reports:
-      junit: report.xml
-      coverage_report:
-        coverage_format: cobertura
-        path: coverage.xml
     when: always
     paths:
       - tests/e2e/videos/*
-
-# build:binary:
-#   stage: test
-#   image: nixos/nix
-#   rules:
-#     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-#   script:
-#     - echo "experimental-features = nix-command flakes" > /etc/nix/nix.conf
-#     - nix develop -c task build:dev
-#     - nix build
 
 publish:docker:service:
   stage: build
