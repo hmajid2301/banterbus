@@ -47,7 +47,7 @@ func mainLogic(ctx context.Context) error {
 		return fmt.Errorf("failed to load config: %w", err)
 	}
 
-	logger := logging.New(conf.LogLevel)
+	logger := logging.New(conf.App.LogLevel)
 
 	db, err := store.GetDB(conf.DBFolder)
 	if err != nil {
