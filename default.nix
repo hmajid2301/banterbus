@@ -19,4 +19,6 @@ buildGoApplication {
   pwd = ./.;
   src = ./.;
   modules = ./gomod2nix.toml;
+  # INFO: Turn off tests as we run them in CI
+  checkPhase = false;
 }

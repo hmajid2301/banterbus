@@ -13,5 +13,5 @@ pkgs.dockerTools.buildImage {
     ];
     pathsToLink = ["/bin"];
   };
-  Cmd = ["${package}/bin/banterbus"];
+  config.Cmd = ["${package}/bin/banterbus"];
 }

@@ -139,22 +139,47 @@ test:e2e:
     paths:
       - tests/e2e/videos/*
 
-publish:docker:service:
+#TODO: tag image using dev SHA
+publish:dev:docker:
+  stage: build
+  needs: []
+  variables:
+    DOCKER_HOST: tcp://docker:2375
+    DOCKER_DRIVER: overlay2
+    DOCKER_TLS_CERTDIR: ""
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+  services:
+    - docker:25-dind
+  script:
+    - echo "experimental-features = nix-command flakes" > /etc/nix/nix.conf
+    - nix-env -iA nixpkgs.docker
+    - nix develop -c task build:dev
+    - nix build .#container
+    - docker load < ./result
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - docker image tag banterbus:latest $CI_REGISTRY_IMAGE:dev
+    - docker push $CI_REGISTRY_IMAGE:dev
+
+#TODO: promote image from dev to prod
+#TODO: tag image using prod SHA
+publish:prod:docker:
   stage: build
   rules:
     - if: $CI_COMMIT_TAG
   needs: []
-  extends:
-    - .task
   variables:
     DOCKER_HOST: tcp://docker:2375
     DOCKER_DRIVER: overlay2
+    DOCKER_TLS_CERTDIR: ""
   services:
-    - docker:25.0.6-dind
+    - docker:25-dind
   script:
-    - task build:dev
+    - echo "experimental-features = nix-command flakes" > /etc/nix/nix.conf
+    - nix-env -iA nixpkgs.docker
+    - nix develop -c task build:dev
     - nix build .#container
-    - task docker:publish
+    - nix develop -c task docker:publish
 
 release:
   stage: release
