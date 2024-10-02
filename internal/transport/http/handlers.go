@@ -36,6 +36,9 @@ func NewServer(websocketer websocketer, logger *slog.Logger) *server {
 
 	handler := otelhttp.NewHandler(mux, "/")
 	handleFunc("/ws", s.subscribeHandler)
+	handleFunc("/health", s.health)
+	handleFunc("/readiness", s.readiness)
+
 	srv := &http.Server{
 		Addr:         ":8080",
 		ReadTimeout:  time.Second,
@@ -64,4 +67,12 @@ func (s *server) subscribeHandler(w http.ResponseWriter, r *http.Request) {
 		s.logger.Error("subscribe failed", slog.Any("error", err))
 		return
 	}
+}
+
+func (s *server) health(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusOK)
+}
+
+func (s *server) readiness(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusOK)
 }
