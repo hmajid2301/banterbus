@@ -9,7 +9,7 @@ import (
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 )
 
-type server struct {
+type Server struct {
 	logger    *slog.Logger
 	websocket websocketer
 	srv       *http.Server
@@ -19,14 +19,14 @@ type websocketer interface {
 	Subscribe(ctx context.Context, r *http.Request, w http.ResponseWriter) (err error)
 }
 
-func NewServer(websocketer websocketer, logger *slog.Logger) *server {
-	s := &server{
+func NewServer(websocketer websocketer, logger *slog.Logger, staticFS http.FileSystem) *Server {
+	s := &Server{
 		websocket: websocketer,
 		logger:    logger,
 	}
 
 	mux := http.NewServeMux()
-	mux.Handle("/", http.FileServer(http.Dir("./static")))
+	mux.Handle("/", http.FileServer(staticFS))
 
 	handleFunc := func(pattern string, handlerFunc func(http.ResponseWriter, *http.Request)) {
 		// Configure the "http.route" for the HTTP instrumentation.
@@ -40,7 +40,7 @@ func NewServer(websocketer websocketer, logger *slog.Logger) *server {
 	handleFunc("/readiness", s.readiness)
 
 	srv := &http.Server{
-		Addr:         ":8080",
+		Addr:         "0.0.0.0:8080",
 		ReadTimeout:  time.Second,
 		WriteTimeout: 10 * time.Second,
 		Handler:      handler,
@@ -50,7 +50,7 @@ func NewServer(websocketer websocketer, logger *slog.Logger) *server {
 	return s
 }
 
-func (s *server) Serve() error {
+func (s *Server) Serve() error {
 	s.logger.Info("starting server")
 	err := s.srv.ListenAndServe()
 	if err != nil {
@@ -60,7 +60,13 @@ func (s *server) Serve() error {
 	return nil
 }
 
-func (s *server) subscribeHandler(w http.ResponseWriter, r *http.Request) {
+func (s *Server) Shutdown(ctx context.Context) error {
+	s.logger.Info("shutting down server")
+	err := s.srv.Shutdown(ctx)
+	return err
+}
+
+func (s *Server) subscribeHandler(w http.ResponseWriter, r *http.Request) {
 	s.logger.Debug("subscribe handler called")
 	err := s.websocket.Subscribe(r.Context(), r, w)
 	if err != nil {
@@ -69,10 +75,10 @@ func (s *server) subscribeHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (s *server) health(w http.ResponseWriter, r *http.Request) {
+func (s *Server) health(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-func (s *server) readiness(w http.ResponseWriter, r *http.Request) {
+func (s *Server) readiness(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }

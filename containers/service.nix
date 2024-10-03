@@ -8,10 +8,16 @@ pkgs.dockerTools.buildImage {
   created = "now";
   copyToRoot = pkgs.buildEnv {
     name = "image-root";
-    paths = [
-      package
-    ];
+    paths = [package];
     pathsToLink = ["/bin"];
   };
-  config.Cmd = ["${package}/bin/banterbus"];
+  config = {
+    ExposedPorts = {
+      "8080/tcp" = {};
+    };
+    Env = [
+      "BANTERBUS_DB_FOLDER=/"
+    ];
+    Cmd = ["${package}/bin/banterbus"];
+  };
 }
