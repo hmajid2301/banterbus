@@ -62,7 +62,7 @@ publish:docker:ci:
       changes:
         - "containers/ci.nix"
   services:
-    - docker:25-dind
+    - docker:27-dind
   script:
     - echo "experimental-features = nix-command flakes" > /etc/nix/nix.conf
     - nix-env -iA nixpkgs.docker
@@ -152,7 +152,7 @@ publish:dev:docker:
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
   services:
-    - docker:25-dind
+    - docker:27-dind
   script:
     - echo "experimental-features = nix-command flakes" > /etc/nix/nix.conf
     - nix-env -iA nixpkgs.docker
@@ -186,7 +186,7 @@ publish:prod:docker:
     DOCKER_DRIVER: overlay2
     DOCKER_TLS_CERTDIR: ""
   services:
-    - docker:25-dind
+    - docker:27-dind
   script:
     - echo "experimental-features = nix-command flakes" > /etc/nix/nix.conf
     - nix-env -iA nixpkgs.docker
