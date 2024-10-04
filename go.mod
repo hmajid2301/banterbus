@@ -8,7 +8,7 @@ require (
 	github.com/fatih/color v1.17.0
 	github.com/flexstack/uuid v1.0.0
 	github.com/gobwas/ws v1.4.0
-	github.com/gomig/avatar v1.0.2
+	github.com/gomig/avatar v1.0.3
 	github.com/google/uuid v1.6.0
 	github.com/muesli/go-app-paths v0.2.2
 	github.com/playwright-community/playwright-go v0.4700.0
