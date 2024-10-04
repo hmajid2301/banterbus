@@ -11,7 +11,7 @@ require (
 	github.com/gomig/avatar v1.0.3
 	github.com/google/uuid v1.6.0
 	github.com/muesli/go-app-paths v0.2.2
-	github.com/playwright-community/playwright-go v0.4700.0
+	github.com/playwright-community/playwright-go v0.4702.0
 	github.com/pressly/goose/v3 v3.21.1
 	github.com/remychantenay/slog-otel v1.3.2
 	github.com/sethvargo/go-envconfig v1.1.0
