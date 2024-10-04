@@ -4,7 +4,7 @@ go 1.22
 
 require (
 	github.com/XSAM/otelsql v0.34.0
-	github.com/a-h/templ v0.2.747
+	github.com/a-h/templ v0.2.778
 	github.com/fatih/color v1.17.0
 	github.com/flexstack/uuid v1.0.0
 	github.com/gobwas/ws v1.4.0
