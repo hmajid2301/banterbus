@@ -79,7 +79,6 @@ __debug_bin*
 
 bin/*
 !bin/.gitkeep
-static/css/styles.css
 coverage.out
 test-results/
 tests/e2e/*.png

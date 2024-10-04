@@ -33,6 +33,7 @@ stages:
   before_script:
     - task build:dev
 
+
 .test:
   coverage: /total:\s+\(statements\)\s+\d+.\d+%/
   variables:
@@ -105,11 +106,11 @@ format:
   script:
     -  task format
 
-generate:sqlc:
+generate:
   extends:
     - .task
   script:
-    - task generate:sqlc
+    - task generate
     - git diff --exit-code
 
 tests:unit:

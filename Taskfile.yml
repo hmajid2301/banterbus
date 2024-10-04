@@ -10,9 +10,9 @@ tasks:
 
   build:dev:
     desc: Build the app for development, generates all the files needed for the binary.
+    deps:
+      - generate
     cmds:
-      - templ generate
-      - tailwindcss -i ./static/css/tailwind.css -o ./static/css/styles.css
       - go build -o ./tmp/main .
 
   lint:
@@ -75,9 +75,11 @@ tasks:
     preconditions:
       - test -f coverage.txt
 
-  generate:sqlc:
-    desc: Generates the code to interact with SQL DB.
+  generate:
+    desc: Generates all the code needed for the project i.e. sqlc, templ & tailwindcss
     cmds:
+      - templ generate
+      - tailwindcss -i ./static/css/tailwind.css -o ./static/css/styles.css
       - sqlc generate
 
   release:
