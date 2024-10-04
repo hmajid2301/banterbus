@@ -16,6 +16,7 @@ stages:
   - deps
   - test
   - build
+  - deploy
   - release
 
 .task:
@@ -161,6 +162,17 @@ publish:dev:docker:
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
     - docker image tag banterbus:latest $CI_REGISTRY_IMAGE:dev
     - docker push $CI_REGISTRY_IMAGE:dev
+
+deploy:dev:
+  stage: deploy
+  image:
+    name: bitnami/kubectl:latest
+    entrypoint: ['']
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+  script:
+    - kubectl config use-context hmajid2301/k3s-config:ms01
+    - kubectl rollout restart deployment banterbus -n dev
 
 #TODO: promote image from dev to prod
 #TODO: tag image using prod SHA
