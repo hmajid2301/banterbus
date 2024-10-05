@@ -73,7 +73,6 @@ func LoadConfig(ctx context.Context) (Config, error) {
 		config.DBFolder = dbFolder
 	}
 
-	fmt.Println("config", config)
 	return config, nil
 }
 

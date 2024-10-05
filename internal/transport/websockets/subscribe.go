@@ -87,6 +87,7 @@ func (s *Subscriber) Subscribe(ctx context.Context, r *http.Request, w http.Resp
 }
 
 func (s *Subscriber) handleMessage(ctx context.Context, quit <-chan struct{}, connection net.Conn, client *client) {
+	// TODO: we know the player id based on the client.
 	for {
 		select {
 		case <-quit:
@@ -134,19 +135,12 @@ func (s *Subscriber) handleMessage(ctx context.Context, quit <-chan struct{}, co
 				return
 			}
 
-			err = handler.Validate()
-			if err != nil {
-				s.logger.Error("error validating handler message", slog.Any("error", err))
-				return
-			}
-
 			err = handler.Handle(ctx, client, s)
 			if err != nil {
 				s.logger.ErrorContext(ctx, "error in handler function", slog.Any("error", err))
 				return
 			}
 			s.logger.DebugContext(ctx, "finished handling request")
-			s.logger.InfoContext(ctx, "Hello world!", "locale", "en_US")
 			span.End()
 		}
 	}

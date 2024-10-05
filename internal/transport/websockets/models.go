@@ -28,52 +28,36 @@ func (j *JoinLobby) Validate() error {
 
 type StartGame struct {
 	RoomCode string `json:"room_code"`
-	PlayerID string `json:"player_id"`
 }
 
 func (s *StartGame) Validate() error {
 	if s.RoomCode == "" {
 		return errors.New("room_code is required")
 	}
-	if s.PlayerID == "" {
-		return errors.New("player_id is required")
-	}
 	return nil
 }
 
 type UpdateNickname struct {
 	PlayerNickname string `json:"player_nickname"`
-	PlayerID       string `json:"player_id"`
 }
 
 func (u *UpdateNickname) Validate() error {
 	if u.PlayerNickname == "" {
 		return errors.New("player_nickname is required")
 	}
-	if u.PlayerID == "" {
-		return errors.New("player_id is required")
-	}
 	return nil
 }
 
 type GenerateNewAvatar struct {
-	PlayerID string `json:"player_id"`
 }
 
 func (g *GenerateNewAvatar) Validate() error {
-	if g.PlayerID == "" {
-		return errors.New("player_id is required")
-	}
 	return nil
 }
 
 type TogglePlayerIsReady struct {
-	PlayerID string `json:"player_id"`
 }
 
 func (t *TogglePlayerIsReady) Validate() error {
-	if t.PlayerID == "" {
-		return errors.New("player_id is required")
-	}
 	return nil
 }

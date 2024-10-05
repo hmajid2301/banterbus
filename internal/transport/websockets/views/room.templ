@@ -9,7 +9,6 @@ templ Room(code string, players []entities.Player, currentPlayer entities.Player
 			if currentPlayer == player {
 				<form id="update_nickname_form" hx-vals='{"message_type": "update_player_nickname" }' ws-send>
 					<input name="player_nickname" value={ player.Nickname }/>
-					<input class="hidden" name="player_id" value={ player.ID }/>
 					<button>Update Nickname</button>
 				</form>
 			} else {
@@ -18,7 +17,6 @@ templ Room(code string, players []entities.Player, currentPlayer entities.Player
 			<div class="w-5 h-6">
 				if currentPlayer == player {
 					<form id="update_avatar_form" hx-vals='{"message_type": "generate_new_avatar" }' ws-send>
-						<input class="hidden" name="player_id" value={ player.ID }/>
 						<button>Update Avatar</button>
 					</form>
 				}
@@ -58,13 +56,11 @@ templ Room(code string, players []entities.Player, currentPlayer entities.Player
 				}
 				if currentPlayer == player {
 					<form id="toggle_ready_form" hx-vals='{"message_type": "toggle_player_is_ready" }' ws-send>
-						<input class="hidden" name="player_id" value={ player.ID }/>
 						<button>Toggle Ready</button>
 					</form>
 				}
 				if player.IsHost && allPlayersReady(players) {
 					<form id="start_game_form" hx-vals='{"message_type": "start_game" }' ws-send>
-						<input class="hidden" name="player_id" value={ player.ID }/>
 						<input class="hidden" name="room_code" value={ code }/>
 						<button>Start Game</button>
 					</form>

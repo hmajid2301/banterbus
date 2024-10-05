@@ -63,19 +63,6 @@ func Room(code string, players []entities.Player, currentPlayer entities.Player)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\"> <input class=\"hidden\" name=\"player_id\" value=\"")
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-				var templ_7745c5c3_Var4 string
-				templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(player.ID)
-				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/transport/websockets/views/room.templ`, Line: 12, Col: 61}
-				}
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\"> <button>Update Nickname</button></form>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
@@ -85,12 +72,12 @@ func Room(code string, players []entities.Player, currentPlayer entities.Player)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				var templ_7745c5c3_Var5 string
-				templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(player.Nickname)
+				var templ_7745c5c3_Var4 string
+				templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(player.Nickname)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/transport/websockets/views/room.templ`, Line: 16, Col: 24}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/transport/websockets/views/room.templ`, Line: 15, Col: 24}
 				}
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -104,20 +91,7 @@ func Room(code string, players []entities.Player, currentPlayer entities.Player)
 				return templ_7745c5c3_Err
 			}
 			if currentPlayer == player {
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<form id=\"update_avatar_form\" hx-vals=\"{&#34;message_type&#34;: &#34;generate_new_avatar&#34; }\" ws-send><input class=\"hidden\" name=\"player_id\" value=\"")
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-				var templ_7745c5c3_Var6 string
-				templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(player.ID)
-				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/transport/websockets/views/room.templ`, Line: 21, Col: 62}
-				}
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\"> <button>Update Avatar</button></form>")
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<form id=\"update_avatar_form\" hx-vals=\"{&#34;message_type&#34;: &#34;generate_new_avatar&#34; }\" ws-send><button>Update Avatar</button></form>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -126,12 +100,12 @@ func Room(code string, players []entities.Player, currentPlayer entities.Player)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var7 string
-			templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(player.Avatar)
+			var templ_7745c5c3_Var5 string
+			templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(player.Avatar)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/transport/websockets/views/room.templ`, Line: 25, Col: 28}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/transport/websockets/views/room.templ`, Line: 23, Col: 28}
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -151,48 +125,22 @@ func Room(code string, players []entities.Player, currentPlayer entities.Player)
 				}
 			}
 			if currentPlayer == player {
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<form id=\"toggle_ready_form\" hx-vals=\"{&#34;message_type&#34;: &#34;toggle_player_is_ready&#34; }\" ws-send><input class=\"hidden\" name=\"player_id\" value=\"")
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-				var templ_7745c5c3_Var8 string
-				templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(player.ID)
-				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/transport/websockets/views/room.templ`, Line: 61, Col: 62}
-				}
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\"> <button>Toggle Ready</button></form>")
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<form id=\"toggle_ready_form\" hx-vals=\"{&#34;message_type&#34;: &#34;toggle_player_is_ready&#34; }\" ws-send><button>Toggle Ready</button></form>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			}
 			if player.IsHost && allPlayersReady(players) {
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<form id=\"start_game_form\" hx-vals=\"{&#34;message_type&#34;: &#34;start_game&#34; }\" ws-send><input class=\"hidden\" name=\"player_id\" value=\"")
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<form id=\"start_game_form\" hx-vals=\"{&#34;message_type&#34;: &#34;start_game&#34; }\" ws-send><input class=\"hidden\" name=\"room_code\" value=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				var templ_7745c5c3_Var9 string
-				templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(player.ID)
+				var templ_7745c5c3_Var6 string
+				templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(code)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/transport/websockets/views/room.templ`, Line: 67, Col: 62}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/transport/websockets/views/room.templ`, Line: 64, Col: 57}
 				}
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\"> <input class=\"hidden\" name=\"room_code\" value=\"")
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-				var templ_7745c5c3_Var10 string
-				templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(code)
-				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/transport/websockets/views/room.templ`, Line: 68, Col: 57}
-				}
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}

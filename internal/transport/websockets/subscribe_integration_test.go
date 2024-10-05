@@ -142,12 +142,10 @@ func TestIntegrationSubscribe(t *testing.T) {
 			"player_nickname": playerNickname,
 			"message_type":    "join_lobby",
 		}
-		msg = sendMessage(message, t, conn2)
-		player2ID, err := getPlayerIDFromHTML(msg)
+		_ = sendMessage(message, t, conn2)
 		require.NoError(t, err)
 
 		message = map[string]string{
-			"player_id":       player2ID,
 			"player_nickname": "test2",
 			"message_type":    "update_player_nickname",
 		}
@@ -155,7 +153,6 @@ func TestIntegrationSubscribe(t *testing.T) {
 		assert.Contains(t, msg, "test2")
 
 		message = map[string]string{
-			"player_id":    player2ID,
 			"message_type": "generate_new_avatar",
 		}
 		msg2 := sendMessage(message, t, conn2)
@@ -175,7 +172,6 @@ func TestIntegrationSubscribe(t *testing.T) {
 		}
 
 		msg := sendMessage(message, t, conn)
-		player1ID, err := getPlayerIDFromHTML(msg)
 		require.NoError(t, err)
 
 		pattern := `Code: [A-Z0-9]{5}`
@@ -200,14 +196,11 @@ func TestIntegrationSubscribe(t *testing.T) {
 			"message_type":    "join_lobby",
 		}
 
-		msg = sendMessage(message, t, conn2)
+		_ = sendMessage(message, t, conn2)
 
-		player2ID, err := getPlayerIDFromHTML(msg)
 		require.NoError(t, err)
-		fmt.Println("Player 1 ID:", player2ID, player1ID)
 
 		message = map[string]string{
-			"player_id":    player1ID,
 			"message_type": "toggle_player_is_ready",
 		}
 		_ = sendMessage(message, t, conn)
@@ -215,30 +208,16 @@ func TestIntegrationSubscribe(t *testing.T) {
 		time.Sleep(100 * time.Millisecond)
 
 		message = map[string]string{
-			"player_id":    player2ID,
 			"message_type": "toggle_player_is_ready",
 		}
 		_ = sendMessage(message, t, conn2)
 
 		message = map[string]string{
-			"player_id":    player1ID,
 			"message_type": "start_game",
 		}
 		msg = sendMessage(message, t, conn)
 		assert.Contains(t, msg, playerNickname)
 	})
-}
-
-func getPlayerIDFromHTML(msg string) (string, error) {
-	re := regexp.MustCompile(`<input class="hidden" name="player_id" value="([^"]+)"`)
-	matches := re.FindStringSubmatch(msg)
-	var playerID string
-	if len(matches) > 1 {
-		playerID = matches[1]
-	} else {
-		return "", fmt.Errorf("Player ID not found")
-	}
-	return playerID, nil
 }
 
 func sendMessage(message map[string]string, t *testing.T, conn net.Conn) string {
