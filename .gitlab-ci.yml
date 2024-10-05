@@ -21,8 +21,7 @@ stages:
 
 .task:
   stage: test
-  image:
-    name: $BANTERBUS_CI_IMAGE
+  image: $BANTERBUS_CI_IMAGE
   variables:
     GOPATH: $CI_PROJECT_DIR/.go
   cache:
@@ -139,14 +138,17 @@ tests:integration:
   script:
     - task tests:integration -- ${GOTEST_EXTRA_ARGS}
 
+# TODO: work out how to work with Nix
 test:e2e:
   extends:
     - .task
-    - .test
+  image: ghcr.io/manfromth3m0on/playwright-go:v0.4702.0
+  before_script:
+    - apt-get install wget tar -y
+    - wget https://go.dev/dl/go1.22.5.linux-amd64.tar.gz
+    - tar -xvf go1.22.5.linux-amd64.tar.gz -C /usr/local
   script:
-    - go run github.com/playwright-community/playwright-go/cmd/playwright@latest install --with-deps || true
-    - task tests:e2e -- ${GOTEST_EXTRA_ARGS}
-  allow_failure: true
+    - /usr/local/go/bin/go test ./tests/e2e/...
   artifacts:
     when: always
     paths:
@@ -178,7 +180,7 @@ deploy:dev:
     - kubectl rollout restart deployment banterbus -n dev
 
 #TODO: promote image from dev to prod
-#TODO: tag image using prod SHA
+#TODO: tag image using TAG
 publish:prod:docker:
   stage: build
   rules:

@@ -5,8 +5,8 @@ schema = 3
     version = "v0.34.0"
     hash = "sha256-P80qX3v/RtSzEulYVIln5b4/zy1P0MTaplx0BoT5p7g="
   [mod."github.com/a-h/templ"]
-    version = "v0.2.747"
-    hash = "sha256-F0tNpUY2OD6MaDLk9yVQJ8kphlHPXzACPSYlZMmkKo0="
+    version = "v0.2.778"
+    hash = "sha256-54iSeNJU4dMMkxHEh0KyRu//vADMnt93fjmXzqc2xPE="
   [mod."github.com/davecgh/go-spew"]
     version = "v1.1.1"
     hash = "sha256-nhzSUrE1fCkN0+RL04N4h8jWmRFPPPWbCuDc7Ss0akI="
@@ -50,8 +50,8 @@ schema = 3
     version = "v1.4.0"
     hash = "sha256-I3BWBluCakfFuTKkwi5Dh+DlzpdcizOAxa4lKOUo8Ak="
   [mod."github.com/gomig/avatar"]
-    version = "v1.0.2"
-    hash = "sha256-dtVRJ8NEwF1bECPZiAtrOPbLysV1GmSqllGL5S3hnBE="
+    version = "v1.0.3"
+    hash = "sha256-6L2wF8eAdp8bChCMkP0KIgxHm/ak1mnNtrt2FUQm1Pc="
   [mod."github.com/gomig/utils"]
     version = "v1.0.0"
     hash = "sha256-0etvljiirIY/ORHgDS3EXH9O/lrMYmG8Ozl4CgA8n5Q="
@@ -83,8 +83,8 @@ schema = 3
     version = "v0.1.9"
     hash = "sha256-T0iw+UEckzueWHT88PkTnZZixyKCEa+DTLzIiiohuWY="
   [mod."github.com/playwright-community/playwright-go"]
-    version = "v0.4700.0"
-    hash = "sha256-HoySEpIOrvldPT6DOE1B59iNDrv0nTz02ErDsJxJOhw="
+    version = "v0.4702.0"
+    hash = "sha256-HN2/yB2SFceEeVCWNthKaPQ4p1VsD6Kh72tTefFmMPU="
   [mod."github.com/pmezard/go-difflib"]
     version = "v1.0.0"
     hash = "sha256-/FtmHnaGjdvEIKAJtrUfEhV7EVo5A/eYrtdnUkuxLDA="
@@ -167,8 +167,8 @@ schema = 3
     version = "v1.8.0"
     hash = "sha256-ucvPr73zg8LjvU+bcoIPKTgwgcon3U9VhKrLEMH81xg="
   [mod."modernc.org/sqlite"]
-    version = "v1.31.1"
-    hash = "sha256-SBYkL7E/nWlNF2oD/OIcadewj5eTDB6wnVTuLUosd/Q="
+    version = "v1.33.1"
+    hash = "sha256-Bhk9RNeHjgMIHt8n6L6cLxY2mMMAp4Wik5KR0954GaA="
   [mod."modernc.org/strutil"]
     version = "v1.2.0"
     hash = "sha256-NTYIWMRZjHmR77LMvsFOMCitt7toKTfH+zChYAMzZ2Y="
