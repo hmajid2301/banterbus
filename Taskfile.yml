@@ -20,26 +20,23 @@ tasks:
     cmds:
       - golangci-lint run {{.CLI_ARGS}} ./...
 
-  docker:build:
-    desc: Builds a Docker image using Nix.
+  docker:publish:
+    desc: Build and publish the Docker image
+    deps:
+      - docker:build
+    env:
+      LOCAL_IMAGE: banterbus
+      USER: $CI_REGISTRY_USER
+      PASS: $CI_REGISTRY_PASSWORD
+      REGISTRY: $CI_REGISTRY
+      IMAGE_NAME: $CI_REGISTY_IMAGE
+      IMAGE_TAG: $CI_COMMIT_TAG
     cmds:
       - nix build .#container
-
-  docker:load:
-    desc: Loads the Docker image from tar (in results).
-    cmds:
       - docker load < result
-
-  docker:publish:
-    desc: Publishes the Docker image
-    deps:
-      - docker:load
-    cmds:
-      - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-      - docker image tag banterbus:0.1 $CI_REGISTRY_IMAGE:$CI_COMMIT_TAG
-      - docker image tag banterbus:0.1 $CI_REGISTRY_IMAGE:latest
-      - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_TAG $CI_REGISTRY_IMAGE:latest
-      - docker push $CI_REGISTRY_IMAGE:latest
+      - docker login -u $USER -p $PASS $REGISTRY
+      - docker image tag $LOCAL_IMAGE:latest $CI_REGISTRY_IMAGE:$CI_COMMIT_TAG
+      - docker push $IMAGE_NAME:$IMAGE_TAG
 
   format:
     desc: Runs the formatter.
