@@ -35,6 +35,8 @@ stages:
     - mkdir /tmp
 
 .test:
+  extends:
+    - .task
   coverage: /total:\s+\(statements\)\s+\d+.\d+%/
   variables:
      GOTESTSUM_JUNITFILE: "report.xml"
@@ -73,21 +75,19 @@ publish:docker:ci:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
       changes:
         - "containers/ci.nix"
-  services:
-    - docker:27-dind
   extends:
     - .docker
 
-
 download:dependency:
-  extends: .task
+  extends:
+    - .task
   stage: deps
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-      # INFO: until cache works with custom runner
-      changes:
-        - go.mod
-        - go.sum
+      # INFO: Commented out until cache works with self-hosted runner, so this always run
+      # changes:
+      #   - go.mod
+      #   - go.sum
   script:
     - go mod download
   cache:
@@ -115,14 +115,12 @@ generate:
 
 tests:unit:
   extends:
-    - .task
     - .test
   script:
     - task tests:unit -- ${GOTEST_EXTRA_ARGS}
 
 tests:integration:
   extends:
-    - .task
     - .test
   script:
     - task tests:integration -- ${GOTEST_EXTRA_ARGS}
@@ -130,14 +128,24 @@ tests:integration:
 # TODO: work out how to work with Nix
 test:e2e:
   extends:
-    - .task
+    - .test
   image: ghcr.io/manfromth3m0on/playwright-go:v0.4702.0
   before_script:
-    - apt-get install wget tar -y
+    - apt-get install wget tar curl -y
     - wget https://go.dev/dl/go1.22.5.linux-amd64.tar.gz
     - tar -xvf go1.22.5.linux-amd64.tar.gz -C /usr/local > /dev/null 2>&1
+    - sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d
+    - go install gotest.tools/gotestsum@latest
+    - go install github.com/boumenot/gocover-cobertura@latest
+    - mv ./bin/task /usr/local/bin/task
+    - ls -al $GOPATH/bin
+    - export PATH="/usr/local/go/bin:$GOPATH/bin:$PATH"
   script:
-    - /usr/local/go/bin/go test ./tests/e2e/...
+    - task tests:e2e -- ${GOTEST_EXTRA_ARGS}
+  after_script:
+    - export PATH="/usr/local/go/bin:$GOPATH/bin:$PATH"
+    - which gocover-cobertura
+    - task coverage
   artifacts:
     when: always
     paths:
