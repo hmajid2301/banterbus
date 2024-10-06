@@ -168,25 +168,32 @@ deploy:dev:
     - kubectl config use-context hmajid2301/k3s-config:ms01
     - kubectl rollout restart deployment banterbus -n dev
 
-#TODO: promote image from dev to prod
-#TODO: tag image using TAG
+#INFO: Because Nix docker builds are immutable, we can just rebuild the image here for production
+# If we wanted to be more efficient we could work out way to retag a dev image. But this is good enough for now.
 publish:prod:docker:
   stage: build
   rules:
     - if: $CI_COMMIT_TAG
-  needs: []
   variables:
-    DOCKER_HOST: tcp://docker:2375
-    DOCKER_DRIVER: overlay2
-    DOCKER_TLS_CERTDIR: ""
+    IMAGE: $CI_REGISTRY_IMAGE:$CI_COMMIT_TAG
+    FLAKE_TARGET: container
+    LOCAL_IMAGE: banterbus
+    IMMUTABLE: "false"
   services:
     - docker:27-dind
+  extends:
+    - .docker
+
+deploy:prod:
+  stage: deploy
+  image:
+    name: bitnami/kubectl:latest
+    entrypoint: ['']
+  rules:
+    - if: $CI_COMMIT_TAG
   script:
-    - echo "experimental-features = nix-command flakes" > /etc/nix/nix.conf
-    - nix-env -iA nixpkgs.docker
-    - nix develop -c task build:dev
-    - nix build .#container
-    - nix develop -c task docker:publish
+    - kubectl config use-context hmajid2301/k3s-config:ms01
+    - kubectl rollout restart deployment banterbus -n prod
 
 release:
   stage: release
