@@ -31,10 +31,8 @@ stages:
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
   before_script:
+    # INFO: Used to create directory, needed for tests and linter
     - mkdir /tmp
-    - mkdir tmp
-    - task build:dev
-
 
 .test:
   coverage: /total:\s+\(statements\)\s+\d+.\d+%/
