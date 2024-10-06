@@ -45,7 +45,9 @@ func TestE2ELobby(t *testing.T) {
         }`, oldSrc), nil)
 		require.NoError(t, err)
 
-		err = hostPlayerPage.Locator("#update_nickname_form").Locator(`input[name="player_nickname"]`).Fill("test_nickname")
+		err = hostPlayerPage.Locator("#update_nickname_form").
+			Locator(`input[name="player_nickname"]`).
+			Fill("test_nickname")
 		require.NoError(t, err)
 		err = hostPlayerPage.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Update Nickname"}).Click()
 		require.NoError(t, err)

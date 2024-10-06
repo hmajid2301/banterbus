@@ -6,6 +6,7 @@ import (
 	context "context"
 
 	mock "github.com/stretchr/testify/mock"
+
 	entities "gitlab.com/hmajid2301/banterbus/internal/entities"
 
 	sqlc "gitlab.com/hmajid2301/banterbus/internal/store/db"
