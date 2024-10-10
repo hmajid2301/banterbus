@@ -5,7 +5,7 @@
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     flake-utils.url = "github:numtide/flake-utils";
     pre-commit-hooks.url = "github:cachix/pre-commit-hooks.nix";
-    playwright.url = "github:pietdevries94/playwright-web-flake/1.47.0";
+    playwright.url = "github:pietdevries94/playwright-web-flake/1.47.2";
 
     gomod2nix = {
       url = "github:nix-community/gomod2nix";
@@ -43,7 +43,8 @@
         gotools
         gotestsum
         gocover-cobertura
-        go-task
+        # TODO: comment this out when go-task is fixed on nixpkgs
+        # go-task
         go-mockery
         goreleaser
         golines

@@ -8,6 +8,41 @@ import (
 	"database/sql"
 )
 
+type FibbingItAnswer struct {
+	ID        string
+	CreatedAt sql.NullTime
+	UpdatedAt sql.NullTime
+	Answer    string
+	RoundID   string
+}
+
+type FibbingItPlayerRole struct {
+	ID         string
+	CreatedAt  sql.NullTime
+	UpdatedAt  sql.NullTime
+	PlayerRole string
+	RoundID    string
+	PlayerID   string
+}
+
+type FibbingItRound struct {
+	ID             string
+	CreatedAt      sql.NullTime
+	UpdatedAt      sql.NullTime
+	RoundType      string
+	Round          int64
+	FibberQuestion string
+	NormalQuestion string
+	GameState      string
+}
+
+type GameState struct {
+	ID        string
+	CreatedAt sql.NullTime
+	UpdatedAt sql.NullTime
+	RoomID    string
+}
+
 type Player struct {
 	ID        string
 	CreatedAt sql.NullTime
