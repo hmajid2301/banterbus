@@ -37,7 +37,7 @@ func main() {
 
 	err := mainLogic()
 	if err != nil {
-		logger := logging.New(slog.LevelInfo)
+		logger := logging.New(slog.LevelInfo, []slog.Attr{})
 		logger.Error("failed to start app", slog.Any("error", err))
 		exitCode = 1
 	}
@@ -52,8 +52,16 @@ func mainLogic() error {
 	if err != nil {
 		return fmt.Errorf("failed to load config: %w", err)
 	}
+	hostname, err := os.Hostname()
+	if err != nil {
+		return fmt.Errorf("failed to fetch hostname: %w", err)
+	}
 
-	logger := logging.New(conf.App.LogLevel)
+	logger := logging.New(conf.App.LogLevel, []slog.Attr{
+		slog.String("app_name", "banterbus"),
+		slog.String("node", hostname),
+		slog.String("environment", conf.App.Environment),
+	})
 	db, err := store.GetDB(conf.DBFolder)
 	if err != nil {
 		return fmt.Errorf("failed to get database: %w", err)
@@ -69,16 +77,6 @@ func mainLogic() error {
 	if err != nil {
 		return fmt.Errorf("failed to setup store: %w", err)
 	}
-
-	// TODO: fix otel
-	// otelShutdown, err := otel.SetupOTelSDK(ctx)
-	// if err != nil {
-	// 	return err
-	// }
-	//
-	// defer func() {
-	// 	err = errors.Join(err, otelShutdown(ctx))
-	// }()
 
 	userRandomizer := service.NewUserRandomizer()
 	lobbyService := service.NewLobbyService(myStore, userRandomizer)

@@ -8,11 +8,13 @@ import (
 	"log/slog"
 	"net"
 	"net/http"
+	"regexp"
 	"time"
 
 	"github.com/gobwas/ws"
 	"github.com/gobwas/ws/wsutil"
-	"go.opentelemetry.io/otel"
+	"github.com/google/uuid"
+	slogctx "github.com/veqryn/slog-context"
 )
 
 type Subscriber struct {
@@ -70,7 +72,10 @@ func (s *Subscriber) Subscribe(ctx context.Context, r *http.Request, w http.Resp
 	for {
 		select {
 		case msg := <-client.messages:
-			s.logger.Debug("sending message", slog.String("message", string(msg)))
+			cleanedMessage := stripSVGData(string(msg))
+			fmt.Println(ctx.Value("player_id"))
+			s.logger.DebugContext(ctx, "sending message", slog.String("message", cleanedMessage))
+
 			err := connection.SetWriteDeadline(time.Now().Add(time.Second * 10))
 			if err != nil {
 				s.logger.Error("failed to set timeout", slog.Any("error", err))
@@ -87,13 +92,15 @@ func (s *Subscriber) Subscribe(ctx context.Context, r *http.Request, w http.Resp
 }
 
 func (s *Subscriber) handleMessage(ctx context.Context, quit <-chan struct{}, connection net.Conn, client *client) {
-	// TODO: we know the player id based on the client.
 	for {
 		select {
 		case <-quit:
 			return
 		default:
-			tracer := otel.Tracer("subscribe")
+			correlation_id := uuid.NewString()
+			ctx = slogctx.Append(ctx, "player_id", client.playerID)
+			ctx = slogctx.Append(ctx, "correlation_id", correlation_id)
+
 			_, r, err := wsutil.NextReader(connection, ws.StateServerSide)
 			if err != nil {
 				s.logger.Error("failed to get next message", slog.Any("error", err))
@@ -108,13 +115,12 @@ func (s *Subscriber) handleMessage(ctx context.Context, quit <-chan struct{}, co
 
 			var message message
 			err = json.Unmarshal(data, &message)
-			s.logger.Debug("received message", slog.Any("message", message))
+			s.logger.DebugContext(ctx, "received message", slog.Any("message", message))
 			if err != nil {
 				s.logger.Error("failed to unmarshal message", slog.Any("error", err))
 				return
 			}
 
-			ctx, span := tracer.Start(ctx, "operation-name")
 			s.logger.DebugContext(ctx, fmt.Sprintf("handle `%s`", message.MessageType))
 			handler, ok := s.handlers[message.MessageType]
 			if !ok {
@@ -141,7 +147,11 @@ func (s *Subscriber) handleMessage(ctx context.Context, quit <-chan struct{}, co
 				return
 			}
 			s.logger.DebugContext(ctx, "finished handling request")
-			span.End()
 		}
 	}
+}
+
+func stripSVGData(message string) string {
+	re := regexp.MustCompile(`data:image/svg\+xml;base64,[A-Za-z0-9+/=]+`)
+	return re.ReplaceAllString(message, "")
 }
