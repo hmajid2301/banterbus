@@ -8,9 +8,9 @@ import (
 )
 
 type LobbyServicer interface {
-	Create(ctx context.Context, gameName string, player entities.NewHostPlayer) (entities.Room, error)
-	Join(ctx context.Context, roomCode string, playerID string, playerNickname string) (entities.Room, error)
-	Start(ctx context.Context, roomCode string, playerID string) (entities.Room, error)
+	Create(ctx context.Context, gameName string, player entities.NewHostPlayer) (entities.Lobby, error)
+	Join(ctx context.Context, roomCode string, playerID string, playerNickname string) (entities.Lobby, error)
+	Start(ctx context.Context, roomCode string, playerID string) (entities.GameState, error)
 }
 
 func (h *CreateRoom) Handle(ctx context.Context, client *client, sub *Subscriber) error {
@@ -32,7 +32,7 @@ func (h *CreateRoom) Handle(ctx context.Context, client *client, sub *Subscriber
 
 	go room.runRoom()
 
-	err = sub.updateClientsRoom(ctx, newRoom)
+	err = sub.updateClientsAboutLobby(ctx, newRoom)
 	return err
 }
 
@@ -55,7 +55,7 @@ func (h *JoinLobby) Handle(ctx context.Context, client *client, sub *Subscriber)
 		return fmt.Errorf("%w: %w", err, clientErr)
 	}
 
-	err = sub.updateClientsRoom(ctx, updatedRoom)
+	err = sub.updateClientsAboutLobby(ctx, updatedRoom)
 	return err
 }
 
@@ -67,6 +67,6 @@ func (h *StartGame) Handle(ctx context.Context, client *client, sub *Subscriber)
 		return fmt.Errorf("%w: %w", err, clientErr)
 	}
 
-	err = sub.updateClientsGame(ctx, updatedRoom)
+	err = sub.updateClientsAboutGame(ctx, updatedRoom)
 	return err
 }

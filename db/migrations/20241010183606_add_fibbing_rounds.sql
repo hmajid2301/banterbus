@@ -16,8 +16,8 @@ CREATE TABLE fibbing_it_rounds (
     round INT NOT NULL,
     fibber_question TEXT NOT NULL,
     normal_question TEXT NOT NULL,
-    game_state TEXT NOT NULL,
-    FOREIGN KEY (game_state) REFERENCES fibbing_it_rounds (game_state)
+    game_state_id TEXT NOT NULL,
+    FOREIGN KEY (game_state_id) REFERENCES game_state (id)
 );
 
 CREATE TABLE fibbing_it_answers (

@@ -50,3 +50,34 @@ UPDATE players SET avatar = ? WHERE id = ? RETURNING *;
 -- name: UpdateIsReady :one
 UPDATE players SET is_ready = ? WHERE id = ? RETURNING *;
 
+-- name: AddGameState :one
+INSERT INTO game_state (id, room_id) VALUES (?, ?) RETURNING *;
+
+-- name: AddFibbingItRound :one
+INSERT INTO fibbing_it_rounds (id, round_type, round, fibber_question_id, normal_question_id, game_state_id) VALUES (?, ?, ?, ?, ?, ?) RETURNING *;
+
+-- name: AddFibbingItAnswer :one
+INSERT INTO fibbing_it_answers (id, answer, round_id, player_id) VALUES (?, ?, ?, ?) RETURNING *;
+
+-- name: AddFibbingItRole :one
+INSERT INTO fibbing_it_player_roles (id, player_role, round_id, player_id) VALUES (?, ?, ?, ?) RETURNING *;
+
+-- name: AddQuestion :one
+INSERT INTO questions (id, game_name, round, question, language_code, group_id) VALUES (?, ?, ?, ?, ?, ?) RETURNING *;
+
+-- name: AddQuestionsGroup :one
+INSERT INTO questions_groups (id, group_name, group_type) VALUES (?, ?, ?) RETURNING *;
+
+-- name: GetRandomQuestionByRound :one
+SELECT * FROM questions WHERE game_name = ? AND round = ? AND language_code = ? AND enabled = TRUE ORDER BY RANDOM() LIMIT 1;
+
+-- name: GetRandomQuestionInGroup :one
+SELECT *
+FROM questions q
+JOIN questions_groups qg ON q.group_id = qg.id
+WHERE qg.group_type = 'questions'
+  AND q.group_id = ?
+  AND q.enabled = TRUE
+  AND q.id != ?
+ORDER BY RANDOM()
+LIMIT 1;

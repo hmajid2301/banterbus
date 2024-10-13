@@ -13,7 +13,9 @@ type FibbingItAnswer struct {
 	CreatedAt sql.NullTime
 	UpdatedAt sql.NullTime
 	Answer    string
+	PlayerID  string
 	RoundID   string
+	Foreign   interface{}
 }
 
 type FibbingItPlayerRole struct {
@@ -26,14 +28,14 @@ type FibbingItPlayerRole struct {
 }
 
 type FibbingItRound struct {
-	ID             string
-	CreatedAt      sql.NullTime
-	UpdatedAt      sql.NullTime
-	RoundType      string
-	Round          int64
-	FibberQuestion string
-	NormalQuestion string
-	GameState      string
+	ID               string
+	CreatedAt        sql.NullTime
+	UpdatedAt        sql.NullTime
+	RoundType        string
+	Round            int64
+	FibberQuestionID string
+	NormalQuestionID string
+	GameStateID      string
 }
 
 type GameState struct {
@@ -50,6 +52,26 @@ type Player struct {
 	Avatar    []byte
 	Nickname  string
 	IsReady   sql.NullBool
+}
+
+type Question struct {
+	ID           string
+	CreatedAt    sql.NullTime
+	UpdatedAt    sql.NullTime
+	GameName     string
+	Round        string
+	Enabled      sql.NullBool
+	Question     string
+	LanguageCode string
+	GroupID      string
+}
+
+type QuestionsGroup struct {
+	ID        string
+	CreatedAt sql.NullTime
+	UpdatedAt sql.NullTime
+	GroupName string
+	GroupType string
 }
 
 type Room struct {

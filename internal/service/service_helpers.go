@@ -6,15 +6,15 @@ import (
 	sqlc "gitlab.com/hmajid2301/banterbus/internal/store/db"
 )
 
-func getRoom(playerRows []sqlc.GetAllPlayersInRoomRow, roomCode string) entities.Room {
-	var players []entities.Player
+func getLobbyPlayers(playerRows []sqlc.GetAllPlayersInRoomRow, roomCode string) entities.Lobby {
+	var players []entities.LobbyPlayer
 	for _, player := range playerRows {
 		isHost := false
 		if player.ID == player.HostPlayer {
 			isHost = true
 		}
 
-		p := entities.Player{
+		p := entities.LobbyPlayer{
 			ID:       player.ID,
 			Nickname: player.Nickname,
 			Avatar:   string(player.Avatar),
@@ -25,7 +25,7 @@ func getRoom(playerRows []sqlc.GetAllPlayersInRoomRow, roomCode string) entities
 		players = append(players, p)
 	}
 
-	room := entities.Room{
+	room := entities.Lobby{
 		Code:    roomCode,
 		Players: players,
 	}

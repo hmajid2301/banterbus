@@ -238,25 +238,30 @@ func TestRoomServiceStartGame(t *testing.T) {
 
 		mockStore.EXPECT().
 			StartGame(ctx, "ABC12", newPlayer.ID).
-			Return([]sqlc.GetAllPlayersInRoomRow{
-				{
-					ID:       "b75599-9f7a-4392-b523-fd433b3208ea",
-					Nickname: "EmotionalTiger",
-					Avatar:   []byte(""),
-					RoomCode: "ABC12",
-				},
-				{
-					ID:       newCreatedPlayer.ID,
-					Nickname: newCreatedPlayer.Nickname,
-					Avatar:   []byte(""),
-					RoomCode: "ABC12",
-				},
-			}, nil)
-		room, err := service.Start(ctx, "ABC12", newPlayer.ID)
+			Return(entities.GameState{
+				RoomCode:  "ABC12",
+				Round:     1,
+				RoundType: "free_form",
+				Players: []entities.PlayerWithRole{
+					{
+						ID:       "b75599-9f7a-4392-b523-fd433b3208ea",
+						Nickname: "EmotionalTiger",
+						Role:     "player",
+						Avatar:   []byte(""),
+					},
+					{
+						ID:       newCreatedPlayer.ID,
+						Nickname: newCreatedPlayer.Nickname,
+						Avatar:   []byte(""),
+					},
+				}}, nil)
+		gameState, err := service.Start(ctx, "ABC12", newPlayer.ID)
 
 		assert.NoError(t, err)
-		assert.Equal(t, "ABC12", room.Code, "room code should be the one the player tries to join")
-		assert.Len(t, room.Players, 2, "should be two players in the room")
+		assert.Len(t, gameState.Players, 2, "should be two players in the room")
+		assert.Equal(t, gameState.Round, 1, "Should be in the first round")
+		assert.Equal(t, gameState.RoundType, "free_form", "Should be in the round type free_form")
+		assert.Equal(t, gameState.RoomCode, "ABC12", "Should be in the room with code ABC12")
 	})
 
 	t.Run("Should fail to start game", func(t *testing.T) {
@@ -272,7 +277,7 @@ func TestRoomServiceStartGame(t *testing.T) {
 		ctx := context.Background()
 		mockStore.EXPECT().
 			StartGame(ctx, "ABC12", newPlayer.ID).
-			Return([]sqlc.GetAllPlayersInRoomRow{}, fmt.Errorf("failed to start game"))
+			Return(entities.GameState{}, fmt.Errorf("failed to start game"))
 		_, err := service.Start(ctx, "ABC12", newPlayer.ID)
 		assert.Error(t, err)
 	})

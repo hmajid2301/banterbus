@@ -8,12 +8,13 @@ import (
 	"gitlab.com/hmajid2301/banterbus/internal/transport/websockets/views"
 )
 
-func (s *Subscriber) updateClientsRoom(ctx context.Context, updatedRoom entities.Room) error {
+// TODO: rename these funcs
+func (s *Subscriber) updateClientsAboutLobby(ctx context.Context, lobby entities.Lobby) error {
 	var buf bytes.Buffer
-	clientsInRoom := s.rooms[updatedRoom.Code].clients
-	for _, player := range updatedRoom.Players {
+	clientsInRoom := s.rooms[lobby.Code].clients
+	for _, player := range lobby.Players {
 		client := clientsInRoom[player.ID]
-		component := views.Room(updatedRoom.Code, updatedRoom.Players, player)
+		component := views.Lobby(lobby.Code, lobby.Players, player)
 		err := component.Render(ctx, &buf)
 		if err != nil {
 			return err
@@ -36,12 +37,12 @@ func (s *Subscriber) updateClientAboutErr(ctx context.Context, client *client, e
 	return nil
 }
 
-func (s *Subscriber) updateClientsGame(ctx context.Context, updatedRoom entities.Room) error {
+func (s *Subscriber) updateClientsAboutGame(ctx context.Context, gameState entities.GameState) error {
 	var buf bytes.Buffer
-	clientsInRoom := s.rooms[updatedRoom.Code].clients
-	for _, player := range updatedRoom.Players {
+	clientsInRoom := s.rooms[gameState.RoomCode].clients
+	for _, player := range gameState.Players {
 		client := clientsInRoom[player.ID]
-		component := views.Game(updatedRoom.Players, player)
+		component := views.Game(gameState, player)
 		err := component.Render(ctx, &buf)
 		if err != nil {
 			return err

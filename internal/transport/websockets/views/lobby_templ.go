@@ -12,7 +12,7 @@ import (
 	"gitlab.com/hmajid2301/banterbus/internal/entities"
 )
 
-func Room(code string, players []entities.Player, currentPlayer entities.Player) templ.Component {
+func Lobby(code string, players []entities.LobbyPlayer, currentPlayer entities.LobbyPlayer) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -40,7 +40,7 @@ func Room(code string, players []entities.Player, currentPlayer entities.Player)
 		var templ_7745c5c3_Var2 string
 		templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(code)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/transport/websockets/views/room.templ`, Line: 7, Col: 19}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/transport/websockets/views/lobby.templ`, Line: 7, Col: 19}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
 		if templ_7745c5c3_Err != nil {
@@ -59,7 +59,7 @@ func Room(code string, players []entities.Player, currentPlayer entities.Player)
 				var templ_7745c5c3_Var3 string
 				templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(player.Nickname)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/transport/websockets/views/room.templ`, Line: 11, Col: 58}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/transport/websockets/views/lobby.templ`, Line: 11, Col: 58}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 				if templ_7745c5c3_Err != nil {
@@ -77,7 +77,7 @@ func Room(code string, players []entities.Player, currentPlayer entities.Player)
 				var templ_7745c5c3_Var4 string
 				templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(player.Nickname)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/transport/websockets/views/room.templ`, Line: 15, Col: 24}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/transport/websockets/views/lobby.templ`, Line: 15, Col: 24}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 				if templ_7745c5c3_Err != nil {
@@ -105,7 +105,7 @@ func Room(code string, players []entities.Player, currentPlayer entities.Player)
 			var templ_7745c5c3_Var5 string
 			templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(player.Avatar)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/transport/websockets/views/room.templ`, Line: 23, Col: 28}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/transport/websockets/views/lobby.templ`, Line: 23, Col: 28}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 			if templ_7745c5c3_Err != nil {
@@ -140,7 +140,7 @@ func Room(code string, players []entities.Player, currentPlayer entities.Player)
 				var templ_7745c5c3_Var6 string
 				templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(code)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/transport/websockets/views/room.templ`, Line: 64, Col: 57}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/transport/websockets/views/lobby.templ`, Line: 64, Col: 57}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 				if templ_7745c5c3_Err != nil {
@@ -164,7 +164,7 @@ func Room(code string, players []entities.Player, currentPlayer entities.Player)
 	})
 }
 
-func allPlayersReady(players []entities.Player) bool {
+func allPlayersReady(players []entities.LobbyPlayer) bool {
 	for _, player := range players {
 		if !player.IsReady {
 			return false

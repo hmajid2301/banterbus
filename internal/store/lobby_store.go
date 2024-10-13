@@ -170,10 +170,10 @@ func (s Store) StartGame(
 	ctx context.Context,
 	roomCode string,
 	playerID string,
-) (players []sqlc.GetAllPlayersInRoomRow, err error) {
+) (gameState entities.GameState, err error) {
 	tx, err := s.db.Begin()
 	if err != nil {
-		return players, err
+		return gameState, err
 	}
 
 	defer func() {
@@ -184,29 +184,30 @@ func (s Store) StartGame(
 
 	room, err := s.queries.WithTx(tx).GetRoomByCode(ctx, roomCode)
 	if err != nil {
-		return players, err
+		return gameState, err
 	}
 
 	if room.HostPlayer != playerID {
-		return players, fmt.Errorf("player is not the host of the room")
+		return gameState, fmt.Errorf("player is not the host of the room")
 	}
 
 	if room.RoomState != CREATED.String() {
-		return players, fmt.Errorf("room is not in CREATED state")
+		return gameState, fmt.Errorf("room is not in CREATED state")
 	}
 
-	players, err = s.queries.WithTx(tx).GetAllPlayersInRoom(ctx, playerID)
+	// TODO: rename the playersInRoom variable
+	playersInRoom, err := s.queries.WithTx(tx).GetAllPlayersInRoom(ctx, playerID)
 	if err != nil {
-		return players, err
+		return gameState, err
 	}
 
-	if len(players) < 2 {
-		return players, fmt.Errorf("not enough players to start the game")
+	if len(playersInRoom) < 2 {
+		return gameState, fmt.Errorf("not enough players to start the game")
 	}
 
-	for _, player := range players {
+	for _, player := range playersInRoom {
 		if !player.IsReady.Bool {
-			return players, fmt.Errorf("not all players are ready: %s", player.ID)
+			return gameState, fmt.Errorf("not all players are ready: %s", player.ID)
 		}
 	}
 
@@ -215,10 +216,85 @@ func (s Store) StartGame(
 		ID:        room.ID,
 	})
 	if err != nil {
-		return players, err
+		return gameState, err
 	}
 
-	return players, tx.Commit()
+	normalsQuestion, err := s.queries.WithTx(tx).GetRandomQuestionByRound(ctx, sqlc.GetRandomQuestionByRoundParams{
+		GameName:     room.GameName,
+		LanguageCode: "en-GB",
+		// TODO: should we fetch a random round from the database?
+		Round: "free_form",
+	})
+	if err != nil {
+		return gameState, err
+	}
+
+	g, err := s.queries.WithTx(tx).AddGameState(ctx, sqlc.AddGameStateParams{
+		ID:     uuid.Must(uuid.NewV7()).String(),
+		RoomID: room.ID,
+	})
+	if err != nil {
+		return gameState, err
+	}
+
+	fibberQuestion, err := s.queries.WithTx(tx).GetRandomQuestionInGroup(ctx, sqlc.GetRandomQuestionInGroupParams{
+		GroupID: normalsQuestion.GroupID,
+		ID:      normalsQuestion.ID,
+	})
+	if err != nil {
+		return gameState, err
+	}
+
+	round, err := s.queries.WithTx(tx).AddFibbingItRound(ctx, sqlc.AddFibbingItRoundParams{
+		ID:               uuid.Must(uuid.NewV7()).String(),
+		RoundType:        "free_form",
+		Round:            1,
+		FibberQuestionID: fibberQuestion.ID,
+		NormalQuestionID: normalsQuestion.ID,
+		GameStateID:      g.ID,
+	})
+	if err != nil {
+		return gameState, err
+	}
+
+	players := []entities.PlayerWithRole{}
+	randomFibberLoc := rand.IntN(len(playersInRoom))
+	for i, player := range playersInRoom {
+		role := "normal"
+		question := normalsQuestion.Question
+
+		if i == randomFibberLoc {
+			role = "fibber"
+			question = fibberQuestion.Question
+		}
+
+		players = append(players, entities.PlayerWithRole{
+			ID:       player.ID,
+			Nickname: player.Nickname,
+			Avatar:   player.Avatar,
+			Role:     role,
+			Question: question,
+		})
+
+		_, err = s.queries.WithTx(tx).AddFibbingItRole(ctx, sqlc.AddFibbingItRoleParams{
+			ID:         uuid.Must(uuid.NewV7()).String(),
+			RoundID:    round.ID,
+			PlayerID:   player.ID,
+			PlayerRole: role,
+		})
+		if err != nil {
+			return gameState, err
+		}
+
+	}
+	gameState = entities.GameState{
+		Players:   players,
+		Round:     1,
+		RoundType: "free_form",
+		RoomCode:  roomCode,
+	}
+
+	return gameState, tx.Commit()
 }
 
 func randomRoomCode() string {

@@ -30,5 +30,8 @@ func TestE2EStartGame(t *testing.T) {
 		startText := otherPlayerPage.GetByText("Fibbing It Starting")
 		err = expect.Locator(startText).ToBeVisible()
 		require.NoError(t, err)
+		// roundNum := otherPlayerPage.GetByText("Round 1")
+		// err = expect.Locator(roundNum).ToBeVisible()
+		require.NoError(t, err)
 	})
 }

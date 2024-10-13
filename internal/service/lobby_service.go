@@ -31,7 +31,7 @@ type Storer interface {
 	) (players []sqlc.GetAllPlayersInRoomRow, err error)
 	UpdateAvatar(ctx context.Context, avatar []byte, playerID string) (players []sqlc.GetAllPlayersInRoomRow, err error)
 	ToggleIsReady(ctx context.Context, playerID string) (players []sqlc.GetAllPlayersInRoomRow, err error)
-	StartGame(ctx context.Context, roomCode string, playerID string) (players []sqlc.GetAllPlayersInRoomRow, err error)
+	StartGame(ctx context.Context, roomCode string, playerID string) (gameState entities.GameState, err error)
 }
 
 func NewLobbyService(store Storer, randomizer Randomizer) *LobbyService {
@@ -42,7 +42,7 @@ func (r *LobbyService) Create(
 	ctx context.Context,
 	gameName string,
 	player entities.NewHostPlayer,
-) (entities.Room, error) {
+) (entities.Lobby, error) {
 	newPlayer := r.getNewPlayer(player.Nickname, player.ID)
 
 	newRoom := entities.NewRoom{
@@ -50,12 +50,12 @@ func (r *LobbyService) Create(
 	}
 	roomCode, err := r.store.CreateRoom(ctx, newPlayer, newRoom)
 	if err != nil {
-		return entities.Room{}, err
+		return entities.Lobby{}, err
 	}
 
-	room := entities.Room{
+	lobby := entities.Lobby{
 		Code: roomCode,
-		Players: []entities.Player{
+		Players: []entities.LobbyPlayer{
 			{
 				ID:       player.ID,
 				Nickname: newPlayer.Nickname,
@@ -63,7 +63,7 @@ func (r *LobbyService) Create(
 			},
 		},
 	}
-	return room, nil
+	return lobby, nil
 }
 
 func (r *LobbyService) Join(
@@ -71,25 +71,28 @@ func (r *LobbyService) Join(
 	roomCode string,
 	playerID string,
 	playerNickname string,
-) (entities.Room, error) {
+) (entities.Lobby, error) {
 	newPlayer := r.getNewPlayer(playerNickname, playerID)
 	playerRows, err := r.store.AddPlayerToRoom(ctx, newPlayer, roomCode)
 	if err != nil {
-		return entities.Room{}, err
+		return entities.Lobby{}, err
 	}
 
-	room := getRoom(playerRows, roomCode)
-	return room, nil
+	lobby := getLobbyPlayers(playerRows, roomCode)
+	return lobby, nil
 }
 
-func (r *LobbyService) Start(ctx context.Context, roomCode string, playerID string) (entities.Room, error) {
-	playerRows, err := r.store.StartGame(ctx, roomCode, playerID)
+func (r *LobbyService) Start(
+	ctx context.Context,
+	roomCode string,
+	playerID string,
+) (entities.GameState, error) {
+	gameState, err := r.store.StartGame(ctx, roomCode, playerID)
 	if err != nil {
-		return entities.Room{}, err
+		return entities.GameState{}, err
 	}
 
-	room := getRoom(playerRows, roomCode)
-	return room, nil
+	return gameState, nil
 }
 
 func (r *LobbyService) getNewPlayer(playerNickname string, playerID string) entities.NewPlayer {

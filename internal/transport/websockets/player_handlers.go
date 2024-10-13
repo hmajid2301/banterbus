@@ -8,9 +8,9 @@ import (
 )
 
 type PlayerServicer interface {
-	UpdateNickname(ctx context.Context, nickname string, playerID string) (entities.Room, error)
-	GenerateNewAvatar(ctx context.Context, playerID string) (entities.Room, error)
-	TogglePlayerIsReady(ctx context.Context, playerID string) (entities.Room, error)
+	UpdateNickname(ctx context.Context, nickname string, playerID string) (entities.Lobby, error)
+	GenerateNewAvatar(ctx context.Context, playerID string) (entities.Lobby, error)
+	TogglePlayerIsReady(ctx context.Context, playerID string) (entities.Lobby, error)
 }
 
 func (h *UpdateNickname) Handle(ctx context.Context, client *client, sub *Subscriber) error {
@@ -24,7 +24,7 @@ func (h *UpdateNickname) Handle(ctx context.Context, client *client, sub *Subscr
 		return fmt.Errorf("%w: %w", err, clientErr)
 	}
 
-	err = sub.updateClientsRoom(ctx, updatedRoom)
+	err = sub.updateClientsAboutLobby(ctx, updatedRoom)
 	return err
 }
 
@@ -40,7 +40,7 @@ func (h *GenerateNewAvatar) Handle(
 		return fmt.Errorf("%w: %w", err, clientErr)
 	}
 
-	err = sub.updateClientsRoom(ctx, updatedRoom)
+	err = sub.updateClientsAboutLobby(ctx, updatedRoom)
 	return err
 }
 
@@ -56,6 +56,6 @@ func (h *TogglePlayerIsReady) Handle(
 		return fmt.Errorf("%w: %w", err, clientErr)
 	}
 
-	err = sub.updateClientsRoom(ctx, updatedRoom)
+	err = sub.updateClientsAboutLobby(ctx, updatedRoom)
 	return err
 }

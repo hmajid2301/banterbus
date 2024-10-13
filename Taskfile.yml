@@ -57,6 +57,7 @@ tasks:
   generate:
     desc: Generates all the code needed for the project i.e. sqlc, templ & tailwindcss
     cmds:
+      - mockery --all
       - templ generate
       - tailwindcss -i ./static/css/tailwind.css -o ./static/css/styles.css
       - sqlc generate

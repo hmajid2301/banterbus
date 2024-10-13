@@ -218,9 +218,9 @@ func TestIntegrationStartGame(t *testing.T) {
 		}
 
 		// INFO: first player is the host, so only they can start the game
-		players, err = myStore.StartGame(ctx, roomCode, players[0].ID)
+		gameState, err := myStore.StartGame(ctx, roomCode, players[0].ID)
 		assert.NoError(t, err)
-		assert.Len(t, players, 2, "There should be 2 players in the room")
+		assert.Len(t, gameState.Players, 2, "There should be 2 players in the room")
 
 		var roomState string
 		err = db.QueryRowContext(ctx, "SELECT room_state FROM rooms WHERE room_code = ?", roomCode).Scan(&roomState)
@@ -228,6 +228,12 @@ func TestIntegrationStartGame(t *testing.T) {
 
 		assert.Equal(t, store.PLAYING.String(), roomState, "Room should be in PLAYING state after starting game")
 		assert.NoError(t, err)
+
+		playerOne := gameState.Players[0]
+		playerTwo := gameState.Players[1]
+
+		assert.NotEqual(t, playerOne.Role, playerTwo.Role, "Players should have different roles")
+		assert.NotEqual(t, playerOne.Question, playerTwo.Question, "Players should have differnt questions")
 	})
 
 	t.Run("Should fail to start game, player is not host", func(t *testing.T) {

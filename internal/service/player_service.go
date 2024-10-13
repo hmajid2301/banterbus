@@ -16,46 +16,46 @@ func NewPlayerService(store Storer, randomizer Randomizer) *PlayerService {
 	return &PlayerService{store: store, randomizer: randomizer}
 }
 
-func (p *PlayerService) UpdateNickname(ctx context.Context, nickname string, playerID string) (entities.Room, error) {
+func (p *PlayerService) UpdateNickname(ctx context.Context, nickname string, playerID string) (entities.Lobby, error) {
 	playerRows, err := p.store.UpdateNickname(ctx, nickname, playerID)
 	if err != nil {
-		return entities.Room{}, err
+		return entities.Lobby{}, err
 	}
 
 	if len(playerRows) == 0 {
-		return entities.Room{}, fmt.Errorf("no players in room")
+		return entities.Lobby{}, fmt.Errorf("no players in room")
 	}
 
-	room := getRoom(playerRows, playerRows[0].RoomCode)
+	room := getLobbyPlayers(playerRows, playerRows[0].RoomCode)
 	return room, err
 }
 
-func (p *PlayerService) GenerateNewAvatar(ctx context.Context, playerID string) (entities.Room, error) {
+func (p *PlayerService) GenerateNewAvatar(ctx context.Context, playerID string) (entities.Lobby, error) {
 	avatar := p.randomizer.GetAvatar()
 
 	playerRows, err := p.store.UpdateAvatar(ctx, avatar, playerID)
 	if err != nil {
-		return entities.Room{}, err
+		return entities.Lobby{}, err
 	}
 
 	if len(playerRows) == 0 {
-		return entities.Room{}, fmt.Errorf("no players in room")
+		return entities.Lobby{}, fmt.Errorf("no players in room")
 	}
 
-	room := getRoom(playerRows, playerRows[0].RoomCode)
+	room := getLobbyPlayers(playerRows, playerRows[0].RoomCode)
 	return room, err
 }
 
-func (p *PlayerService) TogglePlayerIsReady(ctx context.Context, playerID string) (entities.Room, error) {
+func (p *PlayerService) TogglePlayerIsReady(ctx context.Context, playerID string) (entities.Lobby, error) {
 	playerRows, err := p.store.ToggleIsReady(ctx, playerID)
 	if err != nil {
-		return entities.Room{}, err
+		return entities.Lobby{}, err
 	}
 
 	if len(playerRows) == 0 {
-		return entities.Room{}, fmt.Errorf("no players in room")
+		return entities.Lobby{}, fmt.Errorf("no players in room")
 	}
 
-	room := getRoom(playerRows, playerRows[0].RoomCode)
+	room := getLobbyPlayers(playerRows, playerRows[0].RoomCode)
 	return room, err
 }

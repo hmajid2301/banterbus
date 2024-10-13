@@ -15,7 +15,7 @@ type NewRoom struct {
 	GameName string
 }
 
-type Player struct {
+type LobbyPlayer struct {
 	ID       string
 	Nickname string
 	Avatar   string
@@ -23,7 +23,22 @@ type Player struct {
 	IsHost   bool
 }
 
-type Room struct {
+type Lobby struct {
 	Code    string
-	Players []Player
+	Players []LobbyPlayer
+}
+
+type PlayerWithRole struct {
+	ID       string
+	Nickname string
+	Role     string
+	Question string
+	Avatar   []byte
+}
+
+type GameState struct {
+	Players   []PlayerWithRole
+	Round     int
+	RoundType string
+	RoomCode  string
 }

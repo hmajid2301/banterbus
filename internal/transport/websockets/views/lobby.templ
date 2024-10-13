@@ -2,7 +2,7 @@ package views
 
 import "gitlab.com/hmajid2301/banterbus/internal/entities"
 
-templ Room(code string, players []entities.Player, currentPlayer entities.Player) {
+templ Lobby(code string, players []entities.LobbyPlayer, currentPlayer entities.LobbyPlayer) {
 	<div hx-swap-oob="innerHTML:#page">
 		<div>Code: { code }</div>
 		for _, player := range players {
@@ -70,7 +70,7 @@ templ Room(code string, players []entities.Player, currentPlayer entities.Player
 	</div>
 }
 
-func allPlayersReady(players []entities.Player) bool {
+func allPlayersReady(players []entities.LobbyPlayer) bool {
 	for _, player := range players {
 		if !player.IsReady {
 			return false

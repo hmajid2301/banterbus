@@ -10,6 +10,124 @@ import (
 	"database/sql"
 )
 
+const addFibbingItAnswer = `-- name: AddFibbingItAnswer :one
+INSERT INTO fibbing_it_answers (id, answer, round_id, player_id) VALUES (?, ?, ?, ?) RETURNING id, created_at, updated_at, answer, player_id, round_id, "foreign"
+`
+
+type AddFibbingItAnswerParams struct {
+	ID       string
+	Answer   string
+	RoundID  string
+	PlayerID string
+}
+
+func (q *Queries) AddFibbingItAnswer(ctx context.Context, arg AddFibbingItAnswerParams) (FibbingItAnswer, error) {
+	row := q.db.QueryRowContext(ctx, addFibbingItAnswer,
+		arg.ID,
+		arg.Answer,
+		arg.RoundID,
+		arg.PlayerID,
+	)
+	var i FibbingItAnswer
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.Answer,
+		&i.PlayerID,
+		&i.RoundID,
+		&i.Foreign,
+	)
+	return i, err
+}
+
+const addFibbingItRole = `-- name: AddFibbingItRole :one
+INSERT INTO fibbing_it_player_roles (id, player_role, round_id, player_id) VALUES (?, ?, ?, ?) RETURNING id, created_at, updated_at, player_role, round_id, player_id
+`
+
+type AddFibbingItRoleParams struct {
+	ID         string
+	PlayerRole string
+	RoundID    string
+	PlayerID   string
+}
+
+func (q *Queries) AddFibbingItRole(ctx context.Context, arg AddFibbingItRoleParams) (FibbingItPlayerRole, error) {
+	row := q.db.QueryRowContext(ctx, addFibbingItRole,
+		arg.ID,
+		arg.PlayerRole,
+		arg.RoundID,
+		arg.PlayerID,
+	)
+	var i FibbingItPlayerRole
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.PlayerRole,
+		&i.RoundID,
+		&i.PlayerID,
+	)
+	return i, err
+}
+
+const addFibbingItRound = `-- name: AddFibbingItRound :one
+INSERT INTO fibbing_it_rounds (id, round_type, round, fibber_question_id, normal_question_id, game_state_id) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at, updated_at, round_type, round, fibber_question_id, normal_question_id, game_state_id
+`
+
+type AddFibbingItRoundParams struct {
+	ID               string
+	RoundType        string
+	Round            int64
+	FibberQuestionID string
+	NormalQuestionID string
+	GameStateID      string
+}
+
+func (q *Queries) AddFibbingItRound(ctx context.Context, arg AddFibbingItRoundParams) (FibbingItRound, error) {
+	row := q.db.QueryRowContext(ctx, addFibbingItRound,
+		arg.ID,
+		arg.RoundType,
+		arg.Round,
+		arg.FibberQuestionID,
+		arg.NormalQuestionID,
+		arg.GameStateID,
+	)
+	var i FibbingItRound
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.RoundType,
+		&i.Round,
+		&i.FibberQuestionID,
+		&i.NormalQuestionID,
+		&i.GameStateID,
+	)
+	return i, err
+}
+
+const addGameState = `-- name: AddGameState :one
+INSERT INTO game_state (id, room_id) VALUES (?, ?) RETURNING id, created_at, updated_at, room_id
+`
+
+type AddGameStateParams struct {
+	ID     string
+	RoomID string
+}
+
+func (q *Queries) AddGameState(ctx context.Context, arg AddGameStateParams) (GameState, error) {
+	row := q.db.QueryRowContext(ctx, addGameState, arg.ID, arg.RoomID)
+	var i GameState
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.RoomID,
+	)
+	return i, err
+}
+
 const addPlayer = `-- name: AddPlayer :one
 INSERT INTO players (id, avatar, nickname) VALUES (?, ?, ?) RETURNING id, created_at, updated_at, avatar, nickname, is_ready
 `
@@ -30,6 +148,66 @@ func (q *Queries) AddPlayer(ctx context.Context, arg AddPlayerParams) (Player, e
 		&i.Avatar,
 		&i.Nickname,
 		&i.IsReady,
+	)
+	return i, err
+}
+
+const addQuestion = `-- name: AddQuestion :one
+INSERT INTO questions (id, game_name, round, question, language_code, group_id) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at, updated_at, game_name, round, enabled, question, language_code, group_id
+`
+
+type AddQuestionParams struct {
+	ID           string
+	GameName     string
+	Round        string
+	Question     string
+	LanguageCode string
+	GroupID      string
+}
+
+func (q *Queries) AddQuestion(ctx context.Context, arg AddQuestionParams) (Question, error) {
+	row := q.db.QueryRowContext(ctx, addQuestion,
+		arg.ID,
+		arg.GameName,
+		arg.Round,
+		arg.Question,
+		arg.LanguageCode,
+		arg.GroupID,
+	)
+	var i Question
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.GameName,
+		&i.Round,
+		&i.Enabled,
+		&i.Question,
+		&i.LanguageCode,
+		&i.GroupID,
+	)
+	return i, err
+}
+
+const addQuestionsGroup = `-- name: AddQuestionsGroup :one
+INSERT INTO questions_groups (id, group_name, group_type) VALUES (?, ?, ?) RETURNING id, created_at, updated_at, group_name, group_type
+`
+
+type AddQuestionsGroupParams struct {
+	ID        string
+	GroupName string
+	GroupType string
+}
+
+func (q *Queries) AddQuestionsGroup(ctx context.Context, arg AddQuestionsGroupParams) (QuestionsGroup, error) {
+	row := q.db.QueryRowContext(ctx, addQuestionsGroup, arg.ID, arg.GroupName, arg.GroupType)
+	var i QuestionsGroup
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.GroupName,
+		&i.GroupType,
 	)
 	return i, err
 }
@@ -212,6 +390,89 @@ func (q *Queries) GetPlayerByID(ctx context.Context, id string) (Player, error) 
 		&i.Avatar,
 		&i.Nickname,
 		&i.IsReady,
+	)
+	return i, err
+}
+
+const getRandomQuestionByRound = `-- name: GetRandomQuestionByRound :one
+SELECT id, created_at, updated_at, game_name, round, enabled, question, language_code, group_id FROM questions WHERE game_name = ? AND round = ? AND language_code = ? AND enabled = TRUE ORDER BY RANDOM() LIMIT 1
+`
+
+type GetRandomQuestionByRoundParams struct {
+	GameName     string
+	Round        string
+	LanguageCode string
+}
+
+func (q *Queries) GetRandomQuestionByRound(ctx context.Context, arg GetRandomQuestionByRoundParams) (Question, error) {
+	row := q.db.QueryRowContext(ctx, getRandomQuestionByRound, arg.GameName, arg.Round, arg.LanguageCode)
+	var i Question
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.GameName,
+		&i.Round,
+		&i.Enabled,
+		&i.Question,
+		&i.LanguageCode,
+		&i.GroupID,
+	)
+	return i, err
+}
+
+const getRandomQuestionInGroup = `-- name: GetRandomQuestionInGroup :one
+SELECT q.id, q.created_at, q.updated_at, game_name, round, enabled, question, language_code, group_id, qg.id, qg.created_at, qg.updated_at, group_name, group_type
+FROM questions q
+JOIN questions_groups qg ON q.group_id = qg.id
+WHERE qg.group_type = 'questions'
+  AND q.group_id = ?
+  AND q.enabled = TRUE
+  AND q.id != ?
+ORDER BY RANDOM()
+LIMIT 1
+`
+
+type GetRandomQuestionInGroupParams struct {
+	GroupID string
+	ID      string
+}
+
+type GetRandomQuestionInGroupRow struct {
+	ID           string
+	CreatedAt    sql.NullTime
+	UpdatedAt    sql.NullTime
+	GameName     string
+	Round        string
+	Enabled      sql.NullBool
+	Question     string
+	LanguageCode string
+	GroupID      string
+	ID_2         string
+	CreatedAt_2  sql.NullTime
+	UpdatedAt_2  sql.NullTime
+	GroupName    string
+	GroupType    string
+}
+
+func (q *Queries) GetRandomQuestionInGroup(ctx context.Context, arg GetRandomQuestionInGroupParams) (GetRandomQuestionInGroupRow, error) {
+	row := q.db.QueryRowContext(ctx, getRandomQuestionInGroup, arg.GroupID, arg.ID)
+	var i GetRandomQuestionInGroupRow
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.GameName,
+		&i.Round,
+		&i.Enabled,
+		&i.Question,
+		&i.LanguageCode,
+		&i.GroupID,
+		&i.ID_2,
+		&i.CreatedAt_2,
+		&i.UpdatedAt_2,
+		&i.GroupName,
+		&i.GroupType,
 	)
 	return i, err
 }

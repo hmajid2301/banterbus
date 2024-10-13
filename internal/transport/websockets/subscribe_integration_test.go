@@ -34,10 +34,10 @@ func TestIntegrationSubscribe(t *testing.T) {
 	require.NoError(t, err)
 
 	userRandomizer := service.NewUserRandomizer()
-	roomServicer := service.NewLobbyService(myStore, userRandomizer)
-	playerServicer := service.NewPlayerService(myStore, userRandomizer)
+	lobbyService := service.NewLobbyService(myStore, userRandomizer)
+	playerService := service.NewPlayerService(myStore, userRandomizer)
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
-	subscriber := websockets.NewSubscriber(roomServicer, playerServicer, logger)
+	subscriber := websockets.NewSubscriber(lobbyService, playerService, logger)
 
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		err := subscriber.Subscribe(context.Background(), r, w)
@@ -212,11 +212,19 @@ func TestIntegrationSubscribe(t *testing.T) {
 		}
 		_ = sendMessage(message, t, conn2)
 
+		time.Sleep(100 * time.Millisecond)
+
+		// TODO: use structs and turn to json
 		message = map[string]string{
 			"message_type": "start_game",
+			"room_code":    roomCode,
 		}
 		msg = sendMessage(message, t, conn)
+
+		time.Sleep(100 * time.Millisecond)
 		assert.Contains(t, msg, playerNickname)
+		// TODO: fix this test with actual game start
+		// assert.Contains(t, msg, "Round Number 1")
 	})
 }
 
