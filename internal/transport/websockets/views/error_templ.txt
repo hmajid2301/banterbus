@@ -1,0 +1,2 @@
+<div hx-swap-oob=\"innerHTML:#error\">
+</div>

@@ -1,0 +1,7 @@
+<div hx-swap-oob=\"innerHTML:#page\"><p>Fibbing It Starting ...</p><p>Round Number 
+</p><p>Round 
+</p><p>Sush you are, don't let anyone see ...</p><p>
+</p><p>Your question is</p><p>
+</p><input id=\"answer\" placeholder=\"Enter your answer\"><div class=\"w-5 h-6\"><img src=\"
+\" alt=\"avatar\"><p>
+</p></div></div>

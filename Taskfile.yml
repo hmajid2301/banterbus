@@ -6,12 +6,9 @@ tasks:
     env:
       BANTERBUS_LOG_LEVEL: debug
     cmds:
-      - air
-
-  build:dev:
-    desc: Build the app for development, generates all the files needed for the binary.
-    cmds:
-      - go build -o ./tmp/main .
+      - task: watch
+      - air &
+      - browser-sync start --files 'static/**/*.html, static/**/*.css' --port 8085 --proxy 'localhost:8080' --middleware 'function(req, res, next) { \ res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate"); \ return next(); \ }'
 
   lint:
     desc: Runs the linter.
@@ -53,6 +50,15 @@ tasks:
       - gocover-cobertura < coverage.txt > coverage.xml
     preconditions:
       - test -f coverage.txt
+
+  watch:
+    desc: Watch for file changes and run commands, i.e. generate templates or tailwindcss
+    cmds:
+      - templ generate -watch &
+      - tailwindcss --watch -i ./static/css/tailwind.css -o ./static/css/styles.css &
+      # TODO: do we want to add watch commands for the following?
+      # - mockery --all
+      # - sqlc generate
 
   generate:
     desc: Generates all the code needed for the project i.e. sqlc, templ & tailwindcss

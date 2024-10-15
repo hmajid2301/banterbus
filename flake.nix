@@ -49,9 +49,13 @@
         goreleaser
         golines
 
+        nodePackages.browser-sync
         tailwindcss
         templ
         sqlc
+
+        # TODO: test if this is worth it
+        gitlab-ci-local
       ];
 
       # The current default sdk for macOS fails to compile go projects, so we use a newer one for now.
