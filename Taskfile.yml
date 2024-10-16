@@ -8,7 +8,7 @@ tasks:
     cmds:
       - task: watch
       - air &
-      - browser-sync start --files 'static/**/*.html, static/**/*.css' --port 8085 --proxy 'localhost:8080' --middleware 'function(req, res, next) { \ res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate"); \ return next(); \ }'
+      - browser-sync start --files 'static/**/*.html, static/**/*.css' --port 8567 --proxy 'localhost:8080' --middleware 'function(req, res, next) { \ res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate"); \ return next(); \ }'
 
   lint:
     desc: Runs the linter.
