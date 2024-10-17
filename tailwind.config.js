@@ -7,6 +7,9 @@ module.exports = {
       fontFamily: {
         header: ["Noyh R"],
       },
+      backgroundImage: {
+        background: "url('/images/background-pattern.svg')",
+      },
       boxShadow: {
         "custom-border": "0 4px 0 0 #181825",
       },

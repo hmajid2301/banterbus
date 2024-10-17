@@ -627,6 +627,10 @@ video {
   min-height: 140px;
 }
 
+.min-h-screen {
+  min-height: 100vh;
+}
+
 .w-5 {
   width: 1.25rem;
 }
@@ -722,6 +726,11 @@ video {
   background-color: rgb(99 102 241 / var(--tw-bg-opacity));
 }
 
+.bg-mantle {
+  --tw-bg-opacity: 1;
+  background-color: rgb(24 24 37 / var(--tw-bg-opacity));
+}
+
 .bg-surface0 {
   --tw-bg-opacity: 1;
   background-color: rgb(49 50 68 / var(--tw-bg-opacity));
@@ -730,6 +739,22 @@ video {
 .bg-surface2 {
   --tw-bg-opacity: 1;
   background-color: rgb(88 91 112 / var(--tw-bg-opacity));
+}
+
+.bg-background {
+  background-image: url('/images/background-pattern.svg');
+}
+
+.bg-cover {
+  background-size: cover;
+}
+
+.bg-center {
+  background-position: center;
+}
+
+.bg-no-repeat {
+  background-repeat: no-repeat;
 }
 
 .fill-transparent {

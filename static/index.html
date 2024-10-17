@@ -11,10 +11,11 @@
     <link rel="manifest" href="/site.webmanifest">
   </head>
   <body>
-    <header class="bg-surface0 font-header">
-      <nav class="flex justify-between items-center p-6 mx-auto max-w-7xl lg:px-8" aria-label="Global">
-        <div class="flex flex-1">
-          <div
+    <div class="w-full min-h-screen bg-center bg-no-repeat bg-cover bg-mantle bg-background">
+      <header class="bg-surface0 font-header">
+        <nav class="flex justify-between items-center p-6 mx-auto max-w-7xl lg:px-8" aria-label="Global">
+          <div class="flex flex-1">
+            <div
             x-data="{
                 open: false,
                 toggle() {
@@ -34,28 +35,28 @@
             x-on:focusin.window="! $refs.panel.contains($event.target) && close()"
             x-id="['dropdown-button']"
             class="relative">
-            <button disabled type="button" class="flex flex-row p-3 space-x-4 rounded-lg rounded-b-lg shadow-custom-border bg-surface2 text-text fill-transparent">
-              <!-- comment this out when localisation is enabled -->
-              <!-- <button -->
-              <!--     x-ref="button" -->
-              <!--     x-on:click="toggle()" -->
-              <!--     :aria-expanded="open" -->
-              <!--     :aria-controls="$id('dropdown-button')" -->
-              <!--     type="button" class="flex flex-row p-3 space-x-4 rounded-lg rounded-b-lg shadow-custom-border bg-surface2 text-text fill-transparent"> -->
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20">
-                <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.5" />
-                <path d="M8 12C8 18 12 22 12 22C12 22 16 18 16 12C16 6 12 2 12 2C12 2 8 6 8 12Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" />
-                <path d="M21 15H3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
-                <path d="M21 9H3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
-              </svg>
-              <p>
-                English (GB)
-              </p>
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" class="fill-transparent">
-                <path d="M18.593 8.19486C19.0376 8.52237 19.1326 9.14837 18.8051 9.59306C18.5507 9.93847 18.2963 10.2668 18.0731 10.5528C17.6276 11.1236 17.0143 11.8882 16.3479 12.6556C15.6859 13.4181 14.9518 14.2064 14.2666 14.8119C13.9251 15.1136 13.5721 15.3911 13.2279 15.5986C12.9112 15.7895 12.476 16 11.9999 16C11.5238 16 11.0885 15.7895 10.7718 15.5986C10.4276 15.3911 10.0747 15.1136 9.7332 14.8119C9.04791 14.2064 8.31387 13.4181 7.65183 12.6556C6.98548 11.8882 6.37216 11.1236 5.92664 10.5528C5.70347 10.2668 5.44902 9.93847 5.19463 9.59307C4.86712 9.14837 4.96211 8.52237 5.4068 8.19486C5.58556 8.0632 5.79362 7.99983 5.99982 8L11.9999 8L17.9999 8C18.2061 7.99983 18.4142 8.0632 18.593 8.19486Z" />
-              </svg>
-            </button>
-            <div
+              <button disabled type="button" class="flex flex-row p-3 space-x-4 rounded-lg rounded-b-lg shadow-custom-border bg-surface2 text-text fill-transparent">
+                <!-- comment this out when localisation is enabled -->
+                <!-- <button -->
+                <!--     x-ref="button" -->
+                <!--     x-on:click="toggle()" -->
+                <!--     :aria-expanded="open" -->
+                <!--     :aria-controls="$id('dropdown-button')" -->
+                <!--     type="button" class="flex flex-row p-3 space-x-4 rounded-lg rounded-b-lg shadow-custom-border bg-surface2 text-text fill-transparent"> -->
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20">
+                  <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.5" />
+                  <path d="M8 12C8 18 12 22 12 22C12 22 16 18 16 12C16 6 12 2 12 2C12 2 8 6 8 12Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" />
+                  <path d="M21 15H3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                  <path d="M21 9H3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+                <p>
+                  English (GB)
+                </p>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" class="fill-transparent">
+                  <path d="M18.593 8.19486C19.0376 8.52237 19.1326 9.14837 18.8051 9.59306C18.5507 9.93847 18.2963 10.2668 18.0731 10.5528C17.6276 11.1236 17.0143 11.8882 16.3479 12.6556C15.6859 13.4181 14.9518 14.2064 14.2666 14.8119C13.9251 15.1136 13.5721 15.3911 13.2279 15.5986C12.9112 15.7895 12.476 16 11.9999 16C11.5238 16 11.0885 15.7895 10.7718 15.5986C10.4276 15.3911 10.0747 15.1136 9.7332 14.8119C9.04791 14.2064 8.31387 13.4181 7.65183 12.6556C6.98548 11.8882 6.37216 11.1236 5.92664 10.5528C5.70347 10.2668 5.44902 9.93847 5.19463 9.59307C4.86712 9.14837 4.96211 8.52237 5.4068 8.19486C5.58556 8.0632 5.79362 7.99983 5.99982 8L11.9999 8L17.9999 8C18.2061 7.99983 18.4142 8.0632 18.593 8.19486Z" />
+                </svg>
+              </button>
+              <div
             x-ref="panel"
             x-show="open"
             x-transition.origin.top.left
@@ -63,62 +64,63 @@
             :id="$id('dropdown-button')"
             style="display: none;"
             class="flex absolute left-0 z-10 px-4 mt-5 w-screen max-w-max">
-              <div class="flex-auto p-4 w-screen max-w-sm text-sm leading-6 rounded-3xl ring-1 shadow-lg bg-surface2 ring-gray-900/5">
-                <div class="relative p-4 rounded-lg hover:bg-gray-50">
-                  <p class="font-semibold text-gray-900">
-                    🇬🇧 English (GB)
-                  </p>
-                </div>
-                <div class="relative p-4 rounded-lg hover:bg-gray-50">
-                  <p class="font-semibold text-gray-900">
-                    🇵🇹 Portugese
-                  </p>
-                </div>
-                <div class="relative p-4 rounded-lg hover:bg-gray-50">
-                  <p class="font-semibold text-gray-900">
-                    🇩🇪 German
-                  </p>
+                <div class="flex-auto p-4 w-screen max-w-sm text-sm leading-6 rounded-3xl ring-1 shadow-lg bg-surface2 ring-gray-900/5">
+                  <div class="relative p-4 rounded-lg hover:bg-gray-50">
+                    <p class="font-semibold text-gray-900">
+                      🇬🇧 English (GB)
+                    </p>
+                  </div>
+                  <div class="relative p-4 rounded-lg hover:bg-gray-50">
+                    <p class="font-semibold text-gray-900">
+                      🇵🇹 Portugese
+                    </p>
+                  </div>
+                  <div class="relative p-4 rounded-lg hover:bg-gray-50">
+                    <p class="font-semibold text-gray-900">
+                      🇩🇪 German
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
+          <a href="#" class="p-1.5 -m-1.5">
+            <img class="w-auto h-16" src="/images/android-chrome-512x512.png" alt="">
+          </a>
+          <div class="flex flex-1 justify-end">
+            <button disabled type="button" class="flex flex-row p-3 space-x-4 rounded-lg rounded-b-lg shadow-custom-border bg-surface2 text-text fill-transparent">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+                <path fill-rule="evenodd" clip-rule="evenodd" d="M12 1.25C6.06294 1.25 1.25 6.06294 1.25 12C1.25 17.937 6.06293 22.75 12 22.75C12.0515 22.75 12.1103 22.7509 12.175 22.7518L12.1754 22.7518C12.5352 22.7572 13.0737 22.7651 13.5177 22.6409C13.8057 22.5603 14.1315 22.4079 14.382 22.1074C14.6396 21.7982 14.75 21.4139 14.75 21C14.75 20.159 14.3186 19.5207 14.0232 19.0836L13.9905 19.0351C13.7467 18.6736 13.5967 18.4383 13.5315 18.1908C13.4789 17.9911 13.4711 17.7348 13.6708 17.3354C13.9111 16.8549 14.1887 16.6617 14.561 16.5536C15.0104 16.4232 15.593 16.4167 16.4815 16.4167H16.493C17.3426 16.4167 18.3867 16.4167 19.6061 16.2425C20.8111 16.0703 21.6693 15.5847 22.1796 14.7414C22.6553 13.955 22.75 12.9748 22.75 12C22.75 6.06293 17.937 1.25 12 1.25ZM7.26509 15.9668C7.79895 15.8253 8.11704 15.2778 7.97556 14.744C7.83408 14.2101 7.28661 13.892 6.75276 14.0335L6.74408 14.0358C6.21022 14.1773 5.89214 14.7247 6.03361 15.2586C6.17509 15.7924 6.72256 16.1105 7.25641 15.9691L7.26509 15.9668ZM7.25 8.5C7.25 7.25736 8.25736 6.25 9.5 6.25C10.7426 6.25 11.75 7.25736 11.75 8.5C11.75 9.74264 10.7426 10.75 9.5 10.75C8.25736 10.75 7.25 9.74264 7.25 8.5ZM16.5 7.25C15.2574 7.25 14.25 8.25736 14.25 9.5C14.25 10.7426 15.2574 11.75 16.5 11.75C17.7426 11.75 18.75 10.7426 18.75 9.5C18.75 8.25736 17.7426 7.25 16.5 7.25Z" fill="currentColor" />
+              </svg>
+            </button>
+          </div>
+        </nav>
+      </header>
+      <div hx-ext="ws" ws-connect="/ws">
+        <div>Banter Bus</div>
+        <div id="page">
+          <form id="create_room_form" hx-vals='{"message_type": "create_room", "game_name": "fibbing_it"}' ws-send>
+            <input type="text" name="player_nickname" placeholder="Enter your nickname here ...">
+            <button>Create Room</button>
+          </form>
+          <form id="join_room_form" hx-vals='{"message_type": "join_lobby"}' ws-send>
+            <input type="text" name="player_nickname" placeholder="Enter your nickname here ...">
+            <input type="text" name="room_code" placeholder="Enter your room code ...">
+            <button>Join Room</button>
+          </form>
         </div>
-        <a href="#" class="p-1.5 -m-1.5">
-          <img class="w-auto h-16" src="/images/android-chrome-512x512.png" alt="">
-        </a>
-        <div class="flex flex-1 justify-end">
-          <button disabled type="button" class="flex flex-row p-3 space-x-4 rounded-lg rounded-b-lg shadow-custom-border bg-surface2 text-text fill-transparent">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-              <path fill-rule="evenodd" clip-rule="evenodd" d="M12 1.25C6.06294 1.25 1.25 6.06294 1.25 12C1.25 17.937 6.06293 22.75 12 22.75C12.0515 22.75 12.1103 22.7509 12.175 22.7518L12.1754 22.7518C12.5352 22.7572 13.0737 22.7651 13.5177 22.6409C13.8057 22.5603 14.1315 22.4079 14.382 22.1074C14.6396 21.7982 14.75 21.4139 14.75 21C14.75 20.159 14.3186 19.5207 14.0232 19.0836L13.9905 19.0351C13.7467 18.6736 13.5967 18.4383 13.5315 18.1908C13.4789 17.9911 13.4711 17.7348 13.6708 17.3354C13.9111 16.8549 14.1887 16.6617 14.561 16.5536C15.0104 16.4232 15.593 16.4167 16.4815 16.4167H16.493C17.3426 16.4167 18.3867 16.4167 19.6061 16.2425C20.8111 16.0703 21.6693 15.5847 22.1796 14.7414C22.6553 13.955 22.75 12.9748 22.75 12C22.75 6.06293 17.937 1.25 12 1.25ZM7.26509 15.9668C7.79895 15.8253 8.11704 15.2778 7.97556 14.744C7.83408 14.2101 7.28661 13.892 6.75276 14.0335L6.74408 14.0358C6.21022 14.1773 5.89214 14.7247 6.03361 15.2586C6.17509 15.7924 6.72256 16.1105 7.25641 15.9691L7.26509 15.9668ZM7.25 8.5C7.25 7.25736 8.25736 6.25 9.5 6.25C10.7426 6.25 11.75 7.25736 11.75 8.5C11.75 9.74264 10.7426 10.75 9.5 10.75C8.25736 10.75 7.25 9.74264 7.25 8.5ZM16.5 7.25C15.2574 7.25 14.25 8.25736 14.25 9.5C14.25 10.7426 15.2574 11.75 16.5 11.75C17.7426 11.75 18.75 10.7426 18.75 9.5C18.75 8.25736 17.7426 7.25 16.5 7.25Z" fill="currentColor" />
-            </svg>
-          </button>
-        </div>
-      </nav>
-    </header>
-    <div hx-ext="ws" ws-connect="/ws">
-      <div>Banter Bus</div>
-      <div id="page">
-        <form id="create_room_form" hx-vals='{"message_type": "create_room", "game_name": "fibbing_it"}' ws-send>
-          <input type="text" name="player_nickname" placeholder="Enter your nickname here ...">
-          <button>Create Room</button>
-        </form>
-        <form id="join_room_form" hx-vals='{"message_type": "join_lobby"}' ws-send>
-          <input type="text" name="player_nickname" placeholder="Enter your nickname here ...">
-          <input type="text" name="room_code" placeholder="Enter your room code ...">
-          <button>Join Room</button>
-        </form>
       </div>
-    </div>
-    <div id="error">
-    </div>
-    <div id="spinner" class="grid hidden overflow-x-scroll place-items-center p-6 w-full bg-indigo-500 rounded-lg lg:overflow-visible min-h-[140px]">
-      <svg class="mr-3 -ml-1 w-5 h-5 text-black animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none"
+      <div id="error">
+      </div>
+      <div id="spinner" class="grid hidden overflow-x-scroll place-items-center p-6 w-full bg-indigo-500 rounded-lg lg:overflow-visible min-h-[140px]">
+        <svg class="mr-3 -ml-1 w-5 h-5 text-black animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none"
             viewBox="0 0 24 24">
-        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-        <path class="opacity-75" fill="currentColor"
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor"
                 d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
-        </path>
-      </svg>
+          </path>
+        </svg>
+      </div>
     </div>
   </body>
   <script src="https://unpkg.com/htmx.org@2.0.2" integrity="sha384-Y7hw+L/jvKeWIRRkqWYfPcvVxHzVzn5REgzbawhxAuQGwX1XWe70vji+VSeHOThJ" crossorigin="anonymous"></script>
