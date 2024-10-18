@@ -34,7 +34,7 @@ func Button(button buttonProps) templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<button type=\"button\" class=\"flex flex-row p-3 space-x-4 rounded-lg rounded-b-lg shadow-custom-border bg-surface2 text-text fill-transparent\">")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<button type=\"button\" class=\"flex flex-row p-3 space-x-4 rounded-lg rounded-b-lg font-button shadow-custom-border bg-surface2 text-text fill-transparent\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

@@ -5,7 +5,9 @@ module.exports = {
   theme: {
     extend: {
       fontFamily: {
-        header: ["Noyh R"],
+        header: ["Coiny"],
+        main: ["Noyh R"],
+        button: ["Noyh R Black"],
       },
       backgroundImage: {
         background: "url('/images/background-pattern.svg')",
@@ -44,5 +46,23 @@ module.exports = {
       },
     },
   },
-  plugins: [],
+  plugins: [
+    function ({ addUtilities }) {
+      addUtilities({
+        ".text-shadow-custom": {
+          "text-shadow": `
+            0px 8px 0px #181825,
+            -2px -2px 0 #181825,
+            2px -2px 0 #181825,
+            -2px 2px 0 #181825,
+            2px 2px 0 #181825,
+            -2px -2px 0 #181825,
+            2px -2px 0 #181825,
+            -2px 2px 0 #181825,
+            2px 2px 0 #181825
+          `,
+        },
+      });
+    },
+  ],
 };
