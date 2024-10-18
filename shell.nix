@@ -22,6 +22,18 @@
     hooks = {
       golangci-lint.enable = true;
       gotest.enable = true;
+      golines = {
+        enable = true;
+        settings = {
+          flags = "--m 120";
+        };
+      };
+      generate = {
+        enable = true;
+        name = "Generate code such as tailwindcss, templ components and sqlc";
+        entry = "task generate";
+        pass_filenames = false;
+      };
     };
   };
 in
