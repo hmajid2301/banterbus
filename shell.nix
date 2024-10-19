@@ -25,7 +25,7 @@
       golines = {
         enable = true;
         settings = {
-          flags = "--m 120";
+          flags = "-m 120";
         };
       };
       generate = {

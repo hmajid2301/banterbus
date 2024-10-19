@@ -14,6 +14,7 @@ import (
 	"gitlab.com/hmajid2301/banterbus/internal/banterbustest"
 	"gitlab.com/hmajid2301/banterbus/internal/service"
 	"gitlab.com/hmajid2301/banterbus/internal/store"
+	transport "gitlab.com/hmajid2301/banterbus/internal/transport/http"
 	"gitlab.com/hmajid2301/banterbus/internal/transport/websockets"
 )
 
@@ -113,19 +114,11 @@ func newTestServer() (*httptest.Server, error) {
 	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
 		Level: slog.LevelDebug,
 	}))
-	logger.Info("This is a test")
 	subscriber := websockets.NewSubscriber(roomServicer, playerServicer, logger)
 
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path == "/ws" {
-			_ = subscriber.Subscribe(context.Background(), r, w)
-		} else if r.URL.Path == "/" {
-			http.ServeFile(w, r, "../../static")
-		} else {
-			http.NotFound(w, r)
-
-		}
-	}))
+	staticFS := http.Dir("../../static")
+	srv := transport.NewServer(subscriber, logger, staticFS)
+	server := httptest.NewServer(srv.Srv.Handler)
 
 	serverAddress = server.Listener.Addr().String()
 	return server, nil

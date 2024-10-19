@@ -55,7 +55,7 @@ tasks:
     desc: Watch for file changes and run commands, i.e. generate templates or tailwindcss
     cmds:
       - templ generate -watch &
-      - tailwindcss --watch -i ./static/css/tailwind.css -o ./static/css/styles.css &
+      - tailwindcss --watch -i ./static/css/tailwind.css -o ./static/css/styles.css --minify &
       # TODO: do we want to add watch commands for the following?
       # - mockery --all
       # - sqlc generate
@@ -65,7 +65,7 @@ tasks:
     cmds:
       - mockery --all
       - templ generate
-      - tailwindcss -i ./static/css/tailwind.css -o ./static/css/styles.css
+      - tailwindcss -i ./static/css/tailwind.css -o ./static/css/styles.css --minify
       - sqlc generate
       - task: format
 

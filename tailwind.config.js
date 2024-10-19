@@ -1,7 +1,7 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   mode: "jit",
-  content: ["./static/**/*.html"],
+  content: ["./internal/views/**/*.templ"],
   theme: {
     extend: {
       fontFamily: {
@@ -10,7 +10,7 @@ module.exports = {
         button: ["Noyh R Black"],
       },
       backgroundImage: {
-        background: "url('/images/background-pattern.svg')",
+        background: "url('/static/images/background-pattern.svg')",
       },
       boxShadow: {
         "custom-border": "0 4px 0 0 #181825",

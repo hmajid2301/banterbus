@@ -8,7 +8,7 @@
     font-style: normal;
     font-weight: 400;
     font-display: swap;
-    src: url(/fonts/NoyhR-Medium.woff2) format("woff2");
+    src: url(/static/fonts/NoyhR-Medium.woff2) format("woff2");
   }
 
   @font-face {
@@ -16,12 +16,12 @@
     font-style: normal;
     font-weight: 400;
     font-display: swap;
-    src: url(/fonts/NoyhR-Black.woff) format("woff2");
+    src: url(/static/fonts/NoyhR-Black.woff) format("woff2");
   }
 
   @font-face {
     font-family: "Coiny";
-    src: url("/fonts/Coiny-Regular.ttf") format("truetype");
+    src: url(/static/fonts/Coiny-Regular.ttf) format("truetype");
     font-weight: normal;
     font-style: normal;
   }

@@ -5,7 +5,7 @@ import (
 	"context"
 
 	"gitlab.com/hmajid2301/banterbus/internal/entities"
-	"gitlab.com/hmajid2301/banterbus/internal/transport/websockets/views"
+	"gitlab.com/hmajid2301/banterbus/internal/views/sections"
 )
 
 // TODO: rename these funcs
@@ -14,7 +14,7 @@ func (s *Subscriber) updateClientsAboutLobby(ctx context.Context, lobby entities
 	clientsInRoom := s.rooms[lobby.Code].clients
 	for _, player := range lobby.Players {
 		client := clientsInRoom[player.ID]
-		component := views.Lobby(lobby.Code, lobby.Players, player)
+		component := sections.Lobby(lobby.Code, lobby.Players, player)
 		err := component.Render(ctx, &buf)
 		if err != nil {
 			return err
@@ -27,7 +27,7 @@ func (s *Subscriber) updateClientsAboutLobby(ctx context.Context, lobby entities
 
 func (s *Subscriber) updateClientAboutErr(ctx context.Context, client *client, errStr string) error {
 	var buf bytes.Buffer
-	component := views.Error(errStr)
+	component := sections.Error(errStr)
 	err := component.Render(ctx, &buf)
 	if err != nil {
 		return err
@@ -42,7 +42,7 @@ func (s *Subscriber) updateClientsAboutGame(ctx context.Context, gameState entit
 	clientsInRoom := s.rooms[gameState.RoomCode].clients
 	for _, player := range gameState.Players {
 		client := clientsInRoom[player.ID]
-		component := views.Game(gameState, player)
+		component := sections.Game(gameState, player)
 		err := component.Render(ctx, &buf)
 		if err != nil {
 			return err

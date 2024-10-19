@@ -6,13 +6,16 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/a-h/templ"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
+
+	"gitlab.com/hmajid2301/banterbus/internal/views/pages"
 )
 
 type Server struct {
 	logger    *slog.Logger
 	websocket websocketer
-	srv       *http.Server
+	Srv       *http.Server
 }
 
 type websocketer interface {
@@ -26,7 +29,8 @@ func NewServer(websocketer websocketer, logger *slog.Logger, staticFS http.FileS
 	}
 
 	mux := http.NewServeMux()
-	mux.Handle("/", http.FileServer(staticFS))
+	mux.Handle("/", templ.Handler(pages.Index()))
+	mux.Handle("/static/*", http.StripPrefix("/static/", http.FileServer(staticFS)))
 
 	handleFunc := func(pattern string, handlerFunc func(http.ResponseWriter, *http.Request)) {
 		// Configure the "http.route" for the HTTP instrumentation.
@@ -45,14 +49,14 @@ func NewServer(websocketer websocketer, logger *slog.Logger, staticFS http.FileS
 		WriteTimeout: 10 * time.Second,
 		Handler:      handler,
 	}
-	s.srv = srv
+	s.Srv = srv
 
 	return s
 }
 
 func (s *Server) Serve() error {
 	s.logger.Info("starting server")
-	err := s.srv.ListenAndServe()
+	err := s.Srv.ListenAndServe()
 	if err != nil {
 		return err
 	}
@@ -62,7 +66,7 @@ func (s *Server) Serve() error {
 
 func (s *Server) Shutdown(ctx context.Context) error {
 	s.logger.Info("shutting down server")
-	err := s.srv.Shutdown(ctx)
+	err := s.Srv.Shutdown(ctx)
 	return err
 }
 
