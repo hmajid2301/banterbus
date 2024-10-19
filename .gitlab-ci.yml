@@ -30,6 +30,8 @@ stages:
     policy: pull
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      changes:
+        - "*.go"
   before_script:
     # INFO: Used to create directory, needed for tests and linter
     - mkdir -p /tmp
@@ -114,6 +116,8 @@ format:
 generate:
   extends:
     - .task
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
   script:
     - task generate
     - git diff --exit-code
@@ -167,6 +171,9 @@ publish:dev:docker:
     IMMUTABLE: "false"
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      changes:
+        - "*.go"
+        - "./static/**/*"
   extends:
     - .docker
 
@@ -177,9 +184,14 @@ deploy:dev:
     entrypoint: ['']
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      changes:
+        - "*.go"
+        - "./static/**/*"
   script:
     - kubectl config use-context hmajid2301/k3s-config:ms01
     - kubectl rollout restart deployment banterbus -n dev
+  dependencies:
+    - publish:dev:docker
 
 #INFO: Because Nix docker builds are immutable, we can just rebuild the image here for production
 # If we wanted to be more efficient we could work out way to retag a dev image. But this is good enough for now.
