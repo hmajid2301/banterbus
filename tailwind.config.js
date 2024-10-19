@@ -51,15 +51,16 @@ module.exports = {
       addUtilities({
         ".text-shadow-custom": {
           "text-shadow": `
-            0px 8px 0px #181825,
-            -2px -2px 0 #181825,
-            2px -2px 0 #181825,
-            -2px 2px 0 #181825,
-            2px 2px 0 #181825,
-            -2px -2px 0 #181825,
-            2px -2px 0 #181825,
-            -2px 2px 0 #181825,
-            2px 2px 0 #181825
+              0px 10px 0px #181825,
+              0px 12px 0px #181825,
+              -4px -4px 0 #181825,
+              4px -4px 0 #181825,
+              -4px 4px 0 #181825,
+              4px 4px 0 #181825,
+              -4px -4px 0 #181825,
+              4px -4px 0 #181825,
+              -4px 4px 0 #181825,
+              4px 4px 0 #181825
           `,
         },
       });
