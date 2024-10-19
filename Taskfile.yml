@@ -7,8 +7,7 @@ tasks:
       BANTERBUS_LOG_LEVEL: debug
     cmds:
       - task: watch
-      - air &
-      - browser-sync start --files 'static/**/*.html, static/**/*.css' --port 8567 --proxy 'localhost:8080' --middleware 'function(req, res, next) { \ res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate"); \ return next(); \ }'
+      - air
 
   lint:
     desc: Runs the linter.
@@ -54,7 +53,7 @@ tasks:
   watch:
     desc: Watch for file changes and run commands, i.e. generate templates or tailwindcss
     cmds:
-      - templ generate -watch &
+      - templ generate -watch --proxy="http://localhost:8080" --open-browser=true &
       - tailwindcss --watch -i ./static/css/tailwind.css -o ./static/css/styles.css --minify &
       # TODO: do we want to add watch commands for the following?
       # - mockery --all

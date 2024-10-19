@@ -49,7 +49,6 @@
         goreleaser
         golines
 
-        nodePackages.browser-sync
         tailwindcss
         templ
         sqlc
