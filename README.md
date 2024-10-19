@@ -19,9 +19,6 @@ git clone https://gitlab.com/hmajid2301/banterbus
 cd banterbus
 direnv allow
 
-# (This may not be needed soon)
-go mod download
-
 # Launch the app
 task dev
 ```

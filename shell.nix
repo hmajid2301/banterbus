@@ -51,7 +51,7 @@ in
     packages =
       myPackages
       ++ [
-        # goEnv
+        goEnv
         gomod2nix
       ];
   }

@@ -66,6 +66,7 @@ tasks:
       - templ generate
       - tailwindcss -i ./static/css/tailwind.css -o ./static/css/styles.css --minify
       - sqlc generate
+      - gomod2nix generate
       - task: format
 
   release:

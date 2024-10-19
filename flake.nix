@@ -44,7 +44,7 @@
         gotestsum
         gocover-cobertura
         # TODO: comment this out when go-task is fixed on nixpkgs
-        # go-task
+        go-task
         go-mockery
         goreleaser
         golines
