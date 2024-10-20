@@ -30,8 +30,9 @@ stages:
     policy: pull
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-      changes:
-        - "*.go"
+      # changes:
+      #   - "*.go"
+      #   - "./static/**/*"
   before_script:
     # INFO: Used to create directory, needed for tests and linter
     - mkdir -p /tmp
@@ -39,19 +40,18 @@ stages:
 .test:
   extends:
     - .task
-  coverage: /total:\s+\(statements\)\s+\d+.\d+%/
   variables:
      GOTESTSUM_JUNITFILE: "report.xml"
      XDG_DATA_HOME: "/tmp/"
-     GOTEST_EXTRA_ARGS: "-coverprofile=coverage.txt"
-  after_script:
-    - task coverage
+     GOTEST_EXTRA_ARGS: '-args -test.gocoverdir=$CI_PROJECT_DIR/coverage'
+  before_script:
+    - mkdir -p $CI_PROJECT_DIR/coverage /tmp
+    - ls -al $CI_PROJECT_DIR
   artifacts:
+    paths:
+      - coverage
     reports:
       junit: report.xml
-      coverage_report:
-        coverage_format: cobertura
-        path: coverage.xml
 
 .docker:
   variables:
@@ -147,18 +147,30 @@ test:e2e:
     - go install gotest.tools/gotestsum@latest
     - go install github.com/boumenot/gocover-cobertura@latest
     - mv ./bin/task /usr/local/bin/task
-    - ls -al $GOPATH/bin
     - export PATH="/usr/local/go/bin:$GOPATH/bin:$PATH"
   script:
+    - mkdir coverage
     - task tests:e2e -- ${GOTEST_EXTRA_ARGS}
-  after_script:
-    - export PATH="/usr/local/go/bin:$GOPATH/bin:$PATH"
-    - which gocover-cobertura
-    - task coverage
   artifacts:
     when: always
+    reports:
+      junit: report.xml
     paths:
+      - coverage
       - tests/e2e/videos/*
+
+combine:coverage:
+  stage: build
+  extends:
+    - .task
+  script:
+    - task coverage
+  coverage: /total:\s+\(statements\)\s+\d+.\d+%/
+  artifacts:
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: coverage.xml
 
 #TODO: tag image using dev SHA
 publish:dev:docker:
@@ -171,9 +183,9 @@ publish:dev:docker:
     IMMUTABLE: "false"
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-      changes:
-        - "*.go"
-        - "./static/**/*"
+      # changes:
+      #   - "*.go"
+      #   - "./static/**/*"
   extends:
     - .docker
 
@@ -184,9 +196,9 @@ deploy:dev:
     entrypoint: ['']
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-      changes:
-        - "*.go"
-        - "./static/**/*"
+      # changes:
+      #   - "*.go"
+      #   - "./static/**/*"
   script:
     - kubectl config use-context hmajid2301/k3s-config:ms01
     - kubectl rollout restart deployment banterbus -n dev
