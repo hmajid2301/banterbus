@@ -1,4 +1,4 @@
-<img src="docs/logo.png" alt="Logo" width="250">
+<img src="docs/logo-outlined.png" alt="Logo" width="250">
 
 # Banter Bus
 

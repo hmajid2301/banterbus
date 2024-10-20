@@ -43,7 +43,6 @@
         gotools
         gotestsum
         gocover-cobertura
-        # TODO: comment this out when go-task is fixed on nixpkgs
         go-task
         go-mockery
         goreleaser
@@ -52,8 +51,6 @@
         tailwindcss
         templ
         sqlc
-
-        # TODO: test if this is worth it
         gitlab-ci-local
       ];
 
