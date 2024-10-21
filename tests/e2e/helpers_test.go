@@ -7,7 +7,7 @@ import (
 )
 
 func joinRoom(hostPlayerPage playwright.Page, otherPlayerPage playwright.Page) error {
-	err := hostPlayerPage.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Create Room"}).Click()
+	err := hostPlayerPage.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Start"}).Click()
 	if err != nil {
 		return err
 	}
@@ -19,11 +19,11 @@ func joinRoom(hostPlayerPage playwright.Page, otherPlayerPage playwright.Page) e
 	}
 
 	code := strings.Replace(textContent, "Code: ", "", 1)
-	err = otherPlayerPage.Locator("#join_room_form").GetByPlaceholder("Enter your room code").Fill(code)
+	err = otherPlayerPage.GetByPlaceholder("ABC12").Fill(code)
 	if err != nil {
 		return err
 	}
 
-	err = otherPlayerPage.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Join Room"}).Click()
+	err = otherPlayerPage.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Join"}).Click()
 	return err
 }

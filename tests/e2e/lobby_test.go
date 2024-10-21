@@ -14,11 +14,11 @@ func TestE2ELobby(t *testing.T) {
 		hostPlayerPage := pages[0]
 		otherPlayerPage := pages[1]
 
-		err := hostPlayerPage.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Create Room"}).Click()
+		err := hostPlayerPage.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Start"}).Click()
 		require.NoError(t, err)
-		err = otherPlayerPage.Locator("#join_room_form").GetByPlaceholder("Enter your room code").Fill("FAKE_CODE")
+		err = otherPlayerPage.GetByPlaceholder("ABC12").Fill("FAKE_CODE")
 		require.NoError(t, err)
-		err = otherPlayerPage.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Join Room"}).Click()
+		err = otherPlayerPage.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Join"}).Click()
 		require.NoError(t, err)
 
 		err = expect.Locator(otherPlayerPage.Locator("text=Room with code FAKE_CODE does not exist")).ToBeVisible()
