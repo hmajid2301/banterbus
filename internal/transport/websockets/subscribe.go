@@ -8,13 +8,15 @@ import (
 	"log/slog"
 	"net"
 	"net/http"
-	"regexp"
 	"time"
 
 	"github.com/gobwas/ws"
 	"github.com/gobwas/ws/wsutil"
 	"github.com/google/uuid"
 	slogctx "github.com/veqryn/slog-context"
+
+	"gitlab.com/hmajid2301/banterbus/internal/logging"
+	"gitlab.com/hmajid2301/banterbus/internal/telemetry"
 )
 
 type Subscriber struct {
@@ -54,7 +56,8 @@ func NewSubscriber(lobbyService LobbyServicer, playerService PlayerServicer, log
 	return s
 }
 
-func (s *Subscriber) Subscribe(ctx context.Context, r *http.Request, w http.ResponseWriter) (err error) {
+func (s *Subscriber) Subscribe(r *http.Request, w http.ResponseWriter) (err error) {
+	ctx := context.Background()
 	connection, _, _, err := ws.UpgradeHTTP(r, w)
 	if err != nil {
 		return err
@@ -67,18 +70,17 @@ func (s *Subscriber) Subscribe(ctx context.Context, r *http.Request, w http.Resp
 	}()
 
 	quit := make(chan struct{})
-	go s.handleMessage(ctx, quit, connection, client)
+	go s.handleMessages(ctx, quit, connection, client)
 
 	for {
 		select {
 		case msg := <-client.messages:
-			cleanedMessage := stripSVGData(string(msg))
-			fmt.Println(ctx.Value("player_id"))
+			cleanedMessage := logging.StripSVGData(string(msg))
 			s.logger.DebugContext(ctx, "sending message", slog.String("message", cleanedMessage))
 
 			err := connection.SetWriteDeadline(time.Now().Add(time.Second * 10))
 			if err != nil {
-				s.logger.Error("failed to set timeout", slog.Any("error", err))
+				s.logger.ErrorContext(ctx, "failed to set timeout", slog.Any("error", err))
 			}
 			err = wsutil.WriteServerText(connection, msg)
 			if err != nil {
@@ -86,72 +88,86 @@ func (s *Subscriber) Subscribe(ctx context.Context, r *http.Request, w http.Resp
 			}
 		case <-ctx.Done():
 			quit <- struct{}{}
+			s.logger.DebugContext(ctx, "context done")
 			return ctx.Err()
 		}
 	}
 }
 
-func (s *Subscriber) handleMessage(ctx context.Context, quit <-chan struct{}, connection net.Conn, client *client) {
+func (s *Subscriber) handleMessages(ctx context.Context, quit <-chan struct{}, connection net.Conn, client *client) {
 	for {
 		select {
 		case <-quit:
 			return
 		default:
-			correlation_id := uuid.NewString()
-			ctx = slogctx.Append(ctx, "player_id", client.playerID)
-			ctx = slogctx.Append(ctx, "correlation_id", correlation_id)
-
-			_, r, err := wsutil.NextReader(connection, ws.StateServerSide)
+			err := s.handleMessage(ctx, client, connection)
 			if err != nil {
-				s.logger.Error("failed to get next message", slog.Any("error", err))
-				return
+				s.logger.ErrorContext(ctx, "failed to handle message", slog.Any("error", err))
+				err := telemetry.IncrementMessageReceivedError(ctx)
+				if err != nil {
+					s.logger.WarnContext(
+						ctx,
+						"failed to increment message received error metric",
+						slog.Any("error", err),
+					)
+				}
 			}
-
-			data, err := io.ReadAll(r)
-			if err != nil {
-				s.logger.Error("failed to read message", slog.Any("error", err))
-				return
-			}
-
-			var message message
-			err = json.Unmarshal(data, &message)
-			s.logger.DebugContext(ctx, "received message", slog.Any("message", message))
-			if err != nil {
-				s.logger.Error("failed to unmarshal message", slog.Any("error", err))
-				return
-			}
-
-			s.logger.DebugContext(ctx, fmt.Sprintf("handle `%s`", message.MessageType))
-			handler, ok := s.handlers[message.MessageType]
-			if !ok {
-				s.logger.ErrorContext(ctx, "handler not found for message type", slog.Any("error", err))
-				return
-			}
-
-			err = json.Unmarshal(data, &handler)
-			s.logger.DebugContext(ctx, "trying to unmarshal handler message", slog.Any("message", message))
-			if err != nil {
-				s.logger.ErrorContext(ctx, "failed to unmarshal for handler", slog.Any("error", err))
-				return
-			}
-
-			err = handler.Validate()
-			if err != nil {
-				s.logger.ErrorContext(ctx, "error validating handler message", slog.Any("error", err))
-				return
-			}
-
-			err = handler.Handle(ctx, client, s)
-			if err != nil {
-				s.logger.ErrorContext(ctx, "error in handler function", slog.Any("error", err))
-				return
-			}
-			s.logger.DebugContext(ctx, "finished handling request")
 		}
 	}
 }
 
-func stripSVGData(message string) string {
-	re := regexp.MustCompile(`data:image/svg\+xml;base64,[A-Za-z0-9+/=]+`)
-	return re.ReplaceAllString(message, "")
+func (s *Subscriber) handleMessage(ctx context.Context, client *client, connection net.Conn) error {
+	correlationID := uuid.NewString()
+	ctx = slogctx.Append(ctx, "player_id", client.playerID)
+	ctx = slogctx.Append(ctx, "correlation_id", correlationID)
+
+	_, r, err := wsutil.NextReader(connection, ws.StateServerSide)
+	if err != nil {
+		if err == io.EOF {
+			return nil
+		}
+		return fmt.Errorf("failed to get next message: %w", err)
+	}
+
+	data, err := io.ReadAll(r)
+	if err != nil {
+		return fmt.Errorf("failed to read message: %w", err)
+	}
+
+	var message message
+	err = json.Unmarshal(data, &message)
+	s.logger.DebugContext(ctx, "received message", slog.Any("message", message))
+	if err != nil {
+		return fmt.Errorf("failed to unmarshal message: %w", err)
+	}
+
+	err = telemetry.IncrementMessageReceived(ctx, message.MessageType)
+	if err != nil {
+		s.logger.Warn("failed to increment message type metric", slog.Any("error", err))
+	}
+
+	s.logger.DebugContext(ctx, fmt.Sprintf("handle `%s`", message.MessageType))
+	handler, ok := s.handlers[message.MessageType]
+	if !ok {
+		return fmt.Errorf("handler not found for message type: %s", message.MessageType)
+	}
+
+	err = json.Unmarshal(data, &handler)
+	s.logger.DebugContext(ctx, "trying to unmarshal handler message", slog.Any("message", message))
+	if err != nil {
+		return fmt.Errorf("failed to unmarshal for handler: %w", err)
+	}
+
+	err = handler.Validate()
+	if err != nil {
+		return fmt.Errorf("error validating handler message: %w", err)
+	}
+
+	err = handler.Handle(ctx, client, s)
+	if err != nil {
+		return fmt.Errorf("error in handler function: %w", err)
+	}
+
+	s.logger.DebugContext(ctx, "finished handling request")
+	return nil
 }

@@ -3,6 +3,7 @@ package logging
 import (
 	"log/slog"
 	"os"
+	"regexp"
 
 	slogctx "github.com/veqryn/slog-context"
 )
@@ -23,4 +24,9 @@ func New(logLevel slog.Level, defaultAttrs []slog.Attr) *slog.Logger {
 	customHandler := slogctx.NewHandler(handler, nil)
 	logger := slog.New(customHandler)
 	return logger
+}
+
+func StripSVGData(message string) string {
+	re := regexp.MustCompile(`data:image/svg\+xml;base64,[A-Za-z0-9+/=]+`)
+	return re.ReplaceAllString(message, "")
 }

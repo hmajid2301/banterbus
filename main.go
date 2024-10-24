@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"embed"
+	"errors"
 	"fmt"
 	"io/fs"
 	"log/slog"
@@ -22,6 +23,7 @@ import (
 	"gitlab.com/hmajid2301/banterbus/internal/logging"
 	"gitlab.com/hmajid2301/banterbus/internal/service"
 	"gitlab.com/hmajid2301/banterbus/internal/store"
+	"gitlab.com/hmajid2301/banterbus/internal/telemetry"
 	transporthttp "gitlab.com/hmajid2301/banterbus/internal/transport/http"
 	"gitlab.com/hmajid2301/banterbus/internal/transport/websockets"
 )
@@ -67,6 +69,15 @@ func mainLogic() error {
 		return fmt.Errorf("failed to get database: %w", err)
 	}
 
+	otelShutdown, err := telemetry.SetupOTelSDK(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to setup otel: %w", err)
+	}
+
+	defer func() {
+		err = errors.Join(err, otelShutdown(context.Background()))
+	}()
+
 	logger.Info("applying migrations")
 	err = runDBMigrations(db)
 	if err != nil {
@@ -90,7 +101,7 @@ func mainLogic() error {
 	subscriber := websockets.NewSubscriber(lobbyService, playerService, logger)
 	server := transporthttp.NewServer(subscriber, logger, http.FS(fsys))
 
-	go terminateHandler(logger, server, 60)
+	go terminateHandler(logger, server, 15)
 	err = server.Serve()
 	if err != nil {
 		return fmt.Errorf("failed to start server: %w", err)

@@ -40,7 +40,7 @@ func TestIntegrationSubscribe(t *testing.T) {
 	subscriber := websockets.NewSubscriber(lobbyService, playerService, logger)
 
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		err := subscriber.Subscribe(context.Background(), r, w)
+		err := subscriber.Subscribe(r, w)
 		require.NoError(t, err)
 	}))
 

@@ -118,7 +118,7 @@ func newTestServer() (*httptest.Server, error) {
 
 	staticFS := http.Dir("../../static")
 	srv := transport.NewServer(subscriber, logger, staticFS)
-	server := httptest.NewServer(srv.Srv.Handler)
+	server := httptest.NewServer(srv.Server.Handler)
 
 	serverAddress = server.Listener.Addr().String()
 	return server, nil
