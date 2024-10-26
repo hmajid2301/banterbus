@@ -201,7 +201,9 @@ deploy:dev:
       #   - "./static/**/*"
   script:
     - kubectl config use-context hmajid2301/k3s-config:ms01
-    - kubectl rollout restart deployment banterbus -n dev
+    - kubectl scale deployment banterbus --replicas=0 -n dev
+    - kubectl scale deployment banterbus --replicas=1 -n dev
+    - kubectl rollout status deployment/banterbus -n dev --timeout=300s
   dependencies:
     - publish:dev:docker
 
@@ -230,7 +232,9 @@ deploy:prod:
     - if: $CI_COMMIT_TAG
   script:
     - kubectl config use-context hmajid2301/k3s-config:ms01
-    - kubectl rollout restart deployment banterbus -n prod
+    - kubectl scale deployment banterbus --replicas=0 -n prod
+    - kubectl scale deployment banterbus --replicas=1 -n prod
+    - kubectl rollout status deployment/banterbus -n prod --timeout=300s
 
 release:
   stage: release
