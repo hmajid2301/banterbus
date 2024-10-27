@@ -355,3 +355,107 @@ func TestIntegrationStartGame(t *testing.T) {
 		assert.Error(t, err)
 	})
 }
+
+func TestIntegrationKickPlayer(t *testing.T) {
+	t.Run("Should successfully kick player", func(t *testing.T) {
+		db, teardown := setupSubtest(t)
+		defer teardown()
+
+		myStore, err := store.NewStore(db)
+		assert.NoError(t, err)
+
+		ctx := context.Background()
+		roomCode, err := createRoom(ctx, myStore)
+		assert.NoError(t, err)
+
+		newPlayer := entities.NewPlayer{
+			ID:       "123",
+			Nickname: "AnotherPlayer",
+			Avatar:   []byte(""),
+		}
+		players, err := myStore.AddPlayerToRoom(ctx, newPlayer, roomCode)
+		assert.NoError(t, err)
+
+		// INFO: first player is the host, and only they can kick players
+		lobby, playerToKickID, err := myStore.KickPlayer(ctx, roomCode, players[0].ID, newPlayer.Nickname)
+		assert.NoError(t, err)
+		assert.Len(t, lobby, 1, "There should be 1 player in the room")
+		assert.Equal(t, newPlayer.ID, playerToKickID, "ID should match the player that was kicked")
+	})
+
+	t.Run("Should fail to kick player, player is not host", func(t *testing.T) {
+		db, teardown := setupSubtest(t)
+		defer teardown()
+
+		myStore, err := store.NewStore(db)
+		assert.NoError(t, err)
+
+		ctx := context.Background()
+		roomCode, err := createRoom(ctx, myStore)
+		assert.NoError(t, err)
+
+		newPlayer := entities.NewPlayer{
+			ID:       "123",
+			Nickname: "AnotherPlayer",
+			Avatar:   []byte(""),
+		}
+		players, err := myStore.AddPlayerToRoom(ctx, newPlayer, roomCode)
+		assert.NoError(t, err)
+
+		_, _, err = myStore.KickPlayer(ctx, roomCode, players[1].ID, newPlayer.Nickname)
+		assert.Error(t, err)
+	})
+
+	t.Run("Should fail to kick player, game state is not CREATED", func(t *testing.T) {
+		db, teardown := setupSubtest(t)
+		defer teardown()
+
+		myStore, err := store.NewStore(db)
+		assert.NoError(t, err)
+
+		ctx := context.Background()
+		roomCode, err := createRoom(ctx, myStore)
+		assert.NoError(t, err)
+
+		newPlayer := entities.NewPlayer{
+			ID:       "123",
+			Nickname: "AnotherPlayer",
+			Avatar:   []byte(""),
+		}
+		players, err := myStore.AddPlayerToRoom(ctx, newPlayer, roomCode)
+		assert.NoError(t, err)
+
+		_, err = db.ExecContext(
+			ctx,
+			"UPDATE rooms SET room_state = 'PLAYING' WHERE room_code = ?",
+			roomCode,
+		)
+		assert.NoError(t, err)
+
+		_, _, err = myStore.KickPlayer(ctx, roomCode, players[0].ID, newPlayer.Nickname)
+		assert.Error(t, err)
+	})
+
+	t.Run("Should fail to kick player, player nickname not found in room", func(t *testing.T) {
+		db, teardown := setupSubtest(t)
+		defer teardown()
+
+		myStore, err := store.NewStore(db)
+		assert.NoError(t, err)
+
+		ctx := context.Background()
+		roomCode, err := createRoom(ctx, myStore)
+		assert.NoError(t, err)
+
+		newPlayer := entities.NewPlayer{
+			ID:       "123",
+			Nickname: "AnotherPlayer",
+			Avatar:   []byte(""),
+		}
+		players, err := myStore.AddPlayerToRoom(ctx, newPlayer, roomCode)
+		assert.NoError(t, err)
+
+		_, _, err = myStore.KickPlayer(ctx, roomCode, players[0].ID, "wrong_nickname")
+		assert.Error(t, err)
+	})
+}

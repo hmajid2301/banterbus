@@ -61,3 +61,19 @@ type TogglePlayerIsReady struct {
 func (t *TogglePlayerIsReady) Validate() error {
 	return nil
 }
+
+type KickPlayer struct {
+	RoomCode             string `json:"room_code"`
+	PlayerNicknameToKick string `json:"player_nickname_to_kick"`
+}
+
+func (s *KickPlayer) Validate() error {
+	if s.RoomCode == "" {
+		return errors.New("room_code is required")
+	}
+
+	if s.PlayerNicknameToKick == "" {
+		return errors.New("player_nickname_to_kick is required")
+	}
+	return nil
+}

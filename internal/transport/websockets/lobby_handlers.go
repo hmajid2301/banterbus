@@ -11,6 +11,12 @@ type LobbyServicer interface {
 	Create(ctx context.Context, gameName string, player entities.NewHostPlayer) (entities.Lobby, error)
 	Join(ctx context.Context, roomCode string, playerID string, playerNickname string) (entities.Lobby, error)
 	Start(ctx context.Context, roomCode string, playerID string) (entities.GameState, error)
+	KickPlayer(
+		ctx context.Context,
+		roomCode string,
+		playerID string,
+		playerNicknameToKick string,
+	) (entities.Lobby, string, error)
 }
 
 func (h *CreateRoom) Handle(ctx context.Context, client *client, sub *Subscriber) error {
@@ -68,5 +74,43 @@ func (h *StartGame) Handle(ctx context.Context, client *client, sub *Subscriber)
 	}
 
 	err = sub.updateClientsAboutGame(ctx, updatedRoom)
+	return err
+}
+
+func (h *KickPlayer) Handle(ctx context.Context, client *client, sub *Subscriber) error {
+	updatedRoom, playerToKickID, err := sub.lobbyService.KickPlayer(
+		ctx,
+		h.RoomCode,
+		client.playerID,
+		h.PlayerNicknameToKick,
+	)
+	if err != nil {
+		errStr := "failed to kick player"
+		clientErr := sub.updateClientAboutErr(ctx, client, errStr)
+		return fmt.Errorf("%w: %w", err, clientErr)
+	}
+
+	room, ok := sub.rooms[h.RoomCode]
+	if !ok {
+		err := fmt.Errorf("room with code %s does not exist", h.RoomCode)
+		clientErr := sub.updateClientAboutErr(ctx, client, err.Error())
+		return fmt.Errorf("%w: %w", err, clientErr)
+	}
+
+	playerKickedClient, err := room.getClient(playerToKickID)
+	if err != nil {
+		errStr := "failed to kick player"
+		clientErr := sub.updateClientAboutErr(ctx, client, errStr)
+		return fmt.Errorf("%w: %w", err, clientErr)
+	}
+
+	room.removeClient(playerToKickID)
+	err = sub.updateClientsAboutLobby(ctx, updatedRoom)
+	if err != nil {
+		return fmt.Errorf("failed to send kick error message to player: %w", err)
+	}
+
+	// TODO: take user back to home page instead of just an error
+	err = sub.updateClientAboutErr(ctx, playerKickedClient, "you have been kicked from the room")
 	return err
 }

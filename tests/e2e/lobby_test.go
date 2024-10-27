@@ -56,4 +56,20 @@ func TestE2ELobby(t *testing.T) {
 		err = expect.Locator(newNickname).ToHaveValue("test_nickname")
 		require.NoError(t, err)
 	})
+
+	t.Run("Should be able to kick player in lobby", func(t *testing.T) {
+		t.Skip("Fix this test")
+		t.Cleanup(ResetBrowserContexts)
+		hostPlayerPage := pages[0]
+		otherPlayerPage := pages[1]
+
+		err := joinRoom(hostPlayerPage, otherPlayerPage)
+		require.NoError(t, err)
+
+		err = hostPlayerPage.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Kick Player"}).Click()
+		require.NoError(t, err)
+
+		err = expect.Locator(otherPlayerPage.GetByText("you have been kicked from the game")).ToBeVisible()
+		require.NoError(t, err)
+	})
 }

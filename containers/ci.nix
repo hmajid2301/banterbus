@@ -19,7 +19,7 @@ in
           gnugrep
           nix
           bash
-          dockerTools.caCertificates
+          # dockerTools.caCertificates
           cacert.out
           which
           curl

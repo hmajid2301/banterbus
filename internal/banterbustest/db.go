@@ -140,7 +140,7 @@ func FillWithDummyData(db *sql.DB) error {
 		},
 		{"fibbing_it", "free_form", true, "what do you think about cats", "en-GB", "cat_group", "questions"},
 		{"fibbing_it", "free_form", true, "what don't you like about cats?", "en-GB", "cat_group", "questions"},
-		{"fibbing_it", "free_form", false, "what don't you like about cats?", "en-GB", "cat_group", "questions"},
+		{"fibbing_it", "free_form", false, "what do you like about cats?", "en-GB", "cat_group", "questions"},
 		{"fibbing_it", "free_form", true, "what do you think about cats", "en-GB", "cat_group", "questions"},
 		{"fibbing_it", "free_form", true, "A funny question?", "en-GB", "bike_group", "questions"},
 		{"fibbing_it", "free_form", true, "Favourite bike colour?", "en-GB", "bike_group", "questions"},

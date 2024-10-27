@@ -143,6 +143,74 @@ func (_c *MockStorer_CreateRoom_Call) RunAndReturn(run func(context.Context, ent
 	return _c
 }
 
+// KickPlayer provides a mock function with given fields: ctx, roomCode, playerID, playerNicknameToKick
+func (_m *MockStorer) KickPlayer(ctx context.Context, roomCode string, playerID string, playerNicknameToKick string) ([]sqlc.GetAllPlayersInRoomRow, string, error) {
+	ret := _m.Called(ctx, roomCode, playerID, playerNicknameToKick)
+
+	if len(ret) == 0 {
+		panic("no return value specified for KickPlayer")
+	}
+
+	var r0 []sqlc.GetAllPlayersInRoomRow
+	var r1 string
+	var r2 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, string) ([]sqlc.GetAllPlayersInRoomRow, string, error)); ok {
+		return rf(ctx, roomCode, playerID, playerNicknameToKick)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, string) []sqlc.GetAllPlayersInRoomRow); ok {
+		r0 = rf(ctx, roomCode, playerID, playerNicknameToKick)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]sqlc.GetAllPlayersInRoomRow)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string, string, string) string); ok {
+		r1 = rf(ctx, roomCode, playerID, playerNicknameToKick)
+	} else {
+		r1 = ret.Get(1).(string)
+	}
+
+	if rf, ok := ret.Get(2).(func(context.Context, string, string, string) error); ok {
+		r2 = rf(ctx, roomCode, playerID, playerNicknameToKick)
+	} else {
+		r2 = ret.Error(2)
+	}
+
+	return r0, r1, r2
+}
+
+// MockStorer_KickPlayer_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'KickPlayer'
+type MockStorer_KickPlayer_Call struct {
+	*mock.Call
+}
+
+// KickPlayer is a helper method to define mock.On call
+//   - ctx context.Context
+//   - roomCode string
+//   - playerID string
+//   - playerNicknameToKick string
+func (_e *MockStorer_Expecter) KickPlayer(ctx interface{}, roomCode interface{}, playerID interface{}, playerNicknameToKick interface{}) *MockStorer_KickPlayer_Call {
+	return &MockStorer_KickPlayer_Call{Call: _e.mock.On("KickPlayer", ctx, roomCode, playerID, playerNicknameToKick)}
+}
+
+func (_c *MockStorer_KickPlayer_Call) Run(run func(ctx context.Context, roomCode string, playerID string, playerNicknameToKick string)) *MockStorer_KickPlayer_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string), args[2].(string), args[3].(string))
+	})
+	return _c
+}
+
+func (_c *MockStorer_KickPlayer_Call) Return(players []sqlc.GetAllPlayersInRoomRow, playerToKickID string, err error) *MockStorer_KickPlayer_Call {
+	_c.Call.Return(players, playerToKickID, err)
+	return _c
+}
+
+func (_c *MockStorer_KickPlayer_Call) RunAndReturn(run func(context.Context, string, string, string) ([]sqlc.GetAllPlayersInRoomRow, string, error)) *MockStorer_KickPlayer_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // StartGame provides a mock function with given fields: ctx, roomCode, playerID
 func (_m *MockStorer) StartGame(ctx context.Context, roomCode string, playerID string) (entities.GameState, error) {
 	ret := _m.Called(ctx, roomCode, playerID)

@@ -32,6 +32,12 @@ type Storer interface {
 	UpdateAvatar(ctx context.Context, avatar []byte, playerID string) (players []sqlc.GetAllPlayersInRoomRow, err error)
 	ToggleIsReady(ctx context.Context, playerID string) (players []sqlc.GetAllPlayersInRoomRow, err error)
 	StartGame(ctx context.Context, roomCode string, playerID string) (gameState entities.GameState, err error)
+	KickPlayer(
+		ctx context.Context,
+		roomCode string,
+		playerID string,
+		playerNicknameToKick string,
+	) (players []sqlc.GetAllPlayersInRoomRow, playerToKickID string, err error)
 }
 
 func NewLobbyService(store Storer, randomizer Randomizer) *LobbyService {
@@ -108,4 +114,19 @@ func (r *LobbyService) getNewPlayer(playerNickname string, playerID string) enti
 		Avatar:   avatar,
 	}
 	return newPlayer
+}
+
+func (r *LobbyService) KickPlayer(
+	ctx context.Context,
+	roomCode string,
+	playerID string,
+	playerNicknameToKick string,
+) (entities.Lobby, string, error) {
+	playerRows, playerNicknameToKick, err := r.store.KickPlayer(ctx, roomCode, playerID, playerNicknameToKick)
+	if err != nil {
+		return entities.Lobby{}, "", err
+	}
+
+	lobby := getLobbyPlayers(playerRows, roomCode)
+	return lobby, playerNicknameToKick, nil
 }

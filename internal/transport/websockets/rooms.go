@@ -1,6 +1,7 @@
 package websockets
 
 import (
+	"fmt"
 	"log"
 	"sync"
 )
@@ -57,6 +58,16 @@ func (r *room) removeClient(playerID string) {
 	r.clientMutex.Lock()
 	delete(r.clients, playerID)
 	r.clientMutex.Unlock()
+}
+
+func (r *room) getClient(playerID string) (*client, error) {
+	for _, client := range r.clients {
+		if client.playerID == playerID {
+			return client, nil
+		}
+	}
+
+	return nil, fmt.Errorf("client with playerID %s not found", playerID)
 }
 
 func (r *room) broadcastMessage(message []byte) {

@@ -297,6 +297,62 @@ func (s Store) StartGame(
 	return gameState, tx.Commit()
 }
 
+func (s Store) KickPlayer(
+	ctx context.Context,
+	roomCode string,
+	playerID string,
+	playerToKickNickname string,
+) (players []sqlc.GetAllPlayersInRoomRow, playerToKickID string, err error) {
+	tx, err := s.db.Begin()
+	if err != nil {
+		return players, playerToKickID, err
+	}
+
+	defer func() {
+		if err != nil {
+			err = errors.Join(err, tx.Rollback())
+		}
+	}()
+
+	room, err := s.queries.WithTx(tx).GetRoomByCode(ctx, roomCode)
+	if err != nil {
+		return players, playerToKickID, err
+	}
+
+	if room.HostPlayer != playerID {
+		return players, playerToKickID, fmt.Errorf("player is not the host of the room")
+	}
+
+	if room.RoomState != CREATED.String() {
+		return players, playerToKickID, fmt.Errorf("room is not in CREATED state")
+	}
+
+	playersInRoom, err := s.queries.WithTx(tx).GetAllPlayersInRoom(ctx, playerID)
+	if err != nil {
+		return players, playerToKickID, err
+	}
+
+	players = []sqlc.GetAllPlayersInRoomRow{}
+	for _, p := range playersInRoom {
+		if p.Nickname == playerToKickNickname {
+			playerToKickID = p.ID
+			break
+		}
+		players = append(players, p)
+	}
+
+	if playerToKickID == "" {
+		return players, playerToKickID, fmt.Errorf("player with nickname %s not found, to kick", playerToKickNickname)
+	}
+
+	_, err = s.queries.WithTx(tx).RemovePlayerFromRoom(ctx, playerToKickID)
+	if err != nil {
+		return players, playerToKickID, err
+	}
+
+	return players, playerToKickID, tx.Commit()
+}
+
 func randomRoomCode() string {
 	const charset = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 

@@ -282,3 +282,50 @@ func TestRoomServiceStartGame(t *testing.T) {
 		assert.Error(t, err)
 	})
 }
+
+func TestKickPlayer(t *testing.T) {
+	t.Run("Should kick player successfully", func(t *testing.T) {
+		mockStore := mockService.NewMockStorer(t)
+		mockRandom := mockService.NewMockRandomizer(t)
+
+		service := service.NewLobbyService(mockStore, mockRandom)
+
+		hostID := "fbb75599-9f7a-4392-b523-fd433b3208ea"
+		playerToKickNickname := "EmotionalTiger"
+
+		ctx := context.Background()
+		otherPlayerID := "b75599-9f7a-4392-b523-fd433b3208ea"
+		mockStore.EXPECT().
+			KickPlayer(ctx, "ABC12", hostID, playerToKickNickname).
+			Return([]sqlc.GetAllPlayersInRoomRow{
+				{
+					ID:       otherPlayerID,
+					Nickname: "Happylion",
+					Avatar:   []byte(""),
+					RoomCode: "ABC12",
+				},
+			}, otherPlayerID, nil)
+		lobby, playerToKickID, err := service.KickPlayer(ctx, "ABC12", hostID, playerToKickNickname)
+
+		assert.NoError(t, err)
+		assert.Equal(t, playerToKickID, otherPlayerID, "should be one player in the room")
+		assert.Len(t, lobby.Players, 1, "should be one player in the room")
+	})
+
+	t.Run("Should fail to kick player", func(t *testing.T) {
+		mockStore := mockService.NewMockStorer(t)
+		mockRandom := mockService.NewMockRandomizer(t)
+
+		service := service.NewLobbyService(mockStore, mockRandom)
+
+		hostID := "fbb75599-9f7a-4392-b523-fd433b3208ea"
+		playerToKickNickname := "EmotionalTiger"
+
+		ctx := context.Background()
+		mockStore.EXPECT().
+			KickPlayer(ctx, "ABC12", hostID, playerToKickNickname).
+			Return([]sqlc.GetAllPlayersInRoomRow{}, "", fmt.Errorf("failed to kick players"))
+		_, _, err := service.KickPlayer(ctx, "ABC12", hostID, playerToKickNickname)
+		assert.Error(t, err)
+	})
+}

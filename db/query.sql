@@ -7,6 +7,9 @@ INSERT INTO players (id, avatar, nickname) VALUES (?, ?, ?) RETURNING *;
 -- name: AddRoomPlayer :one
 INSERT INTO rooms_players (room_id, player_id) VALUES (?, ?) RETURNING *;
 
+-- name: RemovePlayerFromRoom :one
+UPDATE rooms_players SET room_id = "" WHERE player_id = ? RETURNING *;
+
 -- name: GetAllPlayersInRoom :many
 SELECT p.id, p.created_at, p.updated_at, p.avatar, p.nickname, p.is_ready, r.room_code, r.host_player
 FROM players p

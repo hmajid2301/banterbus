@@ -515,6 +515,22 @@ func (q *Queries) GetRoomByPlayerID(ctx context.Context, playerID string) (Room,
 	return i, err
 }
 
+const removePlayerFromRoom = `-- name: RemovePlayerFromRoom :one
+UPDATE rooms_players SET room_id = "" WHERE player_id = ? RETURNING room_id, player_id, created_at, updated_at
+`
+
+func (q *Queries) RemovePlayerFromRoom(ctx context.Context, playerID string) (RoomsPlayer, error) {
+	row := q.db.QueryRowContext(ctx, removePlayerFromRoom, playerID)
+	var i RoomsPlayer
+	err := row.Scan(
+		&i.RoomID,
+		&i.PlayerID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
 const updateAvatar = `-- name: UpdateAvatar :one
 UPDATE players SET avatar = ? WHERE id = ? RETURNING id, created_at, updated_at, avatar, nickname, is_ready
 `

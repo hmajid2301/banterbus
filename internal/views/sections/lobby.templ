@@ -21,6 +21,13 @@ templ Lobby(code string, players []entities.LobbyPlayer, currentPlayer entities.
 					</form>
 				}
 				<img src={ player.Avatar } alt="avatar"/>
+				if player.IsHost && currentPlayer != player {
+					<form id="kick_player" hx-vals='{"message_type": "kick_player" }' ws-send>
+						<input class="hidden" name="room_code" value={ code }/>
+						<input class="hidden" name="player_nickname_to_kick" value={ player.Nickname }/>
+						<button>Kick Player</button>
+					</form>
+				}
 			</div>
 			<div class="w-5 h-6">
 				if player.IsReady {

@@ -50,6 +50,7 @@ func NewSubscriber(lobbyService LobbyServicer, playerService PlayerServicer, log
 		"generate_new_avatar":    &GenerateNewAvatar{},
 		"join_lobby":             &JoinLobby{},
 		"toggle_player_is_ready": &TogglePlayerIsReady{},
+		"kick_player":            &KickPlayer{},
 		"start_game":             &StartGame{},
 	}
 
