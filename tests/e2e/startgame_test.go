@@ -20,9 +20,9 @@ func TestE2EStartGame(t *testing.T) {
 		err = expect.Locator(avatars).ToHaveCount(2)
 		require.NoError(t, err)
 
-		err = otherPlayerPage.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Toggle Ready"}).Click()
+		err = otherPlayerPage.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Ready"}).Click()
 		require.NoError(t, err)
-		err = hostPlayerPage.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Toggle Ready"}).Click()
+		err = hostPlayerPage.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Ready"}).Click()
 		require.NoError(t, err)
 		err = hostPlayerPage.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Start Game"}).Click()
 		require.NoError(t, err)

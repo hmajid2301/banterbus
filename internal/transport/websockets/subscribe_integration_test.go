@@ -10,7 +10,6 @@ import (
 	"net/http/httptest"
 	"os"
 	"regexp"
-	"strings"
 	"testing"
 	"time"
 
@@ -62,7 +61,7 @@ func TestIntegrationSubscribe(t *testing.T) {
 		msg := sendMessage(message, t, conn)
 
 		assert.Contains(t, msg, playerNickname)
-		assert.Regexp(t, "Code: [A-Z0-9]{5}", msg)
+		assert.Contains(t, msg, "Room Code")
 	})
 
 	t.Run("Should successfully handle join room message", func(t *testing.T) {
@@ -79,21 +78,19 @@ func TestIntegrationSubscribe(t *testing.T) {
 
 		msg := sendMessage(message, t, conn)
 
-		pattern := `Code: [A-Z0-9]{5}`
-
+		pattern := `value="([A-Z0-9]{5})"`
 		re, err := regexp.Compile(pattern)
 		require.NoError(t, err)
 
-		matches := re.FindAllString(msg, -1)
-		var roomCode string
-		for _, match := range matches {
-			roomCode = match
+		matches := re.FindStringSubmatch(msg)
+		if len(matches) < 1 {
+			require.FailNow(t, "Failed to match room code", "The regex did not match the expected pattern")
 		}
+		roomCode := matches[1]
 
 		conn2, _, _, err := ws.Dial(context.Background(), fmt.Sprintf("ws://%s", server.Listener.Addr().String()))
 		require.NoError(t, err)
 		defer conn2.Close()
-		roomCode = strings.TrimPrefix(roomCode, "Code: ")
 
 		playerNickname = "test"
 		message = map[string]string{
@@ -104,7 +101,7 @@ func TestIntegrationSubscribe(t *testing.T) {
 
 		msg = sendMessage(message, t, conn2)
 		assert.Contains(t, msg, playerNickname)
-		assert.Regexp(t, "Code: [A-Z0-9]{5}", msg)
+		assert.Contains(t, msg, "Room Code")
 	})
 
 	t.Run("Should successfully handle update nickname and generate new avatar", func(t *testing.T) {
@@ -121,21 +118,20 @@ func TestIntegrationSubscribe(t *testing.T) {
 
 		msg := sendMessage(message, t, conn)
 
-		pattern := `Code: [A-Z0-9]{5}`
+		pattern := `value="([A-Z0-9]{5})"`
 
 		re, err := regexp.Compile(pattern)
 		require.NoError(t, err)
 
-		matches := re.FindAllString(msg, -1)
-		var roomCode string
-		for _, match := range matches {
-			roomCode = match
+		matches := re.FindStringSubmatch(msg)
+		if len(matches) < 1 {
+			require.FailNow(t, "Failed to match room code", "The regex did not match the expected pattern")
 		}
+		roomCode := matches[1]
 
 		conn2, _, _, err := ws.Dial(context.Background(), fmt.Sprintf("ws://%s", server.Listener.Addr().String()))
 		require.NoError(t, err)
 		defer conn2.Close()
-		roomCode = strings.TrimPrefix(roomCode, "Code: ")
 
 		// TODO: refactor creating a room
 		playerNickname = "test"
@@ -173,21 +169,19 @@ func TestIntegrationSubscribe(t *testing.T) {
 		}
 		msg := sendMessage(message, t, conn)
 
-		pattern := `Code: [A-Z0-9]{5}`
-
+		pattern := `value="([A-Z0-9]{5})"`
 		re, err := regexp.Compile(pattern)
 		require.NoError(t, err)
 
-		matches := re.FindAllString(msg, -1)
-		var roomCode string
-		for _, match := range matches {
-			roomCode = match
+		matches := re.FindStringSubmatch(msg)
+		if len(matches) < 1 {
+			require.FailNow(t, "Failed to match room code", "The regex did not match the expected pattern")
 		}
+		roomCode := matches[1]
 
 		conn2, _, _, err := ws.Dial(context.Background(), fmt.Sprintf("ws://%s", server.Listener.Addr().String()))
 		require.NoError(t, err)
 		defer conn2.Close()
-		roomCode = strings.TrimPrefix(roomCode, "Code: ")
 
 		playerNickname = "new_player_nickname"
 		message = map[string]string{
@@ -225,20 +219,19 @@ func TestIntegrationSubscribe(t *testing.T) {
 		msg := sendMessage(message, t, conn)
 		require.NoError(t, err)
 
-		pattern := `Code: [A-Z0-9]{5}`
+		pattern := `value="([A-Z0-9]{5})"`
 		re, err := regexp.Compile(pattern)
 		require.NoError(t, err)
 
-		matches := re.FindAllString(msg, -1)
-		var roomCode string
-		for _, match := range matches {
-			roomCode = match
+		matches := re.FindStringSubmatch(msg)
+		if len(matches) < 1 {
+			require.FailNow(t, "Failed to match room code", "The regex did not match the expected pattern")
 		}
+		roomCode := matches[1]
 
 		conn2, _, _, err := ws.Dial(context.Background(), fmt.Sprintf("ws://%s", server.Listener.Addr().String()))
 		require.NoError(t, err)
 		defer conn2.Close()
-		roomCode = strings.TrimPrefix(roomCode, "Code: ")
 
 		playerNickname = "test"
 		message = map[string]string{

@@ -76,6 +76,8 @@ publish:docker:ci:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
       changes:
         - "containers/ci.nix"
+        - "flake.nix"
+        - "flake.lock"
   extends:
     - .docker
   before_script:

@@ -33,156 +33,56 @@ func Lobby(code string, players []entities.LobbyPlayer, currentPlayer entities.L
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div hx-swap-oob=\"innerHTML:#page\"><div>Code: ")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div hx-swap-oob=\"innerHTML:#page\"><div class=\"relative mb-5\"><label for=\"room_code\" class=\"block mb-2 font-medium text-text2\">Room Code</label> <input type=\"text\" disabled name=\"room_code\" value=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var2 string
 		templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(code)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/sections/lobby.templ`, Line: 7, Col: 19}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/sections/lobby.templ`, Line: 9, Col: 60}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</div>")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\" class=\"py-3 px-5 w-full rounded-xl border-1 bg-overlay0 placeholder-surface0 border-text2\"> <button class=\"inline-flex absolute top-1/2 justify-center items-center p-2 rounded-lg text-text2 end-2 hover:text-surface0\" x-clipboard.raw=\"")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var3 string
+		templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(code)
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/sections/lobby.templ`, Line: 10, Col: 150}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\"><svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" width=\"24\" height=\"24\" fill=\"none\"><path fill-rule=\"evenodd\" clip-rule=\"evenodd\" d=\"M7.10944 1.40966C7.20878 1.4868 7.22491 1.62456 7.25717 1.90006L7.33705 2.58219L7.3418 2.61071C7.43374 3.16263 7.52624 3.71794 7.64008 4.10029C7.76484 4.51935 7.95313 4.91107 8.31611 5.21856C8.67908 5.52604 9.09643 5.64738 9.5303 5.70155C9.93298 5.75183 10.4279 5.7518 10.9969 5.75177H13.0026C13.5716 5.7518 14.0665 5.75183 14.4692 5.70155C14.9031 5.64738 15.3204 5.52604 15.6834 5.21856C16.0464 4.91107 16.2347 4.51935 16.3594 4.10029C16.4737 3.71642 16.566 3.1626 16.6583 2.60864L16.6583 2.60861L16.6619 2.58688L16.7471 1.89694C16.7809 1.62309 16.7978 1.48617 16.897 1.40968C16.9962 1.33319 17.1276 1.35093 17.3903 1.38642L17.4455 1.39405C18.4891 1.54173 19.3453 1.85554 20.0186 2.56428C20.6868 3.26761 20.9779 4.15293 21.1158 5.23259C21.25 6.28338 21.25 7.62531 21.25 9.31665V14.6869C21.25 16.3782 21.25 17.7202 21.1158 18.7709C20.9779 19.8506 20.6868 20.7359 20.0186 21.4392C19.3453 22.148 18.4891 22.4618 17.4455 22.6095C16.4399 22.7518 15.1587 22.7518 13.5583 22.7518H10.4417C8.84128 22.7518 7.5601 22.7518 6.55446 22.6095C5.51094 22.4618 4.65468 22.148 3.98138 21.4392C3.31322 20.7359 3.02208 19.8506 2.88419 18.7709C2.74998 17.7202 2.74999 16.3782 2.75 14.6869V14.6869V9.31663V9.31661C2.74999 7.62529 2.74998 6.28337 2.88419 5.23259C3.02208 4.15293 3.31322 3.26761 3.98138 2.56428C4.65468 1.85554 5.51094 1.54173 6.55446 1.39405L6.61383 1.38586C6.878 1.3503 7.01009 1.33252 7.10944 1.40966ZM8 10.25C7.58579 10.25 7.25 10.5858 7.25 11C7.25 11.4142 7.58579 11.75 8 11.75H16C16.4142 11.75 16.75 11.4142 16.75 11C16.75 10.5858 16.4142 10.25 16 10.25H8ZM8 15.25C7.58579 15.25 7.25 15.5858 7.25 16C7.25 16.4142 7.58579 16.75 8 16.75H12C12.4142 16.75 12.75 16.4142 12.75 16C12.75 15.5858 12.4142 15.25 12 15.25H8Z\" fill=\"currentColor\"></path> <path d=\"M15.2327 1.92129C15.271 1.61164 15.2901 1.45681 15.2012 1.35564C15.1122 1.25448 14.9572 1.25362 14.6471 1.2519C14.302 1.24999 13.9393 1.25 13.5586 1.25H10.442C10.0622 1.25 9.70044 1.24999 9.35607 1.25189C9.04774 1.25359 8.89358 1.25444 8.80469 1.3549C8.7158 1.45536 8.73385 1.60943 8.76993 1.91759L8.825 2.38786C8.92625 2.99518 8.99291 3.38484 9.07797 3.67052C9.15788 3.93895 9.22928 4.02428 9.28592 4.07226C9.34256 4.12025 9.43847 4.17665 9.71638 4.21134C10.0151 4.24864 10.4153 4.25 11.0414 4.25H12.9586C13.5848 4.25 13.9849 4.24864 14.2836 4.21134C14.5616 4.17665 14.6575 4.12025 14.7141 4.07226C14.7707 4.02428 14.8421 3.93895 14.9221 3.67053C15.0072 3.38447 15.0739 2.99418 15.1754 2.38553L15.2327 1.92129Z\" fill=\"currentColor\"></path></svg></button></div><div class=\"grid grid-rows-2 grid-flow-col gap-4 text-text2\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		for _, player := range players {
-			if currentPlayer == player {
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<form id=\"update_nickname_form\" hx-vals=\"{&#34;message_type&#34;: &#34;update_player_nickname&#34; }\" ws-send><input name=\"player_nickname\" value=\"")
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-				var templ_7745c5c3_Var3 string
-				templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(player.Nickname)
-				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/sections/lobby.templ`, Line: 11, Col: 58}
-				}
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\"> <button>Update Nickname</button></form>")
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-			} else {
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<p>")
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-				var templ_7745c5c3_Var4 string
-				templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(player.Nickname)
-				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/sections/lobby.templ`, Line: 15, Col: 24}
-				}
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</p>")
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div class=\"flex flex-col\"><div class=\"flex flex-row justify-between items-center p-2 space-x-2 w-full rounded-lg bg-surface2\"><div class=\"relative w-20 h-20 rounded-full border-2 border-white bg-overlay0\"><img src=\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(" <div class=\"w-5 h-6\">")
+			var templ_7745c5c3_Var4 string
+			templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(player.Avatar)
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/sections/lobby.templ`, Line: 22, Col: 31}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\" alt=\"avatar\" class=\"w-full h-full rounded-full\"> ")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			if currentPlayer == player {
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<form id=\"update_avatar_form\" hx-vals=\"{&#34;message_type&#34;: &#34;generate_new_avatar&#34; }\" ws-send><button>Update Avatar</button></form>")
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<img src=\"")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			var templ_7745c5c3_Var5 string
-			templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(player.Avatar)
-			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/sections/lobby.templ`, Line: 23, Col: 28}
-			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\" alt=\"avatar\"> ")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			if player.IsHost && currentPlayer != player {
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<form id=\"kick_player\" hx-vals=\"{&#34;message_type&#34;: &#34;kick_player&#34; }\" ws-send><input class=\"hidden\" name=\"room_code\" value=\"")
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-				var templ_7745c5c3_Var6 string
-				templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(code)
-				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/sections/lobby.templ`, Line: 26, Col: 57}
-				}
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\"> <input class=\"hidden\" name=\"player_nickname_to_kick\" value=\"")
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-				var templ_7745c5c3_Var7 string
-				templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(player.Nickname)
-				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/sections/lobby.templ`, Line: 27, Col: 82}
-				}
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\"> <button>Kick Player</button></form>")
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</div><div class=\"w-5 h-6\">")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			if player.IsReady {
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<svg xmlns=\"http://www.w3.org/2000/svg\" fill=\"none\" viewBox=\"0 0 24 24\" stroke-width=\"1.5\" stroke=\"currentColor\" class=\"size-6\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z\"></path></svg> ")
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-			} else {
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<svg xmlns=\"http://www.w3.org/2000/svg\" fill=\"none\" viewBox=\"0 0 24 24\" stroke-width=\"1.5\" stroke=\"currentColor\" class=\"size-6\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z\"></path></svg> ")
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-			}
-			if currentPlayer == player {
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<form id=\"toggle_ready_form\" hx-vals=\"{&#34;message_type&#34;: &#34;toggle_player_is_ready&#34; }\" ws-send><button>Toggle Ready</button></form>")
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-			}
-			if player.IsHost && allPlayersReady(players) {
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<form id=\"start_game_form\" hx-vals=\"{&#34;message_type&#34;: &#34;start_game&#34; }\" ws-send><input class=\"hidden\" name=\"room_code\" value=\"")
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-				var templ_7745c5c3_Var8 string
-				templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(code)
-				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/sections/lobby.templ`, Line: 71, Col: 57}
-				}
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\"> <button>Start Game</button></form>")
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<form id=\"update_avatar_form\" hx-vals=\"{&#34;message_type&#34;: &#34;generate_new_avatar&#34; }\" ws-send><button class=\"absolute right-0 bottom-0 p-1 text-black bg-white rounded-full hover:bg-surface2 hover:text-text2\" aria-label=\"Update Avatar\"><svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" width=\"16\" height=\"16\" fill=\"none\"><path fill-rule=\"evenodd\" clip-rule=\"evenodd\" d=\"M19.0931 2.19488C18.6484 1.86736 18.0224 1.96235 17.6949 2.40705C17.5632 2.58581 17.4999 2.79387 17.5 3.00007V4.50012H9.5C5.24485 4.50012 2 7.62252 2 12.0001C2 12.5524 2.44772 13.0001 3 13.0001C3.55228 13.0001 4 12.5524 4 12.0001C4 8.74779 6.3286 6.50012 9.5 6.50012H17.5V8.00827C17.5015 8.21177 17.565 8.41668 17.6949 8.59307C18.0224 9.03777 18.6485 9.13265 19.0932 8.80514L19.0966 8.80259C19.1718 8.74581 19.3859 8.58413 19.5059 8.49044C19.7487 8.301 20.0757 8.03872 20.4057 7.75223C20.7307 7.47005 21.0814 7.1447 21.3588 6.83078C21.4965 6.67496 21.6373 6.49836 21.7491 6.31294C21.8443 6.15497 22.0001 5.86093 22.0001 5.50008C22.0001 5.13924 21.8443 4.8452 21.7491 4.68723C21.6373 4.50181 21.4965 4.32521 21.3588 4.16939C21.0815 3.85547 20.7307 3.53011 20.4057 3.24793C20.0757 2.96144 19.7487 2.69915 19.5059 2.50971C19.3861 2.41617 19.1724 2.25476 19.0969 2.19771L19.0968 2.19766L19.0931 2.19488Z\" fill=\"currentColor\"></path> <path fill-rule=\"evenodd\" clip-rule=\"evenodd\" d=\"M14.5 19.5C18.7552 19.5 22 16.3776 22 12C22 11.4477 21.5523 11 21 11C20.4477 11 20 11.4477 20 12C20 15.2523 17.6714 17.5 14.5 17.5H6.50005V16C6.50021 15.7938 6.43683 15.5857 6.30517 15.407C5.97765 14.9623 5.35149 14.8674 4.9068 15.1949L4.90333 15.1975L4.90332 15.1975C4.82804 15.2544 4.61412 15.416 4.49412 15.5096C4.25138 15.6991 3.92434 15.9614 3.59438 16.2479C3.26938 16.53 2.91862 16.8554 2.64124 17.1693C2.50356 17.3251 2.36278 17.5017 2.25101 17.6872C2.15578 17.8451 2 18.1392 2 18.5C2 18.8608 2.15577 19.1549 2.251 19.3129C2.36278 19.4983 2.50356 19.6749 2.64124 19.8307C2.91862 20.1446 3.26939 20.47 3.59439 20.7522C3.92436 21.0386 4.2514 21.3009 4.49415 21.4904C4.6141 21.584 4.82806 21.7456 4.90343 21.8025L4.90699 21.8052C5.35169 22.1327 5.97769 22.0377 6.3052 21.593C6.43777 21.413 6.5011 21.2033 6.50005 20.9957V19.5H14.5Z\" fill=\"currentColor\"></path></svg></button></form>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -191,8 +91,140 @@ func Lobby(code string, players []entities.LobbyPlayer, currentPlayer entities.L
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
+			if currentPlayer == player {
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<form id=\"update_nickname_form\" hx-vals=\"{&#34;message_type&#34;: &#34;update_player_nickname&#34; }\" ws-send><div class=\"flex flex-row items-center space-x-2\"><div class=\"relative\"><input type=\"text\" name=\"player_nickname\" value=\"")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				var templ_7745c5c3_Var5 string
+				templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(player.Nickname)
+				if templ_7745c5c3_Err != nil {
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/sections/lobby.templ`, Line: 38, Col: 75}
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\" class=\"py-3 px-5 w-full rounded-xl border-1 bg-overlay0 placeholder-surface0 border-text2\"> <button class=\"inline-flex absolute top-1/2 justify-center items-center p-2 rounded-lg -translate-y-5 text-text2 end-2\" aria-label=\"Update Nickname\"><svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" width=\"24\" height=\"24\" fill=\"none\"><path fill-rule=\"evenodd\" clip-rule=\"evenodd\" d=\"M12.7461 21.75C12.7461 21.1977 13.1938 20.75 13.7461 20.75L21.7461 20.75C22.2984 20.75 22.7461 21.1977 22.7461 21.75C22.7461 22.3023 22.2984 22.75 21.7461 22.75L13.7461 22.75C13.1938 22.75 12.7461 22.3023 12.7461 21.75Z\" fill=\"currentColor\"></path> <path d=\"M19.0517 1.7366C17.8469 1.06772 16.3859 1.0898 15.2014 1.79431C14.8253 2.01799 14.478 2.35124 14.0409 2.81506C13.855 3.01232 13.762 3.11094 13.7638 3.2326C13.7656 3.35426 13.8624 3.45109 14.0561 3.64476L20.4474 10.036C20.6451 10.2338 20.744 10.3327 20.8679 10.3329C20.9918 10.3332 21.0898 10.236 21.2859 10.0416C21.7067 9.62443 22.0117 9.28622 22.2192 8.92206C22.9029 7.72256 22.924 6.24777 22.2754 5.02866C22.005 4.52051 21.5497 4.05569 20.8694 3.36116L20.6853 3.17307C20.0073 2.48005 19.5515 2.01406 19.0517 1.7366Z\" fill=\"currentColor\"></path> <path d=\"M18.9827 12.2642C19.1899 12.0646 19.2935 11.9648 19.2947 11.8389C19.2959 11.713 19.1942 11.6113 18.9907 11.4078L12.7326 5.14972C12.5252 4.94228 12.4215 4.83856 12.2937 4.84112C12.1659 4.84367 12.0664 4.95146 11.8675 5.16704L4.14154 13.5377C3.02147 14.7509 2.33498 15.4944 1.93314 16.4194C1.53206 17.3425 1.45308 18.3582 1.32393 20.019L1.32371 20.0219C1.32348 20.0248 1.23822 21.1155 1.25138 21.3517C1.26628 21.6191 1.32998 21.9442 1.57819 22.2259C1.82863 22.5101 2.1452 22.6123 2.41173 22.6568C2.64357 22.6955 3.68775 22.7227 3.68986 22.7227C5.587 22.7727 6.75977 22.8036 7.83824 22.3823C8.91518 21.9617 9.76624 21.1417 11.1471 19.8112L18.9827 12.2642Z\" fill=\"currentColor\"></path></svg></button></div></div></form>")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+			} else {
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<p>")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				var templ_7745c5c3_Var6 string
+				templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(player.Nickname)
+				if templ_7745c5c3_Err != nil {
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/sections/lobby.templ`, Line: 50, Col: 27}
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</p>")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+			}
+			if player.IsHost && currentPlayer != player {
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<form id=\"kick_player\" hx-vals=\"{&#34;message_type&#34;: &#34;kick_player&#34; }\" ws-send><input class=\"hidden\" name=\"room_code\" value=\"")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				var templ_7745c5c3_Var7 string
+				templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(code)
+				if templ_7745c5c3_Err != nil {
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/sections/lobby.templ`, Line: 54, Col: 59}
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\"> <input class=\"hidden\" name=\"player_nickname_to_kick\" value=\"")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				var templ_7745c5c3_Var8 string
+				templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(player.Nickname)
+				if templ_7745c5c3_Err != nil {
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/sections/lobby.templ`, Line: 55, Col: 84}
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\"> <button>Kick Player</button></form>")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+			}
+			if currentPlayer == player {
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<button>")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				if player.IsReady {
+					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" width=\"24\" height=\"24\" fill=\"none\"><path fill-rule=\"evenodd\" clip-rule=\"evenodd\" d=\"M12.0572 1.75H12.0572C14.2479 1.74999 15.9686 1.74998 17.312 1.93059C18.6886 2.11568 19.7809 2.50272 20.6391 3.36091C21.4973 4.21911 21.8843 5.31137 22.0694 6.68802C22.25 8.03144 22.25 9.75214 22.25 11.9428V12.0572C22.25 14.2479 22.25 15.9686 22.0694 17.312C21.8843 18.6886 21.4973 19.7809 20.6391 20.6391C19.7809 21.4973 18.6886 21.8843 17.312 22.0694C15.9686 22.25 14.2479 22.25 12.0572 22.25H11.9428C9.7521 22.25 8.03144 22.25 6.68802 22.0694C5.31137 21.8843 4.21911 21.4973 3.36091 20.6391C2.50272 19.7809 2.11568 18.6886 1.93059 17.312C1.74998 15.9686 1.74999 14.2479 1.75 12.0572V12.0572V11.9428V11.9428C1.74999 9.75211 1.74998 8.03144 1.93059 6.68802C2.11568 5.31137 2.50272 4.21911 3.36091 3.36091C4.21911 2.50272 5.31137 2.11568 6.68802 1.93059C8.03144 1.74998 9.75212 1.74999 11.9428 1.75H11.9428H12.0572ZM16.8775 8.02038C17.1425 8.50493 16.9645 9.11257 16.48 9.37756C15.1086 10.1275 13.8208 11.6975 12.8374 13.2032C12.3581 13.9372 11.9735 14.6207 11.709 15.1204C11.577 15.3697 11.4756 15.5721 11.4079 15.7105L11.3096 15.9159C11.1551 16.2536 10.8261 16.4782 10.4553 16.4987C10.0844 16.5191 9.73267 16.3323 9.54198 16.0135C9.23126 15.494 8.73753 15.0198 8.27997 14.6581C8.05764 14.4823 7.85752 14.3437 7.71471 14.2502L7.50442 14.1187C7.02493 13.8449 6.85797 13.2344 7.13152 12.7548C7.40513 12.275 8.01585 12.1079 8.49559 12.3815L8.81063 12.5772C8.99282 12.6965 9.2427 12.8697 9.52038 13.0892C9.73258 13.257 9.96984 13.4587 10.2094 13.6911C10.4662 13.2297 10.7872 12.685 11.1629 12.1096C12.1796 10.5529 13.6917 8.62286 15.5204 7.62282C16.0049 7.35782 16.6125 7.53582 16.8775 8.02038Z\" fill=\"currentColor\"></path></svg>")
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+				} else {
+					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" width=\"24\" height=\"24\" fill=\"none\"><path fill-rule=\"evenodd\" clip-rule=\"evenodd\" d=\"M17.312 1.93059C15.9686 1.74998 14.2479 1.74999 12.0572 1.75H11.9428C9.75212 1.74999 8.03144 1.74998 6.68802 1.93059C5.31137 2.11568 4.21911 2.50272 3.36091 3.36091C2.50272 4.21911 2.11568 5.31137 1.93059 6.68802C1.74998 8.03144 1.74999 9.75212 1.75 11.9428V12.0572C1.74999 14.2479 1.74998 15.9686 1.93059 17.312C2.11568 18.6886 2.50272 19.7809 3.36091 20.6391C4.21911 21.4973 5.31137 21.8843 6.68802 22.0694C8.03144 22.25 9.7521 22.25 11.9428 22.25H11.9428H12.0572H12.0572C14.2479 22.25 15.9686 22.25 17.312 22.0694C18.6886 21.8843 19.7809 21.4973 20.6391 20.6391C21.4973 19.7809 21.8843 18.6886 22.0694 17.312C22.25 15.9686 22.25 14.2479 22.25 12.0572V12.0572V11.9428V11.9428C22.25 9.7521 22.25 8.03144 22.0694 6.68802C21.8843 5.31137 21.4973 4.21911 20.6391 3.36091C19.7809 2.50272 18.6886 2.11568 17.312 1.93059ZM8.70711 7.29289C8.31658 6.90237 7.68342 6.90237 7.29289 7.29289C6.90237 7.68342 6.90237 8.31658 7.29289 8.70711L10.5858 12L7.29289 15.2929C6.90237 15.6834 6.90237 16.3166 7.29289 16.7071C7.68342 17.0976 8.31658 17.0976 8.70711 16.7071L12 13.4142L15.2929 16.7071C15.6834 17.0976 16.3166 17.0976 16.7071 16.7071C17.0976 16.3166 17.0976 15.6834 16.7071 15.2929L13.4142 12L16.7071 8.70711C17.0976 8.31658 17.0976 7.68342 16.7071 7.29289C16.3166 6.90237 15.6834 6.90237 15.2929 7.29289L12 10.5858L8.70711 7.29289Z\" fill=\"currentColor\"></path></svg>")
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</button>")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</div></div>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</div>")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div class=\"flex flex-row items-center space-x-2 w-full\"><form id=\"toggle_ready_form\" hx-vals=\"{&#34;message_type&#34;: &#34;toggle_player_is_ready&#34; }\" ws-send class=\"w-full\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		if currentPlayer.IsReady {
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<button class=\"flex flex-row justify-center items-center p-3 space-x-2 w-full text-3xl text-black rounded-lg rounded-b-lg font-button shadow-custom-border fill-transparent bg-text2\">Ready</button>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+		} else {
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<button class=\"flex flex-row justify-center items-center p-3 space-x-2 w-full text-3xl rounded-lg rounded-b-lg font-button shadow-custom-border fill-transparent bg-surface2 text-text2\">Not Ready</button>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</form>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		if currentPlayer.IsHost && allPlayersReady(players) {
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<form id=\"start_game_form\" hx-vals=\"{&#34;message_type&#34;: &#34;start_game&#34; }\" ws-send class=\"w-full\"><input class=\"hidden\" name=\"room_code\" value=\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var9 string
+			templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(code)
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/sections/lobby.templ`, Line: 89, Col: 57}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\"> <button class=\"flex flex-row justify-center items-center p-3 space-x-2 w-full text-3xl rounded-lg rounded-b-lg font-button shadow-custom-border fill-transparent bg-surface2 text-text2\">Start Game</button></form>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</div></div></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

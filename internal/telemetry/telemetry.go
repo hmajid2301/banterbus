@@ -47,7 +47,8 @@ func SetupOTelSDK(ctx context.Context) (shutdown func(context.Context) error, er
 		return
 	}
 	shutdownFuncs = append(shutdownFuncs, tracerProvider.Shutdown)
-	otel.SetTracerProvider(tracerProvider)
+	// TODO: not to output to stdout
+	// otel.SetTracerProvider(tracerProvider)
 
 	meterProvider, err := newMeterProvider()
 	if err != nil {
