@@ -30,7 +30,8 @@ WHERE rp.room_id = (
     SELECT r_inner.id
     FROM rooms r_inner
     WHERE r_inner.room_code = ? AND (r_inner.room_state = "CREATED" OR r_inner.room_state = "PLAYING")
-);
+)
+ORDER BY p.created_at;
 
 -- name: GetRoomByPlayerID :one
 SELECT r.* FROM rooms r JOIN rooms_players rp ON r.id = rp.room_id WHERE rp.player_id = ?;

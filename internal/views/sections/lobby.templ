@@ -14,7 +14,7 @@ templ Lobby(code string, players []entities.LobbyPlayer, currentPlayer entities.
 				@icons.Clipboard("")
 			</button>
 		}
-		<div class="grid grid-rows-2 grid-flow-col gap-4 text-text2">
+		<div class="flex flex-col space-y-4 text-text2">
 			for _, player := range players {
 				<div class="flex flex-col">
 					<div class="flex flex-row justify-between items-center p-2 space-x-2 w-full rounded-lg bg-surface2">
@@ -42,7 +42,7 @@ templ Lobby(code string, players []entities.LobbyPlayer, currentPlayer entities.
 						} else {
 							<p>{ player.Nickname }</p>
 						}
-						if player.IsHost && currentPlayer != player {
+						if currentPlayer.IsHost && currentPlayer != player {
 							<form id="kick_player" hx-vals='{"message_type": "kick_player" }' ws-send>
 								<input class="hidden" name="room_code" value={ code }/>
 								<input class="hidden" name="player_nickname_to_kick" value={ player.Nickname }/>

@@ -84,7 +84,7 @@ func Lobby(code string, players []entities.LobbyPlayer, currentPlayer entities.L
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div class=\"grid grid-rows-2 grid-flow-col gap-4 text-text2\">")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div class=\"flex flex-col space-y-4 text-text2\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -169,7 +169,7 @@ func Lobby(code string, players []entities.LobbyPlayer, currentPlayer entities.L
 					return templ_7745c5c3_Err
 				}
 			}
-			if player.IsHost && currentPlayer != player {
+			if currentPlayer.IsHost && currentPlayer != player {
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<form id=\"kick_player\" hx-vals=\"{&#34;message_type&#34;: &#34;kick_player&#34; }\" ws-send><input class=\"hidden\" name=\"room_code\" value=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err

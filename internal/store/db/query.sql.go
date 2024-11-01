@@ -276,6 +276,7 @@ WHERE rp.room_id = (
     FROM rooms r_inner
     WHERE r_inner.room_code = ? AND (r_inner.room_state = "CREATED" OR r_inner.room_state = "PLAYING")
 )
+ORDER BY p.created_at
 `
 
 type GetAllPlayerByRoomCodeRow struct {
