@@ -2,18 +2,17 @@ package sections
 
 import (
 	"gitlab.com/hmajid2301/banterbus/internal/entities"
+	"gitlab.com/hmajid2301/banterbus/internal/views/components"
 	"gitlab.com/hmajid2301/banterbus/internal/views/icons"
 )
 
 templ Lobby(code string, players []entities.LobbyPlayer, currentPlayer entities.LobbyPlayer) {
 	<div hx-swap-oob="innerHTML:#page">
-		<div class="relative mb-5">
-			<label for="room_code" class="block mb-2 font-medium text-text2">Room Code</label>
-			<input type="text" disabled name="room_code" value={ code } class="py-3 px-5 w-full rounded-xl border-1 bg-overlay0 placeholder-surface0 border-text2"/>
+		@components.TextInput(components.TextInputProps{LabelName: "Room Code", InputName: "room_code", Value: code}, templ.Attributes{"disabled": true}) {
 			<button class="inline-flex absolute top-1/2 justify-center items-center p-2 rounded-lg text-text2 end-2 hover:text-surface0" x-clipboard.raw={ code }>
 				@icons.Clipboard("")
 			</button>
-		</div>
+		}
 		<div class="grid grid-rows-2 grid-flow-col gap-4 text-text2">
 			for _, player := range players {
 				<div class="flex flex-col">
@@ -64,21 +63,21 @@ templ Lobby(code string, players []entities.LobbyPlayer, currentPlayer entities.
 			<div class="flex flex-row items-center space-x-2 w-full">
 				<form id="toggle_ready_form" hx-vals='{"message_type": "toggle_player_is_ready" }' ws-send class="w-full">
 					if currentPlayer.IsReady {
-						<button class="flex flex-row justify-center items-center p-3 space-x-2 w-full text-3xl text-black rounded-lg rounded-b-lg font-button shadow-custom-border fill-transparent bg-text2">
+						@components.Button(components.ButtonProps{TextColor: "text-black", BackgroundColor: "bg-text2"}) {
 							Ready
-						</button>
+						}
 					} else {
-						<button class="flex flex-row justify-center items-center p-3 space-x-2 w-full text-3xl rounded-lg rounded-b-lg font-button shadow-custom-border fill-transparent bg-surface2 text-text2">
+						@components.Button(components.ButtonProps{}) {
 							Not Ready
-						</button>
+						}
 					}
 				</form>
 				if currentPlayer.IsHost && allPlayersReady(players) {
 					<form id="start_game_form" hx-vals='{"message_type": "start_game" }' ws-send class="w-full">
 						<input class="hidden" name="room_code" value={ code }/>
-						<button class="flex flex-row justify-center items-center p-3 space-x-2 w-full text-3xl rounded-lg rounded-b-lg font-button shadow-custom-border fill-transparent bg-surface2 text-text2">
+						@components.Button(components.ButtonProps{}) {
 							Start Game
-						</button>
+						}
 					</form>
 				}
 			</div>

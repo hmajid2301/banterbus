@@ -1,0 +1,16 @@
+package components
+
+type TextInputProps struct {
+	LabelName   string
+	InputName   string
+	Placeholder string
+	Value       string
+}
+
+templ TextInput(input TextInputProps, attrs templ.Attributes) {
+	<div class="relative mb-5">
+		<label for={ input.InputName } class="block mb-2 font-medium text-text2">{ input.LabelName }</label>
+		<input type="text" name={ input.InputName } value={ input.Value } class="py-3 px-5 w-full rounded-xl border-1 bg-overlay0 placeholder-surface0 border-text2" placeholder={ input.Placeholder } { attrs... }/>
+		{ children... }
+	</div>
+}

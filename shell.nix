@@ -45,6 +45,7 @@ in
       export PLAYWRIGHT_BROWSERS_PATH="${pkgs.playwright-driver.browsers}"
       export PLAYWRIGHT_PATH="${pkgs.playwright-test}/lib/node_modules/@playwright/test/cli.js"
       export GOOSE_MIGRATION_DIR="./db/migrations"
+      export TEMPL_EXPERIMENT=rawgo
       ${pre-commit-check.shellHook}
     '';
     buildInputs = pre-commit-check.enabledPackages;

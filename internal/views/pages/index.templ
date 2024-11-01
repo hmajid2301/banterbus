@@ -34,23 +34,21 @@ templ Index() {
 									<div class="flex flex-col my-1">
 										<div x-data="{ action: '' }">
 											<form ws-send x-bind:hx-vals="action">
-												<div class="mb-5">
-													<label for="nickname" class="block mb-2 font-medium text-text2">Nickname</label>
-													<input type="text" name="nickname" class="py-3 px-5 w-full rounded-xl border-1 bg-overlay0 placeholder-surface0 border-text2" placeholder="Enter your nickname"/>
-												</div>
-												<div class="mb-5">
-													<label for="room_code" class="block mb-2 font-medium text-text2">Room Code</label>
-													<input type="text" name="room_code" class="py-3 px-5 w-full rounded-xl border-1 bg-overlay0 placeholder-surface0 border-text2 border-" placeholder="ABC12"/>
-												</div>
-												<div class="flex flex-row mt-12 space-x-4">
-													<button class="flex flex-row justify-center items-center p-3 space-x-2 w-full text-3xl rounded-lg rounded-b-lg text-text font-button shadow-custom-border fill-transparent bg-surface2" @click="action = JSON.stringify({ message_type: 'create_room', game_name: 'fibbing_it' })">
-														@icons.Play("")
-														<p>Start</p>
-													</button>
-													<button class="flex flex-row justify-center items-center p-3 space-x-2 w-full text-3xl text-black rounded-lg rounded-b-lg font-button shadow-custom-border fill-transparent bg-text2" @click="action = JSON.stringify({ message_type: 'join_lobby' })">
-														@icons.Group("")
-														<p>Join</p>
-													</button>
+												@components.TextInput(components.TextInputProps{LabelName: "Nickname", InputName: "nickname", Placeholder: "Enter your nickname"}, templ.Attributes{})
+												@components.TextInput(components.TextInputProps{LabelName: "Room Code", InputName: "room_code", Placeholder: "ABC12"}, templ.Attributes{})
+												<div class="flex flex-row mt-12 space-x-4 w-full">
+													<div class="w-full" @click="action = JSON.stringify({ message_type: 'create_room', game_name: 'fibbing_it' })">
+														@components.Button(components.ButtonProps{}) {
+															@icons.Play("")
+															<p>Start</p>
+														}
+													</div>
+													<div class="w-full" @click="action = JSON.stringify({ message_type: 'join_lobby' })">
+														@components.Button(components.ButtonProps{BackgroundColor: "bg-text2", TextColor: "text-black"}) {
+															@icons.Group("")
+															<p>Join</p>
+														}
+													</div>
 												</div>
 											</form>
 										</div>
