@@ -35,7 +35,6 @@
 
       myPackages = with pkgs; [
         go_1_22
-        playwright-test
 
         goose
         air
@@ -51,8 +50,14 @@
         tailwindcss
         templ
         sqlc
-        gitlab-ci-local
       ];
+
+      devShellPackages = with pkgs;
+        myPackages
+        ++ [
+          playwright-test
+          gitlab-ci-local
+        ];
 
       # The current default sdk for macOS fails to compile go projects, so we use a newer one for now.
       # This has no effect on other platforms.
@@ -64,7 +69,7 @@
       devShells.default = callPackage ./shell.nix {
         inherit (gomod2nix.legacyPackages.${system}) mkGoEnv gomod2nix;
         inherit pre-commit-hooks;
-        inherit myPackages;
+        inherit devShellPackages;
       };
       packages.container = pkgs.callPackage ./containers/service.nix {package = packages.default;};
       packages.container-ci = pkgs.callPackage ./containers/ci.nix {

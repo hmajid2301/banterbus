@@ -17,11 +17,7 @@ in
         [
           coreutils
           gnugrep
-          nix
           bash
-          # dockerTools.caCertificates
-          cacert.out
-          which
           curl
           git
           goEnv

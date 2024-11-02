@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.2] - 2024-11-01
+
+### Fixed
+
+- Remove playwright-test for now and reduced image size down from 3.2GB -> 1.4GB.
+
 ## [0.1.1] - 2024-10-19
 
 ### Added

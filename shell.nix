@@ -13,7 +13,7 @@
   mkGoEnv ? pkgs.mkGoEnv,
   gomod2nix ? pkgs.gomod2nix,
   pre-commit-hooks,
-  myPackages,
+  devShellPackages,
   ...
 }: let
   goEnv = mkGoEnv {pwd = ./.;};
@@ -50,9 +50,10 @@ in
     '';
     buildInputs = pre-commit-check.enabledPackages;
     packages =
-      myPackages
+      devShellPackages
       ++ [
         goEnv
         gomod2nix
+        pkgs.gitlab-ci-local
       ];
   }
