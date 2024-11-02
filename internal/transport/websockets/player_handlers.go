@@ -13,8 +13,8 @@ type PlayerServicer interface {
 	TogglePlayerIsReady(ctx context.Context, playerID string) (entities.Lobby, error)
 }
 
-func (h *UpdateNickname) Handle(ctx context.Context, client *client, sub *Subscriber) error {
-	updatedRoom, err := sub.playerService.UpdateNickname(ctx, h.PlayerNickname, client.playerID)
+func (u *UpdateNickname) Handle(ctx context.Context, client *client, sub *Subscriber) error {
+	updatedRoom, err := sub.playerService.UpdateNickname(ctx, u.PlayerNickname, client.playerID)
 	if err != nil {
 		errStr := "failed to update nickname"
 		if err == entities.ErrNicknameExists {
@@ -28,7 +28,7 @@ func (h *UpdateNickname) Handle(ctx context.Context, client *client, sub *Subscr
 	return err
 }
 
-func (h *GenerateNewAvatar) Handle(
+func (g *GenerateNewAvatar) Handle(
 	ctx context.Context,
 	client *client,
 	sub *Subscriber,
@@ -44,7 +44,7 @@ func (h *GenerateNewAvatar) Handle(
 	return err
 }
 
-func (h *TogglePlayerIsReady) Handle(
+func (t *TogglePlayerIsReady) Handle(
 	ctx context.Context,
 	client *client,
 	sub *Subscriber,

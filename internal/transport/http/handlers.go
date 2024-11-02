@@ -44,10 +44,11 @@ func NewServer(websocketer websocketer, logger *slog.Logger, staticFS http.FileS
 	handleFunc("/readiness", s.readiness)
 
 	handler := otelhttp.NewHandler(mux, "/")
+	writeTimeout := 10
 	httpServer := &http.Server{
 		Addr:         "0.0.0.0:8080",
 		ReadTimeout:  time.Second,
-		WriteTimeout: 10 * time.Second,
+		WriteTimeout: time.Duration(writeTimeout) * time.Second,
 		Handler:      handler,
 	}
 	s.Server = httpServer
@@ -80,10 +81,10 @@ func (s *Server) subscribeHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (s *Server) health(w http.ResponseWriter, r *http.Request) {
+func (s *Server) health(w http.ResponseWriter, _ *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-func (s *Server) readiness(w http.ResponseWriter, r *http.Request) {
+func (s *Server) readiness(w http.ResponseWriter, _ *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }

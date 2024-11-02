@@ -101,7 +101,8 @@ func mainLogic() error {
 	subscriber := websockets.NewSubscriber(lobbyService, playerService, logger)
 	server := transporthttp.NewServer(subscriber, logger, http.FS(fsys))
 
-	go terminateHandler(logger, server, 15)
+	timeoutSeconds := 15
+	go terminateHandler(logger, server, timeoutSeconds)
 	err = server.Serve()
 	if err != nil {
 		return fmt.Errorf("failed to start server: %w", err)

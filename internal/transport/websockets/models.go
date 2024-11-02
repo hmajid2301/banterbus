@@ -67,12 +67,12 @@ type KickPlayer struct {
 	PlayerNicknameToKick string `json:"player_nickname_to_kick"`
 }
 
-func (s *KickPlayer) Validate() error {
-	if s.RoomCode == "" {
+func (k *KickPlayer) Validate() error {
+	if k.RoomCode == "" {
 		return errors.New("room_code is required")
 	}
 
-	if s.PlayerNicknameToKick == "" {
+	if k.PlayerNicknameToKick == "" {
 		return errors.New("player_nickname_to_kick is required")
 	}
 	return nil

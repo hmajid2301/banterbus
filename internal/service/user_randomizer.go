@@ -84,7 +84,8 @@ func (UserRandomizer) GetNickname() string {
 }
 
 func (UserRandomizer) GetAvatar() []byte {
-	isMale := rand.IntN(2)
+	booleanRandNum := 2
+	isMale := rand.IntN(booleanRandNum)
 	avatar := avatar.NewPersonAvatar(isMale == 1)
 
 	avatar.RandomizeHair()

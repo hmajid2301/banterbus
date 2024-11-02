@@ -44,7 +44,7 @@ func SetupOTelSDK(ctx context.Context) (shutdown func(context.Context) error, er
 	tracerProvider, err := newTraceProvider(res)
 	if err != nil {
 		handleErr(err)
-		return
+		return shutdown, err
 	}
 	shutdownFuncs = append(shutdownFuncs, tracerProvider.Shutdown)
 	// TODO: not to output to stdout
@@ -53,13 +53,13 @@ func SetupOTelSDK(ctx context.Context) (shutdown func(context.Context) error, er
 	meterProvider, err := newMeterProvider()
 	if err != nil {
 		handleErr(err)
-		return
+		return shutdown, err
 	}
 
 	shutdownFuncs = append(shutdownFuncs, meterProvider.Shutdown)
 	otel.SetMeterProvider(meterProvider)
 
-	return
+	return shutdown, err
 }
 
 func newPropagator() propagation.TextMapPropagator {

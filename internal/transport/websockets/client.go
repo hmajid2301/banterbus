@@ -12,12 +12,13 @@ type client struct {
 	playerID   string
 }
 
-func NewClient(conn net.Conn) *client {
+func newClient(conn net.Conn) *client {
 	u := uuid.Must(uuid.NewV7())
 
+	messageChannelLength := 10
 	return &client{
 		playerID:   u.String(),
 		connection: conn,
-		messages:   make(chan []byte, 10),
+		messages:   make(chan []byte, messageChannelLength),
 	}
 }

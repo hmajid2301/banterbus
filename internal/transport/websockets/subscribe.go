@@ -64,7 +64,7 @@ func (s *Subscriber) Subscribe(r *http.Request, w http.ResponseWriter) (err erro
 		return err
 	}
 
-	client := NewClient(connection)
+	client := newClient(connection)
 
 	defer func() {
 		err = connection.Close()
@@ -79,7 +79,8 @@ func (s *Subscriber) Subscribe(r *http.Request, w http.ResponseWriter) (err erro
 			cleanedMessage := logging.StripSVGData(string(msg))
 			s.logger.DebugContext(ctx, "sending message", slog.String("message", cleanedMessage))
 
-			err := connection.SetWriteDeadline(time.Now().Add(time.Second * 10))
+			writeTimeout := 10
+			err := connection.SetWriteDeadline(time.Now().Add(time.Second * time.Duration(writeTimeout)))
 			if err != nil {
 				s.logger.ErrorContext(ctx, "failed to set timeout", slog.Any("error", err))
 			}

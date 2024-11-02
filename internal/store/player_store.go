@@ -74,7 +74,6 @@ func (s Store) UpdateNickname(
 
 	if room.RoomState != CREATED.String() {
 		return players, fmt.Errorf("room is not in CREATED state")
-
 	}
 
 	playersInRoom, err := s.queries.WithTx(tx).GetAllPlayersInRoom(ctx, playerID)

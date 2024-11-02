@@ -15,7 +15,7 @@ type room struct {
 	quit        chan bool
 }
 
-func NewRoom() *room {
+func newRoom() *room {
 	return &room{
 		clients:    make(map[string]*client),
 		register:   make(chan *client),
@@ -29,7 +29,6 @@ func (r *room) runRoom() {
 	log.Println("starting room")
 	for {
 		select {
-
 		case client := <-r.register:
 			r.addClient(client)
 

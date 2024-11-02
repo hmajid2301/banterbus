@@ -33,7 +33,6 @@ func TestLoadConfig(t *testing.T) {
 		}
 
 		assert.Equal(t, expectedCfg, actualCfg)
-
 	})
 
 	t.Run("Should load config from environment values", func(t *testing.T) {

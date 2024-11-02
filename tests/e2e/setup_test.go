@@ -2,6 +2,7 @@ package e2e
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"log/slog"
 	"net/http"
@@ -25,9 +26,6 @@ var (
 	pages           []playwright.Page
 	expect          playwright.PlaywrightAssertions
 	headless        = os.Getenv("HEADFUL") == ""
-	isChromium      bool
-	isFirefox       bool
-	isWebKit        bool
 	browserName     = getBrowserName()
 	browserType     playwright.BrowserType
 	serverAddress   string
@@ -35,49 +33,51 @@ var (
 )
 
 func TestMain(m *testing.M) {
-	server := BeforeAll()
+	server, err := BeforeAll()
+	if err != nil {
+		log.Fatalf("could not start server: %v", err)
+	}
+
 	code := m.Run()
 	AfterAll(server)
 	os.Exit(code)
 }
 
-func BeforeAll() *httptest.Server {
+func BeforeAll() (*httptest.Server, error) {
 	var err error
 	pw, err = playwright.Run()
 	if err != nil {
 		log.Fatalf("could not start Playwright: %v", err)
 	}
-	if browserName == "chromium" || browserName == "" {
+	switch browserName {
+	case "chromium":
 		browserType = pw.Chromium
-	} else if browserName == "firefox" {
+	case "firefox":
 		browserType = pw.Firefox
-	} else if browserName == "webkit" {
+	case "webkit":
 		browserType = pw.WebKit
+	default:
+		browserType = pw.Chromium
 	}
 
-	// launch browser, headless or not depending on HEADFUL env
 	browser, err = browserType.Launch(playwright.BrowserTypeLaunchOptions{
 		Headless: playwright.Bool(headless),
 	})
 	if err != nil {
-		log.Fatalf("could not launch: %v", err)
+		return nil, fmt.Errorf("could not start browser: %v", err)
 	}
-	// init web-first assertions with 1s timeout instead of default 5s
+
 	expect = playwright.NewPlaywrightAssertions(1000)
-	isChromium = browserName == "chromium" || browserName == ""
-	isFirefox = browserName == "firefox"
-	isWebKit = browserName == "webkit"
 
 	server, err := newTestServer()
 	if err != nil {
-		log.Fatalf("could not start server: %v", err)
+		return nil, err
 	}
 
 	ResetBrowserContexts()
-	return server
+	return server, nil
 }
 
-// AfterAll does cleanup, e.g. stop playwright driver
 func AfterAll(server *httptest.Server) {
 	server.Close()
 	for i := 0; i < testUserNum; i++ {
@@ -122,7 +122,6 @@ func newTestServer() (*httptest.Server, error) {
 
 	serverAddress = server.Listener.Addr().String()
 	return server, nil
-
 }
 
 func ResetBrowserContexts() {

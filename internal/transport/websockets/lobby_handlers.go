@@ -19,39 +19,39 @@ type LobbyServicer interface {
 	) (entities.Lobby, string, error)
 }
 
-func (h *CreateRoom) Handle(ctx context.Context, client *client, sub *Subscriber) error {
+func (c *CreateRoom) Handle(ctx context.Context, client *client, sub *Subscriber) error {
 	newPlayer := entities.NewHostPlayer{
 		ID:       client.playerID,
-		Nickname: h.PlayerNickname,
+		Nickname: c.PlayerNickname,
 	}
-	newRoom, err := sub.lobbyService.Create(ctx, h.GameName, newPlayer)
+	lobby, err := sub.lobbyService.Create(ctx, c.GameName, newPlayer)
 	if err != nil {
 		errStr := "failed to create room"
 		clientErr := sub.updateClientAboutErr(ctx, client, errStr)
 		return fmt.Errorf("%w: %w", err, clientErr)
 	}
 
-	room := NewRoom()
+	room := newRoom()
 
 	room.addClient(client)
-	sub.rooms[newRoom.Code] = room
+	sub.rooms[lobby.Code] = room
 
 	go room.runRoom()
 
-	err = sub.updateClientsAboutLobby(ctx, newRoom)
+	err = sub.updateClientsAboutLobby(ctx, lobby)
 	return err
 }
 
-func (h *JoinLobby) Handle(ctx context.Context, client *client, sub *Subscriber) error {
-	room, ok := sub.rooms[h.RoomCode]
+func (j *JoinLobby) Handle(ctx context.Context, client *client, sub *Subscriber) error {
+	room, ok := sub.rooms[j.RoomCode]
 	if !ok {
-		err := fmt.Errorf("room with code %s does not exist", h.RoomCode)
+		err := fmt.Errorf("room with code %s does not exist", j.RoomCode)
 		clientErr := sub.updateClientAboutErr(ctx, client, err.Error())
 		return fmt.Errorf("%w: %w", err, clientErr)
 	}
 	room.addClient(client)
 
-	updatedRoom, err := sub.lobbyService.Join(ctx, h.RoomCode, client.playerID, h.PlayerNickname)
+	updatedRoom, err := sub.lobbyService.Join(ctx, j.RoomCode, client.playerID, j.PlayerNickname)
 	if err != nil {
 		errStr := "failed to join room"
 		if err == entities.ErrNicknameExists {
@@ -65,8 +65,8 @@ func (h *JoinLobby) Handle(ctx context.Context, client *client, sub *Subscriber)
 	return err
 }
 
-func (h *StartGame) Handle(ctx context.Context, client *client, sub *Subscriber) error {
-	updatedRoom, err := sub.lobbyService.Start(ctx, h.RoomCode, client.playerID)
+func (s *StartGame) Handle(ctx context.Context, client *client, sub *Subscriber) error {
+	updatedRoom, err := sub.lobbyService.Start(ctx, s.RoomCode, client.playerID)
 	if err != nil {
 		errStr := "failed to start game"
 		clientErr := sub.updateClientAboutErr(ctx, client, errStr)
@@ -77,12 +77,12 @@ func (h *StartGame) Handle(ctx context.Context, client *client, sub *Subscriber)
 	return err
 }
 
-func (h *KickPlayer) Handle(ctx context.Context, client *client, sub *Subscriber) error {
+func (k *KickPlayer) Handle(ctx context.Context, client *client, sub *Subscriber) error {
 	updatedRoom, playerToKickID, err := sub.lobbyService.KickPlayer(
 		ctx,
-		h.RoomCode,
+		k.RoomCode,
 		client.playerID,
-		h.PlayerNicknameToKick,
+		k.PlayerNicknameToKick,
 	)
 	if err != nil {
 		errStr := "failed to kick player"
@@ -90,9 +90,9 @@ func (h *KickPlayer) Handle(ctx context.Context, client *client, sub *Subscriber
 		return fmt.Errorf("%w: %w", err, clientErr)
 	}
 
-	room, ok := sub.rooms[h.RoomCode]
+	room, ok := sub.rooms[k.RoomCode]
 	if !ok {
-		err := fmt.Errorf("room with code %s does not exist", h.RoomCode)
+		err := fmt.Errorf("room with code %s does not exist", k.RoomCode)
 		clientErr := sub.updateClientAboutErr(ctx, client, err.Error())
 		return fmt.Errorf("%w: %w", err, clientErr)
 	}

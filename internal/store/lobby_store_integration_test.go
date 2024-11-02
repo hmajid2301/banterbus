@@ -233,7 +233,7 @@ func TestIntegrationStartGame(t *testing.T) {
 		playerTwo := gameState.Players[1]
 
 		assert.NotEqual(t, playerOne.Role, playerTwo.Role, "Players should have different roles")
-		assert.NotEqual(t, playerOne.Question, playerTwo.Question, "Players should have differnt questions")
+		assert.NotEqual(t, playerOne.Question, playerTwo.Question, "Players should have different questions")
 	})
 
 	t.Run("Should fail to start game, player is not host", func(t *testing.T) {

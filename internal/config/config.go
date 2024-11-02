@@ -28,7 +28,7 @@ type App struct {
 	LogLevel    slog.Level
 }
 
-type ConfigIn struct {
+type In struct {
 	DBFolder    string `env:"BANTERBUS_DB_FOLDER"`
 	Environment string `env:"BANTERBUS_ENVIRONMENT, default=production"`
 	LogLevel    string `env:"BANTERBUS_LOG_LEVEL,   default=info"`
@@ -37,7 +37,7 @@ type ConfigIn struct {
 }
 
 func LoadConfig(ctx context.Context) (Config, error) {
-	var input ConfigIn
+	var input In
 	if err := envconfig.Process(ctx, &input); err != nil {
 		return Config{}, err
 	}
@@ -76,14 +76,14 @@ func LoadConfig(ctx context.Context) (Config, error) {
 	return config, nil
 }
 
-func validateServerConfig(cfg ConfigIn) error {
+func validateServerConfig(cfg In) error {
 	if cfg.Port < 1 || cfg.Port > 65535 {
 		return fmt.Errorf("expected port to be between 1 and 65535 but received: %d", cfg.Port)
 	}
 
-	hostIp := net.ParseIP(cfg.Host)
-	if hostIp == nil {
-		return fmt.Errorf("expected valid IPv4 address but received: %v", hostIp)
+	hostIP := net.ParseIP(cfg.Host)
+	if hostIP == nil {
+		return fmt.Errorf("expected valid IPv4 address but received: %v", hostIP)
 	}
 
 	return nil

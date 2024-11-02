@@ -20,7 +20,7 @@ type PrettyHandler struct {
 	l *log.Logger
 }
 
-func (h *PrettyHandler) Handle(ctx context.Context, r slog.Record) error {
+func (h *PrettyHandler) Handle(_ context.Context, r slog.Record) error {
 	level := r.Level.String() + ":"
 
 	switch r.Level {

@@ -20,8 +20,8 @@ func (s *Subscriber) updateClientsAboutLobby(ctx context.Context, lobby entities
 			return err
 		}
 		client.messages <- buf.Bytes()
-
 	}
+
 	return nil
 }
 
@@ -48,7 +48,7 @@ func (s *Subscriber) updateClientsAboutGame(ctx context.Context, gameState entit
 			return err
 		}
 		client.messages <- buf.Bytes()
-
 	}
+
 	return nil
 }

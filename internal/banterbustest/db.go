@@ -18,7 +18,7 @@ import (
 	_ "modernc.org/sqlite"
 )
 
-func CreateDB(ctx context.Context) (*sql.DB, error) {
+func CreateDB(_ context.Context) (*sql.DB, error) {
 	db, err := sql.Open("sqlite", "file::memory:?cache=shared")
 	if err != nil {
 		return db, err
@@ -178,5 +178,4 @@ func FillWithDummyData(db *sql.DB) error {
 	}
 
 	return tx.Commit()
-
 }

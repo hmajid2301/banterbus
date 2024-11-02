@@ -201,7 +201,8 @@ func (s Store) StartGame(
 		return gameState, err
 	}
 
-	if len(playersInRoom) < 2 {
+	minimumPlayers := 2
+	if len(playersInRoom) < minimumPlayers {
 		return gameState, fmt.Errorf("not enough players to start the game")
 	}
 
@@ -285,7 +286,6 @@ func (s Store) StartGame(
 		if err != nil {
 			return gameState, err
 		}
-
 	}
 	gameState = entities.GameState{
 		Players:   players,
@@ -356,7 +356,8 @@ func (s Store) KickPlayer(
 func randomRoomCode() string {
 	const charset = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 
-	codeByte := make([]byte, 5)
+	codeLength := 5
+	codeByte := make([]byte, codeLength)
 	for i := range codeByte {
 		codeByte[i] = charset[rand.IntN(len(charset))]
 	}
