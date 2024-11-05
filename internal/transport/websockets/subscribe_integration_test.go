@@ -60,7 +60,8 @@ func TestIntegrationSubscribe(t *testing.T) {
 			"message_type":    "create_room",
 		}
 
-		msg := sendMessage(message, t, conn)
+		msg, err := sendMessage(message, conn)
+		require.NoError(t, err)
 
 		assert.Contains(t, msg, mainPlayerNickname)
 		assert.Contains(t, msg, "Room Code")
@@ -77,7 +78,8 @@ func TestIntegrationSubscribe(t *testing.T) {
 			"message_type":    "create_room",
 		}
 
-		msg := sendMessage(message, t, conn)
+		msg, err := sendMessage(message, conn)
+		require.NoError(t, err)
 
 		conn2, _, _, err := ws.Dial(context.Background(), fmt.Sprintf("ws://%s", server.Listener.Addr().String()))
 		require.NoError(t, err)
@@ -92,7 +94,9 @@ func TestIntegrationSubscribe(t *testing.T) {
 			"message_type":    "join_lobby",
 		}
 
-		msg = sendMessage(message, t, conn2)
+		msg, err = sendMessage(message, conn2)
+		require.NoError(t, err)
+
 		assert.Contains(t, msg, mainPlayerNickname)
 		assert.Contains(t, msg, "Room Code")
 	})
@@ -108,7 +112,8 @@ func TestIntegrationSubscribe(t *testing.T) {
 			"message_type":    "create_room",
 		}
 
-		msg := sendMessage(message, t, conn)
+		msg, err := sendMessage(message, conn)
+		require.NoError(t, err)
 
 		roomCode, err := getRoomCode(msg)
 		require.NoError(t, err)
@@ -123,24 +128,28 @@ func TestIntegrationSubscribe(t *testing.T) {
 			"player_nickname": mainPlayerNickname,
 			"message_type":    "join_lobby",
 		}
-		_ = sendMessage(message, t, conn2)
+
+		_, err = sendMessage(message, conn2)
+		require.NoError(t, err)
 
 		message = map[string]string{
 			"player_nickname": "test2",
 			"message_type":    "update_player_nickname",
 		}
-		msg = sendMessage(message, t, conn2)
+
+		msg, err = sendMessage(message, conn2)
+		require.NoError(t, err)
 		assert.Contains(t, msg, "test2")
 
 		message = map[string]string{
 			"message_type": "generate_new_avatar",
 		}
-		msg2 := sendMessage(message, t, conn2)
+		msg2, err := sendMessage(message, conn2)
+		require.NoError(t, err)
 		assert.NotEqual(t, msg, msg2)
 	})
 
 	t.Run("Should successfully handle kicking a player", func(t *testing.T) {
-		t.Skip("Fix this test")
 		conn, _, _, err := ws.Dial(context.Background(), fmt.Sprintf("ws://%s", server.Listener.Addr().String()))
 		require.NoError(t, err)
 		defer conn.Close()
@@ -150,7 +159,9 @@ func TestIntegrationSubscribe(t *testing.T) {
 			"player_nickname": mainPlayerNickname,
 			"message_type":    "create_room",
 		}
-		msg := sendMessage(message, t, conn)
+
+		msg, err := sendMessage(message, conn)
+		require.NoError(t, err)
 
 		roomCode, err := getRoomCode(msg)
 		require.NoError(t, err)
@@ -164,17 +175,24 @@ func TestIntegrationSubscribe(t *testing.T) {
 			"player_nickname": otherPlayerNickname,
 			"message_type":    "join_lobby",
 		}
-		_ = sendMessage(message, t, conn2)
+		_, err = sendMessage(message, conn2)
+		require.NoError(t, err)
 
-		// message = map[string]string{
-		// 	"player_nickname_to_kick": otherPlayerNickname,
-		// 	"room_code":               roomCode,
-		// 	"message_type":            "kick_player",
-		// }
+		message = map[string]string{
+			"player_nickname_to_kick": otherPlayerNickname,
+			"room_code":               roomCode,
+			"message_type":            "kick_player",
+		}
 
-		// msg = sendMessage(message, t, conn)
-		// time.Sleep(300 * time.Millisecond)
-		// assert.NotContains(t, msg, otherPlayerNickname, "Player should be kicked and not been in returned HTML.")
+		_, err = sendMessage(message, conn)
+		require.NoError(t, err)
+
+		time.Sleep(100 * time.Millisecond)
+
+		m, _, err := wsutil.ReadServerData(conn2)
+		require.NoError(t, err)
+		msg = string(m)
+		assert.NotContains(t, msg, otherPlayerNickname, "Player should be kicked and not been in returned HTML.")
 	})
 
 	t.Run("Should successfully handle start room message", func(t *testing.T) {
@@ -189,7 +207,7 @@ func TestIntegrationSubscribe(t *testing.T) {
 			"message_type":    "create_room",
 		}
 
-		msg := sendMessage(message, t, conn)
+		msg, err := sendMessage(message, conn)
 		require.NoError(t, err)
 
 		roomCode, err := getRoomCode(msg)
@@ -206,21 +224,22 @@ func TestIntegrationSubscribe(t *testing.T) {
 			"message_type":    "join_lobby",
 		}
 
-		_ = sendMessage(message, t, conn2)
-
+		_, err = sendMessage(message, conn2)
 		require.NoError(t, err)
 
 		message = map[string]string{
 			"message_type": "toggle_player_is_ready",
 		}
-		_ = sendMessage(message, t, conn)
+		_, err = sendMessage(message, conn)
+		require.NoError(t, err)
 
 		time.Sleep(100 * time.Millisecond)
 
 		message = map[string]string{
 			"message_type": "toggle_player_is_ready",
 		}
-		_ = sendMessage(message, t, conn2)
+		_, err = sendMessage(message, conn2)
+		require.NoError(t, err)
 
 		time.Sleep(100 * time.Millisecond)
 
@@ -229,26 +248,44 @@ func TestIntegrationSubscribe(t *testing.T) {
 			"message_type": "start_game",
 			"room_code":    roomCode,
 		}
-		msg = sendMessage(message, t, conn)
+		_, err = sendMessage(message, conn)
+		require.NoError(t, err)
 
 		time.Sleep(100 * time.Millisecond)
-		assert.Contains(t, msg, playerNickname)
-		// TODO: fix this test with actual game start
-		// assert.Contains(t, msg, "Round Number 1")
+
+		_, err = readMessage(conn)
+		require.NoError(t, err)
+
+		time.Sleep(100 * time.Millisecond)
+		msg2, err := readMessage(conn)
+		require.NoError(t, err)
+
+		assert.Contains(t, msg2, playerNickname)
+		assert.Contains(t, msg2, "Round Number 1")
 	})
 }
 
-func sendMessage(message map[string]string, t *testing.T, conn net.Conn) string {
+func sendMessage(message map[string]string, conn net.Conn) (string, error) {
 	jsonMessage, err := json.Marshal(message)
-	require.NoError(t, err)
+	if err != nil {
+		return "", err
+	}
 
 	err = wsutil.WriteClientText(conn, jsonMessage)
-	require.NoError(t, err)
+	if err != nil {
+		return "", err
+	}
 
+	return readMessage(conn)
+}
+
+func readMessage(conn net.Conn) (string, error) {
 	m, _, err := wsutil.ReadServerData(conn)
-	require.NoError(t, err)
+	if err != nil {
+		return "", err
+	}
 	msg := string(m)
-	return msg
+	return msg, nil
 }
 
 func getRoomCode(msg string) (string, error) {

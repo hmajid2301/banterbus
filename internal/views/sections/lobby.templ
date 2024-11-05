@@ -30,9 +30,11 @@ templ Lobby(code string, players []entities.LobbyPlayer, currentPlayer entities.
 							</div>
 						}
 						<div class="relative w-20 h-20 rounded-full border-2 border-white bg-overlay0">
-							<div class="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-								@icons.Crown("")
-							</div>
+							if player.IsHost {
+								<div class="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+									@icons.Crown("")
+								</div>
+							}
 							<img src={ player.Avatar } alt="avatar" class="w-full h-full rounded-full"/>
 							if currentPlayer == player {
 								<form id="update_avatar_form" hx-vals='{"message_type": "generate_new_avatar" }' ws-send>
