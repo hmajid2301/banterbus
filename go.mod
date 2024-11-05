@@ -3,7 +3,7 @@ module gitlab.com/hmajid2301/banterbus
 go 1.22.7
 
 require (
-	github.com/a-h/templ v0.2.778
+	github.com/a-h/templ v0.2.793
 	github.com/fatih/color v1.18.0
 	github.com/flexstack/uuid v1.0.0
 	github.com/gobwas/ws v1.4.0
