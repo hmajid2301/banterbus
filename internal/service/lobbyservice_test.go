@@ -8,8 +8,8 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"gitlab.com/hmajid2301/banterbus/internal/entities"
-	mockService "gitlab.com/hmajid2301/banterbus/internal/mocks/service"
 	"gitlab.com/hmajid2301/banterbus/internal/service"
+	mockService "gitlab.com/hmajid2301/banterbus/internal/service/mocks"
 	sqlc "gitlab.com/hmajid2301/banterbus/internal/store/db"
 )
 

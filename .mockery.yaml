@@ -1,5 +1,6 @@
 with-expecter: true
-dir: "internal/mocks/{{.PackageName}}"
+dir: "internal/{{.PackageName}}/mocks"
+filename: "mock_{{ .InterfaceName | lower }}.go"
 packages:
   gitlab.com/hmajid2301/banterbus/internal/service:
     interfaces:

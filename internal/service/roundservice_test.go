@@ -8,8 +8,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	mockService "gitlab.com/hmajid2301/banterbus/internal/mocks/service"
 	"gitlab.com/hmajid2301/banterbus/internal/service"
+	mockService "gitlab.com/hmajid2301/banterbus/internal/service/mocks"
 )
 
 func TestSubmitAnswer(t *testing.T) {
