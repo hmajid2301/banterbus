@@ -295,11 +295,11 @@ func TestIntegrationStartGame(t *testing.T) {
 		defer teardown()
 
 		myStore, err := store.NewStore(db)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		ctx := context.Background()
 		roomCode, err := createRoom(ctx, myStore)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		newPlayer := entities.NewPlayer{
 			ID:       "123",
@@ -319,7 +319,7 @@ func TestIntegrationStartGame(t *testing.T) {
 			"UPDATE rooms SET room_state = 'PLAYING' WHERE room_code = ?",
 			roomCode,
 		)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		_, err = myStore.StartGame(ctx, roomCode, players[0].ID)
 		assert.Error(t, err)
@@ -330,11 +330,11 @@ func TestIntegrationStartGame(t *testing.T) {
 		defer teardown()
 
 		myStore, err := store.NewStore(db)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		ctx := context.Background()
 		roomCode, err := createRoom(ctx, myStore)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		var player sqlc.Player
 		query := `
@@ -352,7 +352,7 @@ func TestIntegrationStartGame(t *testing.T) {
 			&player.Nickname,
 			&player.IsReady,
 		)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		_, err = myStore.StartGame(ctx, roomCode, player.ID)
 		assert.Error(t, err)
@@ -363,11 +363,11 @@ func TestIntegrationStartGame(t *testing.T) {
 		defer teardown()
 
 		myStore, err := store.NewStore(db)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		ctx := context.Background()
 		roomCode, err := createRoom(ctx, myStore)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		newPlayer := entities.NewPlayer{
 			ID:       "123",
@@ -375,7 +375,7 @@ func TestIntegrationStartGame(t *testing.T) {
 			Avatar:   []byte(""),
 		}
 		players, err := myStore.AddPlayerToRoom(ctx, newPlayer, roomCode)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		_, err = myStore.StartGame(ctx, roomCode, players[0].ID)
 		assert.Error(t, err)
@@ -388,11 +388,11 @@ func TestIntegrationKickPlayer(t *testing.T) {
 		defer teardown()
 
 		myStore, err := store.NewStore(db)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		ctx := context.Background()
 		roomCode, err := createRoom(ctx, myStore)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		newPlayer := entities.NewPlayer{
 			ID:       "123",
@@ -400,7 +400,7 @@ func TestIntegrationKickPlayer(t *testing.T) {
 			Avatar:   []byte(""),
 		}
 		players, err := myStore.AddPlayerToRoom(ctx, newPlayer, roomCode)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		// INFO: first player is the host, and only they can kick players
 		lobby, playerToKickID, err := myStore.KickPlayer(ctx, roomCode, players[0].ID, newPlayer.Nickname)
@@ -414,11 +414,11 @@ func TestIntegrationKickPlayer(t *testing.T) {
 		defer teardown()
 
 		myStore, err := store.NewStore(db)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		ctx := context.Background()
 		roomCode, err := createRoom(ctx, myStore)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		newPlayer := entities.NewPlayer{
 			ID:       "123",
@@ -426,7 +426,7 @@ func TestIntegrationKickPlayer(t *testing.T) {
 			Avatar:   []byte(""),
 		}
 		players, err := myStore.AddPlayerToRoom(ctx, newPlayer, roomCode)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		_, _, err = myStore.KickPlayer(ctx, roomCode, players[1].ID, newPlayer.Nickname)
 		assert.Error(t, err)
@@ -437,11 +437,11 @@ func TestIntegrationKickPlayer(t *testing.T) {
 		defer teardown()
 
 		myStore, err := store.NewStore(db)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		ctx := context.Background()
 		roomCode, err := createRoom(ctx, myStore)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		newPlayer := entities.NewPlayer{
 			ID:       "123",
@@ -449,14 +449,14 @@ func TestIntegrationKickPlayer(t *testing.T) {
 			Avatar:   []byte(""),
 		}
 		players, err := myStore.AddPlayerToRoom(ctx, newPlayer, roomCode)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		_, err = db.ExecContext(
 			ctx,
 			"UPDATE rooms SET room_state = 'PLAYING' WHERE room_code = ?",
 			roomCode,
 		)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		_, _, err = myStore.KickPlayer(ctx, roomCode, players[0].ID, newPlayer.Nickname)
 		assert.Error(t, err)
@@ -467,11 +467,11 @@ func TestIntegrationKickPlayer(t *testing.T) {
 		defer teardown()
 
 		myStore, err := store.NewStore(db)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		ctx := context.Background()
 		roomCode, err := createRoom(ctx, myStore)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		newPlayer := entities.NewPlayer{
 			ID:       "123",
@@ -479,7 +479,7 @@ func TestIntegrationKickPlayer(t *testing.T) {
 			Avatar:   []byte(""),
 		}
 		players, err := myStore.AddPlayerToRoom(ctx, newPlayer, roomCode)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		_, _, err = myStore.KickPlayer(ctx, roomCode, players[0].ID, "wrong_nickname")
 		assert.Error(t, err)

@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"gitlab.com/hmajid2301/banterbus/internal/entities"
 	"gitlab.com/hmajid2301/banterbus/internal/store"
@@ -16,7 +17,7 @@ func TestIntegrationUpdateNickname(t *testing.T) {
 		defer teardown()
 
 		myStore, err := store.NewStore(db)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		ctx := context.Background()
 		newPlayer := entities.NewPlayer{
@@ -30,7 +31,7 @@ func TestIntegrationUpdateNickname(t *testing.T) {
 		}
 
 		_, err = myStore.CreateRoom(ctx, newPlayer, newRoom)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		players, err := myStore.UpdateNickname(ctx, "Majiy01", newPlayer.ID)
 		assert.Equal(t, "Majiy01", players[0].Nickname)
@@ -42,7 +43,7 @@ func TestIntegrationUpdateNickname(t *testing.T) {
 		defer teardown()
 
 		myStore, err := store.NewStore(db)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		newPlayer := entities.NewPlayer{
 			ID:       "fbb75599-9f7a-4392-b523-fd433b3208ea",
@@ -56,7 +57,7 @@ func TestIntegrationUpdateNickname(t *testing.T) {
 
 		ctx := context.Background()
 		_, err = myStore.CreateRoom(ctx, newPlayer, newRoom)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		_, err = myStore.UpdateNickname(ctx, newPlayer.Nickname, newPlayer.ID)
 		assert.Error(t, err)
@@ -67,7 +68,7 @@ func TestIntegrationUpdateNickname(t *testing.T) {
 		defer teardown()
 
 		myStore, err := store.NewStore(db)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		newPlayer := entities.NewPlayer{
 			ID:       "fbb75599-9f7a-4392-b523-fd433b3208ea",
@@ -81,14 +82,14 @@ func TestIntegrationUpdateNickname(t *testing.T) {
 
 		ctx := context.Background()
 		roomCode, err := myStore.CreateRoom(ctx, newPlayer, newRoom)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		_, err = db.ExecContext(
 			ctx,
 			"UPDATE rooms SET room_state = 'PLAYING' WHERE room_code = ?",
 			roomCode,
 		)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		_, err = myStore.UpdateNickname(ctx, "Majiy01", newPlayer.ID)
 		assert.Error(t, err)
@@ -101,7 +102,7 @@ func TestIntegrationUpdatePlayer(t *testing.T) {
 		defer teardown()
 
 		myStore, err := store.NewStore(db)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		ctx := context.Background()
 		newPlayer := entities.NewPlayer{
@@ -115,7 +116,7 @@ func TestIntegrationUpdatePlayer(t *testing.T) {
 		}
 
 		_, err = myStore.CreateRoom(ctx, newPlayer, newRoom)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		players, err := myStore.UpdateAvatar(ctx, []byte("123456"), newPlayer.ID)
 		assert.Equal(t, []byte("123456"), players[0].Avatar)
@@ -127,7 +128,7 @@ func TestIntegrationUpdatePlayer(t *testing.T) {
 		defer teardown()
 
 		myStore, err := store.NewStore(db)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		newPlayer := entities.NewPlayer{
 			ID:       "fbb75599-9f7a-4392-b523-fd433b3208ea",
@@ -141,14 +142,14 @@ func TestIntegrationUpdatePlayer(t *testing.T) {
 
 		ctx := context.Background()
 		roomCode, err := myStore.CreateRoom(ctx, newPlayer, newRoom)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		_, err = db.ExecContext(
 			ctx,
 			"UPDATE rooms SET room_state = 'PLAYING' WHERE room_code = ?",
 			roomCode,
 		)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		_, err = myStore.UpdateAvatar(ctx, []byte("123456"), newPlayer.ID)
 		assert.Error(t, err)
@@ -161,7 +162,7 @@ func TestIntegrationToggleIsReady(t *testing.T) {
 		defer teardown()
 
 		myStore, err := store.NewStore(db)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		ctx := context.Background()
 		newPlayer := entities.NewPlayer{
@@ -175,7 +176,7 @@ func TestIntegrationToggleIsReady(t *testing.T) {
 		}
 
 		_, err = myStore.CreateRoom(ctx, newPlayer, newRoom)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		players, err := myStore.ToggleIsReady(ctx, newPlayer.ID)
 		assert.NoError(t, err)
@@ -187,7 +188,7 @@ func TestIntegrationToggleIsReady(t *testing.T) {
 		defer teardown()
 
 		myStore, err := store.NewStore(db)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		newPlayer := entities.NewPlayer{
 			ID:       "fbb75599-9f7a-4392-b523-fd433b3208ea",
@@ -201,14 +202,14 @@ func TestIntegrationToggleIsReady(t *testing.T) {
 
 		ctx := context.Background()
 		roomCode, err := myStore.CreateRoom(ctx, newPlayer, newRoom)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		_, err = db.ExecContext(
 			ctx,
 			"UPDATE rooms SET room_state = 'PLAYING' WHERE room_code = ?",
 			roomCode,
 		)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		_, err = myStore.ToggleIsReady(ctx, newPlayer.ID)
 		assert.Error(t, err)
