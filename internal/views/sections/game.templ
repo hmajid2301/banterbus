@@ -2,19 +2,26 @@ package sections
 
 import (
 	"gitlab.com/hmajid2301/banterbus/internal/entities"
+	"gitlab.com/hmajid2301/banterbus/internal/views/components"
 	"strconv"
 )
 
 templ Game(gameState entities.GameState, currentPlayer entities.PlayerWithRole) {
 	<div hx-swap-oob="innerHTML:#page">
 		<p>Fibbing It Starting ...</p>
+		<p>{  } timer</p>
 		<p>Round Number { strconv.Itoa(gameState.Round) }</p>
 		<p>Round { gameState.RoundType }</p>
 		<p>Sush you are, don't let anyone see ...</p>
 		<p>{ currentPlayer.Role }</p>
 		<p>Your question is</p>
 		<p>{ currentPlayer.Question }</p>
-		<input id="answer" placeholder="Enter your answer"/>
+		<form id="submit_answer_form" hx-vals='{"message_type": "submit_answer" }' ws-send>
+			<input name="answer" placeholder="Enter your answer"/>
+			@components.Button(components.ButtonProps{}) {
+				Submit Answer
+			}
+		</form>
 		<div class="w-5 h-6">
 			<img src={ string(currentPlayer.Avatar) } alt="avatar"/>
 			<p>{ currentPlayer.Nickname }</p>

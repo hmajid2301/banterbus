@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"math/rand/v2"
+	"time"
 
 	"github.com/google/uuid"
 
@@ -230,14 +231,6 @@ func (s Store) StartGame(
 		return gameState, err
 	}
 
-	g, err := s.queries.WithTx(tx).AddGameState(ctx, sqlc.AddGameStateParams{
-		ID:     uuid.Must(uuid.NewV7()).String(),
-		RoomID: room.ID,
-	})
-	if err != nil {
-		return gameState, err
-	}
-
 	fibberQuestion, err := s.queries.WithTx(tx).GetRandomQuestionInGroup(ctx, sqlc.GetRandomQuestionInGroupParams{
 		GroupID: normalsQuestion.GroupID,
 		ID:      normalsQuestion.ID,
@@ -246,13 +239,16 @@ func (s Store) StartGame(
 		return gameState, err
 	}
 
+	timeAllowedToSubmit := 66
+	deadline := time.Now().Add(time.Duration(timeAllowedToSubmit) * time.Second)
 	round, err := s.queries.WithTx(tx).AddFibbingItRound(ctx, sqlc.AddFibbingItRoundParams{
 		ID:               uuid.Must(uuid.NewV7()).String(),
 		RoundType:        "free_form",
 		Round:            1,
+		SubmitDeadline:   deadline,
 		FibberQuestionID: fibberQuestion.ID,
 		NormalQuestionID: normalsQuestion.ID,
-		GameStateID:      g.ID,
+		RoomID:           room.ID,
 	})
 	if err != nil {
 		return gameState, err

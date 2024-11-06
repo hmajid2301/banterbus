@@ -6,6 +6,7 @@ package sqlc
 
 import (
 	"database/sql"
+	"time"
 )
 
 type FibbingItAnswer struct {
@@ -33,16 +34,10 @@ type FibbingItRound struct {
 	UpdatedAt        sql.NullTime
 	RoundType        string
 	Round            int64
+	SubmitDeadline   time.Time
 	FibberQuestionID string
 	NormalQuestionID string
-	GameStateID      string
-}
-
-type GameState struct {
-	ID        string
-	CreatedAt sql.NullTime
-	UpdatedAt sql.NullTime
-	RoomID    string
+	RoomID           string
 }
 
 type Player struct {

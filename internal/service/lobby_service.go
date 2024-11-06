@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"time"
 
 	"gitlab.com/hmajid2301/banterbus/internal/entities"
 	sqlc "gitlab.com/hmajid2301/banterbus/internal/store/db"
@@ -17,6 +18,7 @@ type Randomizer interface {
 	GetAvatar() []byte
 }
 
+// TODO: refactor into interfaces for each service
 type Storer interface {
 	CreateRoom(ctx context.Context, player entities.NewPlayer, room entities.NewRoom) (roomCode string, err error)
 	AddPlayerToRoom(
@@ -31,13 +33,14 @@ type Storer interface {
 	) (players []sqlc.GetAllPlayersInRoomRow, err error)
 	UpdateAvatar(ctx context.Context, avatar []byte, playerID string) (players []sqlc.GetAllPlayersInRoomRow, err error)
 	ToggleIsReady(ctx context.Context, playerID string) (players []sqlc.GetAllPlayersInRoomRow, err error)
-	StartGame(ctx context.Context, roomCode string, playerID string) (gameState entities.GameState, err error)
 	KickPlayer(
 		ctx context.Context,
 		roomCode string,
 		playerID string,
 		playerNicknameToKick string,
 	) (players []sqlc.GetAllPlayersInRoomRow, playerToKickID string, err error)
+	StartGame(ctx context.Context, roomCode string, playerID string) (gameState entities.GameState, err error)
+	SubmitAnswer(ctx context.Context, playerID string, answer string, submittedAt time.Time) (err error)
 }
 
 func NewLobbyService(store Storer, randomizer Randomizer) *LobbyService {

@@ -92,13 +92,14 @@ func mainLogic() error {
 	userRandomizer := service.NewUserRandomizer()
 	lobbyService := service.NewLobbyService(myStore, userRandomizer)
 	playerService := service.NewPlayerService(myStore, userRandomizer)
+	roundService := service.NewRoundService(myStore)
 
 	fsys, err := fs.Sub(staticFiles, "static")
 	if err != nil {
 		return fmt.Errorf("failed to create embed file system: %w", err)
 	}
 
-	subscriber := websockets.NewSubscriber(lobbyService, playerService, logger)
+	subscriber := websockets.NewSubscriber(lobbyService, playerService, roundService, logger)
 	server := transporthttp.NewServer(subscriber, logger, http.FS(fsys))
 
 	timeoutSeconds := 15

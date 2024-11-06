@@ -38,6 +38,32 @@ func createRoom(ctx context.Context, myStore store.Store) (string, error) {
 	return roomCode, err
 }
 
+func startGame(ctx context.Context, myStore store.Store) (entities.GameState, error) {
+	roomCode, err := createRoom(ctx, myStore)
+	if err != nil {
+		return entities.GameState{}, err
+	}
+
+	newPlayer := entities.NewPlayer{
+		ID:       "123",
+		Nickname: "AnotherPlayer",
+		Avatar:   []byte(""),
+	}
+	players, err := myStore.AddPlayerToRoom(ctx, newPlayer, roomCode)
+	if err != nil {
+		return entities.GameState{}, err
+	}
+
+	for _, player := range players {
+		_, err = myStore.ToggleIsReady(ctx, player.ID)
+		if err != nil {
+			return entities.GameState{}, err
+		}
+	}
+
+	return myStore.StartGame(ctx, roomCode, players[0].ID)
+}
+
 func TestIntegrationCreateRoom(t *testing.T) {
 	t.Run("Should create room in DB successfully", func(t *testing.T) {
 		db, teardown := setupSubtest(t)

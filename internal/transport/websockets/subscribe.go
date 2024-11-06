@@ -23,6 +23,7 @@ type Subscriber struct {
 	rooms         map[string]*room
 	lobbyService  LobbyServicer
 	playerService PlayerServicer
+	roundService  RoundServicer
 	logger        *slog.Logger
 	handlers      map[string]WSHandler
 }
@@ -36,10 +37,16 @@ type WSHandler interface {
 	Validate() error
 }
 
-func NewSubscriber(lobbyService LobbyServicer, playerService PlayerServicer, logger *slog.Logger) *Subscriber {
+func NewSubscriber(
+	lobbyService LobbyServicer,
+	playerService PlayerServicer,
+	roundService RoundServicer,
+	logger *slog.Logger,
+) *Subscriber {
 	s := &Subscriber{
 		lobbyService:  lobbyService,
 		playerService: playerService,
+		roundService:  roundService,
 		logger:        logger,
 		rooms:         make(map[string]*room),
 	}
@@ -52,6 +59,7 @@ func NewSubscriber(lobbyService LobbyServicer, playerService PlayerServicer, log
 		"toggle_player_is_ready": &TogglePlayerIsReady{},
 		"kick_player":            &KickPlayer{},
 		"start_game":             &StartGame{},
+		"submit_answer":          &SubmitAnswer{},
 	}
 
 	return s

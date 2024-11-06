@@ -8,6 +8,7 @@ package sqlc
 import (
 	"context"
 	"database/sql"
+	"time"
 )
 
 const addFibbingItAnswer = `-- name: AddFibbingItAnswer :one
@@ -72,16 +73,17 @@ func (q *Queries) AddFibbingItRole(ctx context.Context, arg AddFibbingItRolePara
 }
 
 const addFibbingItRound = `-- name: AddFibbingItRound :one
-INSERT INTO fibbing_it_rounds (id, round_type, round, fibber_question_id, normal_question_id, game_state_id) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at, updated_at, round_type, round, fibber_question_id, normal_question_id, game_state_id
+INSERT INTO fibbing_it_rounds (id, round_type, round, submit_deadline, fibber_question_id, normal_question_id, room_id) VALUES (?, ?, ?, ?, ?, ?, ?) RETURNING id, created_at, updated_at, round_type, round, submit_deadline, fibber_question_id, normal_question_id, room_id
 `
 
 type AddFibbingItRoundParams struct {
 	ID               string
 	RoundType        string
 	Round            int64
+	SubmitDeadline   time.Time
 	FibberQuestionID string
 	NormalQuestionID string
-	GameStateID      string
+	RoomID           string
 }
 
 func (q *Queries) AddFibbingItRound(ctx context.Context, arg AddFibbingItRoundParams) (FibbingItRound, error) {
@@ -89,9 +91,10 @@ func (q *Queries) AddFibbingItRound(ctx context.Context, arg AddFibbingItRoundPa
 		arg.ID,
 		arg.RoundType,
 		arg.Round,
+		arg.SubmitDeadline,
 		arg.FibberQuestionID,
 		arg.NormalQuestionID,
-		arg.GameStateID,
+		arg.RoomID,
 	)
 	var i FibbingItRound
 	err := row.Scan(
@@ -100,29 +103,9 @@ func (q *Queries) AddFibbingItRound(ctx context.Context, arg AddFibbingItRoundPa
 		&i.UpdatedAt,
 		&i.RoundType,
 		&i.Round,
+		&i.SubmitDeadline,
 		&i.FibberQuestionID,
 		&i.NormalQuestionID,
-		&i.GameStateID,
-	)
-	return i, err
-}
-
-const addGameState = `-- name: AddGameState :one
-INSERT INTO game_state (id, room_id) VALUES (?, ?) RETURNING id, created_at, updated_at, room_id
-`
-
-type AddGameStateParams struct {
-	ID     string
-	RoomID string
-}
-
-func (q *Queries) AddGameState(ctx context.Context, arg AddGameStateParams) (GameState, error) {
-	row := q.db.QueryRowContext(ctx, addGameState, arg.ID, arg.RoomID)
-	var i GameState
-	err := row.Scan(
-		&i.ID,
-		&i.CreatedAt,
-		&i.UpdatedAt,
 		&i.RoomID,
 	)
 	return i, err
@@ -375,6 +358,32 @@ func (q *Queries) GetAllPlayersInRoom(ctx context.Context, playerID string) ([]G
 		return nil, err
 	}
 	return items, nil
+}
+
+const getLatestRoundByPlayerID = `-- name: GetLatestRoundByPlayerID :one
+SELECT fir.id, fir.created_at, fir.updated_at, fir.round_type, fir.round, fir.submit_deadline, fir.fibber_question_id, fir.normal_question_id, fir.room_id
+FROM fibbing_it_rounds fir
+JOIN rooms_players rp ON fir.room_id = rp.room_id
+WHERE rp.player_id = ?
+ORDER BY fir.created_at DESC
+LIMIT 1
+`
+
+func (q *Queries) GetLatestRoundByPlayerID(ctx context.Context, playerID string) (FibbingItRound, error) {
+	row := q.db.QueryRowContext(ctx, getLatestRoundByPlayerID, playerID)
+	var i FibbingItRound
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.RoundType,
+		&i.Round,
+		&i.SubmitDeadline,
+		&i.FibberQuestionID,
+		&i.NormalQuestionID,
+		&i.RoomID,
+	)
+	return i, err
 }
 
 const getPlayerByID = `-- name: GetPlayerByID :one

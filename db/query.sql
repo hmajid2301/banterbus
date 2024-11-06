@@ -54,11 +54,8 @@ UPDATE players SET avatar = ? WHERE id = ? RETURNING *;
 -- name: UpdateIsReady :one
 UPDATE players SET is_ready = ? WHERE id = ? RETURNING *;
 
--- name: AddGameState :one
-INSERT INTO game_state (id, room_id) VALUES (?, ?) RETURNING *;
-
 -- name: AddFibbingItRound :one
-INSERT INTO fibbing_it_rounds (id, round_type, round, fibber_question_id, normal_question_id, game_state_id) VALUES (?, ?, ?, ?, ?, ?) RETURNING *;
+INSERT INTO fibbing_it_rounds (id, round_type, round, submit_deadline, fibber_question_id, normal_question_id, room_id) VALUES (?, ?, ?, ?, ?, ?, ?) RETURNING *;
 
 -- name: AddFibbingItAnswer :one
 INSERT INTO fibbing_it_answers (id, answer, round_id, player_id) VALUES (?, ?, ?, ?) RETURNING *;
@@ -84,4 +81,12 @@ WHERE qg.group_type = 'questions'
   AND q.enabled = TRUE
   AND q.id != ?
 ORDER BY RANDOM()
+LIMIT 1;
+
+-- name: GetLatestRoundByPlayerID :one
+SELECT fir.*
+FROM fibbing_it_rounds fir
+JOIN rooms_players rp ON fir.room_id = rp.room_id
+WHERE rp.player_id = ?
+ORDER BY fir.created_at DESC
 LIMIT 1;

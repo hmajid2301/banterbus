@@ -77,3 +77,14 @@ func (k *KickPlayer) Validate() error {
 	}
 	return nil
 }
+
+type SubmitAnswer struct {
+	Answer string
+}
+
+func (s *SubmitAnswer) Validate() error {
+	if s.Answer == "" {
+		return errors.New("answer is required")
+	}
+	return nil
+}

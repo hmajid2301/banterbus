@@ -35,9 +35,10 @@ func TestIntegrationSubscribe(t *testing.T) {
 	userRandomizer := service.NewUserRandomizer()
 	lobbyService := service.NewLobbyService(myStore, userRandomizer)
 	playerService := service.NewPlayerService(myStore, userRandomizer)
+	roundService := service.NewRoundService(myStore)
 	handler := slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug})
 	logger := slog.New(handler)
-	subscriber := websockets.NewSubscriber(lobbyService, playerService, logger)
+	subscriber := websockets.NewSubscriber(lobbyService, playerService, roundService, logger)
 
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		err := subscriber.Subscribe(r, w)
@@ -262,6 +263,74 @@ func TestIntegrationSubscribe(t *testing.T) {
 
 		assert.Contains(t, msg2, playerNickname)
 		assert.Contains(t, msg2, "Round Number 1")
+	})
+
+	t.Run("Should successfully handle submit answer message", func(t *testing.T) {
+		conn, _, _, err := ws.Dial(context.Background(), fmt.Sprintf("ws://%s", server.Listener.Addr().String()))
+		require.NoError(t, err)
+		defer conn.Close()
+
+		playerNickname := "test1"
+		message := map[string]string{
+			"game_name":       "fibbing_it",
+			"player_nickname": playerNickname,
+			"message_type":    "create_room",
+		}
+
+		msg, err := sendMessage(message, conn)
+		require.NoError(t, err)
+
+		roomCode, err := getRoomCode(msg)
+		require.NoError(t, err)
+
+		conn2, _, _, err := ws.Dial(context.Background(), fmt.Sprintf("ws://%s", server.Listener.Addr().String()))
+		require.NoError(t, err)
+		defer conn2.Close()
+
+		playerNickname = "test"
+		message = map[string]string{
+			"room_code":       roomCode,
+			"player_nickname": playerNickname,
+			"message_type":    "join_lobby",
+		}
+
+		_, err = sendMessage(message, conn2)
+		require.NoError(t, err)
+
+		message = map[string]string{
+			"message_type": "toggle_player_is_ready",
+		}
+		_, err = sendMessage(message, conn)
+		require.NoError(t, err)
+
+		time.Sleep(100 * time.Millisecond)
+
+		message = map[string]string{
+			"message_type": "toggle_player_is_ready",
+		}
+		_, err = sendMessage(message, conn2)
+		require.NoError(t, err)
+
+		time.Sleep(100 * time.Millisecond)
+
+		message = map[string]string{
+			"message_type": "start_game",
+			"room_code":    roomCode,
+		}
+		_, err = sendMessage(message, conn)
+		require.NoError(t, err)
+
+		time.Sleep(100 * time.Millisecond)
+
+		_, err = readMessage(conn)
+		require.NoError(t, err)
+
+		message = map[string]string{
+			"message_type": "submit_answer",
+			"answer":       "this is my answer",
+		}
+		_, err = sendMessage(message, conn)
+		require.NoError(t, err)
 	})
 }
 

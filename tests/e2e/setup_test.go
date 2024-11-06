@@ -111,10 +111,11 @@ func newTestServer() (*httptest.Server, error) {
 	userRandomizer := service.NewUserRandomizer()
 	roomServicer := service.NewLobbyService(myStore, userRandomizer)
 	playerServicer := service.NewPlayerService(myStore, userRandomizer)
+	roundServicer := service.NewRoundService(myStore)
 	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
 		Level: slog.LevelDebug,
 	}))
-	subscriber := websockets.NewSubscriber(roomServicer, playerServicer, logger)
+	subscriber := websockets.NewSubscriber(roomServicer, playerServicer, roundServicer, logger)
 
 	staticFS := http.Dir("../../static")
 	srv := transport.NewServer(subscriber, logger, staticFS)
@@ -135,6 +136,7 @@ func ResetBrowserContexts() {
 				Dir: "videos/",
 			},
 		})
+
 		if err != nil {
 			log.Fatalf("could not create a new browser context: %v", err)
 		}
