@@ -47,6 +47,7 @@ type Player struct {
 	Avatar    []byte
 	Nickname  string
 	IsReady   sql.NullBool
+	Locale    string
 }
 
 type Question struct {

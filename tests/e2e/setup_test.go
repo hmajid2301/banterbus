@@ -10,6 +10,8 @@ import (
 	"os"
 	"testing"
 
+	"github.com/invopop/ctxi18n"
+	"github.com/invopop/ctxi18n/i18n"
 	"github.com/playwright-community/playwright-go"
 
 	"gitlab.com/hmajid2301/banterbus/internal/banterbustest"
@@ -17,6 +19,7 @@ import (
 	"gitlab.com/hmajid2301/banterbus/internal/store"
 	transport "gitlab.com/hmajid2301/banterbus/internal/transport/http"
 	"gitlab.com/hmajid2301/banterbus/internal/transport/websockets"
+	"gitlab.com/hmajid2301/banterbus/internal/views"
 )
 
 var (
@@ -116,9 +119,18 @@ func newTestServer() (*httptest.Server, error) {
 		Level: slog.LevelDebug,
 	}))
 	subscriber := websockets.NewSubscriber(roomServicer, playerServicer, roundServicer, logger)
+	err = ctxi18n.LoadWithDefault(views.Locales, "en-GB")
+	if err != nil {
+		return nil, fmt.Errorf("error loading locales: %w", err)
+	}
 
 	staticFS := http.Dir("../../static")
-	srv := transport.NewServer(subscriber, logger, staticFS)
+	serverConfig := transport.ServerConfig{
+		Host:          "localhost",
+		Port:          8198,
+		DefaultLocale: i18n.Code("en-GB"),
+	}
+	srv := transport.NewServer(subscriber, logger, staticFS, serverConfig)
 	server := httptest.NewServer(srv.Server.Handler)
 
 	serverAddress = server.Listener.Addr().String()

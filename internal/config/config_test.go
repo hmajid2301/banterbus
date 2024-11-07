@@ -23,8 +23,9 @@ func TestLoadConfig(t *testing.T) {
 		expectedCfg := config.Config{
 			DBFolder: configPath,
 			App: config.App{
-				Environment: "production",
-				LogLevel:    slog.LevelInfo,
+				Environment:   "production",
+				LogLevel:      slog.LevelInfo,
+				DefaultLocale: "en-GB",
 			},
 			Server: config.Server{
 				Host: "0.0.0.0",

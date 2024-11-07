@@ -13,6 +13,7 @@ import (
 	"github.com/gobwas/ws"
 	"github.com/gobwas/ws/wsutil"
 	"github.com/google/uuid"
+	"github.com/invopop/ctxi18n"
 	slogctx "github.com/veqryn/slog-context"
 
 	"gitlab.com/hmajid2301/banterbus/internal/logging"
@@ -171,6 +172,18 @@ func (s *Subscriber) handleMessage(ctx context.Context, client *client, connecti
 	err = handler.Validate()
 	if err != nil {
 		return fmt.Errorf("error validating handler message: %w", err)
+	}
+
+	if client.locale != "" {
+		ctx, err = ctxi18n.WithLocale(ctx, client.locale)
+		if err != nil {
+			s.logger.ErrorContext(
+				ctx,
+				"failed to set locale",
+				slog.String("locale", client.locale),
+				slog.Any("error", err),
+			)
+		}
 	}
 
 	err = handler.Handle(ctx, client, s)

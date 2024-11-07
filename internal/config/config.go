@@ -7,6 +7,7 @@ import (
 	"net"
 	"os"
 
+	"github.com/invopop/ctxi18n/i18n"
 	gap "github.com/muesli/go-app-paths"
 	"github.com/sethvargo/go-envconfig"
 )
@@ -24,16 +25,18 @@ type Server struct {
 }
 
 type App struct {
-	Environment string
-	LogLevel    slog.Level
+	Environment   string
+	LogLevel      slog.Level
+	DefaultLocale i18n.Code
 }
 
 type In struct {
-	DBFolder    string `env:"BANTERBUS_DB_FOLDER"`
-	Environment string `env:"BANTERBUS_ENVIRONMENT, default=production"`
-	LogLevel    string `env:"BANTERBUS_LOG_LEVEL,   default=info"`
-	Host        string `env:"BANTERBUS_WEBSERVER_HOST, default=0.0.0.0"`
-	Port        int    `env:"BANTERBUS_WEBSERVER_PORT, default=8080"`
+	DBFolder      string `env:"BANTERBUS_DB_FOLDER"`
+	Environment   string `env:"BANTERBUS_ENVIRONMENT, default=production"`
+	LogLevel      string `env:"BANTERBUS_LOG_LEVEL, default=info"`
+	Host          string `env:"BANTERBUS_WEBSERVER_HOST, default=0.0.0.0"`
+	Port          int    `env:"BANTERBUS_WEBSERVER_PORT, default=8080"`
+	DefaultLocale string `env:"BANTERBUS_DEFAULT_LOCALE, default=en-GB"`
 }
 
 func LoadConfig(ctx context.Context) (Config, error) {
@@ -54,8 +57,9 @@ func LoadConfig(ctx context.Context) (Config, error) {
 			Port: input.Port,
 		},
 		App: App{
-			Environment: input.Environment,
-			LogLevel:    parseLogLevel(input.LogLevel),
+			Environment:   input.Environment,
+			LogLevel:      parseLogLevel(input.LogLevel),
+			DefaultLocale: i18n.Code(input.DefaultLocale),
 		},
 	}
 

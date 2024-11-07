@@ -14,6 +14,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/invopop/ctxi18n"
 	"github.com/pressly/goose/v3"
 
 	// used to connect to sqlite
@@ -26,6 +27,7 @@ import (
 	"gitlab.com/hmajid2301/banterbus/internal/telemetry"
 	transporthttp "gitlab.com/hmajid2301/banterbus/internal/transport/http"
 	"gitlab.com/hmajid2301/banterbus/internal/transport/websockets"
+	"gitlab.com/hmajid2301/banterbus/internal/views"
 )
 
 //go:embed db/migrations/*.sql
@@ -84,15 +86,20 @@ func mainLogic() error {
 		return fmt.Errorf("failed to run migrations: %w", err)
 	}
 
-	myStore, err := store.NewStore(db)
+	str, err := store.NewStore(db)
 	if err != nil {
 		return fmt.Errorf("failed to setup store: %w", err)
 	}
 
+	err = ctxi18n.LoadWithDefault(views.Locales, conf.App.DefaultLocale)
+	if err != nil {
+		return fmt.Errorf("error loading locales: %w", err)
+	}
+
 	userRandomizer := service.NewUserRandomizer()
-	lobbyService := service.NewLobbyService(myStore, userRandomizer)
-	playerService := service.NewPlayerService(myStore, userRandomizer)
-	roundService := service.NewRoundService(myStore)
+	lobbyService := service.NewLobbyService(str, userRandomizer)
+	playerService := service.NewPlayerService(str, userRandomizer)
+	roundService := service.NewRoundService(str)
 
 	fsys, err := fs.Sub(staticFiles, "static")
 	if err != nil {
@@ -100,7 +107,13 @@ func mainLogic() error {
 	}
 
 	subscriber := websockets.NewSubscriber(lobbyService, playerService, roundService, logger)
-	server := transporthttp.NewServer(subscriber, logger, http.FS(fsys))
+	serverConfig := transporthttp.ServerConfig{
+		Host:          conf.Server.Host,
+		Port:          conf.Server.Port,
+		DefaultLocale: conf.App.DefaultLocale,
+	}
+
+	server := transporthttp.NewServer(subscriber, logger, http.FS(fsys), serverConfig)
 
 	timeoutSeconds := 15
 	go terminateHandler(logger, server, timeoutSeconds)

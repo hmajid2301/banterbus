@@ -10,6 +10,7 @@ type client struct {
 	messages   chan []byte
 	connection net.Conn
 	playerID   string
+	locale     string
 }
 
 func newClient(conn net.Conn) *client {

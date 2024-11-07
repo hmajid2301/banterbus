@@ -2,11 +2,14 @@ package transport
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 	"net/http"
 	"time"
 
 	"github.com/a-h/templ"
+	"github.com/invopop/ctxi18n"
+	"github.com/invopop/ctxi18n/i18n"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 
@@ -14,23 +17,31 @@ import (
 )
 
 type Server struct {
-	logger    *slog.Logger
-	websocket websocketer
+	Logger    *slog.Logger
+	Websocket websocketer
+	Config    ServerConfig
 	Server    *http.Server
+}
+
+type ServerConfig struct {
+	Host          string
+	Port          int
+	DefaultLocale i18n.Code
 }
 
 type websocketer interface {
 	Subscribe(r *http.Request, w http.ResponseWriter) (err error)
 }
 
-func NewServer(websocketer websocketer, logger *slog.Logger, staticFS http.FileSystem) *Server {
+func NewServer(websocketer websocketer, logger *slog.Logger, staticFS http.FileSystem, config ServerConfig) *Server {
 	s := &Server{
-		websocket: websocketer,
-		logger:    logger,
+		Websocket: websocketer,
+		Logger:    logger,
+		Config:    config,
 	}
 
 	mux := http.NewServeMux()
-	mux.Handle("/", templ.Handler(pages.Index()))
+	mux.Handle("/", s.LocaleMiddleware(templ.Handler(pages.Index())))
 	mux.Handle("/static/*", http.StripPrefix("/static/", http.FileServer(staticFS)))
 	mux.Handle("/metrics", promhttp.Handler())
 
@@ -46,7 +57,7 @@ func NewServer(websocketer websocketer, logger *slog.Logger, staticFS http.FileS
 	handler := otelhttp.NewHandler(mux, "/")
 	writeTimeout := 10
 	httpServer := &http.Server{
-		Addr:         "0.0.0.0:8080",
+		Addr:         fmt.Sprintf("%s:%d", s.Config.Host, s.Config.Port),
 		ReadTimeout:  time.Second,
 		WriteTimeout: time.Duration(writeTimeout) * time.Second,
 		Handler:      handler,
@@ -57,7 +68,7 @@ func NewServer(websocketer websocketer, logger *slog.Logger, staticFS http.FileS
 }
 
 func (s *Server) Serve() error {
-	s.logger.Info("starting server")
+	s.Logger.Info("starting server")
 	err := s.Server.ListenAndServe()
 	if err != nil {
 		return err
@@ -67,16 +78,16 @@ func (s *Server) Serve() error {
 }
 
 func (s *Server) Shutdown(ctx context.Context) error {
-	s.logger.Info("shutting down server")
+	s.Logger.Info("shutting down server")
 	err := s.Server.Shutdown(ctx)
 	return err
 }
 
 func (s *Server) subscribeHandler(w http.ResponseWriter, r *http.Request) {
-	s.logger.Debug("subscribe handler called")
-	err := s.websocket.Subscribe(r, w)
+	s.Logger.Debug("subscribe handler called")
+	err := s.Websocket.Subscribe(r, w)
 	if err != nil {
-		s.logger.Error("subscribe failed", slog.Any("error", err))
+		s.Logger.Error("subscribe failed", slog.Any("error", err))
 		return
 	}
 }
@@ -87,4 +98,23 @@ func (s *Server) health(w http.ResponseWriter, _ *http.Request) {
 
 func (s *Server) readiness(w http.ResponseWriter, _ *http.Request) {
 	w.WriteHeader(http.StatusOK)
+}
+
+func (s *Server) LocaleMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		locale := r.Header.Get("Accept-Language")
+
+		ctx, err := ctxi18n.WithLocale(r.Context(), locale)
+		if err != nil {
+			locale = s.Config.DefaultLocale.String()
+			ctx, err = ctxi18n.WithLocale(r.Context(), locale)
+			if err != nil {
+				s.Logger.Error("error setting locale", slog.Any("error", err), slog.String("locale", locale))
+				http.Error(w, "error setting locale", http.StatusBadRequest)
+				return
+			}
+		}
+
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
 }
