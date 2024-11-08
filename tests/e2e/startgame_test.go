@@ -27,10 +27,7 @@ func TestE2EStartGame(t *testing.T) {
 		err = hostPlayerPage.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Start Game"}).Click()
 		require.NoError(t, err)
 
-		startText := otherPlayerPage.GetByText("Fibbing It Starting")
-		err = expect.Locator(startText).ToBeVisible()
-		require.NoError(t, err)
-		roundNum := otherPlayerPage.GetByText("Round Number 1")
+		roundNum := otherPlayerPage.GetByText("Round 1 / 3")
 		err = expect.Locator(roundNum).ToBeVisible()
 		require.NoError(t, err)
 	})

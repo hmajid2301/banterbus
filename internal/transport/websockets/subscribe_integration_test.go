@@ -261,8 +261,7 @@ func TestIntegrationSubscribe(t *testing.T) {
 		msg2, err := readMessage(conn)
 		require.NoError(t, err)
 
-		assert.Contains(t, msg2, playerNickname)
-		assert.Contains(t, msg2, "Round Number 1")
+		assert.Contains(t, msg2, "Round 1 / 3")
 	})
 
 	t.Run("Should successfully handle submit answer message", func(t *testing.T) {
