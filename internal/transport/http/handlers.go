@@ -42,7 +42,7 @@ func NewServer(websocketer websocketer, logger *slog.Logger, staticFS http.FileS
 
 	mux := http.NewServeMux()
 	mux.Handle("/", s.LocaleMiddleware(templ.Handler(pages.Index())))
-	mux.Handle("/static/*", http.StripPrefix("/static/", http.FileServer(staticFS)))
+	mux.Handle("/static/", http.StripPrefix("/static", http.FileServer(staticFS)))
 	mux.Handle("/metrics", promhttp.Handler())
 
 	handleFunc := func(pattern string, handlerFunc func(http.ResponseWriter, *http.Request)) {
