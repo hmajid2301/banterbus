@@ -2,39 +2,39 @@ package components
 
 import "github.com/invopop/ctxi18n/i18n"
 
-templ Header() {
+templ Header(languages map[string]string) {
 	<header class="bg-surface0 font-main">
-		<nav class="flex justify-between items-center p-2 mx-auto max-w-7xl" aria-label="Global">
+		<nav class="flex justify-between items-center p-2 mx-auto max-w-7xl">
 			<div class="flex flex-1">
 				<div
 					x-data="{
-                open: false,
-                toggle() {
-                    if (this.open) {
-                        return this.close()
-                    }
-                    this.$refs.button.focus()
-                    this.open = true
-                },
-                close(focusAfter) {
-                    if (! this.open) return
-                    this.open = false
-                    focusAfter && focusAfter.focus()
-                }
-            }"
+                        open: false,
+                        toggle() {
+                            if (this.open) {
+                                return this.close()
+                            }
+                            this.$refs.button.focus()
+                            this.open = true
+                        },
+                        close(focusAfter) {
+                            if (! this.open) return
+                            this.open = false
+                            focusAfter && focusAfter.focus()
+                        }
+                    }"
 					x-on:keydown.escape.prevent.stop="close($refs.button)"
 					x-on:focusin.window="! $refs.panel.contains($event.target) && close()"
 					x-id="['dropdown-button']"
 					class="relative"
 				>
-					<button disabled type="button" class="flex flex-row p-3 space-x-4 rounded-lg rounded-b-lg shadow-custom-border bg-surface2 text-text fill-transparent">
-						<!-- comment this out when localisation is enabled -->
-						<!-- <button -->
-						<!--     x-ref="button" -->
-						<!--     x-on:click="toggle()" -->
-						<!--     :aria-expanded="open" -->
-						<!--     :aria-controls="$id('dropdown-button')" -->
-						<!--     type="button" class="flex flex-row p-3 space-x-4 rounded-lg rounded-b-lg shadow-custom-border bg-surface2 text-text fill-transparent"> -->
+					<button
+						x-ref="button"
+						x-on:click="toggle()"
+						:aria-expanded="open"
+						:aria-controls="$id('dropdown-button')"
+						type="button"
+						class="flex flex-row p-3 space-x-4 rounded-lg rounded-b-lg shadow-custom-border bg-surface2 text-text fill-transparent"
+					>
 						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20">
 							<circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.5"></circle>
 							<path d="M8 12C8 18 12 22 12 22C12 22 16 18 16 12C16 6 12 2 12 2C12 2 8 6 8 12Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"></path>
@@ -55,24 +55,18 @@ templ Header() {
 						x-on:click.outside="close($refs.button)"
 						:id="$id('dropdown-button')"
 						style="display: none;"
-						class="flex absolute left-0 z-10 px-4 mt-5 w-screen max-w-max"
+						class="flex absolute left-0 z-10 w-full"
 					>
-						<div class="flex-auto p-4 w-screen max-w-sm text-sm leading-6 rounded-3xl ring-1 shadow-lg bg-surface2 ring-gray-900/5">
-							<div class="relative p-4 rounded-lg hover:bg-gray-50">
-								<p class="font-semibold text-gray-900">
-									🇬🇧 English (GB)
-								</p>
-							</div>
-							<div class="relative p-4 rounded-lg hover:bg-gray-50">
-								<p class="font-semibold text-gray-900">
-									🇵🇹 Portugese
-								</p>
-							</div>
-							<div class="relative p-4 rounded-lg hover:bg-gray-50">
-								<p class="font-semibold text-gray-900">
-									🇩🇪 German
-								</p>
-							</div>
+						<div class="flex-auto mt-5 rounded-md shadow-lg bg-surface2">
+							for key, language := range languages {
+								if language != i18n.T(ctx, "navbar.language") {
+									<div class="relative p-2 cursor-pointer hover:text-black text-text2 hover:bg-text">
+										<a href={ templ.SafeURL(key) }>
+											{ language }
+										</a>
+									</div>
+								}
+							}
 						</div>
 					</div>
 				</div>

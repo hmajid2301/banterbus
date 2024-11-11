@@ -174,6 +174,8 @@ func (s *Subscriber) handleMessage(ctx context.Context, client *client, connecti
 		return fmt.Errorf("error validating handler message: %w", err)
 	}
 
+	// TODO: do we want to use accept-language header
+	// TODO: default say en-US to en-GB?
 	if client.locale != "" {
 		ctx, err = ctxi18n.WithLocale(ctx, client.locale)
 		if err != nil {

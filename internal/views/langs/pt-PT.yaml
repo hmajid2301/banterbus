@@ -1,0 +1,10 @@
+pt-PT:
+  navbar:
+    language: "🇵🇹 Portuguese"
+  start_form:
+    nickname_label: "apelido"
+    nickname_placeholder: "Insira o seu apelido"
+    roomcode_label: "Código da Sala"
+    roomcode_placeholder: "ABC12"
+    start_button_label: "Iniciar"
+    join_button_label: "Entrar"

@@ -1,0 +1,10 @@
+de-DE:
+  navbar:
+    language: "🇩🇪 Deutsch"
+  start_form:
+    nickname_label: "spitzname"
+    nickname_placeholder: "Gib deinen Spitznamen ein"
+    roomcode_label: "Raumcode"
+    roomcode_placeholder: "ABC12"
+    start_button_label: "Starten"
+    join_button_label: "Beitreten"

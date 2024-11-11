@@ -112,7 +112,7 @@ func (q *Queries) AddFibbingItRound(ctx context.Context, arg AddFibbingItRoundPa
 }
 
 const addPlayer = `-- name: AddPlayer :one
-INSERT INTO players (id, avatar, nickname) VALUES (?, ?, ?) RETURNING id, created_at, updated_at, avatar, nickname, is_ready, locale
+INSERT INTO players (id, avatar, nickname) VALUES (?, ?, ?) RETURNING id, created_at, updated_at, avatar, nickname, is_ready
 `
 
 type AddPlayerParams struct {
@@ -131,7 +131,6 @@ func (q *Queries) AddPlayer(ctx context.Context, arg AddPlayerParams) (Player, e
 		&i.Avatar,
 		&i.Nickname,
 		&i.IsReady,
-		&i.Locale,
 	)
 	return i, err
 }
@@ -388,7 +387,7 @@ func (q *Queries) GetLatestRoundByPlayerID(ctx context.Context, playerID string)
 }
 
 const getPlayerByID = `-- name: GetPlayerByID :one
-SELECT id, created_at, updated_at, avatar, nickname, is_ready, locale FROM players WHERE id = ?
+SELECT id, created_at, updated_at, avatar, nickname, is_ready FROM players WHERE id = ?
 `
 
 func (q *Queries) GetPlayerByID(ctx context.Context, id string) (Player, error) {
@@ -401,7 +400,6 @@ func (q *Queries) GetPlayerByID(ctx context.Context, id string) (Player, error) 
 		&i.Avatar,
 		&i.Nickname,
 		&i.IsReady,
-		&i.Locale,
 	)
 	return i, err
 }
@@ -544,7 +542,7 @@ func (q *Queries) RemovePlayerFromRoom(ctx context.Context, playerID string) (Ro
 }
 
 const updateAvatar = `-- name: UpdateAvatar :one
-UPDATE players SET avatar = ? WHERE id = ? RETURNING id, created_at, updated_at, avatar, nickname, is_ready, locale
+UPDATE players SET avatar = ? WHERE id = ? RETURNING id, created_at, updated_at, avatar, nickname, is_ready
 `
 
 type UpdateAvatarParams struct {
@@ -562,13 +560,12 @@ func (q *Queries) UpdateAvatar(ctx context.Context, arg UpdateAvatarParams) (Pla
 		&i.Avatar,
 		&i.Nickname,
 		&i.IsReady,
-		&i.Locale,
 	)
 	return i, err
 }
 
 const updateIsReady = `-- name: UpdateIsReady :one
-UPDATE players SET is_ready = ? WHERE id = ? RETURNING id, created_at, updated_at, avatar, nickname, is_ready, locale
+UPDATE players SET is_ready = ? WHERE id = ? RETURNING id, created_at, updated_at, avatar, nickname, is_ready
 `
 
 type UpdateIsReadyParams struct {
@@ -586,13 +583,12 @@ func (q *Queries) UpdateIsReady(ctx context.Context, arg UpdateIsReadyParams) (P
 		&i.Avatar,
 		&i.Nickname,
 		&i.IsReady,
-		&i.Locale,
 	)
 	return i, err
 }
 
 const updateNickname = `-- name: UpdateNickname :one
-UPDATE players SET nickname = ? WHERE id = ? RETURNING id, created_at, updated_at, avatar, nickname, is_ready, locale
+UPDATE players SET nickname = ? WHERE id = ? RETURNING id, created_at, updated_at, avatar, nickname, is_ready
 `
 
 type UpdateNicknameParams struct {
@@ -610,7 +606,6 @@ func (q *Queries) UpdateNickname(ctx context.Context, arg UpdateNicknameParams) 
 		&i.Avatar,
 		&i.Nickname,
 		&i.IsReady,
-		&i.Locale,
 	)
 	return i, err
 }

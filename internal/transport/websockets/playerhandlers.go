@@ -28,11 +28,7 @@ func (u *UpdateNickname) Handle(ctx context.Context, client *client, sub *Subscr
 	return err
 }
 
-func (g *GenerateNewAvatar) Handle(
-	ctx context.Context,
-	client *client,
-	sub *Subscriber,
-) error {
+func (g *GenerateNewAvatar) Handle(ctx context.Context, client *client, sub *Subscriber) error {
 	updatedRoom, err := sub.playerService.GenerateNewAvatar(ctx, client.playerID)
 	if err != nil {
 		errStr := "failed to generate new avatar"
@@ -44,11 +40,8 @@ func (g *GenerateNewAvatar) Handle(
 	return err
 }
 
-func (t *TogglePlayerIsReady) Handle(
-	ctx context.Context,
-	client *client,
-	sub *Subscriber,
-) error {
+// TODO: join errors in all handlers rather than fmt them
+func (t *TogglePlayerIsReady) Handle(ctx context.Context, client *client, sub *Subscriber) error {
 	updatedRoom, err := sub.playerService.TogglePlayerIsReady(ctx, client.playerID)
 	if err != nil {
 		errStr := "failed to update ready status"

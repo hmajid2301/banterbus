@@ -1,12 +1,13 @@
 package pages
 
 import (
+	"github.com/invopop/ctxi18n"
 	"github.com/invopop/ctxi18n/i18n"
 	"gitlab.com/hmajid2301/banterbus/internal/views/components"
 	"gitlab.com/hmajid2301/banterbus/internal/views/icons"
 )
 
-templ Index() {
+templ Index(languages map[string]string) {
 	<!DOCTYPE html>
 	<html lang="en">
 		<head>
@@ -22,10 +23,10 @@ templ Index() {
 			<link rel="manifest" href="/static/site.webmanifest"/>
 		</head>
 		<body>
-			<div class="w-full min-h-screen text-lg bg-center bg-no-repeat bg-cover bg-mantle bg-background">
-				@components.Header()
+			<div class="w-full min-h-screen text-lg bg-center bg-no-repeat bg-cover bg-mantle bg-background" hx-ext="ws" ws-connect="/ws">
+				@components.Header(languages)
 				<section class="flex flex-col justify-center items-center min-h-screen">
-					<div class="py-10 px-20 rounded-xl bg-surface0" hx-ext="ws" ws-connect="/ws">
+					<div class="py-10 px-20 rounded-xl bg-surface0">
 						<div class="flex flex-col justify-center items-center">
 							<div class="flex flex-col items-center space-y-10">
 								<h1 class="text-8xl tracking-tighter text-center text-text font-header text-shadow-custom">
@@ -74,33 +75,17 @@ templ Index() {
 					</div>
 				</section>
 				<div id="error"></div>
-				<div id="spinner" class="grid hidden overflow-x-scroll place-items-center p-6 w-full bg-indigo-500 rounded-lg lg:overflow-visible min-h-[140px]">
-					<svg
-						class="mr-3 -ml-1 w-5 h-5 text-black animate-spin"
-						xmlns="http://www.w3.org/2000/svg"
-						fill="none"
-						viewBox="0 0 24 24"
-					>
-						<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-						<path
-							class="opacity-75"
-							fill="currentColor"
-							d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-						></path>
-					</svg>
-				</div>
 			</div>
 		</body>
 		<script src="https://unpkg.com/htmx.org@2.0.2" integrity="sha384-Y7hw+L/jvKeWIRRkqWYfPcvVxHzVzn5REgzbawhxAuQGwX1XWe70vji+VSeHOThJ" crossorigin="anonymous"></script>
 		<script src="https://unpkg.com/htmx-ext-ws@2.0.0/ws.js"></script>
 		<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.3/dist/cdn.min.js"></script>
-		<script>
-            htmx.on("htmx:wsAfterSend", (evt) => {
-                document.getElementById('spinner').classList.remove('hidden');
-            });
-            htmx.on("htmx:wsAfterMessage", (evt) => {
-                document.getElementById('spinner').classList.add('hidden');
-            });
-      </script>
+		@setLangOnWSRequest(ctxi18n.Locale(ctx).Code().String())
 	</html>
+}
+
+script setLangOnWSRequest(lang string) {
+    htmx.on("htmx:wsConfigSend", (evt) => {
+        evt.detail.headers['Accept-Language'] = lang;
+    });
 }

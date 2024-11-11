@@ -142,9 +142,6 @@ schema = 3
   [mod."go.opentelemetry.io/otel"]
     version = "v1.31.0"
     hash = "sha256-NQBHyMSRn9vaxSrNHYwv0oX1aJuEpyks/gpYEWHlx6k="
-  [mod."go.opentelemetry.io/otel/exporters/otlp/otlptrace"]
-    version = "v1.31.0"
-    hash = "sha256-nyu/pH2yjmc5zUD/ufdPtrDnoBNUZ+lq6iXQPy5EZ0k="
   [mod."go.opentelemetry.io/otel/exporters/prometheus"]
     version = "v0.53.0"
     hash = "sha256-ig9hJ/Elr9PvDqlE/yoboWu/UsjzVSKAnjmvs6uaiMA="
@@ -163,9 +160,6 @@ schema = 3
   [mod."go.opentelemetry.io/otel/trace"]
     version = "v1.31.0"
     hash = "sha256-iVDe3qNzmX1+MQTAoaeIbhnIbu/hnx4OsUIPlxuX1gY="
-  [mod."go.opentelemetry.io/proto/otlp"]
-    version = "v1.3.1"
-    hash = "sha256-WaXW64jWowTDlNYDHiGKmHzRUrwJ8Rkymyvz7W6UHd8="
   [mod."go.uber.org/multierr"]
     version = "v1.11.0"
     hash = "sha256-Lb6rHHfR62Ozg2j2JZy3MKOMKdsfzd1IYTR57r3Mhp0="

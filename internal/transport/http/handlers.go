@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/a-h/templ"
@@ -13,6 +14,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 
+	"gitlab.com/hmajid2301/banterbus/internal/views"
 	"gitlab.com/hmajid2301/banterbus/internal/views/pages"
 )
 
@@ -40,19 +42,16 @@ func NewServer(websocketer websocketer, logger *slog.Logger, staticFS http.FileS
 		Config:    config,
 	}
 
+	// TODO: deal with error
+	languages, _ := views.ListLanguages()
+
 	mux := http.NewServeMux()
-	mux.Handle("/", s.LocaleMiddleware(templ.Handler(pages.Index())))
+	mux.Handle("/", s.LocaleMiddleware(templ.Handler(pages.Index(languages))))
 	mux.Handle("/static/", http.StripPrefix("/static", http.FileServer(staticFS)))
 	mux.Handle("/metrics", promhttp.Handler())
-
-	handleFunc := func(pattern string, handlerFunc func(http.ResponseWriter, *http.Request)) {
-		handler := otelhttp.WithRouteTag(pattern, http.HandlerFunc(handlerFunc))
-		mux.Handle(pattern, handler)
-	}
-
-	handleFunc("/ws", s.subscribeHandler)
-	handleFunc("/health", s.health)
-	handleFunc("/readiness", s.readiness)
+	mux.Handle("/ws", s.LocaleMiddleware(http.HandlerFunc(s.subscribeHandler)))
+	mux.HandleFunc("/health", s.health)
+	mux.HandleFunc("/readiness", s.readiness)
 
 	handler := otelhttp.NewHandler(mux, "/")
 	writeTimeout := 10
@@ -103,6 +102,10 @@ func (s *Server) readiness(w http.ResponseWriter, _ *http.Request) {
 func (s *Server) LocaleMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		locale := r.Header.Get("Accept-Language")
+		pathSegments := strings.Split(r.URL.Path, "/")
+		if len(pathSegments) > 1 {
+			locale = pathSegments[1]
+		}
 
 		ctx, err := ctxi18n.WithLocale(r.Context(), locale)
 		if err != nil {
