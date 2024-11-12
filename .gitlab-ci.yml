@@ -148,6 +148,8 @@ test:e2e:
     - sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d
     - go install gotest.tools/gotestsum@latest
     - go install github.com/boumenot/gocover-cobertura@latest
+    - ls -al /usr/local/go
+    - /usr/local/go/bin/go run github.com/playwright-community/playwright-go/cmd/playwright@v0.4802.0 install --with-deps
     - mv ./bin/task /usr/local/bin/task
     - export PATH="/usr/local/go/bin:$GOPATH/bin:$PATH"
   script:

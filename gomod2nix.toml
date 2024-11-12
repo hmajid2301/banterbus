@@ -95,8 +95,8 @@ schema = 3
     version = "v0.1.9"
     hash = "sha256-T0iw+UEckzueWHT88PkTnZZixyKCEa+DTLzIiiohuWY="
   [mod."github.com/playwright-community/playwright-go"]
-    version = "v0.4702.0"
-    hash = "sha256-HN2/yB2SFceEeVCWNthKaPQ4p1VsD6Kh72tTefFmMPU="
+    version = "v0.4802.0"
+    hash = "sha256-Ae++UhS+NYfoeQwlIZmHdzxs7RfDp7KV4jma/AbX32c="
   [mod."github.com/pmezard/go-difflib"]
     version = "v1.0.0"
     hash = "sha256-/FtmHnaGjdvEIKAJtrUfEhV7EVo5A/eYrtdnUkuxLDA="

@@ -11,7 +11,7 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/invopop/ctxi18n v0.8.1
 	github.com/muesli/go-app-paths v0.2.2
-	github.com/playwright-community/playwright-go v0.4702.0
+	github.com/playwright-community/playwright-go v0.4802.0
 	github.com/pressly/goose/v3 v3.22.1
 	github.com/prometheus/client_golang v1.20.5
 	github.com/sethvargo/go-envconfig v1.1.0
