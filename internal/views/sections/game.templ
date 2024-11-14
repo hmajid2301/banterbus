@@ -11,7 +11,7 @@ templ Game(gameState entities.GameState, currentPlayer entities.PlayerWithRole) 
 		<div class="text-text2">
 			<div class="flex justify-between items-center">
 				<div>
-					<p class="text-2xl font-bold">You are { currentPlayer.Role }!</p>
+					@components.Role(currentPlayer.Role)
 				</div>
 				<p class="text-2xl text-center">Round { strconv.Itoa(gameState.Round) } / 3</p>
 				<div class="text-right">
