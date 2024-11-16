@@ -73,7 +73,13 @@ func (s *Subscriber) Subscribe(r *http.Request, w http.ResponseWriter) (err erro
 		return err
 	}
 
-	client := newClient(connection)
+	cookie, err := r.Cookie("player_id")
+	if err != nil {
+		return fmt.Errorf("failed to fetch `player_id` from cookie: %w", err)
+	}
+
+	playerID := cookie.Value
+	client := newClient(connection, playerID)
 
 	defer func() {
 		err = connection.Close()

@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/a-h/templ"
+	"github.com/google/uuid"
 	"github.com/invopop/ctxi18n"
 	"github.com/invopop/ctxi18n/i18n"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -42,16 +43,13 @@ func NewServer(websocketer websocketer, logger *slog.Logger, staticFS http.FileS
 		Config:    config,
 	}
 
-	// TODO: deal with error
-	languages, _ := views.ListLanguages()
-
 	mux := http.NewServeMux()
-	mux.Handle("/", s.LocaleMiddleware(templ.Handler(pages.Index(languages))))
+	mux.Handle("/", s.LocaleMiddleware(http.HandlerFunc(s.indexHandler)))
 	mux.Handle("/static/", http.StripPrefix("/static", http.FileServer(staticFS)))
-	mux.Handle("/metrics", promhttp.Handler())
 	mux.Handle("/ws", s.LocaleMiddleware(http.HandlerFunc(s.subscribeHandler)))
-	mux.HandleFunc("/health", s.health)
-	mux.HandleFunc("/readiness", s.readiness)
+	mux.HandleFunc("/health", s.healthHandler)
+	mux.HandleFunc("/readiness", s.readinessHandler)
+	mux.Handle("/metrics", promhttp.Handler())
 
 	handler := otelhttp.NewHandler(mux, "/")
 	writeTimeout := 10
@@ -91,11 +89,39 @@ func (s *Server) subscribeHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (s *Server) health(w http.ResponseWriter, _ *http.Request) {
+func (s *Server) indexHandler(w http.ResponseWriter, r *http.Request) {
+	languages, err := views.ListLanguages()
+	if err != nil {
+		s.Logger.ErrorContext(r.Context(), "failed to list supported languages", slog.Any("error", err))
+		http.Error(w, "internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	var playerID string
+	_, err = r.Cookie("player_id")
+	if err != nil {
+		playerID = uuid.Must(uuid.NewV7()).String()
+
+		cookie := &http.Cookie{
+			Name:     "player_id",
+			Value:    playerID,
+			Path:     "/",
+			HttpOnly: true,
+			Secure:   true,
+			SameSite: http.SameSiteStrictMode,
+			Expires:  time.Now().Add(time.Hour),
+		}
+		http.SetCookie(w, cookie)
+	}
+
+	templ.Handler(pages.Index(languages)).ServeHTTP(w, r)
+}
+
+func (s *Server) healthHandler(w http.ResponseWriter, _ *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-func (s *Server) readiness(w http.ResponseWriter, _ *http.Request) {
+func (s *Server) readinessHandler(w http.ResponseWriter, _ *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 

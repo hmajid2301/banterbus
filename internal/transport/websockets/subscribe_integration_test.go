@@ -15,6 +15,7 @@ import (
 
 	"github.com/gobwas/ws"
 	"github.com/gobwas/ws/wsutil"
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -41,6 +42,12 @@ func TestIntegrationSubscribe(t *testing.T) {
 	subscriber := websockets.NewSubscriber(lobbyService, playerService, roundService, logger)
 
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		playerID := uuid.Must(uuid.NewV7()).String()
+		c := &http.Cookie{
+			Name:  "player_id",
+			Value: playerID,
+		}
+		r.AddCookie(c)
 		err := subscriber.Subscribe(r, w)
 		require.NoError(t, err)
 	}))

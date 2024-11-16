@@ -2,8 +2,6 @@ package websockets
 
 import (
 	"net"
-
-	"github.com/flexstack/uuid"
 )
 
 type client struct {
@@ -13,12 +11,10 @@ type client struct {
 	locale     string
 }
 
-func newClient(conn net.Conn) *client {
-	u := uuid.Must(uuid.NewV7())
-
+func newClient(conn net.Conn, playerID string) *client {
 	messageChannelLength := 10
 	return &client{
-		playerID:   u.String(),
+		playerID:   playerID,
 		connection: conn,
 		messages:   make(chan []byte, messageChannelLength),
 	}

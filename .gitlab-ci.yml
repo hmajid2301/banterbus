@@ -46,7 +46,6 @@ stages:
      GOTEST_EXTRA_ARGS: '-args -test.gocoverdir=$CI_PROJECT_DIR/coverage'
   before_script:
     - mkdir -p $CI_PROJECT_DIR/coverage /tmp
-    - ls -al $CI_PROJECT_DIR
   artifacts:
     paths:
       - coverage
