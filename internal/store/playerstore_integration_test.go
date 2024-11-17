@@ -215,3 +215,103 @@ func TestIntegrationToggleIsReady(t *testing.T) {
 		assert.Error(t, err)
 	})
 }
+func TestIntegrationGetLobbyByPlayerID(t *testing.T) {
+	t.Run("Should get lobby successfully", func(t *testing.T) {
+		db, teardown := setupSubtest(t)
+		defer teardown()
+
+		myStore, err := store.NewStore(db)
+		require.NoError(t, err)
+
+		ctx := context.Background()
+		newPlayer := entities.NewPlayer{
+			ID:       "fbb75599-9f7a-4392-b523-fd433b3208ea",
+			Nickname: "Majiy00",
+			Avatar:   []byte("1234"),
+		}
+
+		newRoom := entities.NewRoom{
+			GameName: "fibbing_it",
+		}
+
+		_, err = myStore.CreateRoom(ctx, newPlayer, newRoom)
+		require.NoError(t, err)
+
+		players, err := myStore.GetLobbyByPlayerID(ctx, newPlayer.ID)
+		assert.NoError(t, err)
+		// TODO: improve assert
+		assert.Equal(t, newPlayer.ID, players[0].HostPlayer)
+	})
+
+	t.Run("Should fail to get lobby when player not in lobby", func(t *testing.T) {
+		db, teardown := setupSubtest(t)
+		defer teardown()
+
+		myStore, err := store.NewStore(db)
+		require.NoError(t, err)
+
+		ctx := context.Background()
+		_, err = myStore.GetLobbyByPlayerID(ctx, "wrongID")
+		assert.Error(t, err)
+	})
+}
+
+func TestIntegrationGetGameStateByPlayerID(t *testing.T) {
+	t.Run("Should get game state successfully", func(t *testing.T) {
+		db, teardown := setupSubtest(t)
+		defer teardown()
+
+		myStore, err := store.NewStore(db)
+		require.NoError(t, err)
+
+		ctx := context.Background()
+		newPlayer := entities.NewPlayer{
+			ID:       "fbb75599-9f7a-4392-b523-fd433b3208ea",
+			Nickname: "Majiy00",
+			Avatar:   []byte("1234"),
+		}
+
+		newRoom := entities.NewRoom{
+			GameName: "fibbing_it",
+		}
+
+		roomCode, err := myStore.CreateRoom(ctx, newPlayer, newRoom)
+		require.NoError(t, err)
+
+		otherPlayer := entities.NewPlayer{
+			ID:       "123",
+			Nickname: "AnotherPlayer",
+			Avatar:   []byte(""),
+		}
+		_, err = myStore.AddPlayerToRoom(ctx, otherPlayer, roomCode)
+		require.NoError(t, err)
+
+		players, err := myStore.GetLobbyByPlayerID(ctx, otherPlayer.ID)
+		require.NoError(t, err)
+
+		for _, player := range players {
+			_, err = myStore.ToggleIsReady(ctx, player.ID)
+			require.NoError(t, err)
+		}
+
+		_, err = myStore.StartGame(ctx, roomCode, newPlayer.ID)
+		require.NoError(t, err)
+
+		gameState, err := myStore.GetGameStateByPlayerID(ctx, players[0].ID)
+		assert.NoError(t, err)
+		assert.Equal(t, 1, gameState.Round)
+		assert.Equal(t, "free_form", gameState.RoundType)
+	})
+
+	t.Run("Should fail to get game state player not in game", func(t *testing.T) {
+		db, teardown := setupSubtest(t)
+		defer teardown()
+
+		myStore, err := store.NewStore(db)
+		require.NoError(t, err)
+
+		ctx := context.Background()
+		_, err = myStore.GetGameStateByPlayerID(ctx, "wrongID")
+		assert.Error(t, err)
+	})
+}

@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"gitlab.com/hmajid2301/banterbus/internal/entities"
+	"gitlab.com/hmajid2301/banterbus/internal/store"
 	sqlc "gitlab.com/hmajid2301/banterbus/internal/store/db"
 )
 
@@ -41,6 +42,9 @@ type Storer interface {
 	) (players []sqlc.GetAllPlayersInRoomRow, playerToKickID string, err error)
 	StartGame(ctx context.Context, roomCode string, playerID string) (gameState entities.GameState, err error)
 	SubmitAnswer(ctx context.Context, playerID string, answer string, submittedAt time.Time) (err error)
+	GetRoomState(ctx context.Context, playerID string) (store.RoomState, error)
+	GetLobbyByPlayerID(ctx context.Context, playerID string) (players []sqlc.GetAllPlayersInRoomRow, err error)
+	GetGameStateByPlayerID(ctx context.Context, playerID string) (gameState entities.GameState, err error)
 }
 
 func NewLobbyService(store Storer, randomizer Randomizer) *LobbyService {
@@ -97,11 +101,7 @@ func (r *LobbyService) Start(
 	playerID string,
 ) (entities.GameState, error) {
 	gameState, err := r.store.StartGame(ctx, roomCode, playerID)
-	if err != nil {
-		return entities.GameState{}, err
-	}
-
-	return gameState, nil
+	return gameState, err
 }
 
 func (r *LobbyService) getNewPlayer(playerNickname string, playerID string) entities.NewPlayer {

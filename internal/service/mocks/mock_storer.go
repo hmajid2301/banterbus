@@ -11,6 +11,8 @@ import (
 
 	sqlc "gitlab.com/hmajid2301/banterbus/internal/store/db"
 
+	store "gitlab.com/hmajid2301/banterbus/internal/store"
+
 	time "time"
 )
 
@@ -141,6 +143,179 @@ func (_c *MockStorer_CreateRoom_Call) Return(roomCode string, err error) *MockSt
 }
 
 func (_c *MockStorer_CreateRoom_Call) RunAndReturn(run func(context.Context, entities.NewPlayer, entities.NewRoom) (string, error)) *MockStorer_CreateRoom_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetGameStateByPlayerID provides a mock function with given fields: ctx, playerID
+func (_m *MockStorer) GetGameStateByPlayerID(ctx context.Context, playerID string) (entities.GameState, error) {
+	ret := _m.Called(ctx, playerID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetGameStateByPlayerID")
+	}
+
+	var r0 entities.GameState
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) (entities.GameState, error)); ok {
+		return rf(ctx, playerID)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string) entities.GameState); ok {
+		r0 = rf(ctx, playerID)
+	} else {
+		r0 = ret.Get(0).(entities.GameState)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, playerID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockStorer_GetGameStateByPlayerID_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetGameStateByPlayerID'
+type MockStorer_GetGameStateByPlayerID_Call struct {
+	*mock.Call
+}
+
+// GetGameStateByPlayerID is a helper method to define mock.On call
+//   - ctx context.Context
+//   - playerID string
+func (_e *MockStorer_Expecter) GetGameStateByPlayerID(ctx interface{}, playerID interface{}) *MockStorer_GetGameStateByPlayerID_Call {
+	return &MockStorer_GetGameStateByPlayerID_Call{Call: _e.mock.On("GetGameStateByPlayerID", ctx, playerID)}
+}
+
+func (_c *MockStorer_GetGameStateByPlayerID_Call) Run(run func(ctx context.Context, playerID string)) *MockStorer_GetGameStateByPlayerID_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string))
+	})
+	return _c
+}
+
+func (_c *MockStorer_GetGameStateByPlayerID_Call) Return(gameState entities.GameState, err error) *MockStorer_GetGameStateByPlayerID_Call {
+	_c.Call.Return(gameState, err)
+	return _c
+}
+
+func (_c *MockStorer_GetGameStateByPlayerID_Call) RunAndReturn(run func(context.Context, string) (entities.GameState, error)) *MockStorer_GetGameStateByPlayerID_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetLobbyByPlayerID provides a mock function with given fields: ctx, playerID
+func (_m *MockStorer) GetLobbyByPlayerID(ctx context.Context, playerID string) ([]sqlc.GetAllPlayersInRoomRow, error) {
+	ret := _m.Called(ctx, playerID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetLobbyByPlayerID")
+	}
+
+	var r0 []sqlc.GetAllPlayersInRoomRow
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) ([]sqlc.GetAllPlayersInRoomRow, error)); ok {
+		return rf(ctx, playerID)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string) []sqlc.GetAllPlayersInRoomRow); ok {
+		r0 = rf(ctx, playerID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]sqlc.GetAllPlayersInRoomRow)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, playerID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockStorer_GetLobbyByPlayerID_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetLobbyByPlayerID'
+type MockStorer_GetLobbyByPlayerID_Call struct {
+	*mock.Call
+}
+
+// GetLobbyByPlayerID is a helper method to define mock.On call
+//   - ctx context.Context
+//   - playerID string
+func (_e *MockStorer_Expecter) GetLobbyByPlayerID(ctx interface{}, playerID interface{}) *MockStorer_GetLobbyByPlayerID_Call {
+	return &MockStorer_GetLobbyByPlayerID_Call{Call: _e.mock.On("GetLobbyByPlayerID", ctx, playerID)}
+}
+
+func (_c *MockStorer_GetLobbyByPlayerID_Call) Run(run func(ctx context.Context, playerID string)) *MockStorer_GetLobbyByPlayerID_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string))
+	})
+	return _c
+}
+
+func (_c *MockStorer_GetLobbyByPlayerID_Call) Return(players []sqlc.GetAllPlayersInRoomRow, err error) *MockStorer_GetLobbyByPlayerID_Call {
+	_c.Call.Return(players, err)
+	return _c
+}
+
+func (_c *MockStorer_GetLobbyByPlayerID_Call) RunAndReturn(run func(context.Context, string) ([]sqlc.GetAllPlayersInRoomRow, error)) *MockStorer_GetLobbyByPlayerID_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetRoomState provides a mock function with given fields: ctx, playerID
+func (_m *MockStorer) GetRoomState(ctx context.Context, playerID string) (store.RoomState, error) {
+	ret := _m.Called(ctx, playerID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetRoomState")
+	}
+
+	var r0 store.RoomState
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) (store.RoomState, error)); ok {
+		return rf(ctx, playerID)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string) store.RoomState); ok {
+		r0 = rf(ctx, playerID)
+	} else {
+		r0 = ret.Get(0).(store.RoomState)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, playerID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockStorer_GetRoomState_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetRoomState'
+type MockStorer_GetRoomState_Call struct {
+	*mock.Call
+}
+
+// GetRoomState is a helper method to define mock.On call
+//   - ctx context.Context
+//   - playerID string
+func (_e *MockStorer_Expecter) GetRoomState(ctx interface{}, playerID interface{}) *MockStorer_GetRoomState_Call {
+	return &MockStorer_GetRoomState_Call{Call: _e.mock.On("GetRoomState", ctx, playerID)}
+}
+
+func (_c *MockStorer_GetRoomState_Call) Run(run func(ctx context.Context, playerID string)) *MockStorer_GetRoomState_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string))
+	})
+	return _c
+}
+
+func (_c *MockStorer_GetRoomState_Call) Return(_a0 store.RoomState, _a1 error) *MockStorer_GetRoomState_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockStorer_GetRoomState_Call) RunAndReturn(run func(context.Context, string) (store.RoomState, error)) *MockStorer_GetRoomState_Call {
 	_c.Call.Return(run)
 	return _c
 }

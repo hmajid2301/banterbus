@@ -340,6 +340,112 @@ func TestIntegrationSubscribe(t *testing.T) {
 	})
 }
 
+// TODO: see if can test reconnect logic here, we have an issue with not being able to set a cookie for a connection.
+// So we get a new player id with each connection.
+// func TestIntegrationReconnect(t *testing.T) {
+// 	ctx := context.Background()
+// 	db, err := banterbustest.CreateDB(ctx)
+// 	require.NoError(t, err)
+//
+// 	myStore, err := store.NewStore(db)
+// 	require.NoError(t, err)
+//
+// 	userRandomizer := service.NewUserRandomizer()
+// 	lobbyService := service.NewLobbyService(myStore, userRandomizer)
+// 	playerService := service.NewPlayerService(myStore, userRandomizer)
+// 	roundService := service.NewRoundService(myStore)
+// 	handler := slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug})
+// 	logger := slog.New(handler)
+// 	subscriber := websockets.NewSubscriber(lobbyService, playerService, roundService, logger)
+//
+// 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+// 		playerID := uuid.Must(uuid.NewV7()).String()
+// 		c := &http.Cookie{
+// 			Name:  "player_id",
+// 			Value: playerID,
+// 		}
+// 		r.AddCookie(c)
+// 		err := subscriber.Subscribe(r, w)
+// 		require.NoError(t, err)
+// 	}))
+//
+// 	defer server.Close()
+//
+// 	t.Run("Should successfully reconnect player to lobby with a single player", func(t *testing.T) {
+// 		conn, _, _, err := ws.Dial(context.Background(), fmt.Sprintf("ws://%s", server.Listener.Addr().String()))
+// 		require.NoError(t, err)
+// 		defer conn.Close()
+//
+// 		message := map[string]string{
+// 			"game_name":       "fibbing_it",
+// 			"player_nickname": "test1",
+// 			"message_type":    "create_room",
+// 		}
+//
+// 		msg, err := sendMessage(message, conn)
+// 		require.NoError(t, err)
+//
+// 		roomCode, err := getRoomCode(msg)
+// 		require.NoError(t, err)
+//
+// 		// INFO: Force reconnect, but uses cookie to enable us to reconnect using our player ID.
+// 		conn.Close()
+// 		conn, _, _, err = ws.Dial(context.Background(), fmt.Sprintf("ws://%s", server.Listener.Addr().String()))
+// 		require.NoError(t, err)
+// 		defer conn.Close()
+//
+// 		msg, err = readMessage(conn)
+// 		require.NoError(t, err)
+// 		assert.Contains(t, msg, "test1")
+// 		assert.Contains(t, msg, roomCode)
+// 	})
+//
+// 	t.Run("Should successfully reconnect player to lobby with a multiple player", func(t *testing.T) {
+// 		conn, _, _, err := ws.Dial(context.Background(), fmt.Sprintf("ws://%s", server.Listener.Addr().String()))
+// 		require.NoError(t, err)
+// 		defer conn.Close()
+//
+// 		message := map[string]string{
+// 			"game_name":       "fibbing_it",
+// 			"player_nickname": "test1",
+// 			"message_type":    "create_room",
+// 		}
+//
+// 		msg, err := sendMessage(message, conn)
+// 		require.NoError(t, err)
+//
+// 		roomCode, err := getRoomCode(msg)
+// 		require.NoError(t, err)
+//
+// 		conn2, _, _, err := ws.Dial(context.Background(), fmt.Sprintf("ws://%s", server.Listener.Addr().String()))
+// 		require.NoError(t, err)
+// 		defer conn2.Close()
+//
+// 		message = map[string]string{
+// 			"room_code":       roomCode,
+// 			"player_nickname": "test2",
+// 			"message_type":    "join_lobby",
+// 		}
+//
+// 		_, err = sendMessage(message, conn2)
+// 		require.NoError(t, err)
+//
+// 		time.Sleep(100 * time.Millisecond)
+//
+// 		// INFO: Force reconnect, but uses cookie to enable us to reconnect using our player ID.
+// 		conn.Close()
+// 		conn, _, _, err = ws.Dial(context.Background(), fmt.Sprintf("ws://%s", server.Listener.Addr().String()))
+// 		require.NoError(t, err)
+// 		defer conn.Close()
+//
+// 		msg, err = readMessage(conn)
+// 		require.NoError(t, err)
+// 		assert.Contains(t, msg, "test1")
+// 		assert.Contains(t, msg, "test2")
+// 		assert.Contains(t, msg, roomCode)
+// 	})
+// }
+
 func sendMessage(message map[string]string, conn net.Conn) (string, error) {
 	jsonMessage, err := json.Marshal(message)
 	if err != nil {

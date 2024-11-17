@@ -360,6 +360,61 @@ func (q *Queries) GetAllPlayersInRoom(ctx context.Context, playerID string) ([]G
 	return items, nil
 }
 
+const getGameStateByPlayerID = `-- name: GetGameStateByPlayerID :one
+SELECT
+    p.id,
+    p.nickname,
+    fr.round,
+    fr.round_type,
+    r.room_code,
+    fpr.player_role,
+    fq1.question AS fibber_question,
+    fq2.question AS normal_question,
+    p.avatar
+FROM players p
+JOIN rooms_players rp ON p.id = rp.player_id
+JOIN rooms r ON rp.room_id = r.id
+JOIN fibbing_it_rounds fr ON r.id = fr.room_id
+LEFT JOIN questions fq1 ON fr.fibber_question_id = fq1.id
+LEFT JOIN questions fq2 ON fr.normal_question_id = fq2.id
+LEFT JOIN fibbing_it_player_roles fpr ON p.id = fpr.player_id AND fr.id = fpr.round_id
+WHERE rp.room_id = (
+    SELECT rp_inner.room_id
+    FROM rooms_players rp_inner
+    WHERE rp_inner.player_id = ?
+)
+ORDER BY p.created_at
+`
+
+type GetGameStateByPlayerIDRow struct {
+	ID             string
+	Nickname       string
+	Round          int64
+	RoundType      string
+	RoomCode       string
+	PlayerRole     sql.NullString
+	FibberQuestion sql.NullString
+	NormalQuestion sql.NullString
+	Avatar         []byte
+}
+
+func (q *Queries) GetGameStateByPlayerID(ctx context.Context, playerID string) (GetGameStateByPlayerIDRow, error) {
+	row := q.db.QueryRowContext(ctx, getGameStateByPlayerID, playerID)
+	var i GetGameStateByPlayerIDRow
+	err := row.Scan(
+		&i.ID,
+		&i.Nickname,
+		&i.Round,
+		&i.RoundType,
+		&i.RoomCode,
+		&i.PlayerRole,
+		&i.FibberQuestion,
+		&i.NormalQuestion,
+		&i.Avatar,
+	)
+	return i, err
+}
+
 const getLatestRoundByPlayerID = `-- name: GetLatestRoundByPlayerID :one
 SELECT fir.id, fir.created_at, fir.updated_at, fir.round_type, fir.round, fir.submit_deadline, fir.fibber_question_id, fir.normal_question_id, fir.room_id
 FROM fibbing_it_rounds fir

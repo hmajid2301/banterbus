@@ -196,7 +196,6 @@ func (s Store) StartGame(
 		return gameState, fmt.Errorf("room is not in CREATED state")
 	}
 
-	// TODO: rename the playersInRoom variable
 	playersInRoom, err := s.queries.WithTx(tx).GetAllPlayersInRoom(ctx, playerID)
 	if err != nil {
 		return gameState, err
@@ -224,8 +223,7 @@ func (s Store) StartGame(
 	normalsQuestion, err := s.queries.WithTx(tx).GetRandomQuestionByRound(ctx, sqlc.GetRandomQuestionByRoundParams{
 		GameName:     room.GameName,
 		LanguageCode: "en-GB",
-		// TODO: should we fetch a random round from the database?
-		Round: "free_form",
+		Round:        "free_form",
 	})
 	if err != nil {
 		return gameState, err

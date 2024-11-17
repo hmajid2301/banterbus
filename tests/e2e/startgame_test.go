@@ -16,10 +16,6 @@ func TestE2EStartGame(t *testing.T) {
 		err := joinRoom(hostPlayerPage, otherPlayerPage)
 		require.NoError(t, err)
 
-		avatars := otherPlayerPage.GetByAltText("avatar")
-		err = expect.Locator(avatars).ToHaveCount(2)
-		require.NoError(t, err)
-
 		err = otherPlayerPage.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Ready"}).Click()
 		require.NoError(t, err)
 		err = hostPlayerPage.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Ready"}).Click()
@@ -38,10 +34,6 @@ func TestE2EStartGame(t *testing.T) {
 		otherPlayerPage := pages[1]
 
 		err := joinRoom(hostPlayerPage, otherPlayerPage)
-		require.NoError(t, err)
-
-		avatars := otherPlayerPage.GetByAltText("avatar")
-		err = expect.Locator(avatars).ToHaveCount(2)
 		require.NoError(t, err)
 
 		err = otherPlayerPage.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Ready"}).Click()

@@ -1,6 +1,8 @@
 package e2e
 
 import (
+	"fmt"
+
 	"github.com/playwright-community/playwright-go"
 )
 
@@ -15,6 +17,10 @@ func joinRoom(hostPlayerPage playwright.Page, otherPlayerPage playwright.Page) e
 	code, err := locator.InputValue()
 	if err != nil {
 		return err
+	}
+
+	if code == "" {
+		return fmt.Errorf("room code is empty")
 	}
 
 	err = otherPlayerPage.GetByPlaceholder("ABC12").Fill(code)

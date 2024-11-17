@@ -1,6 +1,7 @@
 package websockets
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -10,14 +11,18 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/a-h/templ"
 	"github.com/gobwas/ws"
 	"github.com/gobwas/ws/wsutil"
 	"github.com/google/uuid"
 	"github.com/invopop/ctxi18n"
 	slogctx "github.com/veqryn/slog-context"
 
+	"gitlab.com/hmajid2301/banterbus/internal/entities"
 	"gitlab.com/hmajid2301/banterbus/internal/logging"
+	"gitlab.com/hmajid2301/banterbus/internal/store"
 	"gitlab.com/hmajid2301/banterbus/internal/telemetry"
+	"gitlab.com/hmajid2301/banterbus/internal/views/sections"
 )
 
 type Subscriber struct {
@@ -81,6 +86,11 @@ func (s *Subscriber) Subscribe(r *http.Request, w http.ResponseWriter) (err erro
 	playerID := cookie.Value
 	client := newClient(connection, playerID)
 
+	err = s.Reconnect(ctx, client)
+	if err != nil {
+		s.logger.WarnContext(ctx, "failed to reconnect", slog.Any("error", err))
+	}
+
 	defer func() {
 		err = connection.Close()
 	}()
@@ -88,17 +98,20 @@ func (s *Subscriber) Subscribe(r *http.Request, w http.ResponseWriter) (err erro
 	quit := make(chan struct{})
 	go s.handleMessages(ctx, quit, connection, client)
 
+	writeTimeout := 10
+	err = connection.SetWriteDeadline(time.Now().Add(time.Second * time.Duration(writeTimeout)))
+	if err != nil {
+		s.logger.ErrorContext(ctx, "failed to set timeout", slog.Any("error", err))
+		return err
+	}
+
 	for {
 		select {
 		case msg := <-client.messages:
+			// TODO: only run when debug logging
 			cleanedMessage := logging.StripSVGData(string(msg))
 			s.logger.DebugContext(ctx, "sending message", slog.String("message", cleanedMessage))
 
-			writeTimeout := 10
-			err := connection.SetWriteDeadline(time.Now().Add(time.Second * time.Duration(writeTimeout)))
-			if err != nil {
-				s.logger.ErrorContext(ctx, "failed to set timeout", slog.Any("error", err))
-			}
 			err = wsutil.WriteServerText(connection, msg)
 			if err != nil {
 				return err
@@ -109,6 +122,60 @@ func (s *Subscriber) Subscribe(r *http.Request, w http.ResponseWriter) (err erro
 			return ctx.Err()
 		}
 	}
+}
+
+func (s Subscriber) Reconnect(ctx context.Context, client *client) error {
+	s.logger.DebugContext(ctx, "attempting to reconnect player", slog.String("player_id", client.playerID))
+	roomState, err := s.playerService.GetRoomState(ctx, client.playerID)
+	if err != nil {
+		return err
+	}
+
+	var buf bytes.Buffer
+	var component templ.Component
+	switch roomState {
+	case store.CREATED:
+		lobby, err := s.playerService.GetLobby(ctx, client.playerID)
+		if err != nil {
+			errStr := "failed to reconnect to game"
+			clientErr := s.updateClientAboutErr(ctx, client, errStr)
+			return fmt.Errorf("%w: %w", err, clientErr)
+		}
+
+		var mePlayer entities.LobbyPlayer
+		for _, player := range lobby.Players {
+			if player.ID == client.playerID {
+				mePlayer = player
+			}
+		}
+
+		component = sections.Lobby(lobby.Code, lobby.Players, mePlayer)
+	case store.PLAYING:
+		gameState, err := s.playerService.GetGameState(ctx, client.playerID)
+		if err != nil {
+			errStr := "failed to reconnect to game"
+			clientErr := s.updateClientAboutErr(ctx, client, errStr)
+			return fmt.Errorf("%w: %w", err, clientErr)
+		}
+
+		component = sections.Game(gameState, gameState.Players[0])
+	case store.PAUSED:
+		return fmt.Errorf("cannot reconnect game to paused game, as this is not implemented")
+	case store.ABANDONED:
+		return fmt.Errorf("cannot reconnect game is abandoned")
+	case store.FINISHED:
+		return fmt.Errorf("cannot reconnect game is finished")
+	default:
+		return fmt.Errorf("unknown room state: %s", roomState)
+	}
+
+	err = component.Render(ctx, &buf)
+	if err != nil {
+		return err
+	}
+
+	client.messages <- buf.Bytes()
+	return nil
 }
 
 func (s *Subscriber) handleMessages(ctx context.Context, quit <-chan struct{}, connection net.Conn, client *client) {

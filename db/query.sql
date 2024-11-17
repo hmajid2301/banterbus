@@ -90,3 +90,29 @@ JOIN rooms_players rp ON fir.room_id = rp.room_id
 WHERE rp.player_id = ?
 ORDER BY fir.created_at DESC
 LIMIT 1;
+
+
+-- name: GetGameStateByPlayerID :one
+SELECT
+    p.id,
+    p.nickname,
+    fr.round,
+    fr.round_type,
+    r.room_code,
+    fpr.player_role,
+    fq1.question AS fibber_question,
+    fq2.question AS normal_question,
+    p.avatar
+FROM players p
+JOIN rooms_players rp ON p.id = rp.player_id
+JOIN rooms r ON rp.room_id = r.id
+JOIN fibbing_it_rounds fr ON r.id = fr.room_id
+LEFT JOIN questions fq1 ON fr.fibber_question_id = fq1.id
+LEFT JOIN questions fq2 ON fr.normal_question_id = fq2.id
+LEFT JOIN fibbing_it_player_roles fpr ON p.id = fpr.player_id AND fr.id = fpr.round_id
+WHERE rp.room_id = (
+    SELECT rp_inner.room_id
+    FROM rooms_players rp_inner
+    WHERE rp_inner.player_id = ?
+)
+ORDER BY p.created_at;

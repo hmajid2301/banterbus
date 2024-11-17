@@ -5,12 +5,16 @@ import (
 	"fmt"
 
 	"gitlab.com/hmajid2301/banterbus/internal/entities"
+	"gitlab.com/hmajid2301/banterbus/internal/store"
 )
 
 type PlayerServicer interface {
 	UpdateNickname(ctx context.Context, nickname string, playerID string) (entities.Lobby, error)
 	GenerateNewAvatar(ctx context.Context, playerID string) (entities.Lobby, error)
 	TogglePlayerIsReady(ctx context.Context, playerID string) (entities.Lobby, error)
+	GetRoomState(ctx context.Context, playerID string) (store.RoomState, error)
+	GetLobby(ctx context.Context, playerID string) (entities.Lobby, error)
+	GetGameState(ctx context.Context, playerID string) (entities.GameState, error)
 }
 
 func (u *UpdateNickname) Handle(ctx context.Context, client *client, sub *Subscriber) error {

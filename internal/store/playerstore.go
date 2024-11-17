@@ -147,3 +147,75 @@ func (s Store) ToggleIsReady(
 
 	return players, tx.Commit()
 }
+
+func (s Store) GetRoomState(ctx context.Context, playerID string) (RoomState, error) {
+	room, err := s.queries.GetRoomByPlayerID(ctx, playerID)
+	if err != nil {
+		return CREATED, err
+	}
+
+	var roomState RoomState
+	switch room.RoomState {
+	case "CREATED":
+		roomState = CREATED
+	case "PLAYING":
+		roomState = PLAYING
+	case "PAUSED":
+		roomState = PAUSED
+	case "FINISHED":
+		roomState = FINISHED
+	case "ABANDONED":
+		roomState = ABANDONED
+	default:
+		return CREATED, fmt.Errorf("unknown room state: %s", room.RoomState)
+	}
+
+	return roomState, nil
+}
+
+func (s Store) GetLobbyByPlayerID(
+	ctx context.Context,
+	playerID string,
+) (players []sqlc.GetAllPlayersInRoomRow, err error) {
+	players, err = s.queries.GetAllPlayersInRoom(ctx, playerID)
+	if err != nil {
+		return players, err
+	}
+
+	if len(players) == 0 {
+		return players, fmt.Errorf("no players found in lobby")
+	}
+
+	return players, nil
+}
+
+// TODO: rename this to get questions
+func (s Store) GetGameStateByPlayerID(ctx context.Context, playerID string) (gameState entities.GameState, err error) {
+	g, err := s.queries.GetGameStateByPlayerID(ctx, playerID)
+	if err != nil {
+		return gameState, err
+	}
+
+	question := g.NormalQuestion.String
+	if g.FibberQuestion.Valid {
+		question = g.FibberQuestion.String
+	}
+
+	players := []entities.PlayerWithRole{
+		{
+			ID:       g.ID,
+			Nickname: g.Nickname,
+			Role:     g.PlayerRole.String,
+			Avatar:   g.Avatar,
+			Question: question,
+		},
+	}
+	gameState = entities.GameState{
+		Players:   players,
+		Round:     int(g.Round),
+		RoundType: g.RoundType,
+		RoomCode:  g.RoomCode,
+	}
+
+	return gameState, err
+}

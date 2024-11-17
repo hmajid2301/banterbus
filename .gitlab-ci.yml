@@ -44,6 +44,9 @@ stages:
      GOTESTSUM_JUNITFILE: "report.xml"
      XDG_DATA_HOME: "/tmp/"
      GOTEST_EXTRA_ARGS: '-args -test.gocoverdir=$CI_PROJECT_DIR/coverage'
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == "main"
   before_script:
     - mkdir -p $CI_PROJECT_DIR/coverage /tmp
   artifacts:
@@ -166,6 +169,9 @@ combine:coverage:
   stage: build
   extends:
     - .task
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == "main"
   script:
     - task coverage
   coverage: /total:\s+\(statements\)\s+\d+.\d+%/
