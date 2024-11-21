@@ -5,7 +5,6 @@ go 1.22.7
 require (
 	github.com/a-h/templ v0.2.793
 	github.com/fatih/color v1.18.0
-	github.com/flexstack/uuid v1.0.0
 	github.com/gobwas/ws v1.4.0
 	github.com/gomig/avatar v1.0.3
 	github.com/google/uuid v1.6.0
@@ -14,6 +13,7 @@ require (
 	github.com/playwright-community/playwright-go v0.4802.0
 	github.com/pressly/goose/v3 v3.22.1
 	github.com/prometheus/client_golang v1.20.5
+	github.com/redis/go-redis/v9 v9.7.0
 	github.com/sethvargo/go-envconfig v1.1.0
 	github.com/stretchr/testify v1.9.0
 	github.com/veqryn/slog-context v0.7.0
@@ -33,6 +33,7 @@ require (
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/deckarep/golang-set/v2 v2.6.0 // indirect
+	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.6 // indirect

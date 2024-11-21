@@ -14,7 +14,7 @@ func (s *SubmitAnswer) Handle(ctx context.Context, client *client, sub *Subscrib
 	err := sub.roundService.SubmitAnswer(ctx, client.playerID, s.Answer, time.Now())
 	if err != nil {
 		errStr := "failed to submit answer, try again"
-		clientErr := sub.updateClientAboutErr(ctx, client, errStr)
+		clientErr := sub.updateClientAboutErr(ctx, client.playerID, errStr)
 		return fmt.Errorf("%w: %w", err, clientErr)
 	}
 

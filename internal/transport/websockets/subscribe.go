@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"io"
 	"log/slog"
-	"net"
 	"net/http"
 	"time"
 
@@ -16,6 +15,7 @@ import (
 	"github.com/gobwas/ws/wsutil"
 	"github.com/google/uuid"
 	"github.com/invopop/ctxi18n"
+	"github.com/redis/go-redis/v9"
 	slogctx "github.com/veqryn/slog-context"
 
 	"gitlab.com/hmajid2301/banterbus/internal/entities"
@@ -26,12 +26,18 @@ import (
 )
 
 type Subscriber struct {
-	rooms         map[string]*room
 	lobbyService  LobbyServicer
 	playerService PlayerServicer
 	roundService  RoundServicer
 	logger        *slog.Logger
 	handlers      map[string]WSHandler
+	websocket     Websocketer
+}
+
+type Websocketer interface {
+	Subscribe(ctx context.Context, id string) <-chan *redis.Message
+	Publish(ctx context.Context, id string, msg []byte) error
+	Close(id string) error
 }
 
 type message struct {
@@ -48,13 +54,14 @@ func NewSubscriber(
 	playerService PlayerServicer,
 	roundService RoundServicer,
 	logger *slog.Logger,
+	websocket Websocketer,
 ) *Subscriber {
 	s := &Subscriber{
 		lobbyService:  lobbyService,
 		playerService: playerService,
 		roundService:  roundService,
 		logger:        logger,
-		rooms:         make(map[string]*room),
+		websocket:     websocket,
 	}
 
 	s.handlers = map[string]WSHandler{
@@ -73,6 +80,7 @@ func NewSubscriber(
 
 func (s *Subscriber) Subscribe(r *http.Request, w http.ResponseWriter) (err error) {
 	ctx := context.Background()
+
 	connection, _, _, err := ws.UpgradeHTTP(r, w)
 	if err != nil {
 		return err
@@ -84,7 +92,8 @@ func (s *Subscriber) Subscribe(r *http.Request, w http.ResponseWriter) (err erro
 	}
 
 	playerID := cookie.Value
-	client := newClient(connection, playerID)
+	subscribeCh := s.websocket.Subscribe(ctx, playerID)
+	client := newClient(connection, playerID, subscribeCh)
 
 	err = s.Reconnect(ctx, client)
 	if err != nil {
@@ -96,7 +105,7 @@ func (s *Subscriber) Subscribe(r *http.Request, w http.ResponseWriter) (err erro
 	}()
 
 	quit := make(chan struct{})
-	go s.handleMessages(ctx, quit, connection, client)
+	go s.handleMessages(ctx, quit, client)
 
 	writeTimeout := 10
 	err = connection.SetWriteDeadline(time.Now().Add(time.Second * time.Duration(writeTimeout)))
@@ -107,18 +116,18 @@ func (s *Subscriber) Subscribe(r *http.Request, w http.ResponseWriter) (err erro
 
 	for {
 		select {
-		case msg := <-client.messages:
+		// INFO: Send message to client.
+		case msg := <-client.messagesCh:
 			// TODO: only run when debug logging
-			cleanedMessage := logging.StripSVGData(string(msg))
+			cleanedMessage := logging.StripSVGData(msg.Payload)
 			s.logger.DebugContext(ctx, "sending message", slog.String("message", cleanedMessage))
-
-			err = wsutil.WriteServerText(connection, msg)
+			err = wsutil.WriteServerText(connection, []byte(msg.Payload))
 			if err != nil {
 				return err
 			}
 		case <-ctx.Done():
-			quit <- struct{}{}
 			s.logger.DebugContext(ctx, "context done")
+			quit <- struct{}{}
 			return ctx.Err()
 		}
 	}
@@ -138,7 +147,7 @@ func (s Subscriber) Reconnect(ctx context.Context, client *client) error {
 		lobby, err := s.playerService.GetLobby(ctx, client.playerID)
 		if err != nil {
 			errStr := "failed to reconnect to game"
-			clientErr := s.updateClientAboutErr(ctx, client, errStr)
+			clientErr := s.updateClientAboutErr(ctx, client.playerID, errStr)
 			return fmt.Errorf("%w: %w", err, clientErr)
 		}
 
@@ -154,7 +163,7 @@ func (s Subscriber) Reconnect(ctx context.Context, client *client) error {
 		gameState, err := s.playerService.GetGameState(ctx, client.playerID)
 		if err != nil {
 			errStr := "failed to reconnect to game"
-			clientErr := s.updateClientAboutErr(ctx, client, errStr)
+			clientErr := s.updateClientAboutErr(ctx, client.playerID, errStr)
 			return fmt.Errorf("%w: %w", err, clientErr)
 		}
 
@@ -174,17 +183,17 @@ func (s Subscriber) Reconnect(ctx context.Context, client *client) error {
 		return err
 	}
 
-	client.messages <- buf.Bytes()
-	return nil
+	err = s.websocket.Publish(ctx, client.playerID, buf.Bytes())
+	return err
 }
 
-func (s *Subscriber) handleMessages(ctx context.Context, quit <-chan struct{}, connection net.Conn, client *client) {
+func (s *Subscriber) handleMessages(ctx context.Context, quit <-chan struct{}, client *client) {
 	for {
 		select {
 		case <-quit:
 			return
 		default:
-			err := s.handleMessage(ctx, client, connection)
+			err := s.handleMessage(ctx, client)
 			if err != nil {
 				s.logger.ErrorContext(ctx, "failed to handle message", slog.Any("error", err))
 				err := telemetry.IncrementMessageReceivedError(ctx)
@@ -200,12 +209,12 @@ func (s *Subscriber) handleMessages(ctx context.Context, quit <-chan struct{}, c
 	}
 }
 
-func (s *Subscriber) handleMessage(ctx context.Context, client *client, connection net.Conn) error {
+func (s *Subscriber) handleMessage(ctx context.Context, client *client) error {
 	correlationID := uuid.NewString()
 	ctx = slogctx.Append(ctx, "player_id", client.playerID)
 	ctx = slogctx.Append(ctx, "correlation_id", correlationID)
 
-	_, r, err := wsutil.NextReader(connection, ws.StateServerSide)
+	_, r, err := wsutil.NextReader(client.connection, ws.StateServerSide)
 	if err != nil {
 		if err == io.EOF {
 			return nil

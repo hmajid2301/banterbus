@@ -2,20 +2,21 @@ package websockets
 
 import (
 	"net"
+
+	"github.com/redis/go-redis/v9"
 )
 
 type client struct {
-	messages   chan []byte
+	messagesCh <-chan *redis.Message
 	connection net.Conn
 	playerID   string
 	locale     string
 }
 
-func newClient(conn net.Conn, playerID string) *client {
-	messageChannelLength := 10
+func newClient(conn net.Conn, playerID string, ch <-chan *redis.Message) *client {
 	return &client{
 		playerID:   playerID,
 		connection: conn,
-		messages:   make(chan []byte, messageChannelLength),
+		messagesCh: ch,
 	}
 }

@@ -42,6 +42,14 @@ tasks:
     cmds:
       - gotestsum --format standard-verbose -- -cover ./tests/e2e/... {{.CLI_ARGS}}
 
+  tests:e2e:quiet:
+    desc: Runs e2e tests with playwright without any logging as this can be super verbose.
+    env:
+      LOG_DISABLED: true
+      HEADLESS: false
+    cmds:
+      - gotestsum --format dots -- ./tests/e2e/... {{.CLI_ARGS}}
+
   coverage:
     desc: show coverage
     cmds:

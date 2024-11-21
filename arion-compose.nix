@@ -40,5 +40,12 @@ in {
       #   "${toString ./.}/prometheus.yml:/etc/prometheus/prometheus.yml"
       # ];
     };
+
+    redis = {
+      service.image = "redis";
+      service.ports = [
+        "6379:6379"
+      ];
+    };
   };
 }

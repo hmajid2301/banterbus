@@ -3,11 +3,13 @@ package e2e
 import (
 	"context"
 	"fmt"
+	"io"
 	"log"
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/invopop/ctxi18n"
@@ -17,6 +19,7 @@ import (
 	"gitlab.com/hmajid2301/banterbus/internal/banterbustest"
 	"gitlab.com/hmajid2301/banterbus/internal/service"
 	"gitlab.com/hmajid2301/banterbus/internal/store"
+	"gitlab.com/hmajid2301/banterbus/internal/store/pubsub"
 	transport "gitlab.com/hmajid2301/banterbus/internal/transport/http"
 	"gitlab.com/hmajid2301/banterbus/internal/transport/websockets"
 	"gitlab.com/hmajid2301/banterbus/internal/views"
@@ -28,7 +31,7 @@ var (
 	browserContexts []playwright.BrowserContext
 	pages           []playwright.Page
 	expect          playwright.PlaywrightAssertions
-	headless        = os.Getenv("HEADFUL") == ""
+	headless        = os.Getenv("HEADLESS") == ""
 	browserName     = getBrowserName()
 	browserType     playwright.BrowserType
 	serverAddress   string
@@ -115,10 +118,15 @@ func newTestServer() (*httptest.Server, error) {
 	roomServicer := service.NewLobbyService(myStore, userRandomizer)
 	playerServicer := service.NewPlayerService(myStore, userRandomizer)
 	roundServicer := service.NewRoundService(myStore)
-	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
-		Level: slog.LevelDebug,
-	}))
-	subscriber := websockets.NewSubscriber(roomServicer, playerServicer, roundServicer, logger)
+	logger := setupLogger()
+
+	redisAddr := os.Getenv("BANTERBUS_REDIS_ADDRESS")
+	if redisAddr == "" {
+		redisAddr = "localhost:6379"
+	}
+
+	redisClient := pubsub.NewRedisClient(redisAddr)
+	subscriber := websockets.NewSubscriber(roomServicer, playerServicer, roundServicer, logger, redisClient)
 	err = ctxi18n.LoadWithDefault(views.Locales, "en-GB")
 	if err != nil {
 		return nil, fmt.Errorf("error loading locales: %w", err)
@@ -139,6 +147,7 @@ func newTestServer() (*httptest.Server, error) {
 
 func ResetBrowserContexts() {
 	var err error
+
 	browserContexts = make([]playwright.BrowserContext, testUserNum)
 	pages = make([]playwright.Page, testUserNum)
 
@@ -164,4 +173,37 @@ func ResetBrowserContexts() {
 
 		pages[i] = page
 	}
+}
+
+func setupLogger() *slog.Logger {
+	logLevel := os.Getenv("LOG_LEVEL")
+	if logLevel == "" {
+		logLevel = "DEBUG" // default log level
+	}
+
+	var level slog.Level
+	switch strings.ToUpper(logLevel) {
+	case "DEBUG":
+		level = slog.LevelDebug
+	case "INFO":
+		level = slog.LevelInfo
+	case "WARN":
+		level = slog.LevelWarn
+	case "ERROR":
+		level = slog.LevelError
+	default:
+		log.Fatalf("unknown log level: %s", logLevel)
+	}
+
+	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
+		Level: level,
+	}))
+
+	if os.Getenv("LOG_DISABLED") == "true" {
+		logger = slog.New(slog.NewTextHandler(io.Discard, &slog.HandlerOptions{
+			Level: level,
+		}))
+	}
+
+	return logger
 }

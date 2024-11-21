@@ -16,12 +16,17 @@ import (
 type Config struct {
 	DBFolder string
 	Server   Server
+	Redis    Redis
 	App      App
 }
 
 type Server struct {
 	Host string
 	Port int
+}
+
+type Redis struct {
+	Address string
 }
 
 type App struct {
@@ -37,6 +42,7 @@ type In struct {
 	Host          string `env:"BANTERBUS_WEBSERVER_HOST, default=0.0.0.0"`
 	Port          int    `env:"BANTERBUS_WEBSERVER_PORT, default=8080"`
 	DefaultLocale string `env:"BANTERBUS_DEFAULT_LOCALE, default=en-GB"`
+	RedisAddress  string `env:"BANTERBUS_REDIS_ADDRESS"`
 }
 
 func LoadConfig(ctx context.Context) (Config, error) {
@@ -55,6 +61,9 @@ func LoadConfig(ctx context.Context) (Config, error) {
 		Server: Server{
 			Host: input.Host,
 			Port: input.Port,
+		},
+		Redis: Redis{
+			Address: input.RedisAddress,
 		},
 		App: App{
 			Environment:   input.Environment,

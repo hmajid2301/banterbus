@@ -24,7 +24,7 @@ func (u *UpdateNickname) Handle(ctx context.Context, client *client, sub *Subscr
 		if err == entities.ErrNicknameExists {
 			errStr = err.Error()
 		}
-		clientErr := sub.updateClientAboutErr(ctx, client, errStr)
+		clientErr := sub.updateClientAboutErr(ctx, client.playerID, errStr)
 		return fmt.Errorf("%w: %w", err, clientErr)
 	}
 
@@ -36,7 +36,7 @@ func (g *GenerateNewAvatar) Handle(ctx context.Context, client *client, sub *Sub
 	updatedRoom, err := sub.playerService.GenerateNewAvatar(ctx, client.playerID)
 	if err != nil {
 		errStr := "failed to generate new avatar"
-		clientErr := sub.updateClientAboutErr(ctx, client, errStr)
+		clientErr := sub.updateClientAboutErr(ctx, client.playerID, errStr)
 		return fmt.Errorf("%w: %w", err, clientErr)
 	}
 
@@ -49,7 +49,7 @@ func (t *TogglePlayerIsReady) Handle(ctx context.Context, client *client, sub *S
 	updatedRoom, err := sub.playerService.TogglePlayerIsReady(ctx, client.playerID)
 	if err != nil {
 		errStr := "failed to update ready status"
-		clientErr := sub.updateClientAboutErr(ctx, client, errStr)
+		clientErr := sub.updateClientAboutErr(ctx, client.playerID, errStr)
 		return fmt.Errorf("%w: %w", err, clientErr)
 	}
 

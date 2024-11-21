@@ -24,6 +24,7 @@ import (
 	"gitlab.com/hmajid2301/banterbus/internal/logging"
 	"gitlab.com/hmajid2301/banterbus/internal/service"
 	"gitlab.com/hmajid2301/banterbus/internal/store"
+	"gitlab.com/hmajid2301/banterbus/internal/store/pubsub"
 	"gitlab.com/hmajid2301/banterbus/internal/telemetry"
 	transporthttp "gitlab.com/hmajid2301/banterbus/internal/transport/http"
 	"gitlab.com/hmajid2301/banterbus/internal/transport/websockets"
@@ -106,13 +107,15 @@ func mainLogic() error {
 		return fmt.Errorf("failed to create embed file system: %w", err)
 	}
 
-	subscriber := websockets.NewSubscriber(lobbyService, playerService, roundService, logger)
+	redisClient := pubsub.NewRedisClient(conf.Redis.Address)
+
+	subscriber := websockets.NewSubscriber(lobbyService, playerService, roundService, logger, redisClient)
+
 	serverConfig := transporthttp.ServerConfig{
 		Host:          conf.Server.Host,
 		Port:          conf.Server.Port,
 		DefaultLocale: conf.App.DefaultLocale,
 	}
-
 	server := transporthttp.NewServer(subscriber, logger, http.FS(fsys), serverConfig)
 
 	timeoutSeconds := 15

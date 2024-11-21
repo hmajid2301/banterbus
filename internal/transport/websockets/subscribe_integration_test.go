@@ -22,6 +22,7 @@ import (
 	"gitlab.com/hmajid2301/banterbus/internal/banterbustest"
 	"gitlab.com/hmajid2301/banterbus/internal/service"
 	"gitlab.com/hmajid2301/banterbus/internal/store"
+	"gitlab.com/hmajid2301/banterbus/internal/store/pubsub"
 	"gitlab.com/hmajid2301/banterbus/internal/transport/websockets"
 )
 
@@ -39,7 +40,14 @@ func TestIntegrationSubscribe(t *testing.T) {
 	roundService := service.NewRoundService(myStore)
 	handler := slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug})
 	logger := slog.New(handler)
-	subscriber := websockets.NewSubscriber(lobbyService, playerService, roundService, logger)
+
+	redisAddr := os.Getenv("BANTERBUS_REDIS_ADDRESS")
+	if redisAddr == "" {
+		redisAddr = "localhost:6379"
+	}
+
+	redisClient := pubsub.NewRedisClient(redisAddr)
+	subscriber := websockets.NewSubscriber(lobbyService, playerService, roundService, logger, redisClient)
 
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		playerID := uuid.Must(uuid.NewV7()).String()

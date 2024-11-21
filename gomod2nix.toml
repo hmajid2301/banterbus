@@ -16,6 +16,9 @@ schema = 3
   [mod."github.com/deckarep/golang-set/v2"]
     version = "v2.6.0"
     hash = "sha256-ni1XK75Q8iBBmxgoyZTedP4RmrUPzFC4978xB4HKdfs="
+  [mod."github.com/dgryski/go-rendezvous"]
+    version = "v0.0.0-20200823014737-9f7001d12a5f"
+    hash = "sha256-n/7xo5CQqo4yLaWMSzSN1Muk/oqK6O5dgDOFWapeDUI="
   [mod."github.com/dustin/go-humanize"]
     version = "v1.0.1"
     hash = "sha256-yuvxYYngpfVkUg9yAmG99IUVmADTQA0tMbBXe0Fq0Mc="
@@ -25,9 +28,6 @@ schema = 3
   [mod."github.com/felixge/httpsnoop"]
     version = "v1.0.4"
     hash = "sha256-c1JKoRSndwwOyOxq9ddCe+8qn7mG9uRq2o/822x5O/c="
-  [mod."github.com/flexstack/uuid"]
-    version = "v1.0.0"
-    hash = "sha256-HvQMtZCvBo6txJVBSddItq+n2jqlJwUa29RanNWXWnU="
   [mod."github.com/gabriel-vasile/mimetype"]
     version = "v1.4.6"
     hash = "sha256-W/uPcE22Fduw1XmX8Ujf1S9SYVOcEoE1wzK4I0/vapw="
@@ -115,6 +115,9 @@ schema = 3
   [mod."github.com/prometheus/procfs"]
     version = "v0.15.1"
     hash = "sha256-H+WXJemFFwdoglmD6p7JRjrJJZmIVAmJwYmLbZ8Q9sw="
+  [mod."github.com/redis/go-redis/v9"]
+    version = "v9.7.0"
+    hash = "sha256-lpEMK1jBuwrIY7nrk5f9Ru4Y2FXDU4FxlVjXHjV5Ahc="
   [mod."github.com/remyoudompheng/bigfft"]
     version = "v0.0.0-20230129092748-24d4a6f8daec"
     hash = "sha256-vYmpyCE37eBYP/navhaLV4oX4/nu0Z/StAocLIFqrmM="

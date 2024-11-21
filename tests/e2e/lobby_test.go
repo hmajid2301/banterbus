@@ -21,7 +21,7 @@ func TestE2ELobby(t *testing.T) {
 		err = otherPlayerPage.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Join"}).Click()
 		require.NoError(t, err)
 
-		err = expect.Locator(otherPlayerPage.Locator("text=Room with code FAKE_CODE does not exist")).ToBeVisible()
+		err = expect.Locator(otherPlayerPage.Locator("text=failed to join room")).ToBeVisible()
 		require.NoError(t, err)
 	})
 

@@ -135,6 +135,10 @@ tests:unit:
 tests:integration:
   extends:
     - .test
+  services:
+    - redis
+  variables:
+    BANTERBUS_REDIS_ADDRESS: redis:6379
   script:
     - task tests:integration -- ${GOTEST_EXTRA_ARGS}
 
@@ -142,6 +146,10 @@ tests:integration:
 test:e2e:
   extends:
     - .test
+  services:
+    - redis
+  variables:
+    BANTERBUS_REDIS_ADDRESS: redis:6379
   image: ghcr.io/manfromth3m0on/playwright-go:v0.4702.0
   before_script:
     - apt-get install wget tar curl -y

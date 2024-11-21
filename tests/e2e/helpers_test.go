@@ -2,6 +2,7 @@ package e2e
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/playwright-community/playwright-go"
 )
@@ -14,9 +15,19 @@ func joinRoom(hostPlayerPage playwright.Page, otherPlayerPage playwright.Page) e
 
 	locator := hostPlayerPage.Locator("input[name='room_code']")
 
-	code, err := locator.InputValue()
-	if err != nil {
-		return err
+	// Retry mechanism to wait for the room code to be available
+	var code string
+	for i := 0; i < 5; i++ {
+		code, err = locator.InputValue()
+		if err != nil {
+			return err
+		}
+
+		if code != "" {
+			break
+		}
+
+		time.Sleep(100 * time.Millisecond)
 	}
 
 	if code == "" {
