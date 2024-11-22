@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"log/slog"
+	"net"
 	"net/http"
 	"time"
 
@@ -218,7 +219,10 @@ func (s *Subscriber) handleMessage(ctx context.Context, client *client) error {
 	if err != nil {
 		if err == io.EOF {
 			return nil
+		} else if opErr, ok := err.(*net.OpError); ok && opErr.Err.Error() == "use of closed network connection" {
+			return nil
 		}
+
 		return fmt.Errorf("failed to get next message: %w", err)
 	}
 

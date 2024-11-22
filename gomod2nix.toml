@@ -200,8 +200,8 @@ schema = 3
     version = "v1.8.0"
     hash = "sha256-ucvPr73zg8LjvU+bcoIPKTgwgcon3U9VhKrLEMH81xg="
   [mod."modernc.org/sqlite"]
-    version = "v1.33.1"
-    hash = "sha256-Bhk9RNeHjgMIHt8n6L6cLxY2mMMAp4Wik5KR0954GaA="
+    version = "v1.34.1"
+    hash = "sha256-5SRcwmIgd/oc6jCe033CvJYv3/kuj1bMoK1zSAIo6GE="
   [mod."modernc.org/strutil"]
     version = "v1.2.0"
     hash = "sha256-NTYIWMRZjHmR77LMvsFOMCitt7toKTfH+zChYAMzZ2Y="

@@ -54,7 +54,7 @@ tasks:
     desc: show coverage
     cmds:
       - go tool covdata textfmt -i="coverage" -o combined-coverage.txt
-      - go tool cover -func=combined-coverage.txt
+      - go tool cover -func=combined-coverage.txt -o coverage.xml
 
   watch:
     desc: Watch for file changes and run commands, i.e. generate templates or tailwindcss
