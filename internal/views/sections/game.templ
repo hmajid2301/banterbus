@@ -1,12 +1,12 @@
 package sections
 
 import (
-	"gitlab.com/hmajid2301/banterbus/internal/entities"
+	"gitlab.com/hmajid2301/banterbus/internal/service"
 	"gitlab.com/hmajid2301/banterbus/internal/views/components"
 	"strconv"
 )
 
-templ Game(gameState entities.GameState, currentPlayer entities.PlayerWithRole) {
+templ Game(gameState service.GameState, currentPlayer service.PlayerWithRole) {
 	<div hx-swap-oob="innerHTML:#page">
 		<div class="text-text2">
 			<div class="flex justify-between items-center">

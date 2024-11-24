@@ -18,7 +18,8 @@ import (
 
 	"gitlab.com/hmajid2301/banterbus/internal/banterbustest"
 	"gitlab.com/hmajid2301/banterbus/internal/service"
-	"gitlab.com/hmajid2301/banterbus/internal/store"
+	"gitlab.com/hmajid2301/banterbus/internal/service/randomizer"
+	sqlc "gitlab.com/hmajid2301/banterbus/internal/store/db"
 	"gitlab.com/hmajid2301/banterbus/internal/store/pubsub"
 	transport "gitlab.com/hmajid2301/banterbus/internal/transport/http"
 	"gitlab.com/hmajid2301/banterbus/internal/transport/websockets"
@@ -109,13 +110,13 @@ func newTestServer() (*httptest.Server, error) {
 		return nil, err
 	}
 
-	myStore, err := store.NewStore(db)
+	myStore, err := sqlc.NewDB(db)
 	if err != nil {
 		return nil, err
 	}
 
-	userRandomizer := service.NewUserRandomizer()
-	roomServicer := service.NewLobbyService(myStore, userRandomizer)
+	userRandomizer := randomizer.NewUserRandomizer()
+	lobbyServicer := service.NewLobbyService(myStore, userRandomizer)
 	playerServicer := service.NewPlayerService(myStore, userRandomizer)
 	roundServicer := service.NewRoundService(myStore)
 	logger := setupLogger()
@@ -126,7 +127,7 @@ func newTestServer() (*httptest.Server, error) {
 	}
 
 	redisClient := pubsub.NewRedisClient(redisAddr)
-	subscriber := websockets.NewSubscriber(roomServicer, playerServicer, roundServicer, logger, redisClient)
+	subscriber := websockets.NewSubscriber(lobbyServicer, playerServicer, roundServicer, logger, redisClient)
 	err = ctxi18n.LoadWithDefault(views.Locales, "en-GB")
 	if err != nil {
 		return nil, fmt.Errorf("error loading locales: %w", err)

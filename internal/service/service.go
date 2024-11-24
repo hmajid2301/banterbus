@@ -1,20 +1,27 @@
 package service
 
 import (
-	"gitlab.com/hmajid2301/banterbus/internal/entities"
+	"context"
 
 	sqlc "gitlab.com/hmajid2301/banterbus/internal/store/db"
 )
 
-func getLobbyPlayers(playerRows []sqlc.GetAllPlayersInRoomRow, roomCode string) entities.Lobby {
-	var players []entities.LobbyPlayer
+type Storer interface {
+	sqlc.Querier
+	CreateRoom(ctx context.Context, arg sqlc.CreateRoomParams) error
+	AddPlayerToRoom(ctx context.Context, arg sqlc.AddPlayerToRoomArgs) error
+	StartGame(ctx context.Context, arg sqlc.StartGameArgs) error
+}
+
+func getLobbyPlayers(playerRows []sqlc.GetAllPlayersInRoomRow, roomCode string) Lobby {
+	var players []LobbyPlayer
 	for _, player := range playerRows {
 		isHost := false
 		if player.ID == player.HostPlayer {
 			isHost = true
 		}
 
-		p := entities.LobbyPlayer{
+		p := LobbyPlayer{
 			ID:       player.ID,
 			Nickname: player.Nickname,
 			Avatar:   string(player.Avatar),
@@ -25,7 +32,7 @@ func getLobbyPlayers(playerRows []sqlc.GetAllPlayersInRoomRow, roomCode string) 
 		players = append(players, p)
 	}
 
-	room := entities.Lobby{
+	room := Lobby{
 		Code:    roomCode,
 		Players: players,
 	}

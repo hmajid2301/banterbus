@@ -4,23 +4,23 @@ import (
 	"context"
 	"fmt"
 
-	"gitlab.com/hmajid2301/banterbus/internal/entities"
+	"gitlab.com/hmajid2301/banterbus/internal/service"
 )
 
 type LobbyServicer interface {
-	Create(ctx context.Context, gameName string, player entities.NewHostPlayer) (entities.Lobby, error)
-	Join(ctx context.Context, roomCode string, playerID string, playerNickname string) (entities.Lobby, error)
-	Start(ctx context.Context, roomCode string, playerID string) (entities.GameState, error)
+	Create(ctx context.Context, gameName string, player service.NewHostPlayer) (service.Lobby, error)
+	Join(ctx context.Context, roomCode string, playerID string, playerNickname string) (service.Lobby, error)
+	Start(ctx context.Context, roomCode string, playerID string) (service.GameState, error)
 	KickPlayer(
 		ctx context.Context,
 		roomCode string,
 		playerID string,
 		playerNicknameToKick string,
-	) (entities.Lobby, string, error)
+	) (service.Lobby, string, error)
 }
 
 func (c *CreateRoom) Handle(ctx context.Context, client *client, sub *Subscriber) error {
-	newPlayer := entities.NewHostPlayer{
+	newPlayer := service.NewHostPlayer{
 		ID:       client.playerID,
 		Nickname: c.PlayerNickname,
 	}
@@ -39,7 +39,7 @@ func (j *JoinLobby) Handle(ctx context.Context, client *client, sub *Subscriber)
 	updatedRoom, err := sub.lobbyService.Join(ctx, j.RoomCode, client.playerID, j.PlayerNickname)
 	if err != nil {
 		errStr := "failed to join room"
-		if err == entities.ErrNicknameExists {
+		if err == service.ErrNicknameExists {
 			errStr = err.Error()
 		}
 		clientErr := sub.updateClientAboutErr(ctx, client.playerID, errStr)

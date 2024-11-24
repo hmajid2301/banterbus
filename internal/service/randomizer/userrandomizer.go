@@ -1,10 +1,11 @@
-package service
+package randomizer
 
 import (
 	"fmt"
 	"math/rand/v2"
 
 	"github.com/gomig/avatar"
+	"github.com/google/uuid"
 )
 
 type UserRandomizer struct{}
@@ -100,4 +101,25 @@ func (UserRandomizer) GetAvatar() []byte {
 
 	encodedAvatar := avatar.Base64()
 	return []byte(encodedAvatar)
+}
+
+func (UserRandomizer) GetRoomCode() string {
+	const charset = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+
+	codeLength := 5
+	codeByte := make([]byte, codeLength)
+	for i := range codeByte {
+		codeByte[i] = charset[rand.IntN(len(charset))]
+	}
+	code := string(codeByte)
+	return code
+}
+
+func (UserRandomizer) GetID() string {
+	u := uuid.Must(uuid.NewV7())
+	return u.String()
+}
+
+func (UserRandomizer) GetFibberIndex(playersLen int) int {
+	return rand.IntN(playersLen)
 }

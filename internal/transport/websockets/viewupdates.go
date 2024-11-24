@@ -4,12 +4,12 @@ import (
 	"bytes"
 	"context"
 
-	"gitlab.com/hmajid2301/banterbus/internal/entities"
+	"gitlab.com/hmajid2301/banterbus/internal/service"
 	"gitlab.com/hmajid2301/banterbus/internal/views/sections"
 )
 
 // TODO: rename these funcs
-func (s *Subscriber) updateClientsAboutLobby(ctx context.Context, lobby entities.Lobby) error {
+func (s *Subscriber) updateClientsAboutLobby(ctx context.Context, lobby service.Lobby) error {
 	var buf bytes.Buffer
 	for _, player := range lobby.Players {
 		component := sections.Lobby(lobby.Code, lobby.Players, player)
@@ -39,7 +39,7 @@ func (s *Subscriber) updateClientAboutErr(ctx context.Context, playerID string, 
 	return err
 }
 
-func (s *Subscriber) updateClientsAboutGame(ctx context.Context, gameState entities.GameState) error {
+func (s *Subscriber) updateClientsAboutGame(ctx context.Context, gameState service.GameState) error {
 	var buf bytes.Buffer
 	for _, player := range gameState.Players {
 		component := sections.Game(gameState, player)

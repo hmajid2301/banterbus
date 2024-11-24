@@ -1,5 +1,17 @@
-package entities
+package service
 
+type Lobby struct {
+	Code    string
+	Players []LobbyPlayer
+}
+
+type LobbyPlayer struct {
+	ID       string
+	Nickname string
+	Avatar   string
+	IsReady  bool
+	IsHost   bool
+}
 type NewHostPlayer struct {
 	ID       string
 	Nickname string
@@ -13,19 +25,6 @@ type NewPlayer struct {
 
 type NewRoom struct {
 	GameName string
-}
-
-type LobbyPlayer struct {
-	ID       string
-	Nickname string
-	Avatar   string
-	IsReady  bool
-	IsHost   bool
-}
-
-type Lobby struct {
-	Code    string
-	Players []LobbyPlayer
 }
 
 type PlayerWithRole struct {

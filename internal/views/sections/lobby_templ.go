@@ -11,12 +11,12 @@ import (
 	"github.com/a-h/templ"
 	templruntime "github.com/a-h/templ/runtime"
 
-	"gitlab.com/hmajid2301/banterbus/internal/entities"
+	"gitlab.com/hmajid2301/banterbus/internal/service"
 	"gitlab.com/hmajid2301/banterbus/internal/views/components"
 	"gitlab.com/hmajid2301/banterbus/internal/views/icons"
 )
 
-func Lobby(code string, players []entities.LobbyPlayer, currentPlayer entities.LobbyPlayer) templ.Component {
+func Lobby(code string, players []service.LobbyPlayer, currentPlayer service.LobbyPlayer) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -363,7 +363,7 @@ func getClipboardString(code string) string {
 	return fmt.Sprintf("navigator.clipboard.writeText(\"%s\"), showMsg = true, setTimeout(() => showMsg = false, 1000)", code)
 }
 
-func allPlayersReady(players []entities.LobbyPlayer) bool {
+func allPlayersReady(players []service.LobbyPlayer) bool {
 	for _, player := range players {
 		if !player.IsReady {
 			return false

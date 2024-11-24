@@ -21,7 +21,8 @@ import (
 
 	"gitlab.com/hmajid2301/banterbus/internal/banterbustest"
 	"gitlab.com/hmajid2301/banterbus/internal/service"
-	"gitlab.com/hmajid2301/banterbus/internal/store"
+	"gitlab.com/hmajid2301/banterbus/internal/service/randomizer"
+	sqlc "gitlab.com/hmajid2301/banterbus/internal/store/db"
 	"gitlab.com/hmajid2301/banterbus/internal/store/pubsub"
 	"gitlab.com/hmajid2301/banterbus/internal/transport/websockets"
 )
@@ -31,10 +32,10 @@ func TestIntegrationSubscribe(t *testing.T) {
 	db, err := banterbustest.CreateDB(ctx)
 	require.NoError(t, err)
 
-	myStore, err := store.NewStore(db)
+	myStore, err := sqlc.NewDB(db)
 	require.NoError(t, err)
 
-	userRandomizer := service.NewUserRandomizer()
+	userRandomizer := randomizer.NewUserRandomizer()
 	lobbyService := service.NewLobbyService(myStore, userRandomizer)
 	playerService := service.NewPlayerService(myStore, userRandomizer)
 	roundService := service.NewRoundService(myStore)

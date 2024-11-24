@@ -19,9 +19,9 @@ import (
 	"github.com/redis/go-redis/v9"
 	slogctx "github.com/veqryn/slog-context"
 
-	"gitlab.com/hmajid2301/banterbus/internal/entities"
 	"gitlab.com/hmajid2301/banterbus/internal/logging"
-	"gitlab.com/hmajid2301/banterbus/internal/store"
+	"gitlab.com/hmajid2301/banterbus/internal/service"
+	sqlc "gitlab.com/hmajid2301/banterbus/internal/store/db"
 	"gitlab.com/hmajid2301/banterbus/internal/telemetry"
 	"gitlab.com/hmajid2301/banterbus/internal/views/sections"
 )
@@ -144,7 +144,7 @@ func (s Subscriber) Reconnect(ctx context.Context, client *client) error {
 	var buf bytes.Buffer
 	var component templ.Component
 	switch roomState {
-	case store.CREATED:
+	case sqlc.ROOMSTATE_CREATED:
 		lobby, err := s.playerService.GetLobby(ctx, client.playerID)
 		if err != nil {
 			errStr := "failed to reconnect to game"
@@ -152,7 +152,7 @@ func (s Subscriber) Reconnect(ctx context.Context, client *client) error {
 			return fmt.Errorf("%w: %w", err, clientErr)
 		}
 
-		var mePlayer entities.LobbyPlayer
+		var mePlayer service.LobbyPlayer
 		for _, player := range lobby.Players {
 			if player.ID == client.playerID {
 				mePlayer = player
@@ -160,7 +160,7 @@ func (s Subscriber) Reconnect(ctx context.Context, client *client) error {
 		}
 
 		component = sections.Lobby(lobby.Code, lobby.Players, mePlayer)
-	case store.PLAYING:
+	case sqlc.ROOMSTATE_PLAYING:
 		gameState, err := s.playerService.GetGameState(ctx, client.playerID)
 		if err != nil {
 			errStr := "failed to reconnect to game"
@@ -169,11 +169,11 @@ func (s Subscriber) Reconnect(ctx context.Context, client *client) error {
 		}
 
 		component = sections.Game(gameState, gameState.Players[0])
-	case store.PAUSED:
+	case sqlc.ROOMSTATE_PAUSED:
 		return fmt.Errorf("cannot reconnect game to paused game, as this is not implemented")
-	case store.ABANDONED:
+	case sqlc.ROOMSTATE_ABANDONED:
 		return fmt.Errorf("cannot reconnect game is abandoned")
-	case store.FINISHED:
+	case sqlc.ROOMSTATE_FINISHED:
 		return fmt.Errorf("cannot reconnect game is finished")
 	default:
 		return fmt.Errorf("unknown room state: %s", roomState)

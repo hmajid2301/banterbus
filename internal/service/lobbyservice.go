@@ -2,10 +2,10 @@ package service
 
 import (
 	"context"
-	"time"
+	"database/sql"
+	"errors"
+	"fmt"
 
-	"gitlab.com/hmajid2301/banterbus/internal/entities"
-	"gitlab.com/hmajid2301/banterbus/internal/store"
 	sqlc "gitlab.com/hmajid2301/banterbus/internal/store/db"
 )
 
@@ -17,106 +17,132 @@ type LobbyService struct {
 type Randomizer interface {
 	GetNickname() string
 	GetAvatar() []byte
+	GetRoomCode() string
+	GetID() string
+	GetFibberIndex(playersLen int) int
 }
 
-// TODO: refactor into interfaces for each service
-type Storer interface {
-	CreateRoom(ctx context.Context, player entities.NewPlayer, room entities.NewRoom) (roomCode string, err error)
-	AddPlayerToRoom(
-		ctx context.Context,
-		player entities.NewPlayer,
-		roomCode string,
-	) (players []sqlc.GetAllPlayersInRoomRow, err error)
-	UpdateNickname(
-		ctx context.Context,
-		nickname string,
-		playerID string,
-	) (players []sqlc.GetAllPlayersInRoomRow, err error)
-	UpdateAvatar(ctx context.Context, avatar []byte, playerID string) (players []sqlc.GetAllPlayersInRoomRow, err error)
-	ToggleIsReady(ctx context.Context, playerID string) (players []sqlc.GetAllPlayersInRoomRow, err error)
-	KickPlayer(
-		ctx context.Context,
-		roomCode string,
-		playerID string,
-		playerNicknameToKick string,
-	) (players []sqlc.GetAllPlayersInRoomRow, playerToKickID string, err error)
-	StartGame(ctx context.Context, roomCode string, playerID string) (gameState entities.GameState, err error)
-	SubmitAnswer(ctx context.Context, playerID string, answer string, submittedAt time.Time) (err error)
-	GetRoomState(ctx context.Context, playerID string) (store.RoomState, error)
-	GetLobbyByPlayerID(ctx context.Context, playerID string) (players []sqlc.GetAllPlayersInRoomRow, err error)
-	GetGameStateByPlayerID(ctx context.Context, playerID string) (gameState entities.GameState, err error)
-}
+var ErrNicknameExists = errors.New("nickname already exists in room")
 
 func NewLobbyService(store Storer, randomizer Randomizer) *LobbyService {
 	return &LobbyService{store: store, randomizer: randomizer}
 }
 
-func (r *LobbyService) Create(
-	ctx context.Context,
-	gameName string,
-	player entities.NewHostPlayer,
-) (entities.Lobby, error) {
-	newPlayer := r.getNewPlayer(player.Nickname, player.ID)
+func (r *LobbyService) Create(ctx context.Context, gameName string, newHostPlayer NewHostPlayer) (Lobby, error) {
+	player := r.getNewPlayer(newHostPlayer.Nickname, newHostPlayer.ID)
 
-	newRoom := entities.NewRoom{
-		GameName: gameName,
+	var roomCode string
+	for {
+		roomCode = r.randomizer.GetRoomCode()
+		room, err := r.store.GetRoomByCode(ctx, roomCode)
+		if err != nil {
+			if errors.Is(err, sql.ErrNoRows) {
+				break
+			}
+
+			return Lobby{}, err
+		}
+
+		if room.RoomState == sqlc.ROOMSTATE_FINISHED.String() || room.RoomState == sqlc.ROOMSTATE_ABANDONED.String() {
+			break
+		}
 	}
-	roomCode, err := r.store.CreateRoom(ctx, newPlayer, newRoom)
+
+	addPlayer := sqlc.AddPlayerParams{
+		ID:       player.ID,
+		Avatar:   player.Avatar,
+		Nickname: player.Nickname,
+	}
+
+	roomID := r.randomizer.GetID()
+	addRoom := sqlc.AddRoomParams{
+		ID:         roomID,
+		GameName:   gameName,
+		RoomCode:   roomCode,
+		RoomState:  sqlc.ROOMSTATE_CREATED.String(),
+		HostPlayer: player.ID,
+	}
+
+	addRoomPlayer := sqlc.AddRoomPlayerParams{
+		RoomID:   addRoom.ID,
+		PlayerID: player.ID,
+	}
+
+	createRoom := sqlc.CreateRoomParams{
+		Room:       addRoom,
+		Player:     addPlayer,
+		RoomPlayer: addRoomPlayer,
+	}
+
+	err := r.store.CreateRoom(ctx, createRoom)
 	if err != nil {
-		return entities.Lobby{}, err
+		return Lobby{}, err
 	}
 
-	lobby := entities.Lobby{
+	lobby := Lobby{
 		Code: roomCode,
-		Players: []entities.LobbyPlayer{
+		Players: []LobbyPlayer{
 			{
 				ID:       player.ID,
-				Nickname: newPlayer.Nickname,
-				Avatar:   string(newPlayer.Avatar),
+				Nickname: player.Nickname,
+				Avatar:   string(player.Avatar),
 			},
 		},
 	}
 	return lobby, nil
 }
 
-func (r *LobbyService) Join(
-	ctx context.Context,
-	roomCode string,
-	playerID string,
-	playerNickname string,
-) (entities.Lobby, error) {
-	newPlayer := r.getNewPlayer(playerNickname, playerID)
-	playerRows, err := r.store.AddPlayerToRoom(ctx, newPlayer, roomCode)
+func (r *LobbyService) Join(ctx context.Context, roomCode string, playerID string, nickname string) (Lobby, error) {
+	newPlayer := r.getNewPlayer(nickname, playerID)
+	room, err := r.store.GetRoomByCode(ctx, roomCode)
 	if err != nil {
-		return entities.Lobby{}, err
+		return Lobby{}, err
 	}
 
-	lobby := getLobbyPlayers(playerRows, roomCode)
+	if room.RoomState != sqlc.ROOMSTATE_CREATED.String() {
+		return Lobby{}, fmt.Errorf("room is not in CREATED state")
+	}
+
+	playersInRoom, err := r.store.GetAllPlayerByRoomCode(ctx, roomCode)
+	if err != nil {
+		return Lobby{}, err
+	}
+
+	for _, p := range playersInRoom {
+		if p.Nickname == nickname {
+			return Lobby{}, ErrNicknameExists
+		}
+	}
+
+	addPlayer := sqlc.AddPlayerParams{
+		ID:       newPlayer.ID,
+		Avatar:   newPlayer.Avatar,
+		Nickname: newPlayer.Nickname,
+	}
+
+	addRoomPlayer := sqlc.AddRoomPlayerParams{
+		RoomID:   room.ID,
+		PlayerID: newPlayer.ID,
+	}
+
+	addPlayerToRoom := sqlc.AddPlayerToRoomArgs{
+		Player:     addPlayer,
+		RoomPlayer: addRoomPlayer,
+	}
+
+	err = r.store.AddPlayerToRoom(ctx, addPlayerToRoom)
+	if err != nil {
+		return Lobby{}, err
+	}
+
+	// TODO: could use information above to work out players in room
+	players, err := r.store.GetAllPlayersInRoom(ctx, newPlayer.ID)
+	if err != nil {
+		return Lobby{}, err
+	}
+
+	lobby := getLobbyPlayers(players, roomCode)
 	return lobby, nil
-}
-
-func (r *LobbyService) Start(
-	ctx context.Context,
-	roomCode string,
-	playerID string,
-) (entities.GameState, error) {
-	gameState, err := r.store.StartGame(ctx, roomCode, playerID)
-	return gameState, err
-}
-
-func (r *LobbyService) getNewPlayer(playerNickname string, playerID string) entities.NewPlayer {
-	nickname := playerNickname
-	if playerNickname == "" {
-		nickname = r.randomizer.GetNickname()
-	}
-
-	avatar := r.randomizer.GetAvatar()
-	newPlayer := entities.NewPlayer{
-		ID:       playerID,
-		Nickname: nickname,
-		Avatar:   avatar,
-	}
-	return newPlayer
 }
 
 func (r *LobbyService) KickPlayer(
@@ -124,12 +150,149 @@ func (r *LobbyService) KickPlayer(
 	roomCode string,
 	playerID string,
 	playerNicknameToKick string,
-) (entities.Lobby, string, error) {
-	playerRows, playerNicknameToKick, err := r.store.KickPlayer(ctx, roomCode, playerID, playerNicknameToKick)
+) (Lobby, string, error) {
+	room, err := r.store.GetRoomByCode(ctx, roomCode)
 	if err != nil {
-		return entities.Lobby{}, "", err
+		return Lobby{}, "", err
 	}
 
-	lobby := getLobbyPlayers(playerRows, roomCode)
-	return lobby, playerNicknameToKick, nil
+	if room.HostPlayer != playerID {
+		return Lobby{}, "", fmt.Errorf("player is not the host of the room")
+	}
+
+	if room.RoomState != sqlc.ROOMSTATE_CREATED.String() {
+		return Lobby{}, "", fmt.Errorf("room is not in CREATED state")
+	}
+
+	playersInRoom, err := r.store.GetAllPlayersInRoom(ctx, playerID)
+	if err != nil {
+		return Lobby{}, "", err
+	}
+
+	var playerToKickID string
+	var removeIndex int
+	for i, p := range playersInRoom {
+		if p.Nickname == playerNicknameToKick {
+			playerToKickID = p.ID
+			removeIndex = i
+			break
+		}
+	}
+
+	if playerToKickID == "" {
+		return Lobby{}, "", fmt.Errorf("player with nickname %s not found to kick", playerNicknameToKick)
+	}
+
+	playersInRoom = append(playersInRoom[:removeIndex], playersInRoom[removeIndex+1:]...)
+
+	_, err = r.store.RemovePlayerFromRoom(ctx, playerToKickID)
+	if err != nil {
+		return Lobby{}, "", err
+	}
+
+	lobby := getLobbyPlayers(playersInRoom, roomCode)
+	return lobby, playerToKickID, nil
+}
+
+func (r *LobbyService) Start(ctx context.Context, roomCode string, playerID string) (GameState, error) {
+	room, err := r.store.GetRoomByCode(ctx, roomCode)
+	if err != nil {
+		return GameState{}, err
+	}
+
+	if room.HostPlayer != playerID {
+		return GameState{}, fmt.Errorf("player is not the host of the room")
+	}
+
+	if room.RoomState != sqlc.ROOMSTATE_CREATED.String() {
+		return GameState{}, fmt.Errorf("room is not in CREATED state")
+	}
+
+	playersInRoom, err := r.store.GetAllPlayersInRoom(ctx, playerID)
+	if err != nil {
+		return GameState{}, err
+	}
+
+	minimumPlayers := 2
+	if len(playersInRoom) < minimumPlayers {
+		return GameState{}, fmt.Errorf("not enough players to start the game")
+	}
+
+	for _, player := range playersInRoom {
+		if !player.IsReady.Bool {
+			return GameState{}, fmt.Errorf("not all players are ready: %s", player.ID)
+		}
+	}
+
+	normalsQuestion, err := r.store.GetRandomQuestionByRound(ctx, sqlc.GetRandomQuestionByRoundParams{
+		GameName:     room.GameName,
+		LanguageCode: "en-GB",
+		Round:        "free_form",
+	})
+	if err != nil {
+		return GameState{}, err
+	}
+
+	fibberQuestion, err := r.store.GetRandomQuestionInGroup(ctx, sqlc.GetRandomQuestionInGroupParams{
+		GroupID: normalsQuestion.GroupID,
+		ID:      normalsQuestion.ID,
+	})
+	if err != nil {
+		return GameState{}, err
+	}
+
+	players := []PlayerWithRole{}
+	randomFibberLoc := r.randomizer.GetFibberIndex(len(playersInRoom))
+
+	err = r.store.StartGame(ctx, sqlc.StartGameArgs{
+		RoomID:            room.ID,
+		NormalsQuestionID: normalsQuestion.ID,
+		FibberQuestionID:  fibberQuestion.ID,
+		Players:           playersInRoom,
+		FibberLoc:         randomFibberLoc,
+	})
+	if err != nil {
+		return GameState{}, err
+	}
+
+	for i, player := range playersInRoom {
+		role := "normal"
+		question := normalsQuestion.Question
+
+		if i == randomFibberLoc {
+			role = "fibber"
+			question = fibberQuestion.Question
+		}
+
+		players = append(players, PlayerWithRole{
+			ID:       player.ID,
+			Nickname: player.Nickname,
+			Avatar:   player.Avatar,
+			Role:     role,
+			Question: question,
+		})
+	}
+
+	gameState := GameState{
+		Players:   players,
+		Round:     1,
+		RoundType: "free_form",
+		RoomCode:  roomCode,
+	}
+	return gameState, nil
+}
+
+func (r *LobbyService) getNewPlayer(playerNickname string, playerID string) NewPlayer {
+	nickname := playerNickname
+	if playerNickname == "" {
+		nickname = r.randomizer.GetNickname()
+	}
+
+	avatar := r.randomizer.GetAvatar()
+	newPlayer := NewPlayer{
+		ID:       playerID,
+		Nickname: nickname,
+		Avatar:   avatar,
+	}
+	return newPlayer
 }

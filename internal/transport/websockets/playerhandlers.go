@@ -4,24 +4,24 @@ import (
 	"context"
 	"fmt"
 
-	"gitlab.com/hmajid2301/banterbus/internal/entities"
-	"gitlab.com/hmajid2301/banterbus/internal/store"
+	"gitlab.com/hmajid2301/banterbus/internal/service"
+	sqlc "gitlab.com/hmajid2301/banterbus/internal/store/db"
 )
 
 type PlayerServicer interface {
-	UpdateNickname(ctx context.Context, nickname string, playerID string) (entities.Lobby, error)
-	GenerateNewAvatar(ctx context.Context, playerID string) (entities.Lobby, error)
-	TogglePlayerIsReady(ctx context.Context, playerID string) (entities.Lobby, error)
-	GetRoomState(ctx context.Context, playerID string) (store.RoomState, error)
-	GetLobby(ctx context.Context, playerID string) (entities.Lobby, error)
-	GetGameState(ctx context.Context, playerID string) (entities.GameState, error)
+	UpdateNickname(ctx context.Context, nickname string, playerID string) (service.Lobby, error)
+	GenerateNewAvatar(ctx context.Context, playerID string) (service.Lobby, error)
+	TogglePlayerIsReady(ctx context.Context, playerID string) (service.Lobby, error)
+	GetRoomState(ctx context.Context, playerID string) (sqlc.RoomState, error)
+	GetLobby(ctx context.Context, playerID string) (service.Lobby, error)
+	GetGameState(ctx context.Context, playerID string) (service.GameState, error)
 }
 
 func (u *UpdateNickname) Handle(ctx context.Context, client *client, sub *Subscriber) error {
 	updatedRoom, err := sub.playerService.UpdateNickname(ctx, u.PlayerNickname, client.playerID)
 	if err != nil {
 		errStr := "failed to update nickname"
-		if err == entities.ErrNicknameExists {
+		if err == service.ErrNicknameExists {
 			errStr = err.Error()
 		}
 		clientErr := sub.updateClientAboutErr(ctx, client.playerID, errStr)

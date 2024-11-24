@@ -2,10 +2,10 @@ package service
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 
-	"gitlab.com/hmajid2301/banterbus/internal/entities"
-	"gitlab.com/hmajid2301/banterbus/internal/store"
+	sqlc "gitlab.com/hmajid2301/banterbus/internal/store/db"
 )
 
 type PlayerService struct {
@@ -17,66 +17,164 @@ func NewPlayerService(store Storer, randomizer Randomizer) *PlayerService {
 	return &PlayerService{store: store, randomizer: randomizer}
 }
 
-func (p *PlayerService) UpdateNickname(ctx context.Context, nickname string, playerID string) (entities.Lobby, error) {
-	playerRows, err := p.store.UpdateNickname(ctx, nickname, playerID)
+func (p *PlayerService) UpdateNickname(ctx context.Context, nickname string, playerID string) (Lobby, error) {
+	room, err := p.store.GetRoomByPlayerID(ctx, playerID)
 	if err != nil {
-		return entities.Lobby{}, err
+		return Lobby{}, err
 	}
 
-	if len(playerRows) == 0 {
-		return entities.Lobby{}, fmt.Errorf("no players in room")
+	if room.RoomState != sqlc.ROOMSTATE_CREATED.String() {
+		return Lobby{}, fmt.Errorf("room is not in CREATED state")
 	}
 
-	room := getLobbyPlayers(playerRows, playerRows[0].RoomCode)
-	return room, err
+	playersInRoom, err := p.store.GetAllPlayersInRoom(ctx, playerID)
+	if err != nil {
+		return Lobby{}, err
+	}
+
+	for _, p := range playersInRoom {
+		if p.Nickname == nickname {
+			return Lobby{}, fmt.Errorf("nickname already exists")
+		}
+	}
+
+	_, err = p.store.UpdateNickname(ctx, sqlc.UpdateNicknameParams{
+		Nickname: nickname,
+		ID:       playerID,
+	})
+	if err != nil {
+		return Lobby{}, err
+	}
+
+	players, err := p.store.GetAllPlayersInRoom(ctx, playerID)
+	if err != nil {
+		return Lobby{}, err
+	}
+
+	lobby := getLobbyPlayers(players, players[0].RoomCode)
+	return lobby, err
 }
 
-func (p *PlayerService) GenerateNewAvatar(ctx context.Context, playerID string) (entities.Lobby, error) {
+func (p *PlayerService) GenerateNewAvatar(ctx context.Context, playerID string) (Lobby, error) {
 	avatar := p.randomizer.GetAvatar()
 
-	playerRows, err := p.store.UpdateAvatar(ctx, avatar, playerID)
+	room, err := p.store.GetRoomByPlayerID(ctx, playerID)
 	if err != nil {
-		return entities.Lobby{}, err
+		return Lobby{}, err
 	}
 
-	if len(playerRows) == 0 {
-		return entities.Lobby{}, fmt.Errorf("no players in room")
+	if room.RoomState != sqlc.ROOMSTATE_CREATED.String() {
+		return Lobby{}, fmt.Errorf("room is not in CREATED state")
 	}
 
-	room := getLobbyPlayers(playerRows, playerRows[0].RoomCode)
-	return room, err
+	_, err = p.store.UpdateAvatar(ctx, sqlc.UpdateAvatarParams{
+		Avatar: avatar,
+		ID:     playerID,
+	})
+	if err != nil {
+		return Lobby{}, err
+	}
+
+	players, err := p.store.GetAllPlayersInRoom(ctx, playerID)
+	if err != nil {
+		return Lobby{}, err
+	}
+
+	if len(players) == 0 {
+		return Lobby{}, fmt.Errorf("no players in room")
+	}
+
+	lobby := getLobbyPlayers(players, players[0].RoomCode)
+	return lobby, err
 }
 
-func (p *PlayerService) TogglePlayerIsReady(ctx context.Context, playerID string) (entities.Lobby, error) {
-	playerRows, err := p.store.ToggleIsReady(ctx, playerID)
+func (p *PlayerService) TogglePlayerIsReady(ctx context.Context, playerID string) (Lobby, error) {
+	room, err := p.store.GetRoomByPlayerID(ctx, playerID)
 	if err != nil {
-		return entities.Lobby{}, err
+		return Lobby{}, err
 	}
 
-	if len(playerRows) == 0 {
-		return entities.Lobby{}, fmt.Errorf("no players in room")
+	if room.RoomState != sqlc.ROOMSTATE_CREATED.String() {
+		return Lobby{}, fmt.Errorf("room is not in CREATED state")
 	}
 
-	room := getLobbyPlayers(playerRows, playerRows[0].RoomCode)
-	return room, err
+	player, err := p.store.GetPlayerByID(ctx, playerID)
+	if err != nil {
+		return Lobby{}, err
+	}
+
+	_, err = p.store.UpdateIsReady(ctx, sqlc.UpdateIsReadyParams{
+		ID:      playerID,
+		IsReady: sql.NullBool{Bool: !player.IsReady.Bool, Valid: true},
+	})
+	if err != nil {
+		return Lobby{}, err
+	}
+
+	players, err := p.store.GetAllPlayersInRoom(ctx, playerID)
+	if err != nil {
+		return Lobby{}, err
+	}
+
+	if len(players) == 0 {
+		return Lobby{}, fmt.Errorf("no players in room")
+	}
+
+	lobby := getLobbyPlayers(players, players[0].RoomCode)
+	return lobby, err
 }
 
-func (p *PlayerService) GetRoomState(ctx context.Context, playerID string) (store.RoomState, error) {
-	roomState, err := p.store.GetRoomState(ctx, playerID)
+func (p *PlayerService) GetRoomState(ctx context.Context, playerID string) (sqlc.RoomState, error) {
+	room, err := p.store.GetRoomByPlayerID(ctx, playerID)
+	if err != nil {
+		return sqlc.ROOMSTATE_CREATED, err
+	}
+
+	roomState, err := sqlc.RoomStateFromString(room.RoomState)
 	return roomState, err
 }
 
-func (p *PlayerService) GetLobby(ctx context.Context, playerID string) (entities.Lobby, error) {
-	playerRows, err := p.store.GetLobbyByPlayerID(ctx, playerID)
+func (p *PlayerService) GetLobby(ctx context.Context, playerID string) (Lobby, error) {
+	players, err := p.store.GetAllPlayersInRoom(ctx, playerID)
 	if err != nil {
-		return entities.Lobby{}, err
+		return Lobby{}, err
 	}
 
-	room := getLobbyPlayers(playerRows, playerRows[0].RoomCode)
+	if len(players) == 0 {
+		return Lobby{}, fmt.Errorf("no players found in lobby")
+	}
+
+	room := getLobbyPlayers(players, players[0].RoomCode)
 	return room, err
 }
 
-func (p *PlayerService) GetGameState(ctx context.Context, playerID string) (entities.GameState, error) {
-	gameState, err := p.store.GetGameStateByPlayerID(ctx, playerID)
-	return gameState, err
+func (p *PlayerService) GetGameState(ctx context.Context, playerID string) (GameState, error) {
+	g, err := p.store.GetGameStateByPlayerID(ctx, playerID)
+	if err != nil {
+		return GameState{}, err
+	}
+
+	question := g.NormalQuestion.String
+	if g.FibberQuestion.Valid {
+		question = g.FibberQuestion.String
+	}
+
+	players := []PlayerWithRole{
+		{
+			ID:       g.ID,
+			Nickname: g.Nickname,
+			Role:     g.PlayerRole.String,
+			Avatar:   g.Avatar,
+			Question: question,
+		},
+	}
+
+	gameState := GameState{
+		Players:   players,
+		Round:     int(g.Round),
+		RoundType: g.RoundType,
+		RoomCode:  g.RoomCode,
+	}
+
+	return gameState, nil
 }

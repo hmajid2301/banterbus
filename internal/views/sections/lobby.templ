@@ -2,12 +2,12 @@ package sections
 
 import (
 	"fmt"
-	"gitlab.com/hmajid2301/banterbus/internal/entities"
+	"gitlab.com/hmajid2301/banterbus/internal/service"
 	"gitlab.com/hmajid2301/banterbus/internal/views/components"
 	"gitlab.com/hmajid2301/banterbus/internal/views/icons"
 )
 
-templ Lobby(code string, players []entities.LobbyPlayer, currentPlayer entities.LobbyPlayer) {
+templ Lobby(code string, players []service.LobbyPlayer, currentPlayer service.LobbyPlayer) {
 	<div hx-swap-oob="innerHTML:#page">
 		@components.TextInput(components.TextInputProps{LabelName: "Room Code", InputName: "room_code", Value: code}, templ.Attributes{"disabled": true}) {
 			<button class="inline-flex absolute top-1/2 justify-center items-center p-2 rounded-lg text-text2 end-2 hover:text-surface0" aria-label="Copy Room Code" @click={ getClipboardString(code) }>
@@ -97,7 +97,7 @@ func getClipboardString(code string) string {
 	return fmt.Sprintf("navigator.clipboard.writeText(\"%s\"), showMsg = true, setTimeout(() => showMsg = false, 1000)", code)
 }
 
-func allPlayersReady(players []entities.LobbyPlayer) bool {
+func allPlayersReady(players []service.LobbyPlayer) bool {
 	for _, player := range players {
 		if !player.IsReady {
 			return false

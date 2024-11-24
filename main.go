@@ -23,7 +23,8 @@ import (
 	"gitlab.com/hmajid2301/banterbus/internal/config"
 	"gitlab.com/hmajid2301/banterbus/internal/logging"
 	"gitlab.com/hmajid2301/banterbus/internal/service"
-	"gitlab.com/hmajid2301/banterbus/internal/store"
+	"gitlab.com/hmajid2301/banterbus/internal/service/randomizer"
+	sqlc "gitlab.com/hmajid2301/banterbus/internal/store/db"
 	"gitlab.com/hmajid2301/banterbus/internal/store/pubsub"
 	"gitlab.com/hmajid2301/banterbus/internal/telemetry"
 	transporthttp "gitlab.com/hmajid2301/banterbus/internal/transport/http"
@@ -67,7 +68,7 @@ func mainLogic() error {
 		slog.String("node", hostname),
 		slog.String("environment", conf.App.Environment),
 	})
-	db, err := store.GetDB(conf.DBFolder)
+	db, err := sqlc.GetDB(conf.DBFolder)
 	if err != nil {
 		return fmt.Errorf("failed to get database: %w", err)
 	}
@@ -87,7 +88,7 @@ func mainLogic() error {
 		return fmt.Errorf("failed to run migrations: %w", err)
 	}
 
-	str, err := store.NewStore(db)
+	str, err := sqlc.NewDB(db)
 	if err != nil {
 		return fmt.Errorf("failed to setup store: %w", err)
 	}
@@ -97,7 +98,7 @@ func mainLogic() error {
 		return fmt.Errorf("error loading locales: %w", err)
 	}
 
-	userRandomizer := service.NewUserRandomizer()
+	userRandomizer := randomizer.NewUserRandomizer()
 	lobbyService := service.NewLobbyService(str, userRandomizer)
 	playerService := service.NewPlayerService(str, userRandomizer)
 	roundService := service.NewRoundService(str)
