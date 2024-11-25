@@ -56,8 +56,6 @@ func (p *PlayerService) UpdateNickname(ctx context.Context, nickname string, pla
 }
 
 func (p *PlayerService) GenerateNewAvatar(ctx context.Context, playerID string) (Lobby, error) {
-	avatar := p.randomizer.GetAvatar()
-
 	room, err := p.store.GetRoomByPlayerID(ctx, playerID)
 	if err != nil {
 		return Lobby{}, err
@@ -66,6 +64,8 @@ func (p *PlayerService) GenerateNewAvatar(ctx context.Context, playerID string) 
 	if room.RoomState != sqlc.ROOMSTATE_CREATED.String() {
 		return Lobby{}, fmt.Errorf("room is not in CREATED state")
 	}
+
+	avatar := p.randomizer.GetAvatar()
 
 	_, err = p.store.UpdateAvatar(ctx, sqlc.UpdateAvatarParams{
 		Avatar: avatar,
@@ -78,10 +78,6 @@ func (p *PlayerService) GenerateNewAvatar(ctx context.Context, playerID string) 
 	players, err := p.store.GetAllPlayersInRoom(ctx, playerID)
 	if err != nil {
 		return Lobby{}, err
-	}
-
-	if len(players) == 0 {
-		return Lobby{}, fmt.Errorf("no players in room")
 	}
 
 	lobby := getLobbyPlayers(players, players[0].RoomCode)
@@ -116,10 +112,6 @@ func (p *PlayerService) TogglePlayerIsReady(ctx context.Context, playerID string
 		return Lobby{}, err
 	}
 
-	if len(players) == 0 {
-		return Lobby{}, fmt.Errorf("no players in room")
-	}
-
 	lobby := getLobbyPlayers(players, players[0].RoomCode)
 	return lobby, err
 }
@@ -138,10 +130,6 @@ func (p *PlayerService) GetLobby(ctx context.Context, playerID string) (Lobby, e
 	players, err := p.store.GetAllPlayersInRoom(ctx, playerID)
 	if err != nil {
 		return Lobby{}, err
-	}
-
-	if len(players) == 0 {
-		return Lobby{}, fmt.Errorf("no players found in lobby")
 	}
 
 	room := getLobbyPlayers(players, players[0].RoomCode)

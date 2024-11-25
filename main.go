@@ -101,7 +101,7 @@ func mainLogic() error {
 	userRandomizer := randomizer.NewUserRandomizer()
 	lobbyService := service.NewLobbyService(str, userRandomizer)
 	playerService := service.NewPlayerService(str, userRandomizer)
-	roundService := service.NewRoundService(str)
+	roundService := service.NewRoundService(str, userRandomizer)
 
 	fsys, err := fs.Sub(staticFiles, "static")
 	if err != nil {

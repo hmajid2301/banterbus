@@ -38,7 +38,7 @@ func TestIntegrationSubscribe(t *testing.T) {
 	userRandomizer := randomizer.NewUserRandomizer()
 	lobbyService := service.NewLobbyService(myStore, userRandomizer)
 	playerService := service.NewPlayerService(myStore, userRandomizer)
-	roundService := service.NewRoundService(myStore)
+	roundService := service.NewRoundService(myStore, userRandomizer)
 	handler := slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug})
 	logger := slog.New(handler)
 

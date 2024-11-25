@@ -15,6 +15,7 @@ import (
 
 const roomCode = "ABC12"
 const roomID = "fbb75599-9f7a-4392-b523-fd433b3208ea"
+const hostPlayerID = "33333-9f7a-4392-b523-fd433b3208ea"
 
 func TestLobbyServiceCreate(t *testing.T) {
 	defaultNewHostPlayer := service.NewHostPlayer{
@@ -472,8 +473,6 @@ func TestLobbyServiceJoin(t *testing.T) {
 }
 
 func TestLobbyServiceKickPlayer(t *testing.T) {
-	hostPlayerID := "33333-9f7a-4392-b523-fd433b3208ea"
-
 	defaultNewPlayer := service.NewPlayer{
 		ID:       "11111-9f7a-4392-b523-fd433b3208ea",
 		Nickname: "Hello",
@@ -627,7 +626,6 @@ func TestLobbyServiceKickPlayer(t *testing.T) {
 }
 
 func TestLobbyServiceStart(t *testing.T) {
-	hostPlayerID := "33333-9f7a-4392-b523-fd433b3208ea"
 	gameName := "fibbing_it"
 	groupID := "12345-9f7a-4392-b523-fd433b3208ea"
 

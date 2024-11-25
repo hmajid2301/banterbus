@@ -5,17 +5,16 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/google/uuid"
-
 	sqlc "gitlab.com/hmajid2301/banterbus/internal/store/db"
 )
 
 type RoundService struct {
-	store Storer
+	store      Storer
+	randomizer Randomizer
 }
 
-func NewRoundService(store Storer) *RoundService {
-	return &RoundService{store: store}
+func NewRoundService(store Storer, randomizer Randomizer) *RoundService {
+	return &RoundService{store: store, randomizer: randomizer}
 }
 
 func (r *RoundService) SubmitAnswer(ctx context.Context, playerID string, answer string, submittedAt time.Time) error {
@@ -38,7 +37,7 @@ func (r *RoundService) SubmitAnswer(ctx context.Context, playerID string, answer
 	}
 
 	_, err = r.store.AddFibbingItAnswer(ctx, sqlc.AddFibbingItAnswerParams{
-		ID:       uuid.Must(uuid.NewV7()).String(),
+		ID:       r.randomizer.GetID(),
 		RoundID:  round.ID,
 		PlayerID: playerID,
 		Answer:   answer,
