@@ -55,13 +55,19 @@ UPDATE players SET avatar = ? WHERE id = ? RETURNING *;
 UPDATE players SET is_ready = ? WHERE id = ? RETURNING *;
 
 -- name: AddFibbingItRound :one
-INSERT INTO fibbing_it_rounds (id, round_type, round, submit_deadline, fibber_question_id, normal_question_id, room_id) VALUES (?, ?, ?, ?, ?, ?, ?) RETURNING *;
+INSERT INTO fibbing_it_rounds (id, round_type, round, fibber_question_id, normal_question_id, room_id, game_state_id) VALUES (?, ?, ?, ?, ?, ?, ?) RETURNING *;
+
+-- name: AddGameState :one
+INSERT INTO game_state (id, room_id, submit_deadline, state) VALUES (?, ?, ?, ?) RETURNING *;
 
 -- name: AddFibbingItAnswer :one
 INSERT INTO fibbing_it_answers (id, answer, round_id, player_id) VALUES (?, ?, ?, ?) RETURNING *;
 
 -- name: AddFibbingItRole :one
 INSERT INTO fibbing_it_player_roles (id, player_role, round_id, player_id) VALUES (?, ?, ?, ?) RETURNING *;
+
+-- name: AddFibbingItVoting :one
+INSERT INTO fibbing_it_voting (id, player_id, round_id, votes) VALUES (?, ?, ?, ?) RETURNING *;
 
 -- name: AddQuestion :one
 INSERT INTO questions (id, game_name, round, question, language_code, group_id) VALUES (?, ?, ?, ?, ?, ?) RETURNING *;
@@ -84,13 +90,13 @@ ORDER BY RANDOM()
 LIMIT 1;
 
 -- name: GetLatestRoundByPlayerID :one
-SELECT fir.*
+SELECT fir.*, gs.submit_deadline
 FROM fibbing_it_rounds fir
 JOIN rooms_players rp ON fir.room_id = rp.room_id
+JOIN game_state gs ON fir.room_id = gs.room_id
 WHERE rp.player_id = ?
 ORDER BY fir.created_at DESC
 LIMIT 1;
-
 
 -- name: GetGameStateByPlayerID :one
 SELECT

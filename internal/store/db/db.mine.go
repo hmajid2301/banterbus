@@ -52,6 +52,16 @@ func RoomStateFromString(s string) (RoomState, error) {
 	return 0, errors.New("invalid RoomState string")
 }
 
+type GameStateEnum int
+
+const (
+	GAMESTATE_FIBBING_IT_SHOW_QUESTION GameStateEnum = iota
+)
+
+func (gs GameStateEnum) String() string {
+	return [...]string{"GAMESTATE_FIBBING_IT_SHOW_QUESTION"}[gs]
+}
+
 func GetDB(dbFolder string) (*sql.DB, error) {
 	if _, err := os.Stat(dbFolder); os.IsNotExist(err) {
 		permissions := 0755

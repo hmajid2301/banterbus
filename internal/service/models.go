@@ -41,3 +41,10 @@ type GameState struct {
 	RoundType string
 	RoomCode  string
 }
+
+type VotingPlayer struct {
+	ID       string
+	Nickname string
+	Avatar   []byte
+	Votes    int
+}

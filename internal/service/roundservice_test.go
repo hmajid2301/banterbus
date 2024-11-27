@@ -31,7 +31,7 @@ func TestRoundServiceSubmitAnswer(t *testing.T) {
 			RoomState: sqlc.ROOMSTATE_PLAYING.String(),
 		}, nil)
 		mockStore.EXPECT().GetLatestRoundByPlayerID(ctx, playerID).Return(
-			sqlc.FibbingItRound{
+			sqlc.GetLatestRoundByPlayerIDRow{
 				ID:             roundID,
 				SubmitDeadline: now.Add(1 * time.Hour),
 			}, nil)
@@ -93,7 +93,7 @@ func TestRoundServiceSubmitAnswer(t *testing.T) {
 			RoomState: sqlc.ROOMSTATE_PLAYING.String(),
 		}, nil)
 		mockStore.EXPECT().GetLatestRoundByPlayerID(ctx, playerID).Return(
-			sqlc.FibbingItRound{},
+			sqlc.GetLatestRoundByPlayerIDRow{},
 			fmt.Errorf("failed to get latest round"),
 		)
 
@@ -114,9 +114,8 @@ func TestRoundServiceSubmitAnswer(t *testing.T) {
 			RoomState: sqlc.ROOMSTATE_PLAYING.String(),
 		}, nil)
 		mockStore.EXPECT().GetLatestRoundByPlayerID(ctx, playerID).Return(
-			sqlc.FibbingItRound{
-				ID:             roundID,
-				SubmitDeadline: time.Now().Add(-1 * time.Hour),
+			sqlc.GetLatestRoundByPlayerIDRow{
+				ID: roundID,
 			}, nil)
 
 		err := srv.SubmitAnswer(ctx, playerID, "My answer", now)
@@ -136,7 +135,7 @@ func TestRoundServiceSubmitAnswer(t *testing.T) {
 			RoomState: sqlc.ROOMSTATE_PLAYING.String(),
 		}, nil)
 		mockStore.EXPECT().GetLatestRoundByPlayerID(ctx, playerID).Return(
-			sqlc.FibbingItRound{
+			sqlc.GetLatestRoundByPlayerIDRow{
 				ID:             roundID,
 				SubmitDeadline: now.Add(1 * time.Hour),
 			}, nil)

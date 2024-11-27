@@ -16,7 +16,6 @@ type FibbingItAnswer struct {
 	Answer    string
 	PlayerID  string
 	RoundID   string
-	Foreign   interface{}
 }
 
 type FibbingItPlayerRole struct {
@@ -34,10 +33,28 @@ type FibbingItRound struct {
 	UpdatedAt        sql.NullTime
 	RoundType        string
 	Round            int64
-	SubmitDeadline   time.Time
 	FibberQuestionID string
 	NormalQuestionID string
 	RoomID           string
+	GameStateID      string
+}
+
+type FibbingItVoting struct {
+	ID        string
+	CreatedAt sql.NullTime
+	UpdatedAt sql.NullTime
+	Votes     sql.NullInt64
+	PlayerID  string
+	RoundID   string
+}
+
+type GameState struct {
+	ID             string
+	CreatedAt      sql.NullTime
+	UpdatedAt      sql.NullTime
+	RoomID         string
+	SubmitDeadline time.Time
+	State          string
 }
 
 type Player struct {

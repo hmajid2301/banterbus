@@ -194,6 +194,120 @@ func (_c *MockStorer_AddFibbingItRound_Call) RunAndReturn(run func(context.Conte
 	return _c
 }
 
+// AddFibbingItVoting provides a mock function with given fields: ctx, arg
+func (_m *MockStorer) AddFibbingItVoting(ctx context.Context, arg sqlc.AddFibbingItVotingParams) (sqlc.FibbingItVoting, error) {
+	ret := _m.Called(ctx, arg)
+
+	if len(ret) == 0 {
+		panic("no return value specified for AddFibbingItVoting")
+	}
+
+	var r0 sqlc.FibbingItVoting
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, sqlc.AddFibbingItVotingParams) (sqlc.FibbingItVoting, error)); ok {
+		return rf(ctx, arg)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, sqlc.AddFibbingItVotingParams) sqlc.FibbingItVoting); ok {
+		r0 = rf(ctx, arg)
+	} else {
+		r0 = ret.Get(0).(sqlc.FibbingItVoting)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, sqlc.AddFibbingItVotingParams) error); ok {
+		r1 = rf(ctx, arg)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockStorer_AddFibbingItVoting_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'AddFibbingItVoting'
+type MockStorer_AddFibbingItVoting_Call struct {
+	*mock.Call
+}
+
+// AddFibbingItVoting is a helper method to define mock.On call
+//   - ctx context.Context
+//   - arg sqlc.AddFibbingItVotingParams
+func (_e *MockStorer_Expecter) AddFibbingItVoting(ctx interface{}, arg interface{}) *MockStorer_AddFibbingItVoting_Call {
+	return &MockStorer_AddFibbingItVoting_Call{Call: _e.mock.On("AddFibbingItVoting", ctx, arg)}
+}
+
+func (_c *MockStorer_AddFibbingItVoting_Call) Run(run func(ctx context.Context, arg sqlc.AddFibbingItVotingParams)) *MockStorer_AddFibbingItVoting_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(sqlc.AddFibbingItVotingParams))
+	})
+	return _c
+}
+
+func (_c *MockStorer_AddFibbingItVoting_Call) Return(_a0 sqlc.FibbingItVoting, _a1 error) *MockStorer_AddFibbingItVoting_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockStorer_AddFibbingItVoting_Call) RunAndReturn(run func(context.Context, sqlc.AddFibbingItVotingParams) (sqlc.FibbingItVoting, error)) *MockStorer_AddFibbingItVoting_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// AddGameState provides a mock function with given fields: ctx, arg
+func (_m *MockStorer) AddGameState(ctx context.Context, arg sqlc.AddGameStateParams) (sqlc.GameState, error) {
+	ret := _m.Called(ctx, arg)
+
+	if len(ret) == 0 {
+		panic("no return value specified for AddGameState")
+	}
+
+	var r0 sqlc.GameState
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, sqlc.AddGameStateParams) (sqlc.GameState, error)); ok {
+		return rf(ctx, arg)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, sqlc.AddGameStateParams) sqlc.GameState); ok {
+		r0 = rf(ctx, arg)
+	} else {
+		r0 = ret.Get(0).(sqlc.GameState)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, sqlc.AddGameStateParams) error); ok {
+		r1 = rf(ctx, arg)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockStorer_AddGameState_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'AddGameState'
+type MockStorer_AddGameState_Call struct {
+	*mock.Call
+}
+
+// AddGameState is a helper method to define mock.On call
+//   - ctx context.Context
+//   - arg sqlc.AddGameStateParams
+func (_e *MockStorer_Expecter) AddGameState(ctx interface{}, arg interface{}) *MockStorer_AddGameState_Call {
+	return &MockStorer_AddGameState_Call{Call: _e.mock.On("AddGameState", ctx, arg)}
+}
+
+func (_c *MockStorer_AddGameState_Call) Run(run func(ctx context.Context, arg sqlc.AddGameStateParams)) *MockStorer_AddGameState_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(sqlc.AddGameStateParams))
+	})
+	return _c
+}
+
+func (_c *MockStorer_AddGameState_Call) Return(_a0 sqlc.GameState, _a1 error) *MockStorer_AddGameState_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockStorer_AddGameState_Call) RunAndReturn(run func(context.Context, sqlc.AddGameStateParams) (sqlc.GameState, error)) *MockStorer_AddGameState_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // AddPlayer provides a mock function with given fields: ctx, arg
 func (_m *MockStorer) AddPlayer(ctx context.Context, arg sqlc.AddPlayerParams) (sqlc.Player, error) {
 	ret := _m.Called(ctx, arg)
@@ -749,22 +863,22 @@ func (_c *MockStorer_GetGameStateByPlayerID_Call) RunAndReturn(run func(context.
 }
 
 // GetLatestRoundByPlayerID provides a mock function with given fields: ctx, playerID
-func (_m *MockStorer) GetLatestRoundByPlayerID(ctx context.Context, playerID string) (sqlc.FibbingItRound, error) {
+func (_m *MockStorer) GetLatestRoundByPlayerID(ctx context.Context, playerID string) (sqlc.GetLatestRoundByPlayerIDRow, error) {
 	ret := _m.Called(ctx, playerID)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetLatestRoundByPlayerID")
 	}
 
-	var r0 sqlc.FibbingItRound
+	var r0 sqlc.GetLatestRoundByPlayerIDRow
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string) (sqlc.FibbingItRound, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, string) (sqlc.GetLatestRoundByPlayerIDRow, error)); ok {
 		return rf(ctx, playerID)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, string) sqlc.FibbingItRound); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, string) sqlc.GetLatestRoundByPlayerIDRow); ok {
 		r0 = rf(ctx, playerID)
 	} else {
-		r0 = ret.Get(0).(sqlc.FibbingItRound)
+		r0 = ret.Get(0).(sqlc.GetLatestRoundByPlayerIDRow)
 	}
 
 	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
@@ -795,12 +909,12 @@ func (_c *MockStorer_GetLatestRoundByPlayerID_Call) Run(run func(ctx context.Con
 	return _c
 }
 
-func (_c *MockStorer_GetLatestRoundByPlayerID_Call) Return(_a0 sqlc.FibbingItRound, _a1 error) *MockStorer_GetLatestRoundByPlayerID_Call {
+func (_c *MockStorer_GetLatestRoundByPlayerID_Call) Return(_a0 sqlc.GetLatestRoundByPlayerIDRow, _a1 error) *MockStorer_GetLatestRoundByPlayerID_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *MockStorer_GetLatestRoundByPlayerID_Call) RunAndReturn(run func(context.Context, string) (sqlc.FibbingItRound, error)) *MockStorer_GetLatestRoundByPlayerID_Call {
+func (_c *MockStorer_GetLatestRoundByPlayerID_Call) RunAndReturn(run func(context.Context, string) (sqlc.GetLatestRoundByPlayerIDRow, error)) *MockStorer_GetLatestRoundByPlayerID_Call {
 	_c.Call.Return(run)
 	return _c
 }

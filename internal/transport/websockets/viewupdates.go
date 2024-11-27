@@ -56,3 +56,21 @@ func (s *Subscriber) updateClientsAboutGame(ctx context.Context, gameState servi
 
 	return nil
 }
+
+func (s *Subscriber) updateClientAboutVoting(ctx context.Context, players []service.VotingPlayer) error {
+	var buf bytes.Buffer
+	for _, player := range players {
+		component := sections.Voting(players)
+		err := component.Render(ctx, &buf)
+		if err != nil {
+			return err
+		}
+
+		err = s.websocket.Publish(ctx, player.ID, buf.Bytes())
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}

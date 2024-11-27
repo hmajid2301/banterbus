@@ -90,11 +90,20 @@ func (s DB) StartGame(ctx context.Context, arg StartGameArgs) error {
 
 	timeAllowedToSubmit := 66
 	deadline := time.Now().Add(time.Duration(timeAllowedToSubmit) * time.Second)
+	_, err = s.WithTx(tx).AddGameState(ctx, AddGameStateParams{
+		ID:             uuid.Must(uuid.NewV7()).String(),
+		RoomID:         arg.RoomID,
+		State:          GAMESTATE_FIBBING_IT_SHOW_QUESTION.String(),
+		SubmitDeadline: deadline,
+	})
+	if err != nil {
+		return err
+	}
+
 	round, err := s.WithTx(tx).AddFibbingItRound(ctx, AddFibbingItRoundParams{
 		ID:               uuid.Must(uuid.NewV7()).String(),
 		RoundType:        "free_form",
 		Round:            1,
-		SubmitDeadline:   deadline,
 		FibberQuestionID: arg.FibberQuestionID,
 		NormalQuestionID: arg.NormalsQuestionID,
 		RoomID:           arg.RoomID,

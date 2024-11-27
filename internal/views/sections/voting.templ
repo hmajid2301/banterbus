@@ -1,0 +1,15 @@
+package sections
+
+import "gitlab.com/hmajid2301/banterbus/internal/service"
+
+templ Voting(players []service.VotingPlayer) {
+	<div hx-swap-oob="innerHTML:#page">
+		<div class="flex flex-col space-y-4 text-text2">
+			for _, player := range players {
+				<div class="flex flex-col">
+					{ player.Nickname }
+				</div>
+			}
+		</div>
+	</div>
+}
