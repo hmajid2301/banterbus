@@ -2,7 +2,7 @@ package websockets
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"log/slog"
 	"time"
 
@@ -33,7 +33,7 @@ func (s *SubmitAnswer) Handle(ctx context.Context, client *client, sub *Subscrib
 	if err != nil {
 		errStr := "failed to submit answer, try again"
 		clientErr := sub.updateClientAboutErr(ctx, client.playerID, errStr)
-		return fmt.Errorf("%w: %w", err, clientErr)
+		return errors.Join(clientErr, err)
 	}
 
 	return nil
@@ -57,7 +57,7 @@ func (s *SubmitVote) Handle(ctx context.Context, client *client, sub *Subscriber
 	if err != nil {
 		errStr := "failed to submit vote, try again"
 		clientErr := sub.updateClientAboutErr(ctx, client.playerID, errStr)
-		return fmt.Errorf("%w: %w", err, clientErr)
+		return errors.Join(clientErr, err)
 	}
 
 	err = sub.updateClientAboutVoting(ctx, votes)

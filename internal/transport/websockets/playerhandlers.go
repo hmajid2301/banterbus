@@ -2,7 +2,7 @@ package websockets
 
 import (
 	"context"
-	"fmt"
+	"errors"
 
 	"gitlab.com/hmajid2301/banterbus/internal/service"
 	sqlc "gitlab.com/hmajid2301/banterbus/internal/store/db"
@@ -25,7 +25,7 @@ func (u *UpdateNickname) Handle(ctx context.Context, client *client, sub *Subscr
 			errStr = err.Error()
 		}
 		clientErr := sub.updateClientAboutErr(ctx, client.playerID, errStr)
-		return fmt.Errorf("%w: %w", err, clientErr)
+		return errors.Join(clientErr, err)
 	}
 
 	err = sub.updateClientsAboutLobby(ctx, updatedRoom)
@@ -37,7 +37,7 @@ func (g *GenerateNewAvatar) Handle(ctx context.Context, client *client, sub *Sub
 	if err != nil {
 		errStr := "failed to generate new avatar"
 		clientErr := sub.updateClientAboutErr(ctx, client.playerID, errStr)
-		return fmt.Errorf("%w: %w", err, clientErr)
+		return errors.Join(clientErr, err)
 	}
 
 	err = sub.updateClientsAboutLobby(ctx, updatedRoom)
@@ -50,7 +50,7 @@ func (t *TogglePlayerIsReady) Handle(ctx context.Context, client *client, sub *S
 	if err != nil {
 		errStr := "failed to update ready status"
 		clientErr := sub.updateClientAboutErr(ctx, client.playerID, errStr)
-		return fmt.Errorf("%w: %w", err, clientErr)
+		return errors.Join(clientErr, err)
 	}
 
 	err = sub.updateClientsAboutLobby(ctx, updatedRoom)

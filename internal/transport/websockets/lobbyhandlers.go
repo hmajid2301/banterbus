@@ -2,6 +2,7 @@ package websockets
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -31,7 +32,7 @@ func (c *CreateRoom) Handle(ctx context.Context, client *client, sub *Subscriber
 	if err != nil {
 		errStr := "failed to create room"
 		clientErr := sub.updateClientAboutErr(ctx, client.playerID, errStr)
-		return fmt.Errorf("%w: %w", err, clientErr)
+		return errors.Join(clientErr, err)
 	}
 
 	err = sub.updateClientsAboutLobby(ctx, lobby)
@@ -46,7 +47,7 @@ func (j *JoinLobby) Handle(ctx context.Context, client *client, sub *Subscriber)
 			errStr = err.Error()
 		}
 		clientErr := sub.updateClientAboutErr(ctx, client.playerID, errStr)
-		return fmt.Errorf("%w: %w", err, clientErr)
+		return errors.Join(clientErr, err)
 	}
 
 	err = sub.updateClientsAboutLobby(ctx, updatedRoom)
@@ -58,7 +59,7 @@ func (s *StartGame) Handle(ctx context.Context, client *client, sub *Subscriber)
 	if err != nil {
 		errStr := "failed to start game"
 		clientErr := sub.updateClientAboutErr(ctx, client.playerID, errStr)
-		return fmt.Errorf("%w: %w", err, clientErr)
+		return errors.Join(clientErr, err)
 	}
 	err = sub.updateClientsAboutGame(ctx, updatedRoom)
 	if err != nil {
@@ -83,7 +84,7 @@ func (k *KickPlayer) Handle(ctx context.Context, client *client, sub *Subscriber
 	if err != nil {
 		errStr := "failed to kick player"
 		clientErr := sub.updateClientAboutErr(ctx, client.playerID, errStr)
-		return fmt.Errorf("%w: %w", err, clientErr)
+		return errors.Join(clientErr, err)
 	}
 
 	err = sub.updateClientsAboutLobby(ctx, updatedRoom)

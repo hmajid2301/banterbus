@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"log/slog"
@@ -149,7 +150,7 @@ func (s Subscriber) Reconnect(ctx context.Context, client *client) error {
 		if err != nil {
 			errStr := "failed to reconnect to game"
 			clientErr := s.updateClientAboutErr(ctx, client.playerID, errStr)
-			return fmt.Errorf("%w: %w", err, clientErr)
+			return errors.Join(clientErr, err)
 		}
 
 		var mePlayer service.LobbyPlayer
@@ -165,7 +166,7 @@ func (s Subscriber) Reconnect(ctx context.Context, client *client) error {
 		if err != nil {
 			errStr := "failed to reconnect to game"
 			clientErr := s.updateClientAboutErr(ctx, client.playerID, errStr)
-			return fmt.Errorf("%w: %w", err, clientErr)
+			return errors.Join(clientErr, err)
 		}
 
 		component = sections.Game(gameState, gameState.Players[0])
