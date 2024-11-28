@@ -56,10 +56,11 @@ type GameStateEnum int
 
 const (
 	GAMESTATE_FIBBING_IT_SHOW_QUESTION GameStateEnum = iota
+	GAMESTATE_FIBBING_IT_VOTING
 )
 
 func (gs GameStateEnum) String() string {
-	return [...]string{"GAMESTATE_FIBBING_IT_SHOW_QUESTION"}[gs]
+	return [...]string{"FIBBING_IT_SHOW_QUESTION", "FIBBING_IT_VOTING"}[gs]
 }
 
 func GetDB(dbFolder string) (*sql.DB, error) {

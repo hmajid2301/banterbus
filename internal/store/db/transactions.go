@@ -67,6 +67,7 @@ func (s DB) AddPlayerToRoom(ctx context.Context, arg AddPlayerToRoomArgs) error 
 
 type StartGameArgs struct {
 	RoomID            string
+	GameStateID       string
 	NormalsQuestionID string
 	FibberQuestionID  string
 	Players           []GetAllPlayersInRoomRow
@@ -91,7 +92,7 @@ func (s DB) StartGame(ctx context.Context, arg StartGameArgs) error {
 	timeAllowedToSubmit := 66
 	deadline := time.Now().Add(time.Duration(timeAllowedToSubmit) * time.Second)
 	_, err = s.WithTx(tx).AddGameState(ctx, AddGameStateParams{
-		ID:             uuid.Must(uuid.NewV7()).String(),
+		ID:             arg.GameStateID,
 		RoomID:         arg.RoomID,
 		State:          GAMESTATE_FIBBING_IT_SHOW_QUESTION.String(),
 		SubmitDeadline: deadline,

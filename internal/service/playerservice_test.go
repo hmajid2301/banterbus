@@ -586,7 +586,7 @@ func TestPlayerServiceGetGameState(t *testing.T) {
 
 		ctx := context.Background()
 
-		mockStore.EXPECT().GetGameStateByPlayerID(ctx, playerID).Return(sqlc.GetGameStateByPlayerIDRow{
+		mockStore.EXPECT().GetCurrentQuestionByPlayerID(ctx, playerID).Return(sqlc.GetCurrentQuestionByPlayerIDRow{
 			ID:             playerID,
 			Avatar:         []byte(""),
 			Nickname:       "nickname",
@@ -625,7 +625,7 @@ func TestPlayerServiceGetGameState(t *testing.T) {
 
 		ctx := context.Background()
 
-		mockStore.EXPECT().GetGameStateByPlayerID(ctx, playerID).Return(sqlc.GetGameStateByPlayerIDRow{
+		mockStore.EXPECT().GetCurrentQuestionByPlayerID(ctx, playerID).Return(sqlc.GetCurrentQuestionByPlayerIDRow{
 			ID:             playerID,
 			Avatar:         []byte(""),
 			Nickname:       "nickname",
@@ -664,8 +664,8 @@ func TestPlayerServiceGetGameState(t *testing.T) {
 
 		ctx := context.Background()
 
-		mockStore.EXPECT().GetGameStateByPlayerID(ctx, playerID).Return(
-			sqlc.GetGameStateByPlayerIDRow{}, fmt.Errorf("failed to get game state"),
+		mockStore.EXPECT().GetCurrentQuestionByPlayerID(ctx, playerID).Return(
+			sqlc.GetCurrentQuestionByPlayerIDRow{}, fmt.Errorf("failed to get questions"),
 		)
 
 		_, err := srv.GetGameState(ctx, playerID)

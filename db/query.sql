@@ -10,6 +10,52 @@ INSERT INTO rooms_players (room_id, player_id) VALUES (?, ?) RETURNING *;
 -- name: RemovePlayerFromRoom :one
 UPDATE rooms_players SET room_id = "" WHERE player_id = ? RETURNING *;
 
+-- name: UpdateRoomState :one
+UPDATE rooms SET room_state = ? WHERE id = ? RETURNING *;
+
+-- name: GetPlayerByID :one
+SELECT * FROM players WHERE id = ?;
+
+-- name: UpdateNickname :one
+UPDATE players SET nickname = ? WHERE id = ? RETURNING *;
+
+-- name: UpdateAvatar :one
+UPDATE players SET avatar = ? WHERE id = ? RETURNING *;
+
+-- name: UpdateIsReady :one
+UPDATE players SET is_ready = ? WHERE id = ? RETURNING *;
+
+-- name: AddFibbingItRound :one
+INSERT INTO fibbing_it_rounds (id, round_type, round, fibber_question_id, normal_question_id, room_id, game_state_id) VALUES (?, ?, ?, ?, ?, ?, ?) RETURNING *;
+
+-- name: AddGameState :one
+INSERT INTO game_state (id, room_id, submit_deadline, state) VALUES (?, ?, ?, ?) RETURNING *;
+
+-- name: UpdateGameState :one
+UPDATE game_state SET state = ? AND submit_deadline = ? WHERE id = ? RETURNING *;
+
+-- name: AddFibbingItAnswer :one
+INSERT INTO fibbing_it_answers (id, answer, round_id, player_id) VALUES (?, ?, ?, ?) RETURNING *;
+
+-- name: AddFibbingItRole :one
+INSERT INTO fibbing_it_player_roles (id, player_role, round_id, player_id) VALUES (?, ?, ?, ?) RETURNING *;
+
+-- name: UpsertFibbingItVote :exec
+INSERT INTO fibbing_it_votes (id, created_at, updated_at, player_id, voted_for_player_id, round_id)
+VALUES (?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, ?, ?, ?)
+ON CONFLICT(id) DO UPDATE SET
+    updated_at = EXCLUDED.updated_at,
+    player_id = EXCLUDED.player_id,
+    voted_for_player_id = EXCLUDED.voted_for_player_id,
+    round_id = EXCLUDED.round
+RETURNING *;
+
+-- name: AddQuestion :one
+INSERT INTO questions (id, game_name, round, question, language_code, group_id) VALUES (?, ?, ?, ?, ?, ?) RETURNING *;
+
+-- name: AddQuestionsGroup :one
+INSERT INTO questions_groups (id, group_name, group_type) VALUES (?, ?, ?) RETURNING *;
+
 -- name: GetAllPlayersInRoom :many
 SELECT p.id, p.created_at, p.updated_at, p.avatar, p.nickname, p.is_ready, r.room_code, r.host_player
 FROM players p
@@ -33,47 +79,23 @@ WHERE rp.room_id = (
 )
 ORDER BY p.created_at;
 
+-- name: GetGameStateByPlayerID :one
+SELECT
+    gs.id,
+    gs.created_at,
+    gs.updated_at,
+    gs.room_id,
+    gs.submit_deadline,
+    gs.state
+FROM game_state gs
+JOIN rooms_players rp ON gs.room_id = rp.room_id
+WHERE rp.player_id = ?;
+
 -- name: GetRoomByPlayerID :one
 SELECT r.* FROM rooms r JOIN rooms_players rp ON r.id = rp.room_id WHERE rp.player_id = ?;
 
 -- name: GetRoomByCode :one
 SELECT * FROM rooms WHERE room_code = ?;
-
--- name: UpdateRoomState :one
-UPDATE rooms SET room_state = ? WHERE id = ? RETURNING *;
-
--- name: GetPlayerByID :one
-SELECT * FROM players WHERE id = ?;
-
--- name: UpdateNickname :one
-UPDATE players SET nickname = ? WHERE id = ? RETURNING *;
-
--- name: UpdateAvatar :one
-UPDATE players SET avatar = ? WHERE id = ? RETURNING *;
-
--- name: UpdateIsReady :one
-UPDATE players SET is_ready = ? WHERE id = ? RETURNING *;
-
--- name: AddFibbingItRound :one
-INSERT INTO fibbing_it_rounds (id, round_type, round, fibber_question_id, normal_question_id, room_id, game_state_id) VALUES (?, ?, ?, ?, ?, ?, ?) RETURNING *;
-
--- name: AddGameState :one
-INSERT INTO game_state (id, room_id, submit_deadline, state) VALUES (?, ?, ?, ?) RETURNING *;
-
--- name: AddFibbingItAnswer :one
-INSERT INTO fibbing_it_answers (id, answer, round_id, player_id) VALUES (?, ?, ?, ?) RETURNING *;
-
--- name: AddFibbingItRole :one
-INSERT INTO fibbing_it_player_roles (id, player_role, round_id, player_id) VALUES (?, ?, ?, ?) RETURNING *;
-
--- name: AddFibbingItVoting :one
-INSERT INTO fibbing_it_voting (id, player_id, round_id, votes) VALUES (?, ?, ?, ?) RETURNING *;
-
--- name: AddQuestion :one
-INSERT INTO questions (id, game_name, round, question, language_code, group_id) VALUES (?, ?, ?, ?, ?, ?) RETURNING *;
-
--- name: AddQuestionsGroup :one
-INSERT INTO questions_groups (id, group_name, group_type) VALUES (?, ?, ?) RETURNING *;
 
 -- name: GetRandomQuestionByRound :one
 SELECT * FROM questions WHERE game_name = ? AND round = ? AND language_code = ? AND enabled = TRUE ORDER BY RANDOM() LIMIT 1;
@@ -98,7 +120,7 @@ WHERE rp.player_id = ?
 ORDER BY fir.created_at DESC
 LIMIT 1;
 
--- name: GetGameStateByPlayerID :one
+-- name: GetCurrentQuestionByPlayerID :one
 SELECT
     p.id,
     p.nickname,
@@ -122,3 +144,15 @@ WHERE rp.room_id = (
     WHERE rp_inner.player_id = ?
 )
 ORDER BY p.created_at;
+
+-- name: CountVotesByRoundID :many
+SELECT
+    fiv.voted_for_player_id,
+    COUNT(*) AS vote_count,
+    p.nickname,
+    p.avatar
+FROM fibbing_it_votes fiv
+JOIN players p ON fiv.voted_for_player_id = p.id
+WHERE fiv.round_id = ?
+GROUP BY fiv.voted_for_player_id, p.nickname, p.avatar;
+

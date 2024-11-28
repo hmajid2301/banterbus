@@ -39,13 +39,13 @@ type FibbingItRound struct {
 	GameStateID      string
 }
 
-type FibbingItVoting struct {
-	ID        string
-	CreatedAt sql.NullTime
-	UpdatedAt sql.NullTime
-	Votes     sql.NullInt64
-	PlayerID  string
-	RoundID   string
+type FibbingItVote struct {
+	ID               string
+	CreatedAt        sql.NullTime
+	UpdatedAt        sql.NullTime
+	PlayerID         string
+	VotedForPlayerID string
+	RoundID          string
 }
 
 type GameState struct {

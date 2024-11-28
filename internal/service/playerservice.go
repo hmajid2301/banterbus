@@ -137,7 +137,7 @@ func (p *PlayerService) GetLobby(ctx context.Context, playerID string) (Lobby, e
 }
 
 func (p *PlayerService) GetGameState(ctx context.Context, playerID string) (GameState, error) {
-	g, err := p.store.GetGameStateByPlayerID(ctx, playerID)
+	g, err := p.store.GetCurrentQuestionByPlayerID(ctx, playerID)
 	if err != nil {
 		return GameState{}, err
 	}

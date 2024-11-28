@@ -88,3 +88,15 @@ func (s *SubmitAnswer) Validate() error {
 	}
 	return nil
 }
+
+type SubmitVote struct {
+	VotedPlayerNickname string `json:"voted_player_nickname"`
+}
+
+func (s *SubmitVote) Validate() error {
+	if s.VotedPlayerNickname == "" {
+		return errors.New("player nickname is required")
+	}
+
+	return nil
+}

@@ -628,6 +628,7 @@ func TestLobbyServiceKickPlayer(t *testing.T) {
 func TestLobbyServiceStart(t *testing.T) {
 	gameName := "fibbing_it"
 	groupID := "12345-9f7a-4392-b523-fd433b3208ea"
+	gameStateID := "77777-9f7a-4392-b523-fd433b3208ea"
 
 	defaultNewPlayer := service.NewPlayer{
 		ID:       "11111-9f7a-4392-b523-fd433b3208ea",
@@ -684,7 +685,9 @@ func TestLobbyServiceStart(t *testing.T) {
 			Question: "What is the capital of Germany?",
 		}, nil)
 		mockRandom.EXPECT().GetFibberIndex(2).Return(1)
+		mockRandom.EXPECT().GetID().Return(gameStateID)
 		mockStore.EXPECT().StartGame(ctx, sqlc.StartGameArgs{
+			GameStateID:       gameStateID,
 			RoomID:            roomID,
 			NormalsQuestionID: "555555-9f7a-4392-b523-fd433b3208ea",
 			FibberQuestionID:  "666666-9f7a-4392-b523-fd433b3208ea",
@@ -709,6 +712,7 @@ func TestLobbyServiceStart(t *testing.T) {
 
 		gameState, err := srv.Start(ctx, roomCode, hostPlayerID)
 		expectedGameState := service.GameState{
+			GameStateID: gameStateID,
 			Players: []service.PlayerWithRole{
 				{
 					ID:       defaultNewPlayer.ID,
@@ -997,7 +1001,9 @@ func TestLobbyServiceStart(t *testing.T) {
 			Question: "What is the capital of Germany?",
 		}, nil)
 		mockRandom.EXPECT().GetFibberIndex(2).Return(1)
+		mockRandom.EXPECT().GetID().Return(gameStateID)
 		mockStore.EXPECT().StartGame(ctx, sqlc.StartGameArgs{
+			GameStateID:       gameStateID,
 			RoomID:            roomID,
 			NormalsQuestionID: "555555-9f7a-4392-b523-fd433b3208ea",
 			FibberQuestionID:  "666666-9f7a-4392-b523-fd433b3208ea",

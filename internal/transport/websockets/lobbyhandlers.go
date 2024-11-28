@@ -65,25 +65,10 @@ func (s *StartGame) Handle(ctx context.Context, client *client, sub *Subscriber)
 		return err
 	}
 
+	time.Sleep(votingDelay)
+
 	// TODO: we want to start a state machine, as everything will be time based started by backen by backend.
-	go func() {
-		time.Sleep(votingDelay)
-
-		var players []service.VotingPlayer
-		for _, player := range updatedRoom.Players {
-			players = append(players, service.VotingPlayer{
-				ID:       player.ID,
-				Nickname: player.Nickname,
-				Avatar:   player.Avatar,
-			})
-		}
-
-		err = sub.updateClientAboutVoting(ctx, players)
-		if err != nil {
-			// TODO: log error
-			fmt.Printf("failed to update clients about game: %v\n", err)
-		}
-	}()
+	go MoveToVoting(ctx, sub, updatedRoom.Players, updatedRoom.GameStateID)
 
 	return nil
 }

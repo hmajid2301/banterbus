@@ -99,14 +99,15 @@ CREATE TABLE fibbing_it_player_roles (
     FOREIGN KEY (player_id) REFERENCES players (id)
 );
 
-CREATE TABLE fibbing_it_voting (
+CREATE TABLE fibbing_it_votes (
     id TEXT PRIMARY KEY,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    votes INTEGER DEFAULT 0,
     player_id TEXT NOT NULL,
+    voted_for_player_id TEXT NOT NULL,
     round_id TEXT NOT NULL,
     FOREIGN KEY (player_id) REFERENCES players (id),
+    FOREIGN KEY (voted_for_player_id) REFERENCES players (id),
     FOREIGN KEY (round_id) REFERENCES fibbing_it_rounds (id)
 );
 -- +goose StatementEnd
@@ -122,5 +123,5 @@ DROP TABLE questions_groups;
 DROP TABLE fibbing_it_rounds;
 DROP TABLE fibbing_it_answers;
 DROP TABLE fibbing_it_player_roles;
-DROP TABLE fibbing_it_voting;
+DROP TABLE fibbing_it_votes;
 -- +goose StatementEnd

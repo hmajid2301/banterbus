@@ -36,10 +36,11 @@ type PlayerWithRole struct {
 }
 
 type GameState struct {
-	Players   []PlayerWithRole
-	Round     int
-	RoundType string
-	RoomCode  string
+	GameStateID string
+	Players     []PlayerWithRole
+	Round       int
+	RoundType   string
+	RoomCode    string
 }
 
 type VotingPlayer struct {

@@ -244,7 +244,9 @@ func (r *LobbyService) Start(ctx context.Context, roomCode string, playerID stri
 	players := []PlayerWithRole{}
 	randomFibberLoc := r.randomizer.GetFibberIndex(len(playersInRoom))
 
+	gameStateID := r.randomizer.GetID()
 	err = r.store.StartGame(ctx, sqlc.StartGameArgs{
+		GameStateID:       gameStateID,
 		RoomID:            room.ID,
 		NormalsQuestionID: normalsQuestion.ID,
 		FibberQuestionID:  fibberQuestion.ID,
@@ -274,10 +276,11 @@ func (r *LobbyService) Start(ctx context.Context, roomCode string, playerID stri
 	}
 
 	gameState := GameState{
-		Players:   players,
-		Round:     1,
-		RoundType: "free_form",
-		RoomCode:  roomCode,
+		GameStateID: gameStateID,
+		Players:     players,
+		Round:       1,
+		RoundType:   "free_form",
+		RoomCode:    roomCode,
 	}
 	return gameState, nil
 }
