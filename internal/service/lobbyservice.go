@@ -86,6 +86,8 @@ func (r *LobbyService) Create(ctx context.Context, gameName string, newHostPlaye
 				ID:       player.ID,
 				Nickname: player.Nickname,
 				Avatar:   string(player.Avatar),
+				IsReady:  false,
+				IsHost:   true,
 			},
 		},
 	}

@@ -51,6 +51,8 @@ func TestLobbyServiceCreate(t *testing.T) {
 					ID:       defaultNewPlayer.ID,
 					Nickname: defaultNewPlayer.Nickname,
 					Avatar:   string(defaultNewPlayer.Avatar),
+					IsHost:   true,
+					IsReady:  false,
 				},
 			},
 		}
@@ -92,6 +94,8 @@ func TestLobbyServiceCreate(t *testing.T) {
 					ID:       newPlayer.ID,
 					Nickname: newPlayer.Nickname,
 					Avatar:   string(newPlayer.Avatar),
+					IsHost:   true,
+					IsReady:  false,
 				},
 			},
 		}
@@ -130,6 +134,8 @@ func TestLobbyServiceCreate(t *testing.T) {
 					ID:       defaultNewPlayer.ID,
 					Nickname: defaultNewPlayer.Nickname,
 					Avatar:   string(defaultNewPlayer.Avatar),
+					IsHost:   true,
+					IsReady:  false,
 				},
 			},
 		}
