@@ -35,7 +35,7 @@ type PlayerWithRole struct {
 	Avatar   []byte
 }
 
-type GameState struct {
+type QuestionState struct {
 	GameStateID string
 	Players     []PlayerWithRole
 	Round       int

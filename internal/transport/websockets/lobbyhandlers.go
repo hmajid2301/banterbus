@@ -14,7 +14,7 @@ const votingDelay = 60 * time.Second
 type LobbyServicer interface {
 	Create(ctx context.Context, gameName string, player service.NewHostPlayer) (service.Lobby, error)
 	Join(ctx context.Context, roomCode string, playerID string, playerNickname string) (service.Lobby, error)
-	Start(ctx context.Context, roomCode string, playerID string) (service.GameState, error)
+	Start(ctx context.Context, roomCode string, playerID string) (service.QuestionState, error)
 	KickPlayer(
 		ctx context.Context,
 		roomCode string,

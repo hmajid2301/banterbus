@@ -196,33 +196,33 @@ func (r *LobbyService) KickPlayer(
 	return lobby, playerToKickID, nil
 }
 
-func (r *LobbyService) Start(ctx context.Context, roomCode string, playerID string) (GameState, error) {
+func (r *LobbyService) Start(ctx context.Context, roomCode string, playerID string) (QuestionState, error) {
 	room, err := r.store.GetRoomByCode(ctx, roomCode)
 	if err != nil {
-		return GameState{}, err
+		return QuestionState{}, err
 	}
 
 	if room.HostPlayer != playerID {
-		return GameState{}, fmt.Errorf("player is not the host of the room")
+		return QuestionState{}, fmt.Errorf("player is not the host of the room")
 	}
 
 	if room.RoomState != sqlc.ROOMSTATE_CREATED.String() {
-		return GameState{}, fmt.Errorf("room is not in CREATED state")
+		return QuestionState{}, fmt.Errorf("room is not in CREATED state")
 	}
 
 	playersInRoom, err := r.store.GetAllPlayersInRoom(ctx, playerID)
 	if err != nil {
-		return GameState{}, err
+		return QuestionState{}, err
 	}
 
 	minimumPlayers := 2
 	if len(playersInRoom) < minimumPlayers {
-		return GameState{}, fmt.Errorf("not enough players to start the game")
+		return QuestionState{}, fmt.Errorf("not enough players to start the game")
 	}
 
 	for _, player := range playersInRoom {
 		if !player.IsReady.Bool {
-			return GameState{}, fmt.Errorf("not all players are ready: %s", player.ID)
+			return QuestionState{}, fmt.Errorf("not all players are ready: %s", player.ID)
 		}
 	}
 
@@ -232,7 +232,7 @@ func (r *LobbyService) Start(ctx context.Context, roomCode string, playerID stri
 		Round:        "free_form",
 	})
 	if err != nil {
-		return GameState{}, err
+		return QuestionState{}, err
 	}
 
 	fibberQuestion, err := r.store.GetRandomQuestionInGroup(ctx, sqlc.GetRandomQuestionInGroupParams{
@@ -240,7 +240,7 @@ func (r *LobbyService) Start(ctx context.Context, roomCode string, playerID stri
 		ID:      normalsQuestion.ID,
 	})
 	if err != nil {
-		return GameState{}, err
+		return QuestionState{}, err
 	}
 
 	players := []PlayerWithRole{}
@@ -256,7 +256,7 @@ func (r *LobbyService) Start(ctx context.Context, roomCode string, playerID stri
 		FibberLoc:         randomFibberLoc,
 	})
 	if err != nil {
-		return GameState{}, err
+		return QuestionState{}, err
 	}
 
 	for i, player := range playersInRoom {
@@ -277,7 +277,7 @@ func (r *LobbyService) Start(ctx context.Context, roomCode string, playerID stri
 		})
 	}
 
-	gameState := GameState{
+	gameState := QuestionState{
 		GameStateID: gameStateID,
 		Players:     players,
 		Round:       1,

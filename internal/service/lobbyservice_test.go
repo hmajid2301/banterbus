@@ -717,7 +717,7 @@ func TestLobbyServiceStart(t *testing.T) {
 		}).Return(nil)
 
 		gameState, err := srv.Start(ctx, roomCode, hostPlayerID)
-		expectedGameState := service.GameState{
+		expectedGameState := service.QuestionState{
 			GameStateID: gameStateID,
 			Players: []service.PlayerWithRole{
 				{

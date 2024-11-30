@@ -39,7 +39,7 @@ func (s *Subscriber) updateClientAboutErr(ctx context.Context, playerID string, 
 	return err
 }
 
-func (s *Subscriber) updateClientsAboutQuestion(ctx context.Context, gameState service.GameState) error {
+func (s *Subscriber) updateClientsAboutQuestion(ctx context.Context, gameState service.QuestionState) error {
 	var buf bytes.Buffer
 	for _, player := range gameState.Players {
 		component := sections.Question(gameState, player)

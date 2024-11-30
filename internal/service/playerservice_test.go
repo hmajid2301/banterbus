@@ -577,9 +577,57 @@ func TestPlayerServiceGetLobby(t *testing.T) {
 }
 
 func TestPlayerServiceGetGameState(t *testing.T) {
-	playerID := "33333-9f7a-4392-b523-fd433b3208ea"
+	tests := []struct {
+		name          string
+		gameState     sqlc.GameStateEnum
+		expectedState sqlc.GameStateEnum
+	}{
+		{
+			name:          "Should successfully get game state QUESTION",
+			gameState:     sqlc.GAMESTATE_FIBBING_IT_SHOW_QUESTION,
+			expectedState: sqlc.GAMESTATE_FIBBING_IT_SHOW_QUESTION,
+		},
+		{
+			name:          "Should successfully get game state VOTING",
+			gameState:     sqlc.GAMESTATE_FIBBING_IT_VOTING,
+			expectedState: sqlc.GAMESTATE_FIBBING_IT_VOTING,
+		},
+	}
 
-	t.Run("Should successfully get game state", func(t *testing.T) {
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockStore := mockService.NewMockStorer(t)
+			mockRandomizer := mockService.NewMockRandomizer(t)
+			srv := service.NewPlayerService(mockStore, mockRandomizer)
+
+			ctx := context.Background()
+			mockStore.EXPECT().GetGameStateByPlayerID(ctx, playerID).Return(sqlc.GameState{
+				State: tt.gameState.String(),
+			}, nil)
+
+			gameState, err := srv.GetGameState(ctx, playerID)
+			assert.NoError(t, err)
+			assert.Equal(t, tt.expectedState, gameState)
+		})
+	}
+
+	t.Run("Should fail to get game state because we fail to get game details DB", func(t *testing.T) {
+		mockStore := mockService.NewMockStorer(t)
+		mockRandomizer := mockService.NewMockRandomizer(t)
+		srv := service.NewPlayerService(mockStore, mockRandomizer)
+
+		ctx := context.Background()
+		mockStore.EXPECT().GetGameStateByPlayerID(ctx, playerID).Return(
+			sqlc.GameState{}, fmt.Errorf("failed to get game state details"),
+		)
+
+		_, err := srv.GetGameState(ctx, playerID)
+		assert.Error(t, err)
+	})
+}
+
+func TestPlayerServiceGetQuestionState(t *testing.T) {
+	t.Run("Should successfully get question state", func(t *testing.T) {
 		mockStore := mockService.NewMockStorer(t)
 		mockRandomizer := mockService.NewMockRandomizer(t)
 		srv := service.NewPlayerService(mockStore, mockRandomizer)
@@ -598,10 +646,10 @@ func TestPlayerServiceGetGameState(t *testing.T) {
 			RoomCode:       "ABC12",
 		}, nil)
 
-		gameState, err := srv.GetGameState(ctx, playerID)
+		questionState, err := srv.GetQuestionState(ctx, playerID)
 
 		assert.NoError(t, err)
-		expectedGameState := service.GameState{
+		expectedGameState := service.QuestionState{
 			Players: []service.PlayerWithRole{
 				{
 					ID:       playerID,
@@ -615,10 +663,10 @@ func TestPlayerServiceGetGameState(t *testing.T) {
 			RoundType: "free_form",
 			RoomCode:  "ABC12",
 		}
-		assert.Equal(t, expectedGameState, gameState)
+		assert.Equal(t, expectedGameState, questionState)
 	})
 
-	t.Run("Should successfully get game state, as normal fibber", func(t *testing.T) {
+	t.Run("Should successfully get question state, as normal fibber", func(t *testing.T) {
 		mockStore := mockService.NewMockStorer(t)
 		mockRandomizer := mockService.NewMockRandomizer(t)
 		srv := service.NewPlayerService(mockStore, mockRandomizer)
@@ -637,10 +685,10 @@ func TestPlayerServiceGetGameState(t *testing.T) {
 			RoomCode:       "ABC12",
 		}, nil)
 
-		gameState, err := srv.GetGameState(ctx, playerID)
+		questionState, err := srv.GetQuestionState(ctx, playerID)
 
 		assert.NoError(t, err)
-		expectedGameState := service.GameState{
+		expectedGameState := service.QuestionState{
 			Players: []service.PlayerWithRole{
 				{
 					ID:       playerID,
@@ -654,10 +702,10 @@ func TestPlayerServiceGetGameState(t *testing.T) {
 			RoundType: "free_form",
 			RoomCode:  "ABC12",
 		}
-		assert.Equal(t, expectedGameState, gameState)
+		assert.Equal(t, expectedGameState, questionState)
 	})
 
-	t.Run("Should fail to get gamt state because we cannot fetch from DB", func(t *testing.T) {
+	t.Run("Should fail to get question state because we cannot fetch from DB", func(t *testing.T) {
 		mockStore := mockService.NewMockStorer(t)
 		mockRandomizer := mockService.NewMockRandomizer(t)
 		srv := service.NewPlayerService(mockStore, mockRandomizer)
@@ -668,7 +716,80 @@ func TestPlayerServiceGetGameState(t *testing.T) {
 			sqlc.GetCurrentQuestionByPlayerIDRow{}, fmt.Errorf("failed to get questions"),
 		)
 
-		_, err := srv.GetGameState(ctx, playerID)
+		_, err := srv.GetQuestionState(ctx, playerID)
+		assert.Error(t, err)
+	})
+}
+
+func TestPlayerServiceGetVotingState(t *testing.T) {
+	roundID := "77777-fbb75599-9f7a-4392-b523-fd433b3208ea"
+
+	t.Run("Should successfully get voting state", func(t *testing.T) {
+		mockStore := mockService.NewMockStorer(t)
+		mockRandomizer := mockService.NewMockRandomizer(t)
+		srv := service.NewPlayerService(mockStore, mockRandomizer)
+
+		ctx := context.Background()
+
+		mockStore.EXPECT().GetLatestRoundByPlayerID(ctx, playerID).Return(
+			sqlc.GetLatestRoundByPlayerIDRow{
+				ID: roundID,
+			}, nil)
+		mockStore.EXPECT().CountVotesByRoundID(ctx, roundID).Return(
+			[]sqlc.CountVotesByRoundIDRow{
+				{
+					VotedForPlayerID: playerID,
+					Nickname:         "nickname",
+					VoteCount:        1,
+					Avatar:           []byte(""),
+				},
+			}, nil)
+
+		votingState, err := srv.GetVotingState(ctx, playerID)
+
+		assert.NoError(t, err)
+		expectedVotingState := []service.VotingPlayer{
+			{
+				ID:       playerID,
+				Nickname: "nickname",
+				Avatar:   "",
+				Votes:    1,
+			},
+		}
+		assert.Equal(t, expectedVotingState, votingState)
+	})
+
+	t.Run("Should fail to get voting state because fail to get round info from DB", func(t *testing.T) {
+		mockStore := mockService.NewMockStorer(t)
+		mockRandomizer := mockService.NewMockRandomizer(t)
+		srv := service.NewPlayerService(mockStore, mockRandomizer)
+
+		ctx := context.Background()
+
+		mockStore.EXPECT().GetLatestRoundByPlayerID(ctx, playerID).Return(
+			sqlc.GetLatestRoundByPlayerIDRow{}, fmt.Errorf("failed to get round info"),
+		)
+		_, err := srv.GetVotingState(ctx, playerID)
+		assert.Error(t, err)
+	})
+
+	t.Run("Should fail to get voting state because fail to get votes from DB", func(t *testing.T) {
+		mockStore := mockService.NewMockStorer(t)
+		mockRandomizer := mockService.NewMockRandomizer(t)
+		srv := service.NewPlayerService(mockStore, mockRandomizer)
+
+		ctx := context.Background()
+
+		mockStore.EXPECT().GetLatestRoundByPlayerID(ctx, playerID).Return(
+			sqlc.GetLatestRoundByPlayerIDRow{
+				ID: roundID,
+			}, nil)
+		mockStore.EXPECT().CountVotesByRoundID(ctx, roundID).Return(
+			[]sqlc.CountVotesByRoundIDRow{}, fmt.Errorf("failed to get votes"),
+		)
+
+		_, err := srv.GetVotingState(ctx, playerID)
+
 		assert.Error(t, err)
 	})
 }

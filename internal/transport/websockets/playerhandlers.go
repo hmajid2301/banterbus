@@ -14,7 +14,9 @@ type PlayerServicer interface {
 	TogglePlayerIsReady(ctx context.Context, playerID string) (service.Lobby, error)
 	GetRoomState(ctx context.Context, playerID string) (sqlc.RoomState, error)
 	GetLobby(ctx context.Context, playerID string) (service.Lobby, error)
-	GetGameState(ctx context.Context, playerID string) (service.GameState, error)
+	GetGameState(ctx context.Context, playerID string) (sqlc.GameStateEnum, error)
+	GetQuestionState(ctx context.Context, playerID string) (service.QuestionState, error)
+	GetVotingState(ctx context.Context, playerID string) ([]service.VotingPlayer, error)
 }
 
 func (u *UpdateNickname) Handle(ctx context.Context, client *client, sub *Subscriber) error {

@@ -59,6 +59,18 @@ const (
 	GAMESTATE_FIBBING_IT_VOTING
 )
 
+func GameStateFromString(s string) (GameStateEnum, error) {
+	stringToGameState := map[string]GameStateEnum{
+		"FIBBING_IT_SHOW_QUESTION": GAMESTATE_FIBBING_IT_SHOW_QUESTION,
+		"FIBBING_IT_VOTING":        GAMESTATE_FIBBING_IT_VOTING,
+	}
+
+	if rs, ok := stringToGameState[s]; ok {
+		return rs, nil
+	}
+	return 0, errors.New("invalid GameState string")
+}
+
 func (gs GameStateEnum) String() string {
 	return [...]string{"FIBBING_IT_SHOW_QUESTION", "FIBBING_IT_VOTING"}[gs]
 }

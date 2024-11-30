@@ -116,6 +116,7 @@ func (p *PlayerService) TogglePlayerIsReady(ctx context.Context, playerID string
 	return lobby, err
 }
 
+// TODO: move these to their service file
 func (p *PlayerService) GetRoomState(ctx context.Context, playerID string) (sqlc.RoomState, error) {
 	room, err := p.store.GetRoomByPlayerID(ctx, playerID)
 	if err != nil {
@@ -135,11 +136,20 @@ func (p *PlayerService) GetLobby(ctx context.Context, playerID string) (Lobby, e
 	room := getLobbyPlayers(players, players[0].RoomCode)
 	return room, err
 }
+func (p *PlayerService) GetGameState(ctx context.Context, playerID string) (sqlc.GameStateEnum, error) {
+	game, err := p.store.GetGameStateByPlayerID(ctx, playerID)
+	if err != nil {
+		return sqlc.GAMESTATE_FIBBING_IT_SHOW_QUESTION, err
+	}
 
-func (p *PlayerService) GetGameState(ctx context.Context, playerID string) (GameState, error) {
+	gameState, err := sqlc.GameStateFromString(game.State)
+	return gameState, err
+}
+
+func (p *PlayerService) GetQuestionState(ctx context.Context, playerID string) (QuestionState, error) {
 	g, err := p.store.GetCurrentQuestionByPlayerID(ctx, playerID)
 	if err != nil {
-		return GameState{}, err
+		return QuestionState{}, err
 	}
 
 	question := g.NormalQuestion.String
@@ -157,7 +167,7 @@ func (p *PlayerService) GetGameState(ctx context.Context, playerID string) (Game
 		},
 	}
 
-	gameState := GameState{
+	gameState := QuestionState{
 		Players:   players,
 		Round:     int(g.Round),
 		RoundType: g.RoundType,
@@ -165,4 +175,27 @@ func (p *PlayerService) GetGameState(ctx context.Context, playerID string) (Game
 	}
 
 	return gameState, nil
+}
+func (p *PlayerService) GetVotingState(ctx context.Context, playerID string) ([]VotingPlayer, error) {
+	round, err := p.store.GetLatestRoundByPlayerID(ctx, playerID)
+	if err != nil {
+		return nil, err
+	}
+
+	votes, err := p.store.CountVotesByRoundID(ctx, round.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	var votingPlayers []VotingPlayer
+	for _, p := range votes {
+		votingPlayers = append(votingPlayers, VotingPlayer{
+			ID:       p.VotedForPlayerID,
+			Nickname: p.Nickname,
+			Avatar:   string(p.Avatar),
+			Votes:    int(p.VoteCount),
+		})
+	}
+
+	return votingPlayers, nil
 }

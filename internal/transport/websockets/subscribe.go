@@ -1,17 +1,14 @@
 package websockets
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"log/slog"
 	"net"
 	"net/http"
 
-	"github.com/a-h/templ"
 	"github.com/gobwas/ws"
 	"github.com/gobwas/ws/wsutil"
 	"github.com/google/uuid"
@@ -20,10 +17,7 @@ import (
 	slogctx "github.com/veqryn/slog-context"
 
 	"gitlab.com/hmajid2301/banterbus/internal/logging"
-	"gitlab.com/hmajid2301/banterbus/internal/service"
-	sqlc "gitlab.com/hmajid2301/banterbus/internal/store/db"
 	"gitlab.com/hmajid2301/banterbus/internal/telemetry"
-	"gitlab.com/hmajid2301/banterbus/internal/views/sections"
 )
 
 type Subscriber struct {
@@ -134,60 +128,6 @@ func (s *Subscriber) Subscribe(r *http.Request, w http.ResponseWriter) (err erro
 			return ctx.Err()
 		}
 	}
-}
-
-func (s Subscriber) Reconnect(ctx context.Context, client *client) error {
-	s.logger.DebugContext(ctx, "attempting to reconnect player", slog.String("player_id", client.playerID))
-	roomState, err := s.playerService.GetRoomState(ctx, client.playerID)
-	if err != nil {
-		return err
-	}
-
-	var buf bytes.Buffer
-	var component templ.Component
-	switch roomState {
-	case sqlc.ROOMSTATE_CREATED:
-		lobby, err := s.playerService.GetLobby(ctx, client.playerID)
-		if err != nil {
-			errStr := "failed to reconnect to game"
-			clientErr := s.updateClientAboutErr(ctx, client.playerID, errStr)
-			return errors.Join(clientErr, err)
-		}
-
-		var mePlayer service.LobbyPlayer
-		for _, player := range lobby.Players {
-			if player.ID == client.playerID {
-				mePlayer = player
-			}
-		}
-
-		component = sections.Lobby(lobby.Code, lobby.Players, mePlayer)
-	case sqlc.ROOMSTATE_PLAYING:
-		gameState, err := s.playerService.GetGameState(ctx, client.playerID)
-		if err != nil {
-			errStr := "failed to reconnect to game"
-			clientErr := s.updateClientAboutErr(ctx, client.playerID, errStr)
-			return errors.Join(clientErr, err)
-		}
-
-		component = sections.Question(gameState, gameState.Players[0])
-	case sqlc.ROOMSTATE_PAUSED:
-		return fmt.Errorf("cannot reconnect game to paused game, as this is not implemented")
-	case sqlc.ROOMSTATE_ABANDONED:
-		return fmt.Errorf("cannot reconnect game is abandoned")
-	case sqlc.ROOMSTATE_FINISHED:
-		return fmt.Errorf("cannot reconnect game is finished")
-	default:
-		return fmt.Errorf("unknown room state: %s", roomState)
-	}
-
-	err = component.Render(ctx, &buf)
-	if err != nil {
-		return err
-	}
-
-	err = s.websocket.Publish(ctx, client.playerID, buf.Bytes())
-	return err
 }
 
 func (s *Subscriber) handleMessages(ctx context.Context, quit <-chan struct{}, client *client) {
