@@ -26,7 +26,7 @@ templ Index(languages map[string]string) {
 			<div class="w-full min-h-screen text-lg bg-center bg-no-repeat bg-cover bg-mantle bg-background" hx-ext="ws" ws-connect="/ws">
 				@components.Header(languages)
 				<section class="flex flex-col justify-center items-center min-h-screen">
-					<div class="py-10 px-20 rounded-xl bg-surface0">
+					<div class="py-10 px-20 max-w-3xl rounded-xl bg-surface0">
 						<div class="flex flex-col justify-center items-center">
 							<div class="flex flex-col items-center space-y-10">
 								<h1 class="text-8xl tracking-tighter text-center text-text font-header text-shadow-custom">

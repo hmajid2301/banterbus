@@ -62,7 +62,7 @@ tasks:
       TEMPL_EXPERIMENT: rawgo
     cmds:
       - templ generate -watch --proxy="http://localhost:8080" --open-browser=true &
-      - tailwindcss --watch -i ./static/css/tailwind.css -o ./static/css/styles.css --minify &
+      - tailwindcss --watch=always -i ./static/css/tailwind.css -o ./static/css/styles.css --minify &
       # TODO: do we want to add watch commands for the following?
       # - mockery --all
       # - sqlc generate

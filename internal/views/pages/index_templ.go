@@ -44,7 +44,7 @@ func Index(languages map[string]string) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<section class=\"flex flex-col justify-center items-center min-h-screen\"><div class=\"py-10 px-20 rounded-xl bg-surface0\"><div class=\"flex flex-col justify-center items-center\"><div class=\"flex flex-col items-center space-y-10\"><h1 class=\"text-8xl tracking-tighter text-center text-text font-header text-shadow-custom\">Banter Bus</h1><div id=\"page\" class=\"mt-5 w-full font-main\"><div class=\"flex flex-col my-1\"><div x-data=\"{ action: &#39;&#39; }\"><form ws-send x-bind:hx-vals=\"action\">")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<section class=\"flex flex-col justify-center items-center min-h-screen\"><div class=\"py-10 px-20 max-w-3xl rounded-xl bg-surface0\"><div class=\"flex flex-col justify-center items-center\"><div class=\"flex flex-col items-center space-y-10\"><h1 class=\"text-8xl tracking-tighter text-center text-text font-header text-shadow-custom\">Banter Bus</h1><div id=\"page\" class=\"mt-5 w-full font-main\"><div class=\"flex flex-col my-1\"><div x-data=\"{ action: &#39;&#39; }\"><form ws-send x-bind:hx-vals=\"action\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

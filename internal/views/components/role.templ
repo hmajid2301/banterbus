@@ -16,14 +16,13 @@ templ Role(role string) {
 			x-show="showModal"
 		>
 			<div
-				class="py-4 px-6 mx-auto max-w-3xl text-left bg-white rounded shadow-lg"
+				class="py-4 px-6 mx-auto max-w-3xl text-left rounded shadow-lg bg-surface0"
 				@click.away="showModal = false"
 				x-transition:enter="motion-safe:ease-out duration-300"
 				x-transition:enter-start="opacity-0 scale-90"
 				x-transition:enter-end="opacity-100 scale-100"
 			>
 				<div class="flex justify-between items-center">
-					<h5 class="mr-3 max-w-none text-black">Title</h5>
 					<button type="button" class="z-50 cursor-pointer" @click="showModal = false">
 						<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
 							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
@@ -33,20 +32,15 @@ templ Role(role string) {
 				<!-- content -->
 				<div class="text-text2">
 					<div class="flex justify-between items-center">
-						<div class="text-right">
-							<div class="flex justify-center items-center w-16 h-16 rounded-full border-2 border-blue-500">
-								<p>15</p>
-							</div>
-						</div>
-						<div class="text-2xl">
-							<p class="font-bold">
-								Sush don't tell anyone!
-							</p>
+						<div class="text-2xl text-center">
 							if role == "fibber" {
 								@icons.Alien("")
 							} else {
 								@icons.User("")
 							}
+							<p class="font-bold">
+								Sush don't tell anyone!
+							</p>
 							<p class="font-bold">
 								You are { role }
 							</p>

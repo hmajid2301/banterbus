@@ -169,7 +169,7 @@ func (s Subscriber) Reconnect(ctx context.Context, client *client) error {
 			return errors.Join(clientErr, err)
 		}
 
-		component = sections.Game(gameState, gameState.Players[0])
+		component = sections.Question(gameState, gameState.Players[0])
 	case sqlc.ROOMSTATE_PAUSED:
 		return fmt.Errorf("cannot reconnect game to paused game, as this is not implemented")
 	case sqlc.ROOMSTATE_ABANDONED:
