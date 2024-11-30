@@ -10,7 +10,6 @@ import (
 	"log/slog"
 	"net"
 	"net/http"
-	"time"
 
 	"github.com/a-h/templ"
 	"github.com/gobwas/ws"
@@ -109,12 +108,13 @@ func (s *Subscriber) Subscribe(r *http.Request, w http.ResponseWriter) (err erro
 	quit := make(chan struct{})
 	go s.handleMessages(ctx, quit, client)
 
-	writeTimeout := 10
-	err = connection.SetWriteDeadline(time.Now().Add(time.Second * time.Duration(writeTimeout)))
-	if err != nil {
-		s.logger.ErrorContext(ctx, "failed to set timeout", slog.Any("error", err))
-		return err
-	}
+	// TODO: workout what to do with this?
+	// writeTimeout := 10
+	// err = connection.SetWriteDeadline(time.Now().Add(time.Second * time.Duration(writeTimeout)))
+	// if err != nil {
+	// 	s.logger.ErrorContext(ctx, "failed to set timeout", slog.Any("error", err))
+	// 	return err
+	// }
 
 	for {
 		select {
@@ -125,7 +125,8 @@ func (s *Subscriber) Subscribe(r *http.Request, w http.ResponseWriter) (err erro
 			s.logger.DebugContext(ctx, "sending message", slog.String("message", cleanedMessage))
 			err = wsutil.WriteServerText(connection, []byte(msg.Payload))
 			if err != nil {
-				return err
+				s.logger.ErrorContext(ctx, "failed to write message", slog.Any("error", err))
+				// return err
 			}
 		case <-ctx.Done():
 			s.logger.DebugContext(ctx, "context done")

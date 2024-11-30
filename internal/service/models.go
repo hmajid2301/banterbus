@@ -46,6 +46,6 @@ type GameState struct {
 type VotingPlayer struct {
 	ID       string
 	Nickname string
-	Avatar   []byte
+	Avatar   string
 	Votes    int
 }

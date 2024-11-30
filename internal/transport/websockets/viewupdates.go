@@ -60,7 +60,7 @@ func (s *Subscriber) updateClientsAboutQuestion(ctx context.Context, gameState s
 func (s *Subscriber) updateClientAboutVoting(ctx context.Context, players []service.VotingPlayer) error {
 	var buf bytes.Buffer
 	for _, player := range players {
-		component := sections.Voting(players)
+		component := sections.Voting(players, player.ID)
 		err := component.Render(ctx, &buf)
 		if err != nil {
 			return err

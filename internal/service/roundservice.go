@@ -66,7 +66,7 @@ func (r *RoundService) UpdateStateToVoting(
 		votingPlayer = append(votingPlayer, VotingPlayer{
 			ID:       player.ID,
 			Nickname: player.Nickname,
-			Avatar:   player.Avatar,
+			Avatar:   string(player.Avatar),
 		})
 	}
 
@@ -127,7 +127,7 @@ func (r *RoundService) SubmitVote(
 		votingPlayers = append(votingPlayers, VotingPlayer{
 			ID:       p.VotedForPlayerID,
 			Nickname: p.Nickname,
-			Avatar:   p.Avatar,
+			Avatar:   string(p.Avatar),
 			Votes:    int(p.VoteCount),
 		})
 	}

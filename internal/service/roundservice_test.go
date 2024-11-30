@@ -188,13 +188,13 @@ func TestRoundServiceMoveToVoting(t *testing.T) {
 			{
 				ID:       "12345",
 				Nickname: "Player 1",
-				Avatar:   []byte("avatar1"),
+				Avatar:   "avatar1",
 				Votes:    0,
 			},
 			{
 				ID:       "54678",
 				Nickname: "Player 2",
-				Avatar:   []byte("avatar2"),
+				Avatar:   "avatar2",
 				Votes:    0,
 			},
 		}
@@ -284,13 +284,13 @@ func TestRoundServiceSubmitVote(t *testing.T) {
 			{
 				ID:       "12345",
 				Nickname: "Player 1",
-				Avatar:   []byte("avatar1"),
+				Avatar:   "avatar1",
 				Votes:    0,
 			},
 			{
 				ID:       "54678",
 				Nickname: "Player 2",
-				Avatar:   []byte("avatar2"),
+				Avatar:   "avatar2",
 				Votes:    1,
 			},
 		}
