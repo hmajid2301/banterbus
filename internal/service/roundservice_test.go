@@ -152,7 +152,7 @@ func TestRoundServiceSubmitAnswer(t *testing.T) {
 		assert.Error(t, err)
 	})
 }
-func TestRoundServiceMoveToVoting(t *testing.T) {
+func TestRoundServiceUpdateStateToVoting(t *testing.T) {
 	gameStateID := "fbb75599-9f7a-4392-b523-fd433b3208ea"
 
 	t.Run("Should successfully update state to voting", func(t *testing.T) {
@@ -165,11 +165,15 @@ func TestRoundServiceMoveToVoting(t *testing.T) {
 				ID:       "12345",
 				Nickname: "Player 1",
 				Avatar:   []byte("avatar1"),
+				Role:     "fibber",
+				Question: "My other question",
 			},
 			{
 				ID:       "54678",
 				Nickname: "Player 2",
 				Avatar:   []byte("avatar2"),
+				Role:     "normal",
+				Question: "My question",
 			},
 		}
 
@@ -182,20 +186,31 @@ func TestRoundServiceMoveToVoting(t *testing.T) {
 			State:          sqlc.GAMESTATE_FIBBING_IT_VOTING.String(),
 		}).Return(sqlc.GameState{}, nil)
 
-		votes, err := srv.UpdateStateToVoting(ctx, players, gameStateID, now)
+		updateState := service.UpdateVotingState{
+			Players:     players,
+			GameStateID: gameStateID,
+			Deadline:    now,
+			Round:       1,
+		}
+
+		votes, err := srv.UpdateStateToVoting(ctx, updateState)
 		assert.NoError(t, err)
-		expectedVotes := []service.VotingPlayer{
-			{
-				ID:       "12345",
-				Nickname: "Player 1",
-				Avatar:   "avatar1",
-				Votes:    0,
-			},
-			{
-				ID:       "54678",
-				Nickname: "Player 2",
-				Avatar:   "avatar2",
-				Votes:    0,
+		expectedVotes := service.VotingState{
+			Question: "My question",
+			Round:    1,
+			Players: []service.PlayerWithVoting{
+				{
+					ID:       "12345",
+					Nickname: "Player 1",
+					Avatar:   "avatar1",
+					Votes:    0,
+				},
+				{
+					ID:       "54678",
+					Nickname: "Player 2",
+					Avatar:   "avatar2",
+					Votes:    0,
+				},
 			},
 		}
 		assert.Equal(t, expectedVotes, votes)
@@ -230,7 +245,14 @@ func TestRoundServiceMoveToVoting(t *testing.T) {
 			sqlc.GameState{}, fmt.Errorf("failed to update game state"),
 		)
 
-		_, err := srv.UpdateStateToVoting(ctx, players, gameStateID, now)
+		updateState := service.UpdateVotingState{
+			Players:     players,
+			GameStateID: gameStateID,
+			Deadline:    now,
+			Round:       1,
+		}
+
+		_, err := srv.UpdateStateToVoting(ctx, updateState)
 		assert.Error(t, err)
 	})
 }
@@ -263,35 +285,43 @@ func TestRoundServiceSubmitVote(t *testing.T) {
 			ID:             roundID,
 			SubmitDeadline: now.Add(1 * time.Hour),
 		}, nil)
-		mockStore.EXPECT().CountVotesByRoundID(ctx, roundID).Return([]sqlc.CountVotesByRoundIDRow{
+		mockStore.EXPECT().GetVotingState(ctx, roundID).Return([]sqlc.GetVotingStateRow{
 			{
 				VotedForPlayerID: "12345",
 				Nickname:         "Player 1",
 				Avatar:           []byte("avatar1"),
 				VoteCount:        0,
+				Question:         "My question",
+				Round:            1,
 			},
 			{
 				VotedForPlayerID: "54678",
 				Nickname:         "Player 2",
 				Avatar:           []byte("avatar2"),
 				VoteCount:        1,
+				Question:         "My question",
+				Round:            1,
 			},
 		}, nil)
 
 		votes, err := srv.SubmitVote(ctx, "12345", "Player 2", now)
 		assert.NoError(t, err)
-		expectedVotes := []service.VotingPlayer{
-			{
-				ID:       "12345",
-				Nickname: "Player 1",
-				Avatar:   "avatar1",
-				Votes:    0,
-			},
-			{
-				ID:       "54678",
-				Nickname: "Player 2",
-				Avatar:   "avatar2",
-				Votes:    1,
+		expectedVotes := service.VotingState{
+			Question: "My question",
+			Round:    1,
+			Players: []service.PlayerWithVoting{
+				{
+					ID:       "12345",
+					Nickname: "Player 1",
+					Avatar:   "avatar1",
+					Votes:    0,
+				},
+				{
+					ID:       "54678",
+					Nickname: "Player 2",
+					Avatar:   "avatar2",
+					Votes:    1,
+				},
 			},
 		}
 		assert.Equal(t, expectedVotes, votes)
@@ -484,8 +514,8 @@ func TestRoundServiceSubmitVote(t *testing.T) {
 			ID:             roundID,
 			SubmitDeadline: now.Add(1 * time.Hour),
 		}, nil)
-		mockStore.EXPECT().CountVotesByRoundID(ctx, roundID).Return(
-			[]sqlc.CountVotesByRoundIDRow{}, fmt.Errorf("failed to get vote count"),
+		mockStore.EXPECT().GetVotingState(ctx, roundID).Return(
+			[]sqlc.GetVotingStateRow{}, fmt.Errorf("failed to get vote count"),
 		)
 
 		_, err := srv.SubmitVote(ctx, "12345", "Player 2", now)

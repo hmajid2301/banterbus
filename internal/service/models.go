@@ -1,5 +1,7 @@
 package service
 
+import "time"
+
 type Lobby struct {
 	Code    string
 	Players []LobbyPlayer
@@ -43,9 +45,23 @@ type QuestionState struct {
 	RoomCode    string
 }
 
-type VotingPlayer struct {
+type UpdateVotingState struct {
+	Players     []PlayerWithRole
+	GameStateID string
+	Deadline    time.Time
+	Round       int
+}
+
+type VotingState struct {
+	Players  []PlayerWithVoting
+	Question string
+	Round    int
+}
+
+type PlayerWithVoting struct {
 	ID       string
 	Nickname string
 	Avatar   string
 	Votes    int
+	Answer   string
 }

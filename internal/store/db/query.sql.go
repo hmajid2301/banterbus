@@ -278,53 +278,6 @@ func (q *Queries) AddRoomPlayer(ctx context.Context, arg AddRoomPlayerParams) (R
 	return i, err
 }
 
-const countVotesByRoundID = `-- name: CountVotesByRoundID :many
-SELECT
-    fiv.voted_for_player_id,
-    COUNT(*) AS vote_count,
-    p.nickname,
-    p.avatar
-FROM fibbing_it_votes fiv
-JOIN players p ON fiv.voted_for_player_id = p.id
-WHERE fiv.round_id = ?
-GROUP BY fiv.voted_for_player_id, p.nickname, p.avatar
-`
-
-type CountVotesByRoundIDRow struct {
-	VotedForPlayerID string
-	VoteCount        int64
-	Nickname         string
-	Avatar           []byte
-}
-
-func (q *Queries) CountVotesByRoundID(ctx context.Context, roundID string) ([]CountVotesByRoundIDRow, error) {
-	rows, err := q.db.QueryContext(ctx, countVotesByRoundID, roundID)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []CountVotesByRoundIDRow
-	for rows.Next() {
-		var i CountVotesByRoundIDRow
-		if err := rows.Scan(
-			&i.VotedForPlayerID,
-			&i.VoteCount,
-			&i.Nickname,
-			&i.Avatar,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
 const getAllPlayerByRoomCode = `-- name: GetAllPlayerByRoomCode :many
 SELECT p.id, p.created_at, p.updated_at, p.avatar, p.nickname, p.is_ready, r.room_code, r.host_player
 FROM players p
@@ -696,6 +649,65 @@ func (q *Queries) GetRoomByPlayerID(ctx context.Context, playerID string) (Room,
 		&i.RoomCode,
 	)
 	return i, err
+}
+
+const getVotingState = `-- name: GetVotingState :many
+SELECT
+    fiv.voted_for_player_id,
+    COUNT(*) AS vote_count,
+    p.nickname,
+    p.avatar,
+    fia.answer,
+    q.question,
+    fir.round
+FROM fibbing_it_votes fiv
+JOIN players p ON fiv.voted_for_player_id = p.id
+JOIN fibbing_it_answers fia ON fiv.voted_for_player_id = fia.player_id AND fiv.round_id = fia.round_id
+JOIN fibbing_it_rounds fir ON fiv.round_id = fir.id
+JOIN questions q ON fir.normal_question_id = q.id
+WHERE fiv.round_id = ?
+GROUP BY fiv.voted_for_player_id, p.nickname, p.avatar, fia.answer, q.question, fir.round
+`
+
+type GetVotingStateRow struct {
+	VotedForPlayerID string
+	VoteCount        int64
+	Nickname         string
+	Avatar           []byte
+	Answer           string
+	Question         string
+	Round            int64
+}
+
+func (q *Queries) GetVotingState(ctx context.Context, roundID string) ([]GetVotingStateRow, error) {
+	rows, err := q.db.QueryContext(ctx, getVotingState, roundID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetVotingStateRow
+	for rows.Next() {
+		var i GetVotingStateRow
+		if err := rows.Scan(
+			&i.VotedForPlayerID,
+			&i.VoteCount,
+			&i.Nickname,
+			&i.Avatar,
+			&i.Answer,
+			&i.Question,
+			&i.Round,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const removePlayerFromRoom = `-- name: RemovePlayerFromRoom :one

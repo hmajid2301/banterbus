@@ -5,10 +5,12 @@ import (
 	"strconv"
 )
 
-templ Voting(players []service.VotingPlayer, currentPlayerID string) {
+templ Voting(state service.VotingState, currentPlayerID string) {
 	<div hx-swap-oob="innerHTML:#page">
 		<div class="flex flex-col space-y-4 text-text2">
-			for _, player := range players {
+			<div>{ strconv.Itoa(state.Round) } / 3</div>
+			<div>{ state.Question }</div>
+			for _, player := range state.Players {
 				<div>
 					<input type="text" name="player_nickname" value={ player.Nickname } class="py-3 px-5 w-full rounded-xl border-1 bg-overlay0 placeholder-surface0 border-text2"/>
 					<button class="inline-flex absolute top-1/2 justify-center items-center p-2 rounded-lg -translate-y-5 text-text2 end-2" aria-label="Submit Vote">

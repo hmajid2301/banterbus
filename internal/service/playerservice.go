@@ -176,20 +176,20 @@ func (p *PlayerService) GetQuestionState(ctx context.Context, playerID string) (
 
 	return gameState, nil
 }
-func (p *PlayerService) GetVotingState(ctx context.Context, playerID string) ([]VotingPlayer, error) {
+func (p *PlayerService) GetVotingState(ctx context.Context, playerID string) (VotingState, error) {
 	round, err := p.store.GetLatestRoundByPlayerID(ctx, playerID)
 	if err != nil {
-		return nil, err
+		return VotingState{}, err
 	}
 
-	votes, err := p.store.CountVotesByRoundID(ctx, round.ID)
+	votes, err := p.store.GetVotingState(ctx, round.ID)
 	if err != nil {
-		return nil, err
+		return VotingState{}, err
 	}
 
-	var votingPlayers []VotingPlayer
+	var votingPlayers []PlayerWithVoting
 	for _, p := range votes {
-		votingPlayers = append(votingPlayers, VotingPlayer{
+		votingPlayers = append(votingPlayers, PlayerWithVoting{
 			ID:       p.VotedForPlayerID,
 			Nickname: p.Nickname,
 			Avatar:   string(p.Avatar),
@@ -197,5 +197,15 @@ func (p *PlayerService) GetVotingState(ctx context.Context, playerID string) ([]
 		})
 	}
 
-	return votingPlayers, nil
+	if len(votingPlayers) == 0 {
+		return VotingState{}, fmt.Errorf("no players found in room")
+	}
+
+	votingState := VotingState{
+		Round:    int(round.Round),
+		Players:  votingPlayers,
+		Question: votes[0].Question,
+	}
+
+	return votingState, nil
 }

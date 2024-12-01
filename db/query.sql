@@ -145,14 +145,21 @@ WHERE rp.room_id = (
 )
 ORDER BY p.created_at;
 
--- name: CountVotesByRoundID :many
+-- name: GetVotingState :many
 SELECT
     fiv.voted_for_player_id,
     COUNT(*) AS vote_count,
     p.nickname,
-    p.avatar
+    p.avatar,
+    fia.answer,
+    q.question,
+    fir.round
 FROM fibbing_it_votes fiv
 JOIN players p ON fiv.voted_for_player_id = p.id
+JOIN fibbing_it_answers fia ON fiv.voted_for_player_id = fia.player_id AND fiv.round_id = fia.round_id
+JOIN fibbing_it_rounds fir ON fiv.round_id = fir.id
+JOIN questions q ON fir.normal_question_id = q.id
 WHERE fiv.round_id = ?
-GROUP BY fiv.voted_for_player_id, p.nickname, p.avatar;
+GROUP BY fiv.voted_for_player_id, p.nickname, p.avatar, fia.answer, q.question, fir.round;
+
 

@@ -583,65 +583,6 @@ func (_c *MockStorer_AddRoomPlayer_Call) RunAndReturn(run func(context.Context, 
 	return _c
 }
 
-// CountVotesByRoundID provides a mock function with given fields: ctx, roundID
-func (_m *MockStorer) CountVotesByRoundID(ctx context.Context, roundID string) ([]sqlc.CountVotesByRoundIDRow, error) {
-	ret := _m.Called(ctx, roundID)
-
-	if len(ret) == 0 {
-		panic("no return value specified for CountVotesByRoundID")
-	}
-
-	var r0 []sqlc.CountVotesByRoundIDRow
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string) ([]sqlc.CountVotesByRoundIDRow, error)); ok {
-		return rf(ctx, roundID)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, string) []sqlc.CountVotesByRoundIDRow); ok {
-		r0 = rf(ctx, roundID)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]sqlc.CountVotesByRoundIDRow)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
-		r1 = rf(ctx, roundID)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// MockStorer_CountVotesByRoundID_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CountVotesByRoundID'
-type MockStorer_CountVotesByRoundID_Call struct {
-	*mock.Call
-}
-
-// CountVotesByRoundID is a helper method to define mock.On call
-//   - ctx context.Context
-//   - roundID string
-func (_e *MockStorer_Expecter) CountVotesByRoundID(ctx interface{}, roundID interface{}) *MockStorer_CountVotesByRoundID_Call {
-	return &MockStorer_CountVotesByRoundID_Call{Call: _e.mock.On("CountVotesByRoundID", ctx, roundID)}
-}
-
-func (_c *MockStorer_CountVotesByRoundID_Call) Run(run func(ctx context.Context, roundID string)) *MockStorer_CountVotesByRoundID_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string))
-	})
-	return _c
-}
-
-func (_c *MockStorer_CountVotesByRoundID_Call) Return(_a0 []sqlc.CountVotesByRoundIDRow, _a1 error) *MockStorer_CountVotesByRoundID_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *MockStorer_CountVotesByRoundID_Call) RunAndReturn(run func(context.Context, string) ([]sqlc.CountVotesByRoundIDRow, error)) *MockStorer_CountVotesByRoundID_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // CreateRoom provides a mock function with given fields: ctx, arg
 func (_m *MockStorer) CreateRoom(ctx context.Context, arg sqlc.CreateRoomParams) error {
 	ret := _m.Called(ctx, arg)
@@ -1259,6 +1200,65 @@ func (_c *MockStorer_GetRoomByPlayerID_Call) Return(_a0 sqlc.Room, _a1 error) *M
 }
 
 func (_c *MockStorer_GetRoomByPlayerID_Call) RunAndReturn(run func(context.Context, string) (sqlc.Room, error)) *MockStorer_GetRoomByPlayerID_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetVotingState provides a mock function with given fields: ctx, roundID
+func (_m *MockStorer) GetVotingState(ctx context.Context, roundID string) ([]sqlc.GetVotingStateRow, error) {
+	ret := _m.Called(ctx, roundID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetVotingState")
+	}
+
+	var r0 []sqlc.GetVotingStateRow
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) ([]sqlc.GetVotingStateRow, error)); ok {
+		return rf(ctx, roundID)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string) []sqlc.GetVotingStateRow); ok {
+		r0 = rf(ctx, roundID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]sqlc.GetVotingStateRow)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, roundID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockStorer_GetVotingState_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetVotingState'
+type MockStorer_GetVotingState_Call struct {
+	*mock.Call
+}
+
+// GetVotingState is a helper method to define mock.On call
+//   - ctx context.Context
+//   - roundID string
+func (_e *MockStorer_Expecter) GetVotingState(ctx interface{}, roundID interface{}) *MockStorer_GetVotingState_Call {
+	return &MockStorer_GetVotingState_Call{Call: _e.mock.On("GetVotingState", ctx, roundID)}
+}
+
+func (_c *MockStorer_GetVotingState_Call) Run(run func(ctx context.Context, roundID string)) *MockStorer_GetVotingState_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string))
+	})
+	return _c
+}
+
+func (_c *MockStorer_GetVotingState_Call) Return(_a0 []sqlc.GetVotingStateRow, _a1 error) *MockStorer_GetVotingState_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockStorer_GetVotingState_Call) RunAndReturn(run func(context.Context, string) ([]sqlc.GetVotingStateRow, error)) *MockStorer_GetVotingState_Call {
 	_c.Call.Return(run)
 	return _c
 }

@@ -19,13 +19,8 @@ type RoundServicer interface {
 		playerID string,
 		votedNickname string,
 		submittedAt time.Time,
-	) ([]service.VotingPlayer, error)
-	UpdateStateToVoting(
-		ctx context.Context,
-		players []service.PlayerWithRole,
-		gameStateID string,
-		deadline time.Time,
-	) ([]service.VotingPlayer, error)
+	) (service.VotingState, error)
+	UpdateStateToVoting(ctx context.Context, updateVoting service.UpdateVotingState) (service.VotingState, error)
 }
 
 func (s *SubmitAnswer) Handle(ctx context.Context, client *client, sub *Subscriber) error {
@@ -40,14 +35,14 @@ func (s *SubmitAnswer) Handle(ctx context.Context, client *client, sub *Subscrib
 }
 
 func (s *SubmitVote) Handle(ctx context.Context, client *client, sub *Subscriber) error {
-	votes, err := sub.roundService.SubmitVote(ctx, client.playerID, s.VotedPlayerNickname, time.Now())
+	votingState, err := sub.roundService.SubmitVote(ctx, client.playerID, s.VotedPlayerNickname, time.Now())
 	if err != nil {
 		errStr := "failed to submit vote, try again"
 		clientErr := sub.updateClientAboutErr(ctx, client.playerID, errStr)
 		return errors.Join(clientErr, err)
 	}
 
-	err = sub.updateClientAboutVoting(ctx, votes)
+	err = sub.updateClientAboutVoting(ctx, votingState)
 	if err != nil {
 		sub.logger.Error("failed to update clients", slog.Any("error", err))
 	}
@@ -55,14 +50,27 @@ func (s *SubmitVote) Handle(ctx context.Context, client *client, sub *Subscriber
 	return nil
 }
 
-func MoveToVoting(ctx context.Context, sub *Subscriber, players []service.PlayerWithRole, gameStateID string) {
+func MoveToVoting(
+	ctx context.Context,
+	sub *Subscriber,
+	players []service.PlayerWithRole,
+	gameStateID string,
+	round int,
+) {
 	deadline := time.Now().Add(VotingScreenDelay)
-	votingPlayers, err := sub.roundService.UpdateStateToVoting(ctx, players, gameStateID, deadline)
+	updateState := service.UpdateVotingState{
+		GameStateID: gameStateID,
+		Players:     players,
+		Deadline:    deadline,
+		Round:       round,
+	}
+
+	votingState, err := sub.roundService.UpdateStateToVoting(ctx, updateState)
 	if err != nil {
 		sub.logger.Error("failed to update game state", slog.Any("error", err))
 	}
 
-	err = sub.updateClientAboutVoting(ctx, votingPlayers)
+	err = sub.updateClientAboutVoting(ctx, votingState)
 	if err != nil {
 		sub.logger.Error("failed to move to voting", slog.Any("error", err))
 	}

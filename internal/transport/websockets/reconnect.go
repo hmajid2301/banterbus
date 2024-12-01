@@ -82,12 +82,12 @@ func (s Subscriber) reconnectToPlayingGame(ctx context.Context, client *client) 
 		}
 		component = sections.Question(question, question.Players[0])
 	case sqlc.GAMESTATE_FIBBING_IT_VOTING:
-		players, err := s.playerService.GetVotingState(ctx, client.playerID)
+		voting, err := s.playerService.GetVotingState(ctx, client.playerID)
 		if err != nil {
 			clientErr := s.updateClientAboutErr(ctx, client.playerID, errStr)
 			return component, errors.Join(clientErr, err)
 		}
-		component = sections.Voting(players, client.playerID)
+		component = sections.Voting(voting, client.playerID)
 	default:
 		return component, fmt.Errorf("unknown game state: %s", gameState)
 	}

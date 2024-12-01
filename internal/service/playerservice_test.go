@@ -733,27 +733,34 @@ func TestPlayerServiceGetVotingState(t *testing.T) {
 
 		mockStore.EXPECT().GetLatestRoundByPlayerID(ctx, playerID).Return(
 			sqlc.GetLatestRoundByPlayerIDRow{
-				ID: roundID,
+				ID:    roundID,
+				Round: 1,
 			}, nil)
-		mockStore.EXPECT().CountVotesByRoundID(ctx, roundID).Return(
-			[]sqlc.CountVotesByRoundIDRow{
+		mockStore.EXPECT().GetVotingState(ctx, roundID).Return(
+			[]sqlc.GetVotingStateRow{
 				{
 					VotedForPlayerID: playerID,
 					Nickname:         "nickname",
 					VoteCount:        1,
 					Avatar:           []byte(""),
+					Question:         "My  question",
+					Round:            1,
 				},
 			}, nil)
 
 		votingState, err := srv.GetVotingState(ctx, playerID)
 
 		assert.NoError(t, err)
-		expectedVotingState := []service.VotingPlayer{
-			{
-				ID:       playerID,
-				Nickname: "nickname",
-				Avatar:   "",
-				Votes:    1,
+		expectedVotingState := service.VotingState{
+			Question: "My  question",
+			Round:    1,
+			Players: []service.PlayerWithVoting{
+				{
+					ID:       playerID,
+					Nickname: "nickname",
+					Avatar:   "",
+					Votes:    1,
+				},
 			},
 		}
 		assert.Equal(t, expectedVotingState, votingState)
@@ -784,8 +791,8 @@ func TestPlayerServiceGetVotingState(t *testing.T) {
 			sqlc.GetLatestRoundByPlayerIDRow{
 				ID: roundID,
 			}, nil)
-		mockStore.EXPECT().CountVotesByRoundID(ctx, roundID).Return(
-			[]sqlc.CountVotesByRoundIDRow{}, fmt.Errorf("failed to get votes"),
+		mockStore.EXPECT().GetVotingState(ctx, roundID).Return(
+			[]sqlc.GetVotingStateRow{}, fmt.Errorf("failed to get votes"),
 		)
 
 		_, err := srv.GetVotingState(ctx, playerID)

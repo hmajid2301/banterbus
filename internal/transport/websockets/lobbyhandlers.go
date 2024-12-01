@@ -69,7 +69,7 @@ func (s *StartGame) Handle(ctx context.Context, client *client, sub *Subscriber)
 	time.Sleep(votingDelay)
 
 	// TODO: we want to start a state machine, as everything will be time based started by backen by backend.
-	go MoveToVoting(ctx, sub, updatedRoom.Players, updatedRoom.GameStateID)
+	go MoveToVoting(ctx, sub, updatedRoom.Players, updatedRoom.GameStateID, updatedRoom.Round)
 
 	return nil
 }
