@@ -58,6 +58,9 @@ schema = 3
   [mod."github.com/gomig/utils"]
     version = "v1.0.1"
     hash = "sha256-jOQKphQVuLEuKsMY7s2sj8CPYFkQUs7o8uYELo7s4LQ="
+  [mod."github.com/google/go-cmp"]
+    version = "v0.6.0"
+    hash = "sha256-qgra5jze4iPGP0JSTVeY5qV5AvEnEu39LYAuUCIkMtg="
   [mod."github.com/google/uuid"]
     version = "v1.6.0"
     hash = "sha256-VWl9sqUzdOuhW0KzQlv0gwwUQClYkmZwSydHG2sALYw="

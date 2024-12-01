@@ -41,7 +41,15 @@ func Role(role string) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</button><div class=\"flex overflow-auto fixed inset-0 z-30 justify-center items-center bg-black bg-opacity-50\" x-show=\"showModal\"><div class=\"py-4 px-6 mx-auto max-w-3xl text-left rounded shadow-lg bg-surface0\" @click.away=\"showModal = false\" x-transition:enter=\"motion-safe:ease-out duration-300\" x-transition:enter-start=\"opacity-0 scale-90\" x-transition:enter-end=\"opacity-100 scale-100\"><div class=\"flex justify-between items-center\"><button type=\"button\" class=\"z-50 cursor-pointer\" @click=\"showModal = false\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M6 18L18 6M6 6l12 12\"></path></svg></button></div><!-- content --><div class=\"text-text2\"><div class=\"flex justify-between items-center\"><div class=\"text-2xl text-center\">")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</button><div class=\"flex overflow-auto fixed inset-0 z-30 justify-center items-center bg-black bg-opacity-50\" x-show=\"showModal\"><div class=\"py-4 px-6 mx-auto max-w-3xl text-left rounded shadow-lg bg-surface0\" @click.away=\"showModal = false\" x-transition:enter=\"motion-safe:ease-out duration-300\" x-transition:enter-start=\"opacity-0 scale-90\" x-transition:enter-end=\"opacity-100 scale-100\"><div class=\"flex justify-between items-center\"><button type=\"button\" aria-label=\"Close\" class=\"z-50 cursor-pointer\" @click=\"showModal = false\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = icons.Cross("").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</button></div><div class=\"text-text2\"><div class=\"flex justify-between items-center\"><div class=\"text-2xl text-center\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -63,7 +71,7 @@ func Role(role string) templ.Component {
 		var templ_7745c5c3_Var2 string
 		templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(role)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/components/role.templ`, Line: 45, Col: 22}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/components/role.templ`, Line: 42, Col: 22}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
 		if templ_7745c5c3_Err != nil {
