@@ -5,7 +5,9 @@ import (
 	"database/sql"
 	"fmt"
 	"testing"
+	"time"
 
+	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/stretchr/testify/assert"
 
 	"gitlab.com/hmajid2301/banterbus/internal/service"
@@ -634,6 +636,7 @@ func TestPlayerServiceGetQuestionState(t *testing.T) {
 
 		ctx := context.Background()
 
+		deadline := time.Now().Add(5 * time.Second)
 		mockStore.EXPECT().GetCurrentQuestionByPlayerID(ctx, playerID).Return(sqlc.GetCurrentQuestionByPlayerIDRow{
 			ID:             playerID,
 			Avatar:         []byte(""),
@@ -644,6 +647,7 @@ func TestPlayerServiceGetQuestionState(t *testing.T) {
 			Round:          1,
 			RoundType:      "free_form",
 			RoomCode:       "ABC12",
+			SubmitDeadline: deadline,
 		}, nil)
 
 		questionState, err := srv.GetQuestionState(ctx, playerID)
@@ -663,7 +667,10 @@ func TestPlayerServiceGetQuestionState(t *testing.T) {
 			RoundType: "free_form",
 			RoomCode:  "ABC12",
 		}
-		assert.Equal(t, expectedGameState, questionState)
+
+		diffOpts := cmpopts.IgnoreFields(questionState, "Deadline")
+		PartialEqual(t, expectedGameState, questionState, diffOpts)
+		assert.LessOrEqual(t, int(questionState.Deadline.Seconds()), 5)
 	})
 
 	t.Run("Should successfully get question state, as normal fibber", func(t *testing.T) {
@@ -673,6 +680,7 @@ func TestPlayerServiceGetQuestionState(t *testing.T) {
 
 		ctx := context.Background()
 
+		deadline := time.Now().Add(5 * time.Second)
 		mockStore.EXPECT().GetCurrentQuestionByPlayerID(ctx, playerID).Return(sqlc.GetCurrentQuestionByPlayerIDRow{
 			ID:             playerID,
 			Avatar:         []byte(""),
@@ -683,6 +691,7 @@ func TestPlayerServiceGetQuestionState(t *testing.T) {
 			Round:          1,
 			RoundType:      "free_form",
 			RoomCode:       "ABC12",
+			SubmitDeadline: deadline,
 		}, nil)
 
 		questionState, err := srv.GetQuestionState(ctx, playerID)
@@ -702,7 +711,10 @@ func TestPlayerServiceGetQuestionState(t *testing.T) {
 			RoundType: "free_form",
 			RoomCode:  "ABC12",
 		}
-		assert.Equal(t, expectedGameState, questionState)
+
+		diffOpts := cmpopts.IgnoreFields(questionState, "Deadline")
+		PartialEqual(t, expectedGameState, questionState, diffOpts)
+		assert.LessOrEqual(t, int(questionState.Deadline.Seconds()), 5)
 	})
 
 	t.Run("Should fail to get question state because we cannot fetch from DB", func(t *testing.T) {
@@ -731,10 +743,12 @@ func TestPlayerServiceGetVotingState(t *testing.T) {
 
 		ctx := context.Background()
 
+		deadline := time.Now().Add(5 * time.Second)
 		mockStore.EXPECT().GetLatestRoundByPlayerID(ctx, playerID).Return(
 			sqlc.GetLatestRoundByPlayerIDRow{
-				ID:    roundID,
-				Round: 1,
+				ID:             roundID,
+				Round:          1,
+				SubmitDeadline: deadline,
 			}, nil)
 		mockStore.EXPECT().GetVotingState(ctx, roundID).Return(
 			[]sqlc.GetVotingStateRow{
@@ -763,7 +777,10 @@ func TestPlayerServiceGetVotingState(t *testing.T) {
 				},
 			},
 		}
-		assert.Equal(t, expectedVotingState, votingState)
+
+		diffOpts := cmpopts.IgnoreFields(votingState, "Deadline")
+		PartialEqual(t, expectedVotingState, votingState, diffOpts)
+		assert.LessOrEqual(t, int(votingState.Deadline.Seconds()), 5)
 	})
 
 	t.Run("Should fail to get voting state because fail to get round info from DB", func(t *testing.T) {

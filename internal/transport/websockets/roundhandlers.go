@@ -6,11 +6,9 @@ import (
 	"log/slog"
 	"time"
 
+	"gitlab.com/hmajid2301/banterbus/internal/config"
 	"gitlab.com/hmajid2301/banterbus/internal/service"
 )
-
-// TODO: Move this to a config file
-const VotingScreenDelay = 60 * time.Second
 
 type RoundServicer interface {
 	SubmitAnswer(ctx context.Context, playerID, answer string, submittedAt time.Time) error
@@ -57,7 +55,7 @@ func MoveToVoting(
 	gameStateID string,
 	round int,
 ) {
-	deadline := time.Now().Add(VotingScreenDelay)
+	deadline := time.Now().Add(config.ShowVotingScreenFor)
 	updateState := service.UpdateVotingState{
 		GameStateID: gameStateID,
 		Players:     players,

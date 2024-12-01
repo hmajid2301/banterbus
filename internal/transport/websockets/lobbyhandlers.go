@@ -6,15 +6,14 @@ import (
 	"fmt"
 	"time"
 
+	"gitlab.com/hmajid2301/banterbus/internal/config"
 	"gitlab.com/hmajid2301/banterbus/internal/service"
 )
-
-const votingDelay = 60 * time.Second
 
 type LobbyServicer interface {
 	Create(ctx context.Context, gameName string, player service.NewHostPlayer) (service.Lobby, error)
 	Join(ctx context.Context, roomCode string, playerID string, playerNickname string) (service.Lobby, error)
-	Start(ctx context.Context, roomCode string, playerID string) (service.QuestionState, error)
+	Start(ctx context.Context, roomCode string, playerID string, deadline time.Time) (service.QuestionState, error)
 	KickPlayer(
 		ctx context.Context,
 		roomCode string,
@@ -55,7 +54,8 @@ func (j *JoinLobby) Handle(ctx context.Context, client *client, sub *Subscriber)
 }
 
 func (s *StartGame) Handle(ctx context.Context, client *client, sub *Subscriber) error {
-	updatedRoom, err := sub.lobbyService.Start(ctx, s.RoomCode, client.playerID)
+	deadline := time.Now().Add(config.ShowQuestionScreenFor)
+	updatedRoom, err := sub.lobbyService.Start(ctx, s.RoomCode, client.playerID, deadline)
 	if err != nil {
 		errStr := "failed to start game"
 		clientErr := sub.updateClientAboutErr(ctx, client.playerID, errStr)
@@ -66,7 +66,7 @@ func (s *StartGame) Handle(ctx context.Context, client *client, sub *Subscriber)
 		return err
 	}
 
-	time.Sleep(votingDelay)
+	time.Sleep(config.ShowQuestionScreenFor)
 
 	// TODO: we want to start a state machine, as everything will be time based started by backen by backend.
 	go MoveToVoting(ctx, sub, updatedRoom.Players, updatedRoom.GameStateID, updatedRoom.Round)

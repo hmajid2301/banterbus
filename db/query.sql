@@ -130,11 +130,13 @@ SELECT
     fpr.player_role,
     fq1.question AS fibber_question,
     fq2.question AS normal_question,
-    p.avatar
+    p.avatar,
+    gs.submit_deadline
 FROM players p
 JOIN rooms_players rp ON p.id = rp.player_id
 JOIN rooms r ON rp.room_id = r.id
 JOIN fibbing_it_rounds fr ON r.id = fr.room_id
+JOIN game_state gs ON fr.game_state_id = gs.id
 LEFT JOIN questions fq1 ON fr.fibber_question_id = fq1.id
 LEFT JOIN questions fq2 ON fr.normal_question_id = fq2.id
 LEFT JOIN fibbing_it_player_roles fpr ON p.id = fpr.player_id AND fr.id = fpr.round_id
@@ -153,13 +155,14 @@ SELECT
     p.avatar,
     fia.answer,
     q.question,
-    fir.round
+    fir.round,
+    gs.submit_deadline
 FROM fibbing_it_votes fiv
 JOIN players p ON fiv.voted_for_player_id = p.id
 JOIN fibbing_it_answers fia ON fiv.voted_for_player_id = fia.player_id AND fiv.round_id = fia.round_id
 JOIN fibbing_it_rounds fir ON fiv.round_id = fir.id
+JOIN game_state gs ON fir.game_state_id = gs.id
 JOIN questions q ON fir.normal_question_id = q.id
 WHERE fiv.round_id = ?
-GROUP BY fiv.voted_for_player_id, p.nickname, p.avatar, fia.answer, q.question, fir.round;
-
+GROUP BY fiv.voted_for_player_id;
 

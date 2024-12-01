@@ -150,10 +150,12 @@ func (r *RoundService) SubmitVote(
 		return VotingState{}, fmt.Errorf("no players in room")
 	}
 
+	player := playersWithVoteAndAnswers[0]
 	votingState := VotingState{
 		Players:  votingPlayers,
-		Question: playersWithVoteAndAnswers[0].Question,
-		Round:    int(playersWithVoteAndAnswers[0].Round),
+		Question: player.Question,
+		Round:    int(player.Round),
+		Deadline: time.Until(round.SubmitDeadline),
 	}
 
 	return votingState, err

@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"time"
 
 	sqlc "gitlab.com/hmajid2301/banterbus/internal/store/db"
 )
@@ -172,6 +173,7 @@ func (p *PlayerService) GetQuestionState(ctx context.Context, playerID string) (
 		Round:     int(g.Round),
 		RoundType: g.RoundType,
 		RoomCode:  g.RoomCode,
+		Deadline:  time.Until(g.SubmitDeadline),
 	}
 
 	return gameState, nil
@@ -205,6 +207,7 @@ func (p *PlayerService) GetVotingState(ctx context.Context, playerID string) (Vo
 		Round:    int(round.Round),
 		Players:  votingPlayers,
 		Question: votes[0].Question,
+		Deadline: time.Until(votes[0].SubmitDeadline),
 	}
 
 	return votingState, nil

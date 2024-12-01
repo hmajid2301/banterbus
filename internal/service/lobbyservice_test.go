@@ -5,7 +5,9 @@ import (
 	"database/sql"
 	"fmt"
 	"testing"
+	"time"
 
+	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/stretchr/testify/assert"
 
 	"gitlab.com/hmajid2301/banterbus/internal/service"
@@ -692,6 +694,7 @@ func TestLobbyServiceStart(t *testing.T) {
 		}, nil)
 		mockRandom.EXPECT().GetFibberIndex(2).Return(1)
 		mockRandom.EXPECT().GetID().Return(gameStateID)
+		deadline := time.Now().Add(5 * time.Second)
 		mockStore.EXPECT().StartGame(ctx, sqlc.StartGameArgs{
 			GameStateID:       gameStateID,
 			RoomID:            roomID,
@@ -714,9 +717,10 @@ func TestLobbyServiceStart(t *testing.T) {
 				},
 			},
 			FibberLoc: 1,
+			Deadline:  deadline,
 		}).Return(nil)
 
-		gameState, err := srv.Start(ctx, roomCode, hostPlayerID)
+		gameState, err := srv.Start(ctx, roomCode, hostPlayerID, deadline)
 		expectedGameState := service.QuestionState{
 			GameStateID: gameStateID,
 			Players: []service.PlayerWithRole{
@@ -739,7 +743,10 @@ func TestLobbyServiceStart(t *testing.T) {
 		}
 
 		assert.NoError(t, err)
-		assert.Equal(t, expectedGameState, gameState)
+
+		diffOpts := cmpopts.IgnoreFields(gameState, "Deadline")
+		PartialEqual(t, expectedGameState, gameState, diffOpts)
+		assert.LessOrEqual(t, int(gameState.Deadline.Seconds()), 5)
 	})
 
 	t.Run("Should fail to start game because host did not start game", func(t *testing.T) {
@@ -757,7 +764,8 @@ func TestLobbyServiceStart(t *testing.T) {
 					RoomState:  sqlc.ROOMSTATE_CREATED.String(),
 				}, nil)
 
-		_, err := srv.Start(ctx, roomCode, defaultNewPlayer.ID)
+		deadline := time.Now().Add(5 * time.Second)
+		_, err := srv.Start(ctx, roomCode, defaultNewPlayer.ID, deadline)
 		assert.ErrorContains(t, err, "")
 	})
 
@@ -775,7 +783,9 @@ func TestLobbyServiceStart(t *testing.T) {
 					HostPlayer: hostPlayerID,
 					RoomState:  sqlc.ROOMSTATE_PLAYING.String(),
 				}, nil)
-		_, err := srv.Start(ctx, roomCode, hostPlayerID)
+
+		deadline := time.Now().Add(5 * time.Second)
+		_, err := srv.Start(ctx, roomCode, hostPlayerID, deadline)
 		assert.ErrorContains(t, err, "room is not in CREATED state")
 	})
 
@@ -797,7 +807,8 @@ func TestLobbyServiceStart(t *testing.T) {
 			GetAllPlayersInRoom(ctx, hostPlayerID).
 			Return([]sqlc.GetAllPlayersInRoomRow{}, fmt.Errorf("failed to get all players in room"))
 
-		_, err := srv.Start(ctx, roomCode, hostPlayerID)
+		deadline := time.Now().Add(5 * time.Second)
+		_, err := srv.Start(ctx, roomCode, hostPlayerID, deadline)
 		assert.Error(t, err)
 	})
 
@@ -825,7 +836,8 @@ func TestLobbyServiceStart(t *testing.T) {
 			},
 		}, nil)
 
-		_, err := srv.Start(ctx, roomCode, hostPlayerID)
+		deadline := time.Now().Add(5 * time.Second)
+		_, err := srv.Start(ctx, roomCode, hostPlayerID, deadline)
 		assert.ErrorContains(t, err, "not enough players to start the game")
 	})
 
@@ -862,7 +874,8 @@ func TestLobbyServiceStart(t *testing.T) {
 			},
 		}, nil)
 
-		_, err := srv.Start(ctx, roomCode, hostPlayerID)
+		deadline := time.Now().Add(5 * time.Second)
+		_, err := srv.Start(ctx, roomCode, hostPlayerID, deadline)
 		assert.ErrorContains(t, err, "not all players are ready")
 	})
 
@@ -903,7 +916,9 @@ func TestLobbyServiceStart(t *testing.T) {
 			LanguageCode: "en-GB",
 			Round:        "free_form",
 		}).Return(sqlc.Question{}, fmt.Errorf("failed to get random question for normals"))
-		_, err := srv.Start(ctx, roomCode, hostPlayerID)
+
+		deadline := time.Now().Add(5 * time.Second)
+		_, err := srv.Start(ctx, roomCode, hostPlayerID, deadline)
 		assert.Error(t, err)
 	})
 
@@ -953,7 +968,8 @@ func TestLobbyServiceStart(t *testing.T) {
 			ID:      "555555-9f7a-4392-b523-fd433b3208ea",
 		}).Return(sqlc.GetRandomQuestionInGroupRow{}, fmt.Errorf("failed to get random question for fibber"))
 
-		_, err := srv.Start(ctx, roomCode, hostPlayerID)
+		deadline := time.Now().Add(5 * time.Second)
+		_, err := srv.Start(ctx, roomCode, hostPlayerID, deadline)
 		assert.Error(t, err)
 	})
 
@@ -1008,6 +1024,7 @@ func TestLobbyServiceStart(t *testing.T) {
 		}, nil)
 		mockRandom.EXPECT().GetFibberIndex(2).Return(1)
 		mockRandom.EXPECT().GetID().Return(gameStateID)
+		deadline := time.Now().Add(5 * time.Second)
 		mockStore.EXPECT().StartGame(ctx, sqlc.StartGameArgs{
 			GameStateID:       gameStateID,
 			RoomID:            roomID,
@@ -1030,9 +1047,10 @@ func TestLobbyServiceStart(t *testing.T) {
 				},
 			},
 			FibberLoc: 1,
+			Deadline:  deadline,
 		}).Return(fmt.Errorf("failed to start game"))
 
-		_, err := srv.Start(ctx, roomCode, hostPlayerID)
+		_, err := srv.Start(ctx, roomCode, hostPlayerID, deadline)
 		assert.Error(t, err)
 	})
 }

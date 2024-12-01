@@ -1,6 +1,7 @@
 package sections
 
 import (
+	"encoding/json"
 	"gitlab.com/hmajid2301/banterbus/internal/service"
 	"gitlab.com/hmajid2301/banterbus/internal/views/components"
 	"strconv"
@@ -8,7 +9,7 @@ import (
 
 templ Question(gameState service.QuestionState, currentPlayer service.PlayerWithRole) {
 	<div hx-swap-oob="innerHTML:#page">
-		<div x-data="{ timer: 60 }" x-init="setInterval(() => { if (timer > 0) timer--; }, 1000)">
+		<div x-data={ toJSON(int(gameState.Deadline.Seconds())) } x-init="setInterval(() => { if (timer > 0) timer--; }, 1000)">
 			<div class="flex flex-col space-y-10 text-text2">
 				<div class="flex justify-between items-center">
 					<div>
@@ -34,4 +35,9 @@ templ Question(gameState service.QuestionState, currentPlayer service.PlayerWith
 			</div>
 		</div>
 	</div>
+}
+
+func toJSON(v any) string {
+	b, _ := json.Marshal(v)
+	return string(b)
 }

@@ -3,6 +3,7 @@ package service_test
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 
@@ -275,13 +276,15 @@ func TestIntegrationLobbyStart(t *testing.T) {
 		_, err = plySrv.TogglePlayerIsReady(ctx, defaultOtherPlayerID)
 		assert.NoError(t, err)
 
-		gameState, err := srv.Start(ctx, lobby.Code, defaultHostPlayerID)
+		deadline := time.Now().Add(5 * time.Second)
+		gameState, err := srv.Start(ctx, lobby.Code, defaultHostPlayerID, deadline)
 		assert.NoError(t, err)
 
 		assert.NotEmpty(t, gameState.GameStateID)
 		assert.Equal(t, 1, gameState.Round)
 		assert.Equal(t, "free_form", gameState.RoundType)
 		assert.Len(t, gameState.Players, 2)
+		assert.LessOrEqual(t, int(gameState.Deadline.Seconds()), 5)
 
 		fibberCount := 0
 		normalCount := 0
@@ -322,7 +325,8 @@ func TestIntegrationLobbyStart(t *testing.T) {
 		_, err = plySrv.TogglePlayerIsReady(ctx, defaultOtherPlayerID)
 		assert.NoError(t, err)
 
-		_, err = srv.Start(ctx, "unknown_code", defaultHostPlayerID)
+		deadline := time.Now().Add(5 * time.Second)
+		_, err = srv.Start(ctx, "unknown_code", defaultHostPlayerID, deadline)
 		assert.Error(t, err)
 	})
 
@@ -345,7 +349,8 @@ func TestIntegrationLobbyStart(t *testing.T) {
 		_, err = plySrv.TogglePlayerIsReady(ctx, defaultOtherPlayerID)
 		assert.NoError(t, err)
 
-		_, err = srv.Start(ctx, lobby.Code, defaultOtherPlayerID)
+		deadline := time.Now().Add(5 * time.Second)
+		_, err = srv.Start(ctx, lobby.Code, defaultOtherPlayerID, deadline)
 		assert.ErrorContains(t, err, "player is not the host of the room")
 	})
 
@@ -373,9 +378,10 @@ func TestIntegrationLobbyStart(t *testing.T) {
 			"UPDATE rooms SET room_state = 'PLAYING' WHERE room_code = ?",
 			lobby.Code,
 		)
-
 		assert.NoError(t, err)
-		_, err = srv.Start(ctx, lobby.Code, defaultHostPlayerID)
+
+		deadline := time.Now().Add(5 * time.Second)
+		_, err = srv.Start(ctx, lobby.Code, defaultHostPlayerID, deadline)
 		assert.ErrorContains(t, err, "room is not in CREATED state")
 	})
 
@@ -392,7 +398,8 @@ func TestIntegrationLobbyStart(t *testing.T) {
 		lobby, err := createRoom(ctx, srv)
 		assert.NoError(t, err)
 
-		_, err = srv.Start(ctx, lobby.Code, defaultHostPlayerID)
+		deadline := time.Now().Add(5 * time.Second)
+		_, err = srv.Start(ctx, lobby.Code, defaultHostPlayerID, deadline)
 		assert.ErrorContains(t, err, "not enough players to start the game")
 	})
 
@@ -413,7 +420,8 @@ func TestIntegrationLobbyStart(t *testing.T) {
 		_, err = plySrv.TogglePlayerIsReady(ctx, defaultHostPlayerID)
 		assert.NoError(t, err)
 
-		_, err = srv.Start(ctx, lobby.Code, defaultHostPlayerID)
+		deadline := time.Now().Add(5 * time.Second)
+		_, err = srv.Start(ctx, lobby.Code, defaultHostPlayerID, deadline)
 		assert.ErrorContains(t, err, "not all players are ready")
 	})
 }

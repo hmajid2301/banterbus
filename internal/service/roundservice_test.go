@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/stretchr/testify/assert"
 
 	"gitlab.com/hmajid2301/banterbus/internal/service"
@@ -266,7 +267,6 @@ func TestRoundServiceSubmitVote(t *testing.T) {
 		srv := service.NewRoundService(mockStore, mockRandomizer)
 
 		ctx := context.Background()
-		now := time.Now().Add(30 * time.Second)
 
 		mockStore.EXPECT().GetGameStateByPlayerID(ctx, "12345").Return(sqlc.GameState{
 			State: sqlc.GAMESTATE_FIBBING_IT_VOTING.String(),
@@ -281,9 +281,10 @@ func TestRoundServiceSubmitVote(t *testing.T) {
 				Nickname: "Player 2",
 			},
 		}, nil)
+		deadline := time.Now().Add(5 * time.Second)
 		mockStore.EXPECT().GetLatestRoundByPlayerID(ctx, "12345").Return(sqlc.GetLatestRoundByPlayerIDRow{
 			ID:             roundID,
-			SubmitDeadline: now.Add(1 * time.Hour),
+			SubmitDeadline: deadline,
 		}, nil)
 		mockStore.EXPECT().GetVotingState(ctx, roundID).Return([]sqlc.GetVotingStateRow{
 			{
@@ -293,6 +294,7 @@ func TestRoundServiceSubmitVote(t *testing.T) {
 				VoteCount:        0,
 				Question:         "My question",
 				Round:            1,
+				SubmitDeadline:   deadline,
 			},
 			{
 				VotedForPlayerID: "54678",
@@ -301,12 +303,15 @@ func TestRoundServiceSubmitVote(t *testing.T) {
 				VoteCount:        1,
 				Question:         "My question",
 				Round:            1,
+				SubmitDeadline:   deadline,
 			},
 		}, nil)
 
-		votes, err := srv.SubmitVote(ctx, "12345", "Player 2", now)
+		now := time.Now()
+		votingState, err := srv.SubmitVote(ctx, "12345", "Player 2", now)
 		assert.NoError(t, err)
-		expectedVotes := service.VotingState{
+
+		expectedVotingState := service.VotingState{
 			Question: "My question",
 			Round:    1,
 			Players: []service.PlayerWithVoting{
@@ -324,7 +329,10 @@ func TestRoundServiceSubmitVote(t *testing.T) {
 				},
 			},
 		}
-		assert.Equal(t, expectedVotes, votes)
+
+		diffOpts := cmpopts.IgnoreFields(votingState, "Deadline")
+		PartialEqual(t, expectedVotingState, votingState, diffOpts)
+		assert.LessOrEqual(t, int(votingState.Deadline.Seconds()), 5)
 	})
 
 	t.Run("Should fail because we fail to get game state", func(t *testing.T) {

@@ -3,8 +3,11 @@ package service_test
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"testing"
 
+	"github.com/google/go-cmp/cmp"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"gitlab.com/hmajid2301/banterbus/internal/banterbustest"
@@ -74,3 +77,23 @@ func lobbyWithTwoPlayers(ctx context.Context, srv *service.LobbyService) (servic
 //
 // 	return lobby, err
 // }
+
+// Taken from: https://gist.github.com/StevenACoffman/74347e58e5e0dc4bdf0a79240557c406
+func PartialEqual(t require.TestingT, expected, actual any, diffOpts cmp.Option, msgAndArgs ...any) {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+
+	if cmp.Equal(expected, actual, diffOpts) {
+		return
+	}
+
+	diff := cmp.Diff(expected, actual, diffOpts)
+	assert.Fail(t, fmt.Sprintf("Not equal: \n"+
+		"expected: %s\n"+
+		"actual  : %s%s", expected, actual, diff), msgAndArgs...)
+}
+
+type tHelper interface {
+	Helper()
+}

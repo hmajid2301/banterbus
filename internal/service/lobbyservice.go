@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"time"
 
 	sqlc "gitlab.com/hmajid2301/banterbus/internal/store/db"
 )
@@ -196,7 +197,12 @@ func (r *LobbyService) KickPlayer(
 	return lobby, playerToKickID, nil
 }
 
-func (r *LobbyService) Start(ctx context.Context, roomCode string, playerID string) (QuestionState, error) {
+func (r *LobbyService) Start(
+	ctx context.Context,
+	roomCode string,
+	playerID string,
+	deadline time.Time,
+) (QuestionState, error) {
 	room, err := r.store.GetRoomByCode(ctx, roomCode)
 	if err != nil {
 		return QuestionState{}, err
@@ -254,6 +260,7 @@ func (r *LobbyService) Start(ctx context.Context, roomCode string, playerID stri
 		FibberQuestionID:  fibberQuestion.ID,
 		Players:           playersInRoom,
 		FibberLoc:         randomFibberLoc,
+		Deadline:          deadline,
 	})
 	if err != nil {
 		return QuestionState{}, err
@@ -277,12 +284,15 @@ func (r *LobbyService) Start(ctx context.Context, roomCode string, playerID stri
 		})
 	}
 
+	timeLeft := time.Until(deadline)
+
 	gameState := QuestionState{
 		GameStateID: gameStateID,
 		Players:     players,
 		Round:       1,
 		RoundType:   "free_form",
 		RoomCode:    roomCode,
+		Deadline:    timeLeft,
 	}
 	return gameState, nil
 }

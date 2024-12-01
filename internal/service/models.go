@@ -43,6 +43,7 @@ type QuestionState struct {
 	Round       int
 	RoundType   string
 	RoomCode    string
+	Deadline    time.Duration
 }
 
 type UpdateVotingState struct {
@@ -56,6 +57,7 @@ type VotingState struct {
 	Players  []PlayerWithVoting
 	Question string
 	Round    int
+	Deadline time.Duration
 }
 
 type PlayerWithVoting struct {

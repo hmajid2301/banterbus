@@ -47,6 +47,7 @@
         goreleaser
         golines
 
+        playwright-test
         tailwindcss
         templ
         sqlc
@@ -55,7 +56,6 @@
       devShellPackages = with pkgs;
         myPackages
         ++ [
-          playwright-test
           gitlab-ci-local
         ];
 

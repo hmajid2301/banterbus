@@ -7,30 +7,32 @@ import (
 
 templ Voting(state service.VotingState, currentPlayerID string) {
 	<div hx-swap-oob="innerHTML:#page">
-		<div class="flex flex-col space-y-4 text-text2">
-			<div>{ strconv.Itoa(state.Round) } / 3</div>
-			<div>{ state.Question }</div>
-			for _, player := range state.Players {
-				<div>
-					<input type="text" name="player_nickname" value={ player.Nickname } class="py-3 px-5 w-full rounded-xl border-1 bg-overlay0 placeholder-surface0 border-text2"/>
-					<button class="inline-flex absolute top-1/2 justify-center items-center p-2 rounded-lg -translate-y-5 text-text2 end-2" aria-label="Submit Vote">
-						{ player.Nickname }
-						<div class="relative w-20 h-20 rounded-full border-2 border-white bg-overlay0">
-							<img src={ player.Avatar } alt="avatar" class="w-full h-full rounded-full"/>
-						</div>
-					</button>
-					if currentPlayerID == player.ID {
-						<p class="text-center">{ strconv.Itoa(player.Votes) }</p>
-					} else {
-						<form id="vote_for_player" hx-vals='{"message_type": "submit_vote" }' ws-send>
-							<button class="inline-flex absolute top-1/2 justify-center items-center p-2 rounded-lg -translate-y-5 text-text2 end-2" aria-label="Submit Vote">
-								<p class="text-center">{ strconv.Itoa(player.Votes) }</p>
-								<input class="hidden" name="voted_player_nickname" value={ player.ID }/>
-							</button>
-						</form>
-					}
-				</div>
-			}
+		<div x-data={ toJSON(int(state.Deadline.Seconds())) } x-init="setInterval(() => { if (timer > 0) timer--; }, 1000)">
+			<div class="flex flex-col space-y-4 text-text2">
+				<div>{ strconv.Itoa(state.Round) } / 3</div>
+				<div>{ state.Question }</div>
+				for _, player := range state.Players {
+					<div>
+						<input type="text" name="player_nickname" value={ player.Nickname } class="py-3 px-5 w-full rounded-xl border-1 bg-overlay0 placeholder-surface0 border-text2"/>
+						<button class="inline-flex absolute top-1/2 justify-center items-center p-2 rounded-lg -translate-y-5 text-text2 end-2" aria-label="Submit Vote">
+							{ player.Nickname }
+							<div class="relative w-20 h-20 rounded-full border-2 border-white bg-overlay0">
+								<img src={ player.Avatar } alt="avatar" class="w-full h-full rounded-full"/>
+							</div>
+						</button>
+						if currentPlayerID == player.ID {
+							<p class="text-center">{ strconv.Itoa(player.Votes) }</p>
+						} else {
+							<form id="vote_for_player" hx-vals='{"message_type": "submit_vote" }' ws-send>
+								<button class="inline-flex absolute top-1/2 justify-center items-center p-2 rounded-lg -translate-y-5 text-text2 end-2" aria-label="Submit Vote">
+									<p class="text-center">{ strconv.Itoa(player.Votes) }</p>
+									<input class="hidden" name="voted_player_nickname" value={ player.ID }/>
+								</button>
+							</form>
+						}
+					</div>
+				}
+			</div>
 		</div>
 	</div>
 }
