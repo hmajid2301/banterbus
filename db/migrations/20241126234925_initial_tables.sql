@@ -84,6 +84,7 @@ CREATE TABLE fibbing_it_answers (
     answer TEXT NOT NULL,
     player_id TEXT NOT NULL,
     round_id TEXT NOT NULL,
+    is_ready BOOLEAN DEFAULT FALSE,
     FOREIGN KEY (round_id) REFERENCES fibbing_it_rounds (id),
     FOREIGN KEY (player_id) REFERENCES players(id)
 );

@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 	"time"
 
@@ -95,15 +94,7 @@ func (p *PlayerService) TogglePlayerIsReady(ctx context.Context, playerID string
 		return Lobby{}, fmt.Errorf("room is not in CREATED state")
 	}
 
-	player, err := p.store.GetPlayerByID(ctx, playerID)
-	if err != nil {
-		return Lobby{}, err
-	}
-
-	_, err = p.store.UpdateIsReady(ctx, sqlc.UpdateIsReadyParams{
-		ID:      playerID,
-		IsReady: sql.NullBool{Bool: !player.IsReady.Bool, Valid: true},
-	})
+	_, err = p.store.TogglePlayerIsReady(ctx, playerID)
 	if err != nil {
 		return Lobby{}, err
 	}
@@ -117,7 +108,7 @@ func (p *PlayerService) TogglePlayerIsReady(ctx context.Context, playerID string
 	return lobby, err
 }
 
-// TODO: move these to their service file
+// TODO: move these to their own service file don't really belong
 func (p *PlayerService) GetRoomState(ctx context.Context, playerID string) (sqlc.RoomState, error) {
 	room, err := p.store.GetRoomByPlayerID(ctx, playerID)
 	if err != nil {

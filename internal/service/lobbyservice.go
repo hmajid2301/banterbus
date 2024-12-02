@@ -276,11 +276,12 @@ func (r *LobbyService) Start(
 		}
 
 		players = append(players, PlayerWithRole{
-			ID:       player.ID,
-			Nickname: player.Nickname,
-			Avatar:   player.Avatar,
-			Role:     role,
-			Question: question,
+			ID:            player.ID,
+			Nickname:      player.Nickname,
+			Avatar:        player.Avatar,
+			Role:          role,
+			Question:      question,
+			IsAnswerReady: false,
 		})
 	}
 

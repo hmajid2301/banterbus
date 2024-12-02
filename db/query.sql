@@ -22,8 +22,8 @@ UPDATE players SET nickname = ? WHERE id = ? RETURNING *;
 -- name: UpdateAvatar :one
 UPDATE players SET avatar = ? WHERE id = ? RETURNING *;
 
--- name: UpdateIsReady :one
-UPDATE players SET is_ready = ? WHERE id = ? RETURNING *;
+-- name: TogglePlayerIsReady :one
+UPDATE players SET is_ready = NOT is_ready WHERE id = ? RETURNING *;
 
 -- name: AddFibbingItRound :one
 INSERT INTO fibbing_it_rounds (id, round_type, round, fibber_question_id, normal_question_id, room_id, game_state_id) VALUES (?, ?, ?, ?, ?, ?, ?) RETURNING *;
@@ -131,7 +131,9 @@ SELECT
     fq1.question AS fibber_question,
     fq2.question AS normal_question,
     p.avatar,
-    gs.submit_deadline
+    gs.submit_deadline,
+    COALESCE(fia.answer, '') AS answer,
+    p.is_ready
 FROM players p
 JOIN rooms_players rp ON p.id = rp.player_id
 JOIN rooms r ON rp.room_id = r.id
@@ -140,12 +142,14 @@ JOIN game_state gs ON fr.game_state_id = gs.id
 LEFT JOIN questions fq1 ON fr.fibber_question_id = fq1.id
 LEFT JOIN questions fq2 ON fr.normal_question_id = fq2.id
 LEFT JOIN fibbing_it_player_roles fpr ON p.id = fpr.player_id AND fr.id = fpr.round_id
+LEFT JOIN fibbing_it_answers fia ON p.id = fia.player_id AND fr.id = fia.round_id
 WHERE rp.room_id = (
     SELECT rp_inner.room_id
     FROM rooms_players rp_inner
     WHERE rp_inner.player_id = ?
 )
-ORDER BY p.created_at;
+ORDER BY p.created_at
+LIMIT 1;
 
 -- name: GetVotingState :many
 SELECT
@@ -166,3 +170,15 @@ JOIN questions q ON fir.normal_question_id = q.id
 WHERE fiv.round_id = ?
 GROUP BY fiv.voted_for_player_id;
 
+-- name: ToggleAnswerIsReady :one
+UPDATE fibbing_it_answers SET is_ready = NOT is_ready WHERE id = ? RETURNING *;
+
+-- name: GetPlayerAnswerIsReady :many
+SELECT rp.player_id, fa.is_ready
+FROM rooms_players rp
+LEFT JOIN fibbing_it_answers fa ON rp.player_id = fa.player_id
+WHERE rp.room_id = (
+    SELECT room_id
+    FROM rooms_players
+    WHERE rp.player_id = ?
+);

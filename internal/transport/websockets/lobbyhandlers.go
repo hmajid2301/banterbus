@@ -55,13 +55,13 @@ func (j *JoinLobby) Handle(ctx context.Context, client *client, sub *Subscriber)
 
 func (s *StartGame) Handle(ctx context.Context, client *client, sub *Subscriber) error {
 	deadline := time.Now().Add(config.ShowQuestionScreenFor)
-	updatedRoom, err := sub.lobbyService.Start(ctx, s.RoomCode, client.playerID, deadline)
+	questionState, err := sub.lobbyService.Start(ctx, s.RoomCode, client.playerID, deadline)
 	if err != nil {
 		errStr := "failed to start game"
 		clientErr := sub.updateClientAboutErr(ctx, client.playerID, errStr)
 		return errors.Join(clientErr, err)
 	}
-	err = sub.updateClientsAboutQuestion(ctx, updatedRoom)
+	err = sub.updateClientsAboutQuestion(ctx, questionState)
 	if err != nil {
 		return err
 	}
@@ -69,7 +69,7 @@ func (s *StartGame) Handle(ctx context.Context, client *client, sub *Subscriber)
 	time.Sleep(config.ShowQuestionScreenFor)
 
 	// TODO: we want to start a state machine, as everything will be time based started by backen by backend.
-	go MoveToVoting(ctx, sub, updatedRoom.Players, updatedRoom.GameStateID, updatedRoom.Round)
+	go MoveToVoting(ctx, sub, questionState.Players, questionState.GameStateID, questionState.Round)
 
 	return nil
 }

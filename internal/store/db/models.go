@@ -16,6 +16,7 @@ type FibbingItAnswer struct {
 	Answer    string
 	PlayerID  string
 	RoundID   string
+	IsReady   sql.NullBool
 }
 
 type FibbingItPlayerRole struct {

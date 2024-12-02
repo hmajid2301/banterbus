@@ -68,6 +68,7 @@ func NewSubscriber(
 		"kick_player":            &KickPlayer{},
 		"start_game":             &StartGame{},
 		"submit_answer":          &SubmitAnswer{},
+		"toggle_answer_is_ready": &ToggleAnswerIsReady{},
 	}
 
 	return s

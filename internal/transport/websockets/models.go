@@ -100,3 +100,10 @@ func (s *SubmitVote) Validate() error {
 
 	return nil
 }
+
+type ToggleAnswerIsReady struct {
+}
+
+func (t *ToggleAnswerIsReady) Validate() error {
+	return nil
+}

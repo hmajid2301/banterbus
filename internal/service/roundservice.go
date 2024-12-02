@@ -46,6 +46,37 @@ func (r *RoundService) SubmitAnswer(ctx context.Context, playerID string, answer
 	return err
 }
 
+func (r *RoundService) ToggleAnswerIsReady(ctx context.Context, playerID string) (bool, error) {
+	gameState, err := r.store.GetGameStateByPlayerID(ctx, playerID)
+	if err != nil {
+		return false, err
+	}
+
+	if gameState.State != sqlc.GAMESTATE_FIBBING_IT_SHOW_QUESTION.String() {
+		return false, fmt.Errorf("room game state is not in FIBBING_IT_SHOW_QUESTION state")
+	}
+
+	_, err = r.store.ToggleAnswerIsReady(ctx, playerID)
+	if err != nil {
+		return false, err
+	}
+
+	players, err := r.store.GetPlayerAnswerIsReady(ctx, playerID)
+	if err != nil {
+		return false, err
+	}
+
+	allReady := true
+	for _, player := range players {
+		if !player.IsReady.Bool {
+			allReady = false
+			break
+		}
+	}
+
+	return allReady, nil
+}
+
 func (r *RoundService) UpdateStateToVoting(
 	ctx context.Context,
 	updateVoting UpdateVotingState,

@@ -30,11 +30,12 @@ type NewRoom struct {
 }
 
 type PlayerWithRole struct {
-	ID       string
-	Nickname string
-	Role     string
-	Question string
-	Avatar   []byte
+	ID            string
+	Nickname      string
+	Role          string
+	Question      string
+	Avatar        []byte
+	IsAnswerReady bool
 }
 
 type QuestionState struct {

@@ -327,13 +327,7 @@ func TestPlayerServiceTogglePlayerIsReady(t *testing.T) {
 				ID:        roomID,
 				RoomState: sqlc.ROOMSTATE_CREATED.String(),
 			}, nil)
-			mockStore.EXPECT().GetPlayerByID(ctx, playerID).Return(sqlc.Player{
-				IsReady: sql.NullBool{Bool: tt.initialIsReady, Valid: true},
-			}, nil)
-			mockStore.EXPECT().UpdateIsReady(ctx, sqlc.UpdateIsReadyParams{
-				IsReady: sql.NullBool{Bool: tt.expectedIsReady, Valid: true},
-				ID:      playerID,
-			}).Return(sqlc.Player{}, nil)
+			mockStore.EXPECT().TogglePlayerIsReady(ctx, playerID).Return(sqlc.Player{}, nil)
 			mockStore.EXPECT().GetAllPlayersInRoom(ctx, playerID).Return([]sqlc.GetAllPlayersInRoomRow{
 				{
 					ID:         playerID,
@@ -394,25 +388,6 @@ func TestPlayerServiceTogglePlayerIsReady(t *testing.T) {
 		assert.ErrorContains(t, err, "room is not in CREATED state")
 	})
 
-	t.Run("Should fail to toggle player because fail to get player from DB", func(t *testing.T) {
-		mockStore := mockService.NewMockStorer(t)
-		mockRandomizer := mockService.NewMockRandomizer(t)
-		srv := service.NewPlayerService(mockStore, mockRandomizer)
-
-		ctx := context.Background()
-
-		mockStore.EXPECT().GetRoomByPlayerID(ctx, playerID).Return(sqlc.Room{
-			ID:        roomID,
-			RoomState: sqlc.ROOMSTATE_CREATED.String(),
-		}, nil)
-		mockStore.EXPECT().GetPlayerByID(ctx, playerID).Return(sqlc.Player{
-			IsReady: sql.NullBool{Bool: false, Valid: true},
-		}, fmt.Errorf("failed to get player"))
-
-		_, err := srv.TogglePlayerIsReady(ctx, playerID)
-		assert.Error(t, err)
-	})
-
 	t.Run("Should fail to toggle player because fail to update ready status in DB", func(t *testing.T) {
 		mockStore := mockService.NewMockStorer(t)
 		mockRandomizer := mockService.NewMockRandomizer(t)
@@ -424,13 +399,9 @@ func TestPlayerServiceTogglePlayerIsReady(t *testing.T) {
 			ID:        roomID,
 			RoomState: sqlc.ROOMSTATE_CREATED.String(),
 		}, nil)
-		mockStore.EXPECT().GetPlayerByID(ctx, playerID).Return(sqlc.Player{
-			IsReady: sql.NullBool{Bool: false, Valid: true},
-		}, nil)
-		mockStore.EXPECT().UpdateIsReady(ctx, sqlc.UpdateIsReadyParams{
-			IsReady: sql.NullBool{Bool: true, Valid: true},
-			ID:      playerID,
-		}).Return(sqlc.Player{}, fmt.Errorf("failed to update is ready"))
+		mockStore.EXPECT().TogglePlayerIsReady(ctx, playerID).Return(
+			sqlc.Player{}, fmt.Errorf("failed to update is ready"),
+		)
 
 		_, err := srv.TogglePlayerIsReady(ctx, playerID)
 		assert.Error(t, err)
@@ -447,13 +418,7 @@ func TestPlayerServiceTogglePlayerIsReady(t *testing.T) {
 			ID:        roomID,
 			RoomState: sqlc.ROOMSTATE_CREATED.String(),
 		}, nil)
-		mockStore.EXPECT().GetPlayerByID(ctx, playerID).Return(sqlc.Player{
-			IsReady: sql.NullBool{Bool: false, Valid: true},
-		}, nil)
-		mockStore.EXPECT().UpdateIsReady(ctx, sqlc.UpdateIsReadyParams{
-			IsReady: sql.NullBool{Bool: true, Valid: true},
-			ID:      playerID,
-		}).Return(sqlc.Player{}, nil)
+		mockStore.EXPECT().TogglePlayerIsReady(ctx, playerID).Return(sqlc.Player{}, nil)
 		mockStore.EXPECT().GetAllPlayersInRoom(ctx, playerID).Return(
 			[]sqlc.GetAllPlayersInRoomRow{}, fmt.Errorf("failed to get players in room"),
 		)

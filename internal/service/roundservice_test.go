@@ -2,6 +2,7 @@ package service_test
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"testing"
 	"time"
@@ -153,6 +154,132 @@ func TestRoundServiceSubmitAnswer(t *testing.T) {
 		assert.Error(t, err)
 	})
 }
+
+func TestRoundServiceToggleAnswerIsReady(t *testing.T) {
+	t.Run("Should successfully toggle answer ready state", func(t *testing.T) {
+		mockStore := mockService.NewMockStorer(t)
+		mockRandomizer := mockService.NewMockRandomizer(t)
+		srv := service.NewRoundService(mockStore, mockRandomizer)
+
+		ctx := context.Background()
+
+		mockStore.EXPECT().GetGameStateByPlayerID(ctx, playerID).Return(sqlc.GameState{
+			State: sqlc.GAMESTATE_FIBBING_IT_SHOW_QUESTION.String(),
+		}, nil)
+		mockStore.EXPECT().ToggleAnswerIsReady(ctx, playerID).Return(sqlc.FibbingItAnswer{}, nil)
+		mockStore.EXPECT().GetPlayerAnswerIsReady(ctx, playerID).Return([]sqlc.GetPlayerAnswerIsReadyRow{
+			{
+				IsReady: sql.NullBool{Valid: true, Bool: false},
+			},
+			{
+				IsReady: sql.NullBool{Valid: true, Bool: true},
+			},
+		}, nil)
+
+		allReady, err := srv.ToggleAnswerIsReady(ctx, playerID)
+		assert.NoError(t, err)
+		assert.False(t, allReady)
+	})
+
+	t.Run("Should successfully toggle answer ready state and return all players are ready", func(t *testing.T) {
+		mockStore := mockService.NewMockStorer(t)
+		mockRandomizer := mockService.NewMockRandomizer(t)
+		srv := service.NewRoundService(mockStore, mockRandomizer)
+
+		ctx := context.Background()
+
+		mockStore.EXPECT().GetGameStateByPlayerID(ctx, playerID).Return(sqlc.GameState{
+			State: sqlc.GAMESTATE_FIBBING_IT_SHOW_QUESTION.String(),
+		}, nil)
+		mockStore.EXPECT().ToggleAnswerIsReady(ctx, playerID).Return(sqlc.FibbingItAnswer{}, nil)
+		mockStore.EXPECT().GetPlayerAnswerIsReady(ctx, playerID).Return([]sqlc.GetPlayerAnswerIsReadyRow{
+			{
+				IsReady: sql.NullBool{Valid: true, Bool: true},
+			},
+			{
+				IsReady: sql.NullBool{Valid: true, Bool: true},
+			},
+		}, nil)
+
+		allReady, err := srv.ToggleAnswerIsReady(ctx, playerID)
+		assert.NoError(t, err)
+		assert.True(t, allReady)
+	})
+
+	t.Run("Should fail to toggle answer ready state, because we fail to get game state", func(t *testing.T) {
+		mockStore := mockService.NewMockStorer(t)
+		mockRandomizer := mockService.NewMockRandomizer(t)
+		srv := service.NewRoundService(mockStore, mockRandomizer)
+
+		ctx := context.Background()
+
+		mockStore.EXPECT().GetGameStateByPlayerID(ctx, playerID).Return(
+			sqlc.GameState{}, fmt.Errorf("failed to get state"),
+		)
+
+		_, err := srv.ToggleAnswerIsReady(ctx, playerID)
+		assert.Error(t, err)
+	})
+
+	t.Run("Should fail to toggle answer ready state because game state not in show question", func(t *testing.T) {
+		mockStore := mockService.NewMockStorer(t)
+		mockRandomizer := mockService.NewMockRandomizer(t)
+		srv := service.NewRoundService(mockStore, mockRandomizer)
+
+		ctx := context.Background()
+
+		mockStore.EXPECT().GetGameStateByPlayerID(ctx, playerID).Return(sqlc.GameState{
+			State: sqlc.GAMESTATE_FIBBING_IT_VOTING.String(),
+		}, nil)
+
+		_, err := srv.ToggleAnswerIsReady(ctx, playerID)
+		assert.ErrorContains(t, err, "room game state is not in FIBBING_IT_SHOW_QUESTION state")
+	})
+
+	t.Run(
+		"Should fail to toggle answer ready state, because we fail to toggle answer ready state in DB",
+		func(t *testing.T) {
+			mockStore := mockService.NewMockStorer(t)
+			mockRandomizer := mockService.NewMockRandomizer(t)
+			srv := service.NewRoundService(mockStore, mockRandomizer)
+
+			ctx := context.Background()
+
+			mockStore.EXPECT().GetGameStateByPlayerID(ctx, playerID).Return(sqlc.GameState{
+				State: sqlc.GAMESTATE_FIBBING_IT_SHOW_QUESTION.String(),
+			}, nil)
+			mockStore.EXPECT().ToggleAnswerIsReady(ctx, playerID).Return(
+				sqlc.FibbingItAnswer{}, fmt.Errorf("failed to toggle answer is ready"),
+			)
+
+			_, err := srv.ToggleAnswerIsReady(ctx, playerID)
+			assert.Error(t, err)
+		},
+	)
+
+	t.Run(
+		"Should fail to toggle toggle answer ready state because we fail to get all players ready status from DB",
+		func(t *testing.T) {
+			mockStore := mockService.NewMockStorer(t)
+			mockRandomizer := mockService.NewMockRandomizer(t)
+			srv := service.NewRoundService(mockStore, mockRandomizer)
+
+			ctx := context.Background()
+
+			mockStore.EXPECT().GetGameStateByPlayerID(ctx, playerID).Return(sqlc.GameState{
+				State: sqlc.GAMESTATE_FIBBING_IT_SHOW_QUESTION.String(),
+			}, nil)
+			mockStore.EXPECT().ToggleAnswerIsReady(ctx, playerID).Return(sqlc.FibbingItAnswer{}, nil)
+			mockStore.EXPECT().GetPlayerAnswerIsReady(ctx, playerID).Return(
+				[]sqlc.GetPlayerAnswerIsReadyRow{}, fmt.Errorf("failed to get player answer is ready status"),
+			)
+
+			_, err := srv.ToggleAnswerIsReady(ctx, playerID)
+			assert.Error(t, err)
+		},
+	)
+}
+
 func TestRoundServiceUpdateStateToVoting(t *testing.T) {
 	gameStateID := "fbb75599-9f7a-4392-b523-fd433b3208ea"
 

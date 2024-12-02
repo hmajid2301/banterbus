@@ -919,6 +919,65 @@ func (_c *MockStorer_GetLatestRoundByPlayerID_Call) RunAndReturn(run func(contex
 	return _c
 }
 
+// GetPlayerAnswerIsReady provides a mock function with given fields: ctx, playerID
+func (_m *MockStorer) GetPlayerAnswerIsReady(ctx context.Context, playerID string) ([]sqlc.GetPlayerAnswerIsReadyRow, error) {
+	ret := _m.Called(ctx, playerID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetPlayerAnswerIsReady")
+	}
+
+	var r0 []sqlc.GetPlayerAnswerIsReadyRow
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) ([]sqlc.GetPlayerAnswerIsReadyRow, error)); ok {
+		return rf(ctx, playerID)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string) []sqlc.GetPlayerAnswerIsReadyRow); ok {
+		r0 = rf(ctx, playerID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]sqlc.GetPlayerAnswerIsReadyRow)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, playerID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockStorer_GetPlayerAnswerIsReady_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetPlayerAnswerIsReady'
+type MockStorer_GetPlayerAnswerIsReady_Call struct {
+	*mock.Call
+}
+
+// GetPlayerAnswerIsReady is a helper method to define mock.On call
+//   - ctx context.Context
+//   - playerID string
+func (_e *MockStorer_Expecter) GetPlayerAnswerIsReady(ctx interface{}, playerID interface{}) *MockStorer_GetPlayerAnswerIsReady_Call {
+	return &MockStorer_GetPlayerAnswerIsReady_Call{Call: _e.mock.On("GetPlayerAnswerIsReady", ctx, playerID)}
+}
+
+func (_c *MockStorer_GetPlayerAnswerIsReady_Call) Run(run func(ctx context.Context, playerID string)) *MockStorer_GetPlayerAnswerIsReady_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string))
+	})
+	return _c
+}
+
+func (_c *MockStorer_GetPlayerAnswerIsReady_Call) Return(_a0 []sqlc.GetPlayerAnswerIsReadyRow, _a1 error) *MockStorer_GetPlayerAnswerIsReady_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockStorer_GetPlayerAnswerIsReady_Call) RunAndReturn(run func(context.Context, string) ([]sqlc.GetPlayerAnswerIsReadyRow, error)) *MockStorer_GetPlayerAnswerIsReady_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetPlayerByID provides a mock function with given fields: ctx, id
 func (_m *MockStorer) GetPlayerByID(ctx context.Context, id string) (sqlc.Player, error) {
 	ret := _m.Called(ctx, id)
@@ -1367,6 +1426,120 @@ func (_c *MockStorer_StartGame_Call) RunAndReturn(run func(context.Context, sqlc
 	return _c
 }
 
+// ToggleAnswerIsReady provides a mock function with given fields: ctx, id
+func (_m *MockStorer) ToggleAnswerIsReady(ctx context.Context, id string) (sqlc.FibbingItAnswer, error) {
+	ret := _m.Called(ctx, id)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ToggleAnswerIsReady")
+	}
+
+	var r0 sqlc.FibbingItAnswer
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) (sqlc.FibbingItAnswer, error)); ok {
+		return rf(ctx, id)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string) sqlc.FibbingItAnswer); ok {
+		r0 = rf(ctx, id)
+	} else {
+		r0 = ret.Get(0).(sqlc.FibbingItAnswer)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, id)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockStorer_ToggleAnswerIsReady_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ToggleAnswerIsReady'
+type MockStorer_ToggleAnswerIsReady_Call struct {
+	*mock.Call
+}
+
+// ToggleAnswerIsReady is a helper method to define mock.On call
+//   - ctx context.Context
+//   - id string
+func (_e *MockStorer_Expecter) ToggleAnswerIsReady(ctx interface{}, id interface{}) *MockStorer_ToggleAnswerIsReady_Call {
+	return &MockStorer_ToggleAnswerIsReady_Call{Call: _e.mock.On("ToggleAnswerIsReady", ctx, id)}
+}
+
+func (_c *MockStorer_ToggleAnswerIsReady_Call) Run(run func(ctx context.Context, id string)) *MockStorer_ToggleAnswerIsReady_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string))
+	})
+	return _c
+}
+
+func (_c *MockStorer_ToggleAnswerIsReady_Call) Return(_a0 sqlc.FibbingItAnswer, _a1 error) *MockStorer_ToggleAnswerIsReady_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockStorer_ToggleAnswerIsReady_Call) RunAndReturn(run func(context.Context, string) (sqlc.FibbingItAnswer, error)) *MockStorer_ToggleAnswerIsReady_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// TogglePlayerIsReady provides a mock function with given fields: ctx, id
+func (_m *MockStorer) TogglePlayerIsReady(ctx context.Context, id string) (sqlc.Player, error) {
+	ret := _m.Called(ctx, id)
+
+	if len(ret) == 0 {
+		panic("no return value specified for TogglePlayerIsReady")
+	}
+
+	var r0 sqlc.Player
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) (sqlc.Player, error)); ok {
+		return rf(ctx, id)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string) sqlc.Player); ok {
+		r0 = rf(ctx, id)
+	} else {
+		r0 = ret.Get(0).(sqlc.Player)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, id)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockStorer_TogglePlayerIsReady_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'TogglePlayerIsReady'
+type MockStorer_TogglePlayerIsReady_Call struct {
+	*mock.Call
+}
+
+// TogglePlayerIsReady is a helper method to define mock.On call
+//   - ctx context.Context
+//   - id string
+func (_e *MockStorer_Expecter) TogglePlayerIsReady(ctx interface{}, id interface{}) *MockStorer_TogglePlayerIsReady_Call {
+	return &MockStorer_TogglePlayerIsReady_Call{Call: _e.mock.On("TogglePlayerIsReady", ctx, id)}
+}
+
+func (_c *MockStorer_TogglePlayerIsReady_Call) Run(run func(ctx context.Context, id string)) *MockStorer_TogglePlayerIsReady_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string))
+	})
+	return _c
+}
+
+func (_c *MockStorer_TogglePlayerIsReady_Call) Return(_a0 sqlc.Player, _a1 error) *MockStorer_TogglePlayerIsReady_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockStorer_TogglePlayerIsReady_Call) RunAndReturn(run func(context.Context, string) (sqlc.Player, error)) *MockStorer_TogglePlayerIsReady_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // UpdateAvatar provides a mock function with given fields: ctx, arg
 func (_m *MockStorer) UpdateAvatar(ctx context.Context, arg sqlc.UpdateAvatarParams) (sqlc.Player, error) {
 	ret := _m.Called(ctx, arg)
@@ -1477,63 +1650,6 @@ func (_c *MockStorer_UpdateGameState_Call) Return(_a0 sqlc.GameState, _a1 error)
 }
 
 func (_c *MockStorer_UpdateGameState_Call) RunAndReturn(run func(context.Context, sqlc.UpdateGameStateParams) (sqlc.GameState, error)) *MockStorer_UpdateGameState_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
-// UpdateIsReady provides a mock function with given fields: ctx, arg
-func (_m *MockStorer) UpdateIsReady(ctx context.Context, arg sqlc.UpdateIsReadyParams) (sqlc.Player, error) {
-	ret := _m.Called(ctx, arg)
-
-	if len(ret) == 0 {
-		panic("no return value specified for UpdateIsReady")
-	}
-
-	var r0 sqlc.Player
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, sqlc.UpdateIsReadyParams) (sqlc.Player, error)); ok {
-		return rf(ctx, arg)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, sqlc.UpdateIsReadyParams) sqlc.Player); ok {
-		r0 = rf(ctx, arg)
-	} else {
-		r0 = ret.Get(0).(sqlc.Player)
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context, sqlc.UpdateIsReadyParams) error); ok {
-		r1 = rf(ctx, arg)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// MockStorer_UpdateIsReady_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateIsReady'
-type MockStorer_UpdateIsReady_Call struct {
-	*mock.Call
-}
-
-// UpdateIsReady is a helper method to define mock.On call
-//   - ctx context.Context
-//   - arg sqlc.UpdateIsReadyParams
-func (_e *MockStorer_Expecter) UpdateIsReady(ctx interface{}, arg interface{}) *MockStorer_UpdateIsReady_Call {
-	return &MockStorer_UpdateIsReady_Call{Call: _e.mock.On("UpdateIsReady", ctx, arg)}
-}
-
-func (_c *MockStorer_UpdateIsReady_Call) Run(run func(ctx context.Context, arg sqlc.UpdateIsReadyParams)) *MockStorer_UpdateIsReady_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(sqlc.UpdateIsReadyParams))
-	})
-	return _c
-}
-
-func (_c *MockStorer_UpdateIsReady_Call) Return(_a0 sqlc.Player, _a1 error) *MockStorer_UpdateIsReady_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *MockStorer_UpdateIsReady_Call) RunAndReturn(run func(context.Context, sqlc.UpdateIsReadyParams) (sqlc.Player, error)) *MockStorer_UpdateIsReady_Call {
 	_c.Call.Return(run)
 	return _c
 }
