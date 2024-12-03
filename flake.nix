@@ -47,7 +47,9 @@
         goreleaser
         golines
 
-        playwright-test
+        # playwright-test
+        # test
+        playwright-driver
         tailwindcss
         templ
         sqlc

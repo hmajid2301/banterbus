@@ -33,6 +33,10 @@ in
         "USER=nobody"
         "SSL_CERT_FILE=${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt"
         "SSL_CERT_DIR=${pkgs.cacert}/etc/ssl/certs/"
+        "PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1"
+        "PLAYWRIGHT_BROWSERS_PATH=${pkgs.playwright-driver.browsers}"
+        "PLAYWRIGHT_NODEJS_PATH=${pkgs.nodejs}/bin/node"
+        "PLAYWRIGHT_DRIVER_PATH=${pkgs.playwright-driver}"
       ];
     };
   }

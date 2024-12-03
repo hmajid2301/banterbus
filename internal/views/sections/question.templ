@@ -32,7 +32,7 @@ templ Question(gameState service.QuestionState, currentPlayer service.PlayerWith
 						Submit Answer
 					}
 				</form>
-				<form id="toggle_ready_form" hx-vals='{"message_type": "toggle_answer_is_ready" }' ws-send class="w-full">
+				<form id="toggle_ready_form" hx-vals='{"message_type": "toggle_answer_ready" }' ws-send class="w-full">
 					if currentPlayer.IsAnswerReady {
 						@components.Button(components.ButtonProps{TextColor: "text-black", BackgroundColor: "bg-text2"}) {
 							Ready

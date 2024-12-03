@@ -117,7 +117,7 @@ func Question(gameState service.QuestionState, currentPlayer service.PlayerWithR
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</form><form id=\"toggle_ready_form\" hx-vals=\"{&#34;message_type&#34;: &#34;toggle_answer_is_ready&#34; }\" ws-send class=\"w-full\">")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</form><form id=\"toggle_ready_form\" hx-vals=\"{&#34;message_type&#34;: &#34;toggle_answer_ready&#34; }\" ws-send class=\"w-full\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
