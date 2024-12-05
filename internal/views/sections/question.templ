@@ -9,7 +9,7 @@ import (
 
 templ Question(gameState service.QuestionState, currentPlayer service.PlayerWithRole) {
 	<div hx-swap-oob="innerHTML:#page">
-		<div x-data={ toJSON(int(gameState.Deadline.Seconds())) } x-init="setInterval(() => { if (timer > 0) timer--; }, 1000)">
+		<div x-data={ toJSON(map[string]any{"timer": int(gameState.Deadline.Seconds())}) } x-init="setInterval(() => { if (timer > 0) timer--; }, 1000)">
 			<div class="flex flex-col space-y-10 text-text2">
 				<div class="flex justify-between items-center">
 					<div>
@@ -32,7 +32,7 @@ templ Question(gameState service.QuestionState, currentPlayer service.PlayerWith
 						Submit Answer
 					}
 				</form>
-				<form id="toggle_ready_form" hx-vals='{"message_type": "toggle_answer_ready" }' ws-send class="w-full">
+				<form id="toggle_ready_form" hx-vals='{"message_type": "toggle_answer_is_ready" }' ws-send class="w-full">
 					if currentPlayer.IsAnswerReady {
 						@components.Button(components.ButtonProps{TextColor: "text-black", BackgroundColor: "bg-text2"}) {
 							Ready

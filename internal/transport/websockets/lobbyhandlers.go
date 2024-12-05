@@ -54,7 +54,7 @@ func (j *JoinLobby) Handle(ctx context.Context, client *client, sub *Subscriber)
 }
 
 func (s *StartGame) Handle(ctx context.Context, client *client, sub *Subscriber) error {
-	deadline := time.Now().Add(config.ShowQuestionScreenFor)
+	deadline := time.Now().UTC().Add(config.ShowQuestionScreenFor)
 	questionState, err := sub.lobbyService.Start(ctx, s.RoomCode, client.playerID, deadline)
 	if err != nil {
 		errStr := "failed to start game"

@@ -42,9 +42,9 @@ func Question(gameState service.QuestionState, currentPlayer service.PlayerWithR
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var2 string
-		templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(toJSON(int(gameState.Deadline.Seconds())))
+		templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(toJSON(map[string]any{"timer": int(gameState.Deadline.Seconds())}))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/sections/question.templ`, Line: 12, Col: 57}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/sections/question.templ`, Line: 12, Col: 82}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
 		if templ_7745c5c3_Err != nil {
@@ -117,7 +117,7 @@ func Question(gameState service.QuestionState, currentPlayer service.PlayerWithR
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</form><form id=\"toggle_ready_form\" hx-vals=\"{&#34;message_type&#34;: &#34;toggle_answer_ready&#34; }\" ws-send class=\"w-full\">")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</form><form id=\"toggle_ready_form\" hx-vals=\"{&#34;message_type&#34;: &#34;toggle_answer_is_ready&#34; }\" ws-send class=\"w-full\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

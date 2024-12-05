@@ -50,8 +50,8 @@ func TestE2EStartGame(t *testing.T) {
 			Locator(`input[name="answer"]`).
 			Fill("this is a test answer")
 		require.NoError(t, err)
-		// TODO: Fix this test
-		// err = hostPlayerPage.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Submit Answer"}).Click()
-		// require.NoError(t, err)
+
+		err = hostPlayerPage.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Submit Answer"}).Click()
+		require.NoError(t, err)
 	})
 }

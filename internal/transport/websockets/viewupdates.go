@@ -8,6 +8,11 @@ import (
 	"gitlab.com/hmajid2301/banterbus/internal/views/sections"
 )
 
+type Toast struct {
+	Message string `json:"message"`
+	Type    string `json:"type"`
+}
+
 // TODO: rename these funcs
 func (s *Subscriber) updateClientsAboutLobby(ctx context.Context, lobby service.Lobby) error {
 	var buf bytes.Buffer

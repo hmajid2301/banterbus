@@ -2,6 +2,7 @@ package websockets
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"log/slog"
 	"time"
@@ -24,14 +25,21 @@ type RoundServicer interface {
 }
 
 func (s *SubmitAnswer) Handle(ctx context.Context, client *client, sub *Subscriber) error {
-	err := sub.roundService.SubmitAnswer(ctx, client.playerID, s.Answer, time.Now())
+	err := sub.roundService.SubmitAnswer(ctx, client.playerID, s.Answer, time.Now().UTC())
 	if err != nil {
 		errStr := "failed to submit answer, try again"
 		clientErr := sub.updateClientAboutErr(ctx, client.playerID, errStr)
 		return errors.Join(clientErr, err)
 	}
 
-	return nil
+	t := Toast{Message: "Answer Submitted", Type: "success"}
+	toastJSON, err := json.Marshal(t)
+	if err != nil {
+		return err
+	}
+
+	err = sub.websocket.Publish(ctx, client.playerID, toastJSON)
+	return err
 }
 
 func (t *ToggleAnswerIsReady) Handle(ctx context.Context, client *client, sub *Subscriber) error {
