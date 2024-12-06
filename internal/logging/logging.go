@@ -4,21 +4,27 @@ import (
 	"log/slog"
 	"os"
 	"regexp"
+	"time"
 
+	"github.com/lmittmann/tint"
 	slogctx "github.com/veqryn/slog-context"
 )
 
 func New(logLevel slog.Level, defaultAttrs []slog.Attr) *slog.Logger {
 	var handler slog.Handler
-	opts := slog.HandlerOptions{
-		AddSource: true,
-		Level:     logLevel,
-	}
 
 	if os.Getenv("BANTERBUS_ENVIRONMENT") == "production" {
+		opts := slog.HandlerOptions{
+			AddSource: true,
+			Level:     logLevel,
+		}
 		handler = slog.NewJSONHandler(os.Stdout, &opts).WithAttrs(defaultAttrs)
 	} else {
-		handler = NewPrettyHandler(os.Stdout, PrettyHandlerOptions{SlogOpts: opts})
+		handler = tint.NewHandler(os.Stdout, &tint.Options{
+			AddSource:  true,
+			Level:      logLevel,
+			TimeFormat: time.Kitchen,
+		})
 	}
 
 	customHandler := slogctx.NewHandler(handler, nil)

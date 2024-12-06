@@ -79,6 +79,9 @@ schema = 3
   [mod."github.com/klauspost/compress"]
     version = "v1.17.11"
     hash = "sha256-LFSIWy0C4VbiuPve0eKHr7Q7s4XtaGzsZ3qpO+6bEgc="
+  [mod."github.com/lmittmann/tint"]
+    version = "v1.0.5"
+    hash = "sha256-NthPT7c1Q2VSp5IrWMGAvzX7AxEcTKk+O0F56pgaTsQ="
   [mod."github.com/mattn/go-colorable"]
     version = "v0.1.13"
     hash = "sha256-qb3Qbo0CELGRIzvw7NVM1g/aayaz4Tguppk9MD2/OI8="
