@@ -1,6 +1,7 @@
 package websockets
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -8,6 +9,7 @@ import (
 	"log/slog"
 	"net"
 	"net/http"
+	"time"
 
 	"github.com/gobwas/ws"
 	"github.com/gobwas/ws/wsutil"
@@ -77,23 +79,40 @@ func NewSubscriber(
 func (s *Subscriber) Subscribe(r *http.Request, w http.ResponseWriter) (err error) {
 	ctx := context.Background()
 
-	connection, _, _, err := ws.UpgradeHTTP(r, w)
+	var playerID string
+	var buf bytes.Buffer
+
+	cookie, err := r.Cookie("player_id")
+	if err != nil {
+		cookie = getPlayerIDCookie()
+		http.SetCookie(w, cookie)
+	} else {
+		playerID = cookie.Value
+
+		buf, err = s.Reconnect(ctx, playerID)
+		if err != nil {
+			s.logger.WarnContext(ctx, "failed to reconnect", slog.Any("error", err))
+			cookie = getPlayerIDCookie()
+			http.SetCookie(w, cookie)
+		}
+	}
+
+	playerID = cookie.Value
+
+	h := ws.HTTPUpgrader{
+		Header: w.Header(),
+	}
+	connection, _, _, err := h.Upgrade(r, w)
 	if err != nil {
 		return err
 	}
 
-	cookie, err := r.Cookie("player_id")
-	if err != nil {
-		return fmt.Errorf("failed to fetch `player_id` from cookie: %w", err)
-	}
-
-	playerID := cookie.Value
 	subscribeCh := s.websocket.Subscribe(ctx, playerID)
 	client := newClient(connection, playerID, subscribeCh)
 
-	err = s.Reconnect(ctx, client)
-	if err != nil {
-		s.logger.WarnContext(ctx, "failed to reconnect", slog.Any("error", err))
+	// INFO: Send the reconnection message to the client.
+	if buf.Len() > 0 {
+		err = s.websocket.Publish(ctx, playerID, buf.Bytes())
 	}
 
 	defer func() {
@@ -129,6 +148,21 @@ func (s *Subscriber) Subscribe(r *http.Request, w http.ResponseWriter) (err erro
 			return ctx.Err()
 		}
 	}
+}
+
+func getPlayerIDCookie() *http.Cookie {
+	playerID := uuid.Must(uuid.NewV7()).String()
+
+	cookie := &http.Cookie{
+		Name:     "player_id",
+		Value:    playerID,
+		Path:     "/",
+		HttpOnly: true,
+		Secure:   true,
+		SameSite: http.SameSiteStrictMode,
+		Expires:  time.Now().Add(time.Hour),
+	}
+	return cookie
 }
 
 func (s *Subscriber) handleMessages(ctx context.Context, quit <-chan struct{}, client *client) {

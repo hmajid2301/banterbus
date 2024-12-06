@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/a-h/templ"
-	"github.com/google/uuid"
 	"github.com/invopop/ctxi18n"
 	"github.com/invopop/ctxi18n/i18n"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -95,23 +94,6 @@ func (s *Server) indexHandler(w http.ResponseWriter, r *http.Request) {
 		s.Logger.ErrorContext(r.Context(), "failed to list supported languages", slog.Any("error", err))
 		http.Error(w, "internal server error", http.StatusInternalServerError)
 		return
-	}
-
-	var playerID string
-	_, err = r.Cookie("player_id")
-	if err != nil {
-		playerID = uuid.Must(uuid.NewV7()).String()
-
-		cookie := &http.Cookie{
-			Name:     "player_id",
-			Value:    playerID,
-			Path:     "/",
-			HttpOnly: true,
-			Secure:   true,
-			SameSite: http.SameSiteStrictMode,
-			Expires:  time.Now().Add(time.Hour),
-		}
-		http.SetCookie(w, cookie)
 	}
 
 	templ.Handler(pages.Index(languages)).ServeHTTP(w, r)

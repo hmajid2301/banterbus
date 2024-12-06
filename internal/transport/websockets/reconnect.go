@@ -16,78 +16,77 @@ import (
 
 const errStr = "failed to reconnect to game"
 
-func (s Subscriber) Reconnect(ctx context.Context, client *client) error {
-	s.logger.DebugContext(ctx, "attempting to reconnect player", slog.String("player_id", client.playerID))
-	roomState, err := s.playerService.GetRoomState(ctx, client.playerID)
+func (s Subscriber) Reconnect(ctx context.Context, playerID string) (bytes.Buffer, error) {
+	s.logger.DebugContext(ctx, "attempting to reconnect player", slog.String("player_id", playerID))
+	var buf bytes.Buffer
+	roomState, err := s.playerService.GetRoomState(ctx, playerID)
 	if err != nil {
-		return err
+		return buf, err
 	}
 
-	var buf bytes.Buffer
 	var component templ.Component
 	switch roomState {
 	case sqlc.ROOMSTATE_CREATED:
-		lobby, err := s.playerService.GetLobby(ctx, client.playerID)
+		lobby, err := s.playerService.GetLobby(ctx, playerID)
 		if err != nil {
-			clientErr := s.updateClientAboutErr(ctx, client.playerID, errStr)
-			return errors.Join(clientErr, err)
+			clientErr := s.updateClientAboutErr(ctx, playerID, errStr)
+			return buf, errors.Join(clientErr, err)
 		}
 
 		var mePlayer service.LobbyPlayer
 		for _, player := range lobby.Players {
-			if player.ID == client.playerID {
+			if player.ID == playerID {
 				mePlayer = player
 			}
 		}
 
 		component = sections.Lobby(lobby.Code, lobby.Players, mePlayer)
 	case sqlc.ROOMSTATE_PLAYING:
-		component, err = s.reconnectToPlayingGame(ctx, client)
+		component, err = s.reconnectToPlayingGame(ctx, playerID)
 		if err != nil {
-			return err
+			return buf, err
 		}
 	case sqlc.ROOMSTATE_PAUSED:
-		return fmt.Errorf("cannot reconnect game to paused game, as this is not implemented")
+		return buf, fmt.Errorf("cannot reconnect game to paused game, as this is not implemented")
 	case sqlc.ROOMSTATE_ABANDONED:
-		return fmt.Errorf("cannot reconnect game is abandoned")
+		return buf, fmt.Errorf("cannot reconnect game is abandoned")
 	case sqlc.ROOMSTATE_FINISHED:
-		return fmt.Errorf("cannot reconnect game is finished")
+		return buf, fmt.Errorf("cannot reconnect game is finished")
 	default:
-		return fmt.Errorf("unknown room state: %s", roomState)
+		return buf, fmt.Errorf("unknown room state: %s", roomState)
 	}
 
 	err = component.Render(ctx, &buf)
 	if err != nil {
-		return err
+		return buf, err
 	}
 
-	err = s.websocket.Publish(ctx, client.playerID, buf.Bytes())
-	return err
+	return buf, err
 }
 
-func (s Subscriber) reconnectToPlayingGame(ctx context.Context, client *client) (templ.Component, error) {
+func (s Subscriber) reconnectToPlayingGame(ctx context.Context, playerID string) (templ.Component, error) {
 	var component templ.Component
-	gameState, err := s.playerService.GetGameState(ctx, client.playerID)
+	gameState, err := s.playerService.GetGameState(ctx, playerID)
 	if err != nil {
-		clientErr := s.updateClientAboutErr(ctx, client.playerID, errStr)
+		clientErr := s.updateClientAboutErr(ctx, playerID, errStr)
 		return component, errors.Join(clientErr, err)
 	}
 
 	switch gameState {
 	case sqlc.GAMESTATE_FIBBING_IT_SHOW_QUESTION:
-		question, err := s.playerService.GetQuestionState(ctx, client.playerID)
+		question, err := s.playerService.GetQuestionState(ctx, playerID)
 		if err != nil {
-			clientErr := s.updateClientAboutErr(ctx, client.playerID, errStr)
+			clientErr := s.updateClientAboutErr(ctx, playerID, errStr)
 			return component, errors.Join(clientErr, err)
 		}
 		component = sections.Question(question, question.Players[0])
 	case sqlc.GAMESTATE_FIBBING_IT_VOTING:
-		voting, err := s.playerService.GetVotingState(ctx, client.playerID)
+		voting, err := s.playerService.GetVotingState(ctx, playerID)
 		if err != nil {
-			clientErr := s.updateClientAboutErr(ctx, client.playerID, errStr)
+			clientErr := s.updateClientAboutErr(ctx, playerID, errStr)
 			return component, errors.Join(clientErr, err)
 		}
-		component = sections.Voting(voting, client.playerID)
+		component = sections.Voting(voting, playerID)
 	default:
 		return component, fmt.Errorf("unknown game state: %s", gameState)
 	}
