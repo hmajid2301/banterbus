@@ -95,10 +95,9 @@ download:dependency:
   stage: deps
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-      # INFO: Commented out until cache works with self-hosted runner, so this always run
-      # changes:
-      #   - go.mod
-      #   - go.sum
+      changes:
+        - go.mod
+        - go.sum
   script:
     - go mod download
   cache:
