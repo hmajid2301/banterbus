@@ -38,6 +38,7 @@ type PlayerWithRole struct {
 	IsAnswerReady bool
 }
 
+// TODO: could just be a single player
 type QuestionState struct {
 	GameStateID string
 	Players     []PlayerWithRole

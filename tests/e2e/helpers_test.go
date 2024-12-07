@@ -42,3 +42,23 @@ func joinRoom(hostPlayerPage playwright.Page, otherPlayerPage playwright.Page) e
 	err = otherPlayerPage.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Join"}).Click()
 	return err
 }
+
+func startGame(hostPlayerPage playwright.Page, otherPlayerPage playwright.Page) error {
+	err := joinRoom(hostPlayerPage, otherPlayerPage)
+	if err != nil {
+		return err
+	}
+
+	err = otherPlayerPage.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Ready"}).Click()
+	if err != nil {
+		return err
+	}
+
+	err = hostPlayerPage.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Ready"}).Click()
+	if err != nil {
+		return err
+	}
+
+	err = hostPlayerPage.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Start Game"}).Click()
+	return err
+}

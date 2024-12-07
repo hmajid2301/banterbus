@@ -107,6 +107,7 @@ func (s DB) StartGame(ctx context.Context, arg StartGameArgs) error {
 		FibberQuestionID: arg.FibberQuestionID,
 		NormalQuestionID: arg.NormalsQuestionID,
 		RoomID:           arg.RoomID,
+		GameStateID:      arg.GameStateID,
 	})
 	if err != nil {
 		return err

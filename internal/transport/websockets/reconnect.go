@@ -79,7 +79,9 @@ func (s Subscriber) reconnectToPlayingGame(ctx context.Context, playerID string)
 			clientErr := s.updateClientAboutErr(ctx, playerID, errStr)
 			return component, errors.Join(clientErr, err)
 		}
-		component = sections.Question(question, question.Players[0])
+
+		showRole := false
+		component = sections.Question(question, question.Players[0], showRole)
 	case sqlc.GAMESTATE_FIBBING_IT_VOTING:
 		voting, err := s.playerService.GetVotingState(ctx, playerID)
 		if err != nil {

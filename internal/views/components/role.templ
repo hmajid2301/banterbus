@@ -1,10 +1,13 @@
 package components
 
-import "gitlab.com/hmajid2301/banterbus/internal/views/icons"
+import (
+	"encoding/json"
+	"gitlab.com/hmajid2301/banterbus/internal/views/icons"
+)
 
-templ Role(role string) {
+templ Role(role string, showRole bool) {
 	<div
-		x-data="{ showModal: true }"
+		x-data={ toJSON(map[string]any{"showModal": showRole}) }
 		x-init="setTimeout(() => showModal = false, 15000)"
 		@keydown.escape="showModal = false"
 	>
@@ -47,4 +50,9 @@ templ Role(role string) {
 			</div>
 		</div>
 	</div>
+}
+
+func toJSON(v any) string {
+	b, _ := json.Marshal(v)
+	return string(b)
 }

@@ -21,7 +21,7 @@ type RoundServicer interface {
 		submittedAt time.Time,
 	) (service.VotingState, error)
 	UpdateStateToVoting(ctx context.Context, updateVoting service.UpdateVotingState) (service.VotingState, error)
-	ToggleAnswerIsReady(ctx context.Context, playerID string) (bool, error)
+	ToggleAnswerIsReady(ctx context.Context, playerID string, submittedAt time.Time) (bool, error)
 }
 
 func (s *SubmitAnswer) Handle(ctx context.Context, client *client, sub *Subscriber) error {
@@ -43,7 +43,7 @@ func (s *SubmitAnswer) Handle(ctx context.Context, client *client, sub *Subscrib
 }
 
 func (t *ToggleAnswerIsReady) Handle(ctx context.Context, client *client, sub *Subscriber) error {
-	allReady, err := sub.roundService.ToggleAnswerIsReady(ctx, client.playerID)
+	allReady, err := sub.roundService.ToggleAnswerIsReady(ctx, client.playerID, time.Now().UTC())
 	if err != nil {
 		errStr := "failed to toggle you are ready, try again"
 		clientErr := sub.updateClientAboutErr(ctx, client.playerID, errStr)
@@ -58,13 +58,14 @@ func (t *ToggleAnswerIsReady) Handle(ctx context.Context, client *client, sub *S
 	}
 
 	// INFO: Only need to update state of one player, so question state here should only contain a single player.
-	err = sub.updateClientsAboutQuestion(ctx, questionState)
+	showRole := false
+	err = sub.updateClientsAboutQuestion(ctx, questionState, showRole)
 	if err != nil {
 		return err
 	}
 
 	if allReady {
-		time.Sleep(config.AllReadyToNextScreenFor)
+		// time.Sleep(config.AllReadyToNextScreenFor)
 		go MoveToVoting(ctx, sub, questionState.Players, questionState.GameStateID, questionState.Round)
 	}
 

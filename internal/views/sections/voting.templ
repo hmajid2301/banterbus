@@ -21,11 +21,11 @@ templ Voting(state service.VotingState, currentPlayerID string) {
 							</div>
 						</button>
 						if currentPlayerID == player.ID {
-							<p class="text-center">{ strconv.Itoa(player.Votes) }</p>
+							<p class="text-center">Votes: { strconv.Itoa(player.Votes) }</p>
 						} else {
 							<form id="vote_for_player" hx-vals='{"message_type": "submit_vote" }' ws-send>
 								<button class="inline-flex absolute top-1/2 justify-center items-center p-2 rounded-lg -translate-y-5 text-text2 end-2" aria-label="Submit Vote">
-									<p class="text-center">{ strconv.Itoa(player.Votes) }</p>
+									<p class="text-center">Votes: { strconv.Itoa(player.Votes) }</p>
 									<input class="hidden" name="voted_player_nickname" value={ player.ID }/>
 								</button>
 							</form>

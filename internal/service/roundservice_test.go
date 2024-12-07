@@ -2,7 +2,6 @@ package service_test
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 	"testing"
 	"time"
@@ -164,19 +163,20 @@ func TestRoundServiceToggleAnswerIsReady(t *testing.T) {
 		ctx := context.Background()
 
 		mockStore.EXPECT().GetGameStateByPlayerID(ctx, playerID).Return(sqlc.GameState{
-			State: sqlc.GAMESTATE_FIBBING_IT_SHOW_QUESTION.String(),
+			State:          sqlc.GAMESTATE_FIBBING_IT_SHOW_QUESTION.String(),
+			SubmitDeadline: time.Now().Add(1 * time.Hour),
 		}, nil)
 		mockStore.EXPECT().ToggleAnswerIsReady(ctx, playerID).Return(sqlc.FibbingItAnswer{}, nil)
-		mockStore.EXPECT().GetPlayerAnswerIsReady(ctx, playerID).Return([]sqlc.GetPlayerAnswerIsReadyRow{
+		mockStore.EXPECT().GetAllPlayerAnswerIsReady(ctx, playerID).Return([]sqlc.GetAllPlayerAnswerIsReadyRow{
 			{
-				IsReady: sql.NullBool{Valid: true, Bool: false},
+				IsReady: false,
 			},
 			{
-				IsReady: sql.NullBool{Valid: true, Bool: true},
+				IsReady: true,
 			},
 		}, nil)
 
-		allReady, err := srv.ToggleAnswerIsReady(ctx, playerID)
+		allReady, err := srv.ToggleAnswerIsReady(ctx, playerID, time.Now().UTC())
 		assert.NoError(t, err)
 		assert.False(t, allReady)
 	})
@@ -189,19 +189,20 @@ func TestRoundServiceToggleAnswerIsReady(t *testing.T) {
 		ctx := context.Background()
 
 		mockStore.EXPECT().GetGameStateByPlayerID(ctx, playerID).Return(sqlc.GameState{
-			State: sqlc.GAMESTATE_FIBBING_IT_SHOW_QUESTION.String(),
+			State:          sqlc.GAMESTATE_FIBBING_IT_SHOW_QUESTION.String(),
+			SubmitDeadline: time.Now().Add(1 * time.Hour),
 		}, nil)
 		mockStore.EXPECT().ToggleAnswerIsReady(ctx, playerID).Return(sqlc.FibbingItAnswer{}, nil)
-		mockStore.EXPECT().GetPlayerAnswerIsReady(ctx, playerID).Return([]sqlc.GetPlayerAnswerIsReadyRow{
+		mockStore.EXPECT().GetAllPlayerAnswerIsReady(ctx, playerID).Return([]sqlc.GetAllPlayerAnswerIsReadyRow{
 			{
-				IsReady: sql.NullBool{Valid: true, Bool: true},
+				IsReady: true,
 			},
 			{
-				IsReady: sql.NullBool{Valid: true, Bool: true},
+				IsReady: true,
 			},
 		}, nil)
 
-		allReady, err := srv.ToggleAnswerIsReady(ctx, playerID)
+		allReady, err := srv.ToggleAnswerIsReady(ctx, playerID, time.Now().UTC())
 		assert.NoError(t, err)
 		assert.True(t, allReady)
 	})
@@ -217,7 +218,7 @@ func TestRoundServiceToggleAnswerIsReady(t *testing.T) {
 			sqlc.GameState{}, fmt.Errorf("failed to get state"),
 		)
 
-		_, err := srv.ToggleAnswerIsReady(ctx, playerID)
+		_, err := srv.ToggleAnswerIsReady(ctx, playerID, time.Now().UTC())
 		assert.Error(t, err)
 	})
 
@@ -229,10 +230,11 @@ func TestRoundServiceToggleAnswerIsReady(t *testing.T) {
 		ctx := context.Background()
 
 		mockStore.EXPECT().GetGameStateByPlayerID(ctx, playerID).Return(sqlc.GameState{
-			State: sqlc.GAMESTATE_FIBBING_IT_VOTING.String(),
+			State:          sqlc.GAMESTATE_FIBBING_IT_VOTING.String(),
+			SubmitDeadline: time.Now().Add(1 * time.Hour),
 		}, nil)
 
-		_, err := srv.ToggleAnswerIsReady(ctx, playerID)
+		_, err := srv.ToggleAnswerIsReady(ctx, playerID, time.Now().UTC())
 		assert.ErrorContains(t, err, "room game state is not in FIBBING_IT_SHOW_QUESTION state")
 	})
 
@@ -246,13 +248,14 @@ func TestRoundServiceToggleAnswerIsReady(t *testing.T) {
 			ctx := context.Background()
 
 			mockStore.EXPECT().GetGameStateByPlayerID(ctx, playerID).Return(sqlc.GameState{
-				State: sqlc.GAMESTATE_FIBBING_IT_SHOW_QUESTION.String(),
+				State:          sqlc.GAMESTATE_FIBBING_IT_SHOW_QUESTION.String(),
+				SubmitDeadline: time.Now().Add(1 * time.Hour),
 			}, nil)
 			mockStore.EXPECT().ToggleAnswerIsReady(ctx, playerID).Return(
 				sqlc.FibbingItAnswer{}, fmt.Errorf("failed to toggle answer is ready"),
 			)
 
-			_, err := srv.ToggleAnswerIsReady(ctx, playerID)
+			_, err := srv.ToggleAnswerIsReady(ctx, playerID, time.Now().UTC())
 			assert.Error(t, err)
 		},
 	)
@@ -267,14 +270,34 @@ func TestRoundServiceToggleAnswerIsReady(t *testing.T) {
 			ctx := context.Background()
 
 			mockStore.EXPECT().GetGameStateByPlayerID(ctx, playerID).Return(sqlc.GameState{
-				State: sqlc.GAMESTATE_FIBBING_IT_SHOW_QUESTION.String(),
+				State:          sqlc.GAMESTATE_FIBBING_IT_SHOW_QUESTION.String(),
+				SubmitDeadline: time.Now().Add(1 * time.Hour),
 			}, nil)
 			mockStore.EXPECT().ToggleAnswerIsReady(ctx, playerID).Return(sqlc.FibbingItAnswer{}, nil)
-			mockStore.EXPECT().GetPlayerAnswerIsReady(ctx, playerID).Return(
-				[]sqlc.GetPlayerAnswerIsReadyRow{}, fmt.Errorf("failed to get player answer is ready status"),
+			mockStore.EXPECT().GetAllPlayerAnswerIsReady(ctx, playerID).Return(
+				[]sqlc.GetAllPlayerAnswerIsReadyRow{}, fmt.Errorf("failed to get player answer is ready status"),
 			)
 
-			_, err := srv.ToggleAnswerIsReady(ctx, playerID)
+			_, err := srv.ToggleAnswerIsReady(ctx, playerID, time.Now().UTC())
+			assert.Error(t, err)
+		},
+	)
+
+	t.Run(
+		"Should fail to toggle toggle answer ready state because after deadline",
+		func(t *testing.T) {
+			mockStore := mockService.NewMockStorer(t)
+			mockRandomizer := mockService.NewMockRandomizer(t)
+			srv := service.NewRoundService(mockStore, mockRandomizer)
+
+			ctx := context.Background()
+
+			mockStore.EXPECT().GetGameStateByPlayerID(ctx, playerID).Return(sqlc.GameState{
+				State:          sqlc.GAMESTATE_FIBBING_IT_SHOW_QUESTION.String(),
+				SubmitDeadline: time.Now().Add(-1 * time.Second),
+			}, nil)
+
+			_, err := srv.ToggleAnswerIsReady(ctx, playerID, time.Now().UTC())
 			assert.Error(t, err)
 		},
 	)

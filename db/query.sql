@@ -122,18 +122,17 @@ LIMIT 1;
 
 -- name: GetCurrentQuestionByPlayerID :one
 SELECT
-    p.id,
-    p.nickname,
+    gs.id AS game_state_id,
     fr.round,
     fr.round_type,
     r.room_code,
-    fpr.player_role,
-    fq1.question AS fibber_question,
-    fq2.question AS normal_question,
-    p.avatar,
     gs.submit_deadline,
-    COALESCE(fia.answer, '') AS answer,
-    p.is_ready
+    p.id AS player_id,
+    p.nickname,
+    fpr.player_role AS role,
+    COALESCE(fq1.question, fq2.question) AS question,
+    p.avatar,
+    COALESCE(fia.is_ready, FALSE) AS is_answer_ready
 FROM players p
 JOIN rooms_players rp ON p.id = rp.player_id
 JOIN rooms r ON rp.room_id = r.id
@@ -143,11 +142,7 @@ LEFT JOIN questions fq1 ON fr.fibber_question_id = fq1.id
 LEFT JOIN questions fq2 ON fr.normal_question_id = fq2.id
 LEFT JOIN fibbing_it_player_roles fpr ON p.id = fpr.player_id AND fr.id = fpr.round_id
 LEFT JOIN fibbing_it_answers fia ON p.id = fia.player_id AND fr.id = fia.round_id
-WHERE rp.room_id = (
-    SELECT rp_inner.room_id
-    FROM rooms_players rp_inner
-    WHERE rp_inner.player_id = ?
-)
+WHERE p.id = ?
 ORDER BY p.created_at
 LIMIT 1;
 
@@ -171,14 +166,23 @@ WHERE fiv.round_id = ?
 GROUP BY fiv.voted_for_player_id;
 
 -- name: ToggleAnswerIsReady :one
-UPDATE fibbing_it_answers SET is_ready = NOT is_ready WHERE id = ? RETURNING *;
+UPDATE fibbing_it_answers SET is_ready = NOT is_ready WHERE player_id = ? RETURNING *;
 
--- name: GetPlayerAnswerIsReady :many
-SELECT rp.player_id, fa.is_ready
-FROM rooms_players rp
-LEFT JOIN fibbing_it_answers fa ON rp.player_id = fa.player_id
-WHERE rp.room_id = (
-    SELECT room_id
-    FROM rooms_players
-    WHERE rp.player_id = ?
-);
+-- name: GetAllPlayerAnswerIsReady :many
+WITH room_players AS (
+    SELECT rp.room_id, rp.player_id
+    FROM rooms_players rp
+    WHERE rp.room_id = (
+        SELECT room_id
+        FROM rooms_players
+        WHERE rp.player_id = ?
+    )
+)
+SELECT
+    rp.player_id,
+    COALESCE(fa.is_ready, FALSE) AS is_ready
+FROM room_players rp
+JOIN players p ON rp.player_id = p.id
+LEFT JOIN fibbing_it_rounds fir ON fir.room_id = rp.room_id
+LEFT JOIN fibbing_it_answers fa ON fa.player_id = rp.player_id AND fa.round_id = fir.id
+GROUP BY rp.player_id, fa.is_ready;

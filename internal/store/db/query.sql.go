@@ -279,6 +279,54 @@ func (q *Queries) AddRoomPlayer(ctx context.Context, arg AddRoomPlayerParams) (R
 	return i, err
 }
 
+const getAllPlayerAnswerIsReady = `-- name: GetAllPlayerAnswerIsReady :many
+WITH room_players AS (
+    SELECT rp.room_id, rp.player_id
+    FROM rooms_players rp
+    WHERE rp.room_id = (
+        SELECT room_id
+        FROM rooms_players
+        WHERE rp.player_id = ?
+    )
+)
+SELECT
+    rp.player_id,
+    COALESCE(fa.is_ready, FALSE) AS is_ready
+FROM room_players rp
+JOIN players p ON rp.player_id = p.id
+LEFT JOIN fibbing_it_rounds fir ON fir.room_id = rp.room_id
+LEFT JOIN fibbing_it_answers fa ON fa.player_id = rp.player_id AND fa.round_id = fir.id
+GROUP BY rp.player_id, fa.is_ready
+`
+
+type GetAllPlayerAnswerIsReadyRow struct {
+	PlayerID string
+	IsReady  bool
+}
+
+func (q *Queries) GetAllPlayerAnswerIsReady(ctx context.Context, playerID string) ([]GetAllPlayerAnswerIsReadyRow, error) {
+	rows, err := q.db.QueryContext(ctx, getAllPlayerAnswerIsReady, playerID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetAllPlayerAnswerIsReadyRow
+	for rows.Next() {
+		var i GetAllPlayerAnswerIsReadyRow
+		if err := rows.Scan(&i.PlayerID, &i.IsReady); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getAllPlayerByRoomCode = `-- name: GetAllPlayerByRoomCode :many
 SELECT p.id, p.created_at, p.updated_at, p.avatar, p.nickname, p.is_ready, r.room_code, r.host_player
 FROM players p
@@ -392,18 +440,17 @@ func (q *Queries) GetAllPlayersInRoom(ctx context.Context, playerID string) ([]G
 
 const getCurrentQuestionByPlayerID = `-- name: GetCurrentQuestionByPlayerID :one
 SELECT
-    p.id,
-    p.nickname,
+    gs.id AS game_state_id,
     fr.round,
     fr.round_type,
     r.room_code,
-    fpr.player_role,
-    fq1.question AS fibber_question,
-    fq2.question AS normal_question,
-    p.avatar,
     gs.submit_deadline,
-    COALESCE(fia.answer, '') AS answer,
-    p.is_ready
+    p.id AS player_id,
+    p.nickname,
+    fpr.player_role AS role,
+    COALESCE(fq1.question, fq2.question) AS question,
+    p.avatar,
+    COALESCE(fia.is_ready, FALSE) AS is_answer_ready
 FROM players p
 JOIN rooms_players rp ON p.id = rp.player_id
 JOIN rooms r ON rp.room_id = r.id
@@ -413,46 +460,40 @@ LEFT JOIN questions fq1 ON fr.fibber_question_id = fq1.id
 LEFT JOIN questions fq2 ON fr.normal_question_id = fq2.id
 LEFT JOIN fibbing_it_player_roles fpr ON p.id = fpr.player_id AND fr.id = fpr.round_id
 LEFT JOIN fibbing_it_answers fia ON p.id = fia.player_id AND fr.id = fia.round_id
-WHERE rp.room_id = (
-    SELECT rp_inner.room_id
-    FROM rooms_players rp_inner
-    WHERE rp_inner.player_id = ?
-)
+WHERE p.id = ?
 ORDER BY p.created_at
 LIMIT 1
 `
 
 type GetCurrentQuestionByPlayerIDRow struct {
-	ID             string
-	Nickname       string
+	GameStateID    string
 	Round          int64
 	RoundType      string
 	RoomCode       string
-	PlayerRole     sql.NullString
-	FibberQuestion sql.NullString
-	NormalQuestion sql.NullString
-	Avatar         []byte
 	SubmitDeadline time.Time
-	Answer         string
-	IsReady        sql.NullBool
+	PlayerID       string
+	Nickname       string
+	Role           sql.NullString
+	Question       string
+	Avatar         []byte
+	IsAnswerReady  bool
 }
 
-func (q *Queries) GetCurrentQuestionByPlayerID(ctx context.Context, playerID string) (GetCurrentQuestionByPlayerIDRow, error) {
-	row := q.db.QueryRowContext(ctx, getCurrentQuestionByPlayerID, playerID)
+func (q *Queries) GetCurrentQuestionByPlayerID(ctx context.Context, id string) (GetCurrentQuestionByPlayerIDRow, error) {
+	row := q.db.QueryRowContext(ctx, getCurrentQuestionByPlayerID, id)
 	var i GetCurrentQuestionByPlayerIDRow
 	err := row.Scan(
-		&i.ID,
-		&i.Nickname,
+		&i.GameStateID,
 		&i.Round,
 		&i.RoundType,
 		&i.RoomCode,
-		&i.PlayerRole,
-		&i.FibberQuestion,
-		&i.NormalQuestion,
-		&i.Avatar,
 		&i.SubmitDeadline,
-		&i.Answer,
-		&i.IsReady,
+		&i.PlayerID,
+		&i.Nickname,
+		&i.Role,
+		&i.Question,
+		&i.Avatar,
+		&i.IsAnswerReady,
 	)
 	return i, err
 }
@@ -523,45 +564,6 @@ func (q *Queries) GetLatestRoundByPlayerID(ctx context.Context, playerID string)
 		&i.SubmitDeadline,
 	)
 	return i, err
-}
-
-const getPlayerAnswerIsReady = `-- name: GetPlayerAnswerIsReady :many
-SELECT rp.player_id, fa.is_ready
-FROM rooms_players rp
-LEFT JOIN fibbing_it_answers fa ON rp.player_id = fa.player_id
-WHERE rp.room_id = (
-    SELECT room_id
-    FROM rooms_players
-    WHERE rp.player_id = ?
-)
-`
-
-type GetPlayerAnswerIsReadyRow struct {
-	PlayerID string
-	IsReady  sql.NullBool
-}
-
-func (q *Queries) GetPlayerAnswerIsReady(ctx context.Context, playerID string) ([]GetPlayerAnswerIsReadyRow, error) {
-	rows, err := q.db.QueryContext(ctx, getPlayerAnswerIsReady, playerID)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []GetPlayerAnswerIsReadyRow
-	for rows.Next() {
-		var i GetPlayerAnswerIsReadyRow
-		if err := rows.Scan(&i.PlayerID, &i.IsReady); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
 }
 
 const getPlayerByID = `-- name: GetPlayerByID :one
@@ -783,11 +785,11 @@ func (q *Queries) RemovePlayerFromRoom(ctx context.Context, playerID string) (Ro
 }
 
 const toggleAnswerIsReady = `-- name: ToggleAnswerIsReady :one
-UPDATE fibbing_it_answers SET is_ready = NOT is_ready WHERE id = ? RETURNING id, created_at, updated_at, answer, player_id, round_id, is_ready
+UPDATE fibbing_it_answers SET is_ready = NOT is_ready WHERE player_id = ? RETURNING id, created_at, updated_at, answer, player_id, round_id, is_ready
 `
 
-func (q *Queries) ToggleAnswerIsReady(ctx context.Context, id string) (FibbingItAnswer, error) {
-	row := q.db.QueryRowContext(ctx, toggleAnswerIsReady, id)
+func (q *Queries) ToggleAnswerIsReady(ctx context.Context, playerID string) (FibbingItAnswer, error) {
+	row := q.db.QueryRowContext(ctx, toggleAnswerIsReady, playerID)
 	var i FibbingItAnswer
 	err := row.Scan(
 		&i.ID,

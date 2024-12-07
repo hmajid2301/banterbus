@@ -7,13 +7,13 @@ import (
 	"strconv"
 )
 
-templ Question(gameState service.QuestionState, currentPlayer service.PlayerWithRole) {
+templ Question(gameState service.QuestionState, currentPlayer service.PlayerWithRole, showRole bool) {
 	<div hx-swap-oob="innerHTML:#page">
 		<div x-data={ toJSON(map[string]any{"timer": int(gameState.Deadline.Seconds())}) } x-init="setInterval(() => { if (timer > 0) timer--; }, 1000)">
 			<div class="flex flex-col space-y-10 text-text2">
 				<div class="flex justify-between items-center">
 					<div>
-						@components.Role(currentPlayer.Role)
+						@components.Role(currentPlayer.Role, showRole)
 					</div>
 					<p class="text-2xl text-center">Round { strconv.Itoa(gameState.Round) } / 3</p>
 					<div class="text-right">

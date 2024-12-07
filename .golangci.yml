@@ -28,6 +28,7 @@ linters:
     - noctx
     - nolintlint
     - revive
+    # - sloglint
     - staticcheck
     - stylecheck
     - typecheck
@@ -42,6 +43,15 @@ linters-settings:
   gosec:
     excludes:
       - G404
+  sloglint:
+    no-mixed-args: false
+    kv-only: true
+    context: "all"
+    static-msg: true
+    no-raw-keys: true
+    key-naming-case: snake
+    args-on-sep-lines: true
+
 
 issues:
   exclude-dirs:

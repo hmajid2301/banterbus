@@ -61,7 +61,9 @@ func (s *StartGame) Handle(ctx context.Context, client *client, sub *Subscriber)
 		clientErr := sub.updateClientAboutErr(ctx, client.playerID, errStr)
 		return errors.Join(clientErr, err)
 	}
-	err = sub.updateClientsAboutQuestion(ctx, questionState)
+
+	showRole := true
+	err = sub.updateClientsAboutQuestion(ctx, questionState, showRole)
 	if err != nil {
 		return err
 	}

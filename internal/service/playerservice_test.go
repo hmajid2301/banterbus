@@ -603,12 +603,11 @@ func TestPlayerServiceGetQuestionState(t *testing.T) {
 
 		deadline := time.Now().Add(5 * time.Second)
 		mockStore.EXPECT().GetCurrentQuestionByPlayerID(ctx, playerID).Return(sqlc.GetCurrentQuestionByPlayerIDRow{
-			ID:             playerID,
+			PlayerID:       playerID,
 			Avatar:         []byte(""),
 			Nickname:       "nickname",
-			PlayerRole:     sql.NullString{String: "fibber"},
-			FibberQuestion: sql.NullString{String: "fibber question"},
-			NormalQuestion: sql.NullString{String: ""},
+			Role:           sql.NullString{String: "fibber"},
+			Question:       "fibber question",
 			Round:          1,
 			RoundType:      "free_form",
 			RoomCode:       "ABC12",
@@ -625,7 +624,7 @@ func TestPlayerServiceGetQuestionState(t *testing.T) {
 					Nickname: "nickname",
 					Role:     "fibber",
 					Avatar:   []byte(""),
-					Question: "",
+					Question: "fibber question",
 				},
 			},
 			Round:     1,
@@ -647,12 +646,11 @@ func TestPlayerServiceGetQuestionState(t *testing.T) {
 
 		deadline := time.Now().Add(5 * time.Second)
 		mockStore.EXPECT().GetCurrentQuestionByPlayerID(ctx, playerID).Return(sqlc.GetCurrentQuestionByPlayerIDRow{
-			ID:             playerID,
+			PlayerID:       playerID,
 			Avatar:         []byte(""),
 			Nickname:       "nickname",
-			PlayerRole:     sql.NullString{String: "normal"},
-			FibberQuestion: sql.NullString{String: ""},
-			NormalQuestion: sql.NullString{String: "normal question"},
+			Role:           sql.NullString{String: "normal"},
+			Question:       "normal question",
 			Round:          1,
 			RoundType:      "free_form",
 			RoomCode:       "ABC12",

@@ -144,18 +144,13 @@ func (p *PlayerService) GetQuestionState(ctx context.Context, playerID string) (
 		return QuestionState{}, err
 	}
 
-	question := g.NormalQuestion.String
-	if g.FibberQuestion.Valid {
-		question = g.FibberQuestion.String
-	}
-
 	players := []PlayerWithRole{
 		{
-			ID:       g.ID,
+			ID:       g.PlayerID,
 			Nickname: g.Nickname,
-			Role:     g.PlayerRole.String,
+			Role:     g.Role.String,
 			Avatar:   g.Avatar,
-			Question: question,
+			Question: g.Question,
 		},
 	}
 

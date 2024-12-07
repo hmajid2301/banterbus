@@ -46,7 +46,7 @@ func (r *RoundService) SubmitAnswer(ctx context.Context, playerID string, answer
 	return err
 }
 
-func (r *RoundService) ToggleAnswerIsReady(ctx context.Context, playerID string) (bool, error) {
+func (r *RoundService) ToggleAnswerIsReady(ctx context.Context, playerID string, submittedAt time.Time) (bool, error) {
 	gameState, err := r.store.GetGameStateByPlayerID(ctx, playerID)
 	if err != nil {
 		return false, err
@@ -56,19 +56,23 @@ func (r *RoundService) ToggleAnswerIsReady(ctx context.Context, playerID string)
 		return false, fmt.Errorf("room game state is not in FIBBING_IT_SHOW_QUESTION state")
 	}
 
+	if submittedAt.After(gameState.SubmitDeadline) {
+		return false, fmt.Errorf("toggle ready deadline has passed")
+	}
+
 	_, err = r.store.ToggleAnswerIsReady(ctx, playerID)
 	if err != nil {
 		return false, err
 	}
 
-	players, err := r.store.GetPlayerAnswerIsReady(ctx, playerID)
+	players, err := r.store.GetAllPlayerAnswerIsReady(ctx, playerID)
 	if err != nil {
 		return false, err
 	}
 
 	allReady := true
 	for _, player := range players {
-		if !player.IsReady.Bool {
+		if !player.IsReady {
 			allReady = false
 			break
 		}
