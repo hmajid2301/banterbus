@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"context"
 
+	"github.com/google/uuid"
+
 	"gitlab.com/hmajid2301/banterbus/internal/service"
 	"gitlab.com/hmajid2301/banterbus/internal/views/sections"
 )
@@ -32,7 +34,7 @@ func (s *Subscriber) updateClientsAboutLobby(ctx context.Context, lobby service.
 	return nil
 }
 
-func (s *Subscriber) updateClientAboutErr(ctx context.Context, playerID string, errStr string) error {
+func (s *Subscriber) updateClientAboutErr(ctx context.Context, playerID uuid.UUID, errStr string) error {
 	var buf bytes.Buffer
 	component := sections.Error(errStr)
 	err := component.Render(ctx, &buf)
@@ -69,7 +71,7 @@ func (s *Subscriber) updateClientsAboutQuestion(
 func (s *Subscriber) updateClientAboutVoting(ctx context.Context, votingState service.VotingState) error {
 	var buf bytes.Buffer
 	for _, player := range votingState.Players {
-		component := sections.Voting(votingState, player.ID)
+		component := sections.Voting(votingState, player.ID.String())
 		err := component.Render(ctx, &buf)
 		if err != nil {
 			return err

@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/google/uuid"
+
 	sqlc "gitlab.com/hmajid2301/banterbus/internal/store/db"
 )
 
@@ -19,7 +21,7 @@ type Randomizer interface {
 	GetNickname() string
 	GetAvatar() []byte
 	GetRoomCode() string
-	GetID() string
+	GetID() uuid.UUID
 	GetFibberIndex(playersLen int) int
 }
 
@@ -95,7 +97,7 @@ func (r *LobbyService) Create(ctx context.Context, gameName string, newHostPlaye
 	return lobby, nil
 }
 
-func (r *LobbyService) Join(ctx context.Context, roomCode string, playerID string, nickname string) (Lobby, error) {
+func (r *LobbyService) Join(ctx context.Context, roomCode string, playerID uuid.UUID, nickname string) (Lobby, error) {
 	newPlayer := r.getNewPlayer(nickname, playerID)
 	room, err := r.store.GetRoomByCode(ctx, roomCode)
 	if err != nil {
@@ -151,28 +153,28 @@ func (r *LobbyService) Join(ctx context.Context, roomCode string, playerID strin
 func (r *LobbyService) KickPlayer(
 	ctx context.Context,
 	roomCode string,
-	playerID string,
+	playerID uuid.UUID,
 	playerNicknameToKick string,
-) (Lobby, string, error) {
+) (Lobby, uuid.UUID, error) {
+	var playerToKickID uuid.UUID
 	room, err := r.store.GetRoomByCode(ctx, roomCode)
 	if err != nil {
-		return Lobby{}, "", err
+		return Lobby{}, playerToKickID, err
 	}
 
 	if room.HostPlayer != playerID {
-		return Lobby{}, "", fmt.Errorf("player is not the host of the room")
+		return Lobby{}, playerToKickID, fmt.Errorf("player is not the host of the room")
 	}
 
 	if room.RoomState != sqlc.ROOMSTATE_CREATED.String() {
-		return Lobby{}, "", fmt.Errorf("room is not in CREATED state")
+		return Lobby{}, playerToKickID, fmt.Errorf("room is not in CREATED state")
 	}
 
 	playersInRoom, err := r.store.GetAllPlayersInRoom(ctx, playerID)
 	if err != nil {
-		return Lobby{}, "", err
+		return Lobby{}, playerToKickID, err
 	}
 
-	var playerToKickID string
 	var removeIndex int
 	for i, p := range playersInRoom {
 		if p.Nickname == playerNicknameToKick {
@@ -182,15 +184,15 @@ func (r *LobbyService) KickPlayer(
 		}
 	}
 
-	if playerToKickID == "" {
-		return Lobby{}, "", fmt.Errorf("player with nickname %s not found to kick", playerNicknameToKick)
+	if playerToKickID == uuid.Nil {
+		return Lobby{}, playerToKickID, fmt.Errorf("player with nickname %s not found to kick", playerNicknameToKick)
 	}
 
 	playersInRoom = append(playersInRoom[:removeIndex], playersInRoom[removeIndex+1:]...)
 
 	_, err = r.store.RemovePlayerFromRoom(ctx, playerToKickID)
 	if err != nil {
-		return Lobby{}, "", err
+		return Lobby{}, playerToKickID, err
 	}
 
 	lobby := getLobbyPlayers(playersInRoom, roomCode)
@@ -200,7 +202,7 @@ func (r *LobbyService) KickPlayer(
 func (r *LobbyService) Start(
 	ctx context.Context,
 	roomCode string,
-	playerID string,
+	playerID uuid.UUID,
 	deadline time.Time,
 ) (QuestionState, error) {
 	room, err := r.store.GetRoomByCode(ctx, roomCode)
@@ -298,7 +300,7 @@ func (r *LobbyService) Start(
 	return gameState, nil
 }
 
-func (r *LobbyService) getNewPlayer(playerNickname string, playerID string) NewPlayer {
+func (r *LobbyService) getNewPlayer(playerNickname string, playerID uuid.UUID) NewPlayer {
 	nickname := playerNickname
 	if playerNickname == "" {
 		nickname = r.randomizer.GetNickname()

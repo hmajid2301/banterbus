@@ -5,6 +5,9 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgtype"
+
 	sqlc "gitlab.com/hmajid2301/banterbus/internal/store/db"
 )
 
@@ -17,7 +20,12 @@ func NewRoundService(store Storer, randomizer Randomizer) *RoundService {
 	return &RoundService{store: store, randomizer: randomizer}
 }
 
-func (r *RoundService) SubmitAnswer(ctx context.Context, playerID string, answer string, submittedAt time.Time) error {
+func (r *RoundService) SubmitAnswer(
+	ctx context.Context,
+	playerID uuid.UUID,
+	answer string,
+	submittedAt time.Time,
+) error {
 	room, err := r.store.GetRoomByPlayerID(ctx, playerID)
 	if err != nil {
 		return err
@@ -32,7 +40,7 @@ func (r *RoundService) SubmitAnswer(ctx context.Context, playerID string, answer
 		return err
 	}
 
-	if submittedAt.After(round.SubmitDeadline) {
+	if submittedAt.After(round.SubmitDeadline.Time) {
 		return fmt.Errorf("answer submission deadline has passed")
 	}
 
@@ -46,7 +54,11 @@ func (r *RoundService) SubmitAnswer(ctx context.Context, playerID string, answer
 	return err
 }
 
-func (r *RoundService) ToggleAnswerIsReady(ctx context.Context, playerID string, submittedAt time.Time) (bool, error) {
+func (r *RoundService) ToggleAnswerIsReady(
+	ctx context.Context,
+	playerID uuid.UUID,
+	submittedAt time.Time,
+) (bool, error) {
 	gameState, err := r.store.GetGameStateByPlayerID(ctx, playerID)
 	if err != nil {
 		return false, err
@@ -56,7 +68,7 @@ func (r *RoundService) ToggleAnswerIsReady(ctx context.Context, playerID string,
 		return false, fmt.Errorf("room game state is not in FIBBING_IT_SHOW_QUESTION state")
 	}
 
-	if submittedAt.After(gameState.SubmitDeadline) {
+	if submittedAt.After(gameState.SubmitDeadline.Time) {
 		return false, fmt.Errorf("toggle ready deadline has passed")
 	}
 
@@ -87,7 +99,7 @@ func (r *RoundService) UpdateStateToVoting(
 ) (VotingState, error) {
 	_, err := r.store.UpdateGameState(ctx, sqlc.UpdateGameStateParams{
 		ID:             updateVoting.GameStateID,
-		SubmitDeadline: updateVoting.Deadline,
+		SubmitDeadline: pgtype.Timestamp{Time: updateVoting.Deadline},
 		State:          sqlc.GAMESTATE_FIBBING_IT_VOTING.String(),
 	})
 	if err != nil {
@@ -124,7 +136,7 @@ func (r *RoundService) UpdateStateToVoting(
 
 func (r *RoundService) SubmitVote(
 	ctx context.Context,
-	playerID string,
+	playerID uuid.UUID,
 	votedNickname string,
 	submittedAt time.Time,
 ) (VotingState, error) {
@@ -142,7 +154,7 @@ func (r *RoundService) SubmitVote(
 		return VotingState{}, err
 	}
 
-	votedPlayerID := ""
+	var votedPlayerID uuid.UUID
 	for _, p := range players {
 		if p.Nickname == votedNickname {
 			if p.ID == playerID {
@@ -153,7 +165,7 @@ func (r *RoundService) SubmitVote(
 		}
 	}
 
-	if votedPlayerID == "" {
+	if votedPlayerID == uuid.Nil {
 		return VotingState{}, fmt.Errorf("player with nickname %s not found", votedNickname)
 	}
 
@@ -162,7 +174,7 @@ func (r *RoundService) SubmitVote(
 		return VotingState{}, err
 	}
 
-	if submittedAt.After(round.SubmitDeadline) {
+	if submittedAt.After(round.SubmitDeadline.Time) {
 		return VotingState{}, fmt.Errorf("answer submission deadline has passed")
 	}
 
@@ -190,7 +202,7 @@ func (r *RoundService) SubmitVote(
 		Players:  votingPlayers,
 		Question: player.Question,
 		Round:    int(player.Round),
-		Deadline: time.Until(round.SubmitDeadline),
+		Deadline: time.Until(round.SubmitDeadline.Time),
 	}
 
 	return votingState, err

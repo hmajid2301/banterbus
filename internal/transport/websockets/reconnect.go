@@ -8,6 +8,7 @@ import (
 	"log/slog"
 
 	"github.com/a-h/templ"
+	"github.com/google/uuid"
 
 	"gitlab.com/hmajid2301/banterbus/internal/service"
 	sqlc "gitlab.com/hmajid2301/banterbus/internal/store/db"
@@ -16,8 +17,8 @@ import (
 
 const errStr = "failed to reconnect to game"
 
-func (s Subscriber) Reconnect(ctx context.Context, playerID string) (bytes.Buffer, error) {
-	s.logger.DebugContext(ctx, "attempting to reconnect player", slog.String("player_id", playerID))
+func (s Subscriber) Reconnect(ctx context.Context, playerID uuid.UUID) (bytes.Buffer, error) {
+	s.logger.DebugContext(ctx, "attempting to reconnect player", slog.String("player_id", playerID.String()))
 	var buf bytes.Buffer
 	roomState, err := s.playerService.GetRoomState(ctx, playerID)
 	if err != nil {
@@ -64,7 +65,7 @@ func (s Subscriber) Reconnect(ctx context.Context, playerID string) (bytes.Buffe
 	return buf, err
 }
 
-func (s Subscriber) reconnectToPlayingGame(ctx context.Context, playerID string) (templ.Component, error) {
+func (s Subscriber) reconnectToPlayingGame(ctx context.Context, playerID uuid.UUID) (templ.Component, error) {
 	var component templ.Component
 	gameState, err := s.playerService.GetGameState(ctx, playerID)
 	if err != nil {
@@ -88,7 +89,7 @@ func (s Subscriber) reconnectToPlayingGame(ctx context.Context, playerID string)
 			clientErr := s.updateClientAboutErr(ctx, playerID, errStr)
 			return component, errors.Join(clientErr, err)
 		}
-		component = sections.Voting(voting, playerID)
+		component = sections.Voting(voting, playerID.String())
 	default:
 		return component, fmt.Errorf("unknown game state: %s", gameState)
 	}

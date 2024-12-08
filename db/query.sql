@@ -1,48 +1,48 @@
 -- name: AddRoom :one
-INSERT INTO rooms (id, game_name, host_player, room_code, room_state)  VALUES (?, ?, ?, ?, ?) RETURNING *;
+INSERT INTO rooms (id, game_name, host_player, room_code, room_state) VALUES ($1, $2, $3, $4, $5) RETURNING *;
 
 -- name: AddPlayer :one
-INSERT INTO players (id, avatar, nickname) VALUES (?, ?, ?) RETURNING *;
+INSERT INTO players (id, avatar, nickname) VALUES ($1, $2, $3) RETURNING *;
 
 -- name: AddRoomPlayer :one
-INSERT INTO rooms_players (room_id, player_id) VALUES (?, ?) RETURNING *;
+INSERT INTO rooms_players (room_id, player_id) VALUES ($1, $2) RETURNING *;
 
 -- name: RemovePlayerFromRoom :one
-UPDATE rooms_players SET room_id = "" WHERE player_id = ? RETURNING *;
+DELETE FROM rooms_players WHERE player_id = $1 RETURNING *;
 
 -- name: UpdateRoomState :one
-UPDATE rooms SET room_state = ? WHERE id = ? RETURNING *;
+UPDATE rooms SET room_state = $1 WHERE id = $2 RETURNING *;
 
 -- name: GetPlayerByID :one
-SELECT * FROM players WHERE id = ?;
+SELECT * FROM players WHERE id = $1;
 
 -- name: UpdateNickname :one
-UPDATE players SET nickname = ? WHERE id = ? RETURNING *;
+UPDATE players SET nickname = $1 WHERE id = $2 RETURNING *;
 
 -- name: UpdateAvatar :one
-UPDATE players SET avatar = ? WHERE id = ? RETURNING *;
+UPDATE players SET avatar = $1 WHERE id = $2 RETURNING *;
 
 -- name: TogglePlayerIsReady :one
-UPDATE players SET is_ready = NOT is_ready WHERE id = ? RETURNING *;
+UPDATE players SET is_ready = NOT is_ready WHERE id = $1 RETURNING *;
 
 -- name: AddFibbingItRound :one
-INSERT INTO fibbing_it_rounds (id, round_type, round, fibber_question_id, normal_question_id, room_id, game_state_id) VALUES (?, ?, ?, ?, ?, ?, ?) RETURNING *;
+INSERT INTO fibbing_it_rounds (id, round_type, round, fibber_question_id, normal_question_id, room_id, game_state_id) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *;
 
 -- name: AddGameState :one
-INSERT INTO game_state (id, room_id, submit_deadline, state) VALUES (?, ?, ?, ?) RETURNING *;
+INSERT INTO game_state (id, room_id, submit_deadline, state) VALUES ($1, $2, $3, $4) RETURNING *;
 
 -- name: UpdateGameState :one
-UPDATE game_state SET state = ? AND submit_deadline = ? WHERE id = ? RETURNING *;
+UPDATE game_state SET state = $1, submit_deadline = $2 WHERE id = $3 RETURNING *;
 
 -- name: AddFibbingItAnswer :one
-INSERT INTO fibbing_it_answers (id, answer, round_id, player_id) VALUES (?, ?, ?, ?) RETURNING *;
+INSERT INTO fibbing_it_answers (id, answer, round_id, player_id) VALUES ($1, $2, $3, $4) RETURNING *;
 
 -- name: AddFibbingItRole :one
-INSERT INTO fibbing_it_player_roles (id, player_role, round_id, player_id) VALUES (?, ?, ?, ?) RETURNING *;
+INSERT INTO fibbing_it_player_roles (id, player_role, round_id, player_id) VALUES ($1, $2, $3, $4) RETURNING *;
 
 -- name: UpsertFibbingItVote :exec
 INSERT INTO fibbing_it_votes (id, created_at, updated_at, player_id, voted_for_player_id, round_id)
-VALUES (?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, ?, ?, ?)
+VALUES ($1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, $2, $3, $4)
 ON CONFLICT(id) DO UPDATE SET
     updated_at = EXCLUDED.updated_at,
     player_id = EXCLUDED.player_id,
@@ -51,10 +51,10 @@ ON CONFLICT(id) DO UPDATE SET
 RETURNING *;
 
 -- name: AddQuestion :one
-INSERT INTO questions (id, game_name, round, question, language_code, group_id) VALUES (?, ?, ?, ?, ?, ?) RETURNING *;
+INSERT INTO questions (id, game_name, round, question, language_code, group_id) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *;
 
 -- name: AddQuestionsGroup :one
-INSERT INTO questions_groups (id, group_name, group_type) VALUES (?, ?, ?) RETURNING *;
+INSERT INTO questions_groups (id, group_name, group_type) VALUES ($1, $2, $3) RETURNING *;
 
 -- name: GetAllPlayersInRoom :many
 SELECT p.id, p.created_at, p.updated_at, p.avatar, p.nickname, p.is_ready, r.room_code, r.host_player
@@ -64,7 +64,7 @@ JOIN rooms r ON rp.room_id = r.id
 WHERE rp.room_id = (
     SELECT rp_inner.room_id
     FROM rooms_players rp_inner
-    WHERE rp_inner.player_id = ?
+    WHERE rp_inner.player_id = $1
 );
 
 -- name: GetAllPlayerByRoomCode :many
@@ -75,7 +75,7 @@ JOIN rooms r ON rp.room_id = r.id
 WHERE rp.room_id = (
     SELECT r_inner.id
     FROM rooms r_inner
-    WHERE r_inner.room_code = ? AND (r_inner.room_state = "CREATED" OR r_inner.room_state = "PLAYING")
+    WHERE r_inner.room_code = $1 AND (r_inner.room_state = 'CREATED' OR r_inner.room_state = 'PLAYING')
 )
 ORDER BY p.created_at;
 
@@ -89,25 +89,25 @@ SELECT
     gs.state
 FROM game_state gs
 JOIN rooms_players rp ON gs.room_id = rp.room_id
-WHERE rp.player_id = ?;
+WHERE rp.player_id = $1;
 
 -- name: GetRoomByPlayerID :one
-SELECT r.* FROM rooms r JOIN rooms_players rp ON r.id = rp.room_id WHERE rp.player_id = ?;
+SELECT r.* FROM rooms r JOIN rooms_players rp ON r.id = rp.room_id WHERE rp.player_id = $1;
 
 -- name: GetRoomByCode :one
-SELECT * FROM rooms WHERE room_code = ?;
+SELECT * FROM rooms WHERE room_code = $1;
 
 -- name: GetRandomQuestionByRound :one
-SELECT * FROM questions WHERE game_name = ? AND round = ? AND language_code = ? AND enabled = TRUE ORDER BY RANDOM() LIMIT 1;
+SELECT * FROM questions WHERE game_name = $1 AND round = $2 AND language_code = $3 AND enabled = TRUE ORDER BY RANDOM() LIMIT 1;
 
 -- name: GetRandomQuestionInGroup :one
 SELECT *
 FROM questions q
 JOIN questions_groups qg ON q.group_id = qg.id
 WHERE qg.group_type = 'questions'
-  AND q.group_id = ?
+  AND q.group_id = $1
   AND q.enabled = TRUE
-  AND q.id != ?
+  AND q.id != $2
 ORDER BY RANDOM()
 LIMIT 1;
 
@@ -116,7 +116,7 @@ SELECT fir.*, gs.submit_deadline
 FROM fibbing_it_rounds fir
 JOIN rooms_players rp ON fir.room_id = rp.room_id
 JOIN game_state gs ON fir.room_id = gs.room_id
-WHERE rp.player_id = ?
+WHERE rp.player_id = $1
 ORDER BY fir.created_at DESC
 LIMIT 1;
 
@@ -142,7 +142,7 @@ LEFT JOIN questions fq1 ON fr.fibber_question_id = fq1.id
 LEFT JOIN questions fq2 ON fr.normal_question_id = fq2.id
 LEFT JOIN fibbing_it_player_roles fpr ON p.id = fpr.player_id AND fr.id = fpr.round_id
 LEFT JOIN fibbing_it_answers fia ON p.id = fia.player_id AND fr.id = fia.round_id
-WHERE p.id = ?
+WHERE p.id = $1
 ORDER BY p.created_at
 LIMIT 1;
 
@@ -162,11 +162,11 @@ JOIN fibbing_it_answers fia ON fiv.voted_for_player_id = fia.player_id AND fiv.r
 JOIN fibbing_it_rounds fir ON fiv.round_id = fir.id
 JOIN game_state gs ON fir.game_state_id = gs.id
 JOIN questions q ON fir.normal_question_id = q.id
-WHERE fiv.round_id = ?
+WHERE fiv.round_id = $1
 GROUP BY fiv.voted_for_player_id;
 
 -- name: ToggleAnswerIsReady :one
-UPDATE fibbing_it_answers SET is_ready = NOT is_ready WHERE player_id = ? RETURNING *;
+UPDATE fibbing_it_answers SET is_ready = NOT is_ready WHERE player_id = $1 RETURNING *;
 
 -- name: GetAllPlayerAnswerIsReady :many
 WITH room_players AS (
@@ -175,7 +175,7 @@ WITH room_players AS (
     WHERE rp.room_id = (
         SELECT room_id
         FROM rooms_players
-        WHERE rp.player_id = ?
+        WHERE rp.player_id = $1
     )
 )
 SELECT

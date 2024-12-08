@@ -5,6 +5,10 @@ tasks:
     desc: Start the app in dev mode with live-reloading.
     env:
       BANTERBUS_LOG_LEVEL: debug
+      BANTERBUS_DB_HOST: localhost
+      BANTERBUS_DB_USERNAME: banterbus
+      BANTERBUS_DB_PASSWORD: banterbus
+      BANTERBUS_REDIS_ADDRESS: "localhost:6379"
     cmds:
       - task: watch
       - air
@@ -103,3 +107,8 @@ tasks:
       - docker load < result
       - docker image tag $LOCAL_IMAGE:latest $IMAGE
       - docker push $IMAGE
+
+  ci:local:
+    desc: Run gitlab ci locally
+    cmds:
+      - job=$(yq 'keys | .[] | select(. != "image" and . != "workflow" and . != "stages" and . != "variables" and . != "default" and (. | test("^[^.]")) )' .gitlab-ci.yml | gum filter --placeholder "Select a job...") && gitlab-ci-local --variable CI_REGISTRY=registry.gitlab.com "$job"

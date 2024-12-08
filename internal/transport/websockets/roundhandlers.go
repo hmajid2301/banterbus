@@ -7,21 +7,23 @@ import (
 	"log/slog"
 	"time"
 
+	"github.com/google/uuid"
+
 	"gitlab.com/hmajid2301/banterbus/internal/config"
 	"gitlab.com/hmajid2301/banterbus/internal/service"
 	sqlc "gitlab.com/hmajid2301/banterbus/internal/store/db"
 )
 
 type RoundServicer interface {
-	SubmitAnswer(ctx context.Context, playerID, answer string, submittedAt time.Time) error
+	SubmitAnswer(ctx context.Context, playerID uuid.UUID, answer string, submittedAt time.Time) error
 	SubmitVote(
 		ctx context.Context,
-		playerID string,
+		playerID uuid.UUID,
 		votedNickname string,
 		submittedAt time.Time,
 	) (service.VotingState, error)
 	UpdateStateToVoting(ctx context.Context, updateVoting service.UpdateVotingState) (service.VotingState, error)
-	ToggleAnswerIsReady(ctx context.Context, playerID string, submittedAt time.Time) (bool, error)
+	ToggleAnswerIsReady(ctx context.Context, playerID uuid.UUID, submittedAt time.Time) (bool, error)
 }
 
 func (s *SubmitAnswer) Handle(ctx context.Context, client *client, sub *Subscriber) error {
@@ -92,7 +94,7 @@ func MoveToVoting(
 	ctx context.Context,
 	sub *Subscriber,
 	players []service.PlayerWithRole,
-	gameStateID string,
+	gameStateID uuid.UUID,
 	round int,
 ) {
 	// TODO: Maybe mixing businsess logic with transport logic here look at fixing this

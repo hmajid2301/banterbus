@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 
 	"gitlab.com/hmajid2301/banterbus/internal/service"
@@ -12,9 +13,10 @@ import (
 	sqlc "gitlab.com/hmajid2301/banterbus/internal/store/db"
 )
 
-const defaultHostPlayerID = "123"
+var defaultHostPlayerID = uuid.MustParse("0193a5e6-50db-7082-b0dd-42d7c88dd3ba")
+var defaultOtherPlayerID = uuid.MustParse("0193a5f3-8fbe-7748-89ab-cbd4fe0fb5f1")
+
 const defaultHostNickname = "host_player"
-const defaultOtherPlayerID = "456"
 const defaultOtherPlayerNickname = "another_player"
 
 func TestIntegrationLobbyCreate(t *testing.T) {
@@ -26,8 +28,9 @@ func TestIntegrationLobbyCreate(t *testing.T) {
 		assert.NoError(t, err)
 		randomizer := randomizer.NewUserRandomizer()
 
+		id := uuid.New()
 		newPlayer := service.NewHostPlayer{
-			ID: "123",
+			ID: id,
 		}
 		srv := service.NewLobbyService(str, randomizer)
 
@@ -37,7 +40,7 @@ func TestIntegrationLobbyCreate(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Len(t, roomCode, 5)
 		assert.Len(t, lobby.Players, 1, "There should be 1 player in the room when it is created")
-		assert.Equal(t, "123", lobby.Players[0].ID, "Player ID should match the ID of player who created the room")
+		assert.Equal(t, id, lobby.Players[0].ID, "Player ID should match the ID of player who created the room")
 		assert.NotEmpty(t, lobby.Players[0].Nickname)
 		assert.True(t, lobby.Players[0].IsHost, "Player should be the host")
 		assert.False(t, lobby.Players[0].IsReady, "Player should not be ready when room is created")
@@ -51,8 +54,9 @@ func TestIntegrationLobbyCreate(t *testing.T) {
 		assert.NoError(t, err)
 		randomizer := randomizer.NewUserRandomizer()
 
+		id := uuid.New()
 		newPlayer := service.NewHostPlayer{
-			ID:       "123",
+			ID:       id,
 			Nickname: "Majiy00",
 		}
 		srv := service.NewLobbyService(str, randomizer)
@@ -61,7 +65,7 @@ func TestIntegrationLobbyCreate(t *testing.T) {
 		lobby, err := srv.Create(ctx, "fibbing_it", newPlayer)
 
 		assert.NoError(t, err)
-		assert.Equal(t, "123", lobby.Players[0].ID)
+		assert.Equal(t, id, lobby.Players[0].ID)
 		assert.Equal(t, "Majiy00", lobby.Players[0].Nickname)
 	})
 }
@@ -81,13 +85,18 @@ func TestIntegrationLobbyJoin(t *testing.T) {
 		lobby, err := createRoom(ctx, srv)
 		assert.NoError(t, err)
 
-		lobby, err = srv.Join(ctx, lobby.Code, "456", "")
+		lobby, err = srv.Join(ctx, lobby.Code, defaultOtherPlayerID, "")
 		assert.NoError(t, err)
 
 		joinedPlayer := lobby.Players[1]
 
 		assert.Len(t, lobby.Players, 2)
-		assert.Equal(t, "456", joinedPlayer.ID, "Player ID should match the ID of player who joined the room")
+		assert.Equal(
+			t,
+			defaultOtherPlayerID,
+			joinedPlayer.ID,
+			"Player ID should match the ID of player who joined the room",
+		)
 		assert.NotEmpty(t, joinedPlayer.Nickname)
 		assert.False(t, joinedPlayer.IsHost, "Player who joined should not be the host")
 		assert.False(t, joinedPlayer.IsReady, "Player who joined should not be ready")
@@ -107,7 +116,7 @@ func TestIntegrationLobbyJoin(t *testing.T) {
 		lobby, err := createRoom(ctx, srv)
 		assert.NoError(t, err)
 
-		lobby, err = srv.Join(ctx, lobby.Code, "456", "nickname")
+		lobby, err = srv.Join(ctx, lobby.Code, defaultOtherPlayerID, "nickname")
 		assert.NoError(t, err)
 
 		joinedPlayer := lobby.Players[1]
@@ -129,7 +138,7 @@ func TestIntegrationLobbyJoin(t *testing.T) {
 		_, err = createRoom(ctx, srv)
 		assert.NoError(t, err)
 
-		_, err = srv.Join(ctx, "ABC12", "456", "nickname")
+		_, err = srv.Join(ctx, "ABC12", defaultOtherPlayerID, "nickname")
 		assert.Error(t, err)
 	})
 
@@ -147,14 +156,14 @@ func TestIntegrationLobbyJoin(t *testing.T) {
 		lobby, err := createRoom(ctx, srv)
 		assert.NoError(t, err)
 
-		_, err = db.ExecContext(
+		_, err = db.Exec(
 			ctx,
-			"UPDATE rooms SET room_state = 'PLAYING' WHERE room_code = ?",
+			"UPDATE rooms SET room_state = 'PLAYING' WHERE room_code = $1",
 			lobby.Code,
 		)
 		assert.NoError(t, err)
 
-		_, err = srv.Join(ctx, lobby.Code, "456", "nickname")
+		_, err = srv.Join(ctx, lobby.Code, defaultOtherPlayerID, "nickname")
 		assert.ErrorContains(t, err, "room is not in CREATED state")
 	})
 }
@@ -227,9 +236,9 @@ func TestIntegrationLobbyKickPlayer(t *testing.T) {
 		lobby, err := lobbyWithTwoPlayers(ctx, srv)
 		assert.NoError(t, err)
 
-		_, err = db.ExecContext(
+		_, err = db.Exec(
 			ctx,
-			"UPDATE rooms SET room_state = 'PLAYING' WHERE room_code = ?",
+			"UPDATE rooms SET room_state = 'PLAYING' WHERE room_code = $1",
 			lobby.Code,
 		)
 		assert.NoError(t, err)
@@ -373,9 +382,9 @@ func TestIntegrationLobbyStart(t *testing.T) {
 		_, err = plySrv.TogglePlayerIsReady(ctx, defaultOtherPlayerID)
 		assert.NoError(t, err)
 
-		_, err = db.ExecContext(
+		_, err = db.Exec(
 			ctx,
-			"UPDATE rooms SET room_state = 'PLAYING' WHERE room_code = ?",
+			"UPDATE rooms SET room_state = 'PLAYING' WHERE room_code = $1",
 			lobby.Code,
 		)
 		assert.NoError(t, err)

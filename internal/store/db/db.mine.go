@@ -1,19 +1,17 @@
 package sqlc
 
 import (
-	"database/sql"
 	"errors"
-	"io/fs"
-	"os"
-	"path/filepath"
+
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type DB struct {
 	*Queries
-	db *sql.DB
+	db *pgxpool.Pool
 }
 
-func NewDB(db *sql.DB) (DB, error) {
+func NewDB(db *pgxpool.Pool) (DB, error) {
 	queries := New(db)
 	store := DB{
 		db:      db,
@@ -73,23 +71,4 @@ func GameStateFromString(s string) (GameStateEnum, error) {
 
 func (gs GameStateEnum) String() string {
 	return [...]string{"FIBBING_IT_SHOW_QUESTION", "FIBBING_IT_VOTING"}[gs]
-}
-
-func GetDB(dbFolder string) (*sql.DB, error) {
-	if _, err := os.Stat(dbFolder); os.IsNotExist(err) {
-		permissions := 0755
-		err = os.Mkdir(dbFolder, fs.FileMode(permissions))
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	dbPath := filepath.Join(dbFolder, "banterbus.db")
-	db, err := sql.Open("sqlite", dbPath)
-	if err != nil {
-		return nil, err
-	}
-
-	_, err = db.Exec("PRAGMA journal_mode=WAL")
-	return db, err
 }

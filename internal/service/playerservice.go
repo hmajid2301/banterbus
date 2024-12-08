@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/google/uuid"
+
 	sqlc "gitlab.com/hmajid2301/banterbus/internal/store/db"
 )
 
@@ -17,7 +19,7 @@ func NewPlayerService(store Storer, randomizer Randomizer) *PlayerService {
 	return &PlayerService{store: store, randomizer: randomizer}
 }
 
-func (p *PlayerService) UpdateNickname(ctx context.Context, nickname string, playerID string) (Lobby, error) {
+func (p *PlayerService) UpdateNickname(ctx context.Context, nickname string, playerID uuid.UUID) (Lobby, error) {
 	room, err := p.store.GetRoomByPlayerID(ctx, playerID)
 	if err != nil {
 		return Lobby{}, err
@@ -55,7 +57,7 @@ func (p *PlayerService) UpdateNickname(ctx context.Context, nickname string, pla
 	return lobby, err
 }
 
-func (p *PlayerService) GenerateNewAvatar(ctx context.Context, playerID string) (Lobby, error) {
+func (p *PlayerService) GenerateNewAvatar(ctx context.Context, playerID uuid.UUID) (Lobby, error) {
 	room, err := p.store.GetRoomByPlayerID(ctx, playerID)
 	if err != nil {
 		return Lobby{}, err
@@ -84,7 +86,7 @@ func (p *PlayerService) GenerateNewAvatar(ctx context.Context, playerID string) 
 	return lobby, err
 }
 
-func (p *PlayerService) TogglePlayerIsReady(ctx context.Context, playerID string) (Lobby, error) {
+func (p *PlayerService) TogglePlayerIsReady(ctx context.Context, playerID uuid.UUID) (Lobby, error) {
 	room, err := p.store.GetRoomByPlayerID(ctx, playerID)
 	if err != nil {
 		return Lobby{}, err
@@ -109,7 +111,7 @@ func (p *PlayerService) TogglePlayerIsReady(ctx context.Context, playerID string
 }
 
 // TODO: move these to their own service file don't really belong
-func (p *PlayerService) GetRoomState(ctx context.Context, playerID string) (sqlc.RoomState, error) {
+func (p *PlayerService) GetRoomState(ctx context.Context, playerID uuid.UUID) (sqlc.RoomState, error) {
 	room, err := p.store.GetRoomByPlayerID(ctx, playerID)
 	if err != nil {
 		return sqlc.ROOMSTATE_CREATED, err
@@ -119,7 +121,7 @@ func (p *PlayerService) GetRoomState(ctx context.Context, playerID string) (sqlc
 	return roomState, err
 }
 
-func (p *PlayerService) GetLobby(ctx context.Context, playerID string) (Lobby, error) {
+func (p *PlayerService) GetLobby(ctx context.Context, playerID uuid.UUID) (Lobby, error) {
 	players, err := p.store.GetAllPlayersInRoom(ctx, playerID)
 	if err != nil {
 		return Lobby{}, err
@@ -128,7 +130,7 @@ func (p *PlayerService) GetLobby(ctx context.Context, playerID string) (Lobby, e
 	room := getLobbyPlayers(players, players[0].RoomCode)
 	return room, err
 }
-func (p *PlayerService) GetGameState(ctx context.Context, playerID string) (sqlc.GameStateEnum, error) {
+func (p *PlayerService) GetGameState(ctx context.Context, playerID uuid.UUID) (sqlc.GameStateEnum, error) {
 	game, err := p.store.GetGameStateByPlayerID(ctx, playerID)
 	if err != nil {
 		return sqlc.GAMESTATE_FIBBING_IT_SHOW_QUESTION, err
@@ -138,7 +140,7 @@ func (p *PlayerService) GetGameState(ctx context.Context, playerID string) (sqlc
 	return gameState, err
 }
 
-func (p *PlayerService) GetQuestionState(ctx context.Context, playerID string) (QuestionState, error) {
+func (p *PlayerService) GetQuestionState(ctx context.Context, playerID uuid.UUID) (QuestionState, error) {
 	g, err := p.store.GetCurrentQuestionByPlayerID(ctx, playerID)
 	if err != nil {
 		return QuestionState{}, err
@@ -159,12 +161,13 @@ func (p *PlayerService) GetQuestionState(ctx context.Context, playerID string) (
 		Round:     int(g.Round),
 		RoundType: g.RoundType,
 		RoomCode:  g.RoomCode,
-		Deadline:  time.Until(g.SubmitDeadline),
+		Deadline:  time.Until(g.SubmitDeadline.Time),
 	}
 
 	return gameState, nil
 }
-func (p *PlayerService) GetVotingState(ctx context.Context, playerID string) (VotingState, error) {
+
+func (p *PlayerService) GetVotingState(ctx context.Context, playerID uuid.UUID) (VotingState, error) {
 	round, err := p.store.GetLatestRoundByPlayerID(ctx, playerID)
 	if err != nil {
 		return VotingState{}, err
@@ -193,7 +196,7 @@ func (p *PlayerService) GetVotingState(ctx context.Context, playerID string) (Vo
 		Round:    int(round.Round),
 		Players:  votingPlayers,
 		Question: votes[0].Question,
-		Deadline: time.Until(votes[0].SubmitDeadline),
+		Deadline: time.Until(votes[0].SubmitDeadline.Time),
 	}
 
 	return votingState, nil

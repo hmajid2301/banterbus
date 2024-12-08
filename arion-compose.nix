@@ -42,10 +42,27 @@ in {
     };
 
     redis = {
-      service.image = "redis";
+      service.image = "redis:7.2.6";
       service.ports = [
         "6379:6379"
       ];
+    };
+
+    postgres = {
+      service = {
+        image = "postgres:16.4";
+        ports = [
+          "5432:5432"
+        ];
+        environment = {
+          POSTGRES_USER = "banterbus";
+          POSTGRES_PASSWORD = "banterbus";
+          POSTGRES_DB = "banterbus";
+        };
+        volumes = [
+          "postgres-data:/var/lib/postgresql/data"
+        ];
+      };
     };
   };
 }

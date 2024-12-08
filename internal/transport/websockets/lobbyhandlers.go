@@ -6,20 +6,22 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/google/uuid"
+
 	"gitlab.com/hmajid2301/banterbus/internal/config"
 	"gitlab.com/hmajid2301/banterbus/internal/service"
 )
 
 type LobbyServicer interface {
 	Create(ctx context.Context, gameName string, player service.NewHostPlayer) (service.Lobby, error)
-	Join(ctx context.Context, roomCode string, playerID string, playerNickname string) (service.Lobby, error)
-	Start(ctx context.Context, roomCode string, playerID string, deadline time.Time) (service.QuestionState, error)
+	Join(ctx context.Context, roomCode string, playerID uuid.UUID, playerNickname string) (service.Lobby, error)
+	Start(ctx context.Context, roomCode string, playerID uuid.UUID, deadline time.Time) (service.QuestionState, error)
 	KickPlayer(
 		ctx context.Context,
 		roomCode string,
-		playerID string,
+		playerID uuid.UUID,
 		playerNicknameToKick string,
-	) (service.Lobby, string, error)
+	) (service.Lobby, uuid.UUID, error)
 }
 
 func (c *CreateRoom) Handle(ctx context.Context, client *client, sub *Subscriber) error {

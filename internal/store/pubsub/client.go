@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/google/uuid"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -24,14 +25,14 @@ func NewRedisClient(address string) Client {
 	}
 }
 
-func (c Client) Subscribe(ctx context.Context, id string) <-chan *redis.Message {
-	s := c.Redis.Subscribe(ctx, id)
-	c.Subscribers[id] = s
+func (c Client) Subscribe(ctx context.Context, id uuid.UUID) <-chan *redis.Message {
+	s := c.Redis.Subscribe(ctx, id.String())
+	c.Subscribers[id.String()] = s
 	return s.Channel()
 }
 
-func (c Client) Publish(ctx context.Context, id string, msg []byte) error {
-	cmd := c.Redis.Publish(ctx, id, msg)
+func (c Client) Publish(ctx context.Context, id uuid.UUID, msg []byte) error {
+	cmd := c.Redis.Publish(ctx, id.String(), msg)
 
 	err := cmd.Err()
 	if err != nil {
@@ -40,8 +41,8 @@ func (c Client) Publish(ctx context.Context, id string, msg []byte) error {
 	return nil
 }
 
-func (c Client) Close(id string) error {
-	pubsub, ok := c.Subscribers[id]
+func (c Client) Close(id uuid.UUID) error {
+	pubsub, ok := c.Subscribers[id.String()]
 	if !ok {
 		return fmt.Errorf("ID %s not found", id)
 	}

@@ -5,6 +5,8 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type CreateRoomParams struct {
@@ -14,12 +16,12 @@ type CreateRoomParams struct {
 }
 
 func (s DB) CreateRoom(ctx context.Context, arg CreateRoomParams) error {
-	tx, err := s.db.Begin()
+	tx, err := s.db.BeginTx(ctx, pgx.TxOptions{})
 	if err != nil {
 		return err
 	}
 
-	defer tx.Rollback()
+	defer tx.Rollback(ctx)
 
 	_, err = s.WithTx(tx).AddPlayer(ctx, arg.Player)
 	if err != nil {
@@ -36,7 +38,7 @@ func (s DB) CreateRoom(ctx context.Context, arg CreateRoomParams) error {
 		return err
 	}
 
-	return tx.Commit()
+	return tx.Commit(ctx)
 }
 
 type AddPlayerToRoomArgs struct {
@@ -45,12 +47,12 @@ type AddPlayerToRoomArgs struct {
 }
 
 func (s DB) AddPlayerToRoom(ctx context.Context, arg AddPlayerToRoomArgs) error {
-	tx, err := s.db.Begin()
+	tx, err := s.db.BeginTx(ctx, pgx.TxOptions{})
 	if err != nil {
 		return err
 	}
 
-	defer tx.Rollback()
+	defer tx.Rollback(ctx)
 
 	_, err = s.AddPlayer(ctx, arg.Player)
 	if err != nil {
@@ -62,26 +64,26 @@ func (s DB) AddPlayerToRoom(ctx context.Context, arg AddPlayerToRoomArgs) error 
 		return err
 	}
 
-	return tx.Commit()
+	return tx.Commit(ctx)
 }
 
 type StartGameArgs struct {
-	RoomID            string
-	GameStateID       string
-	NormalsQuestionID string
-	FibberQuestionID  string
+	RoomID            uuid.UUID
+	GameStateID       uuid.UUID
+	NormalsQuestionID uuid.UUID
+	FibberQuestionID  uuid.UUID
 	Players           []GetAllPlayersInRoomRow
 	FibberLoc         int
 	Deadline          time.Time
 }
 
 func (s DB) StartGame(ctx context.Context, arg StartGameArgs) error {
-	tx, err := s.db.Begin()
+	tx, err := s.db.BeginTx(ctx, pgx.TxOptions{})
 	if err != nil {
 		return err
 	}
 
-	defer tx.Rollback()
+	defer tx.Rollback(ctx)
 	_, err = s.WithTx(tx).UpdateRoomState(ctx, UpdateRoomStateParams{
 		RoomState: ROOMSTATE_PLAYING.String(),
 		ID:        arg.RoomID,
@@ -94,14 +96,14 @@ func (s DB) StartGame(ctx context.Context, arg StartGameArgs) error {
 		ID:             arg.GameStateID,
 		RoomID:         arg.RoomID,
 		State:          GAMESTATE_FIBBING_IT_SHOW_QUESTION.String(),
-		SubmitDeadline: arg.Deadline,
+		SubmitDeadline: pgtype.Timestamp{Time: arg.Deadline, Valid: true},
 	})
 	if err != nil {
 		return err
 	}
 
 	round, err := s.WithTx(tx).AddFibbingItRound(ctx, AddFibbingItRoundParams{
-		ID:               uuid.Must(uuid.NewV7()).String(),
+		ID:               uuid.Must(uuid.NewV7()),
 		RoundType:        "free_form",
 		Round:            1,
 		FibberQuestionID: arg.FibberQuestionID,
@@ -120,7 +122,7 @@ func (s DB) StartGame(ctx context.Context, arg StartGameArgs) error {
 		}
 
 		_, err = s.WithTx(tx).AddFibbingItRole(ctx, AddFibbingItRoleParams{
-			ID:         uuid.Must(uuid.NewV7()).String(),
+			ID:         uuid.Must(uuid.NewV7()),
 			RoundID:    round.ID,
 			PlayerID:   player.ID,
 			PlayerRole: role,
@@ -130,5 +132,5 @@ func (s DB) StartGame(ctx context.Context, arg StartGameArgs) error {
 		}
 	}
 
-	return tx.Commit()
+	return tx.Commit(ctx)
 }

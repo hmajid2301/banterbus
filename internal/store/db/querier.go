@@ -6,6 +6,8 @@ package sqlc
 
 import (
 	"context"
+
+	"github.com/google/uuid"
 )
 
 type Querier interface {
@@ -18,21 +20,21 @@ type Querier interface {
 	AddQuestionsGroup(ctx context.Context, arg AddQuestionsGroupParams) (QuestionsGroup, error)
 	AddRoom(ctx context.Context, arg AddRoomParams) (Room, error)
 	AddRoomPlayer(ctx context.Context, arg AddRoomPlayerParams) (RoomsPlayer, error)
-	GetAllPlayerAnswerIsReady(ctx context.Context, playerID string) ([]GetAllPlayerAnswerIsReadyRow, error)
+	GetAllPlayerAnswerIsReady(ctx context.Context, playerID uuid.UUID) ([]GetAllPlayerAnswerIsReadyRow, error)
 	GetAllPlayerByRoomCode(ctx context.Context, roomCode string) ([]GetAllPlayerByRoomCodeRow, error)
-	GetAllPlayersInRoom(ctx context.Context, playerID string) ([]GetAllPlayersInRoomRow, error)
-	GetCurrentQuestionByPlayerID(ctx context.Context, id string) (GetCurrentQuestionByPlayerIDRow, error)
-	GetGameStateByPlayerID(ctx context.Context, playerID string) (GameState, error)
-	GetLatestRoundByPlayerID(ctx context.Context, playerID string) (GetLatestRoundByPlayerIDRow, error)
-	GetPlayerByID(ctx context.Context, id string) (Player, error)
+	GetAllPlayersInRoom(ctx context.Context, playerID uuid.UUID) ([]GetAllPlayersInRoomRow, error)
+	GetCurrentQuestionByPlayerID(ctx context.Context, id uuid.UUID) (GetCurrentQuestionByPlayerIDRow, error)
+	GetGameStateByPlayerID(ctx context.Context, playerID uuid.UUID) (GameState, error)
+	GetLatestRoundByPlayerID(ctx context.Context, playerID uuid.UUID) (GetLatestRoundByPlayerIDRow, error)
+	GetPlayerByID(ctx context.Context, id uuid.UUID) (Player, error)
 	GetRandomQuestionByRound(ctx context.Context, arg GetRandomQuestionByRoundParams) (Question, error)
 	GetRandomQuestionInGroup(ctx context.Context, arg GetRandomQuestionInGroupParams) (GetRandomQuestionInGroupRow, error)
 	GetRoomByCode(ctx context.Context, roomCode string) (Room, error)
-	GetRoomByPlayerID(ctx context.Context, playerID string) (Room, error)
-	GetVotingState(ctx context.Context, roundID string) ([]GetVotingStateRow, error)
-	RemovePlayerFromRoom(ctx context.Context, playerID string) (RoomsPlayer, error)
-	ToggleAnswerIsReady(ctx context.Context, playerID string) (FibbingItAnswer, error)
-	TogglePlayerIsReady(ctx context.Context, id string) (Player, error)
+	GetRoomByPlayerID(ctx context.Context, playerID uuid.UUID) (Room, error)
+	GetVotingState(ctx context.Context, roundID uuid.UUID) ([]GetVotingStateRow, error)
+	RemovePlayerFromRoom(ctx context.Context, playerID uuid.UUID) (RoomsPlayer, error)
+	ToggleAnswerIsReady(ctx context.Context, playerID uuid.UUID) (FibbingItAnswer, error)
+	TogglePlayerIsReady(ctx context.Context, id uuid.UUID) (Player, error)
 	UpdateAvatar(ctx context.Context, arg UpdateAvatarParams) (Player, error)
 	UpdateGameState(ctx context.Context, arg UpdateGameStateParams) (GameState, error)
 	UpdateNickname(ctx context.Context, arg UpdateNicknameParams) (Player, error)

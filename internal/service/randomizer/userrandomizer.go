@@ -115,9 +115,8 @@ func (UserRandomizer) GetRoomCode() string {
 	return code
 }
 
-func (UserRandomizer) GetID() string {
-	u := uuid.Must(uuid.NewV7())
-	return u.String()
+func (UserRandomizer) GetID() uuid.UUID {
+	return uuid.Must(uuid.NewV7())
 }
 
 func (UserRandomizer) GetFibberIndex(playersLen int) int {

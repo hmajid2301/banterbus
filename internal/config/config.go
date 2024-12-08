@@ -5,19 +5,21 @@ import (
 	"fmt"
 	"log/slog"
 	"net"
-	"os"
 
 	"github.com/invopop/ctxi18n/i18n"
-	gap "github.com/muesli/go-app-paths"
 	"github.com/sethvargo/go-envconfig"
 )
 
 // INFO: we need another struct for actual config values once we've passed the input ones
 type Config struct {
-	DBFolder string
-	Server   Server
-	Redis    Redis
-	App      App
+	DB     Database
+	Server Server
+	Redis  Redis
+	App    App
+}
+
+type Database struct {
+	URI string
 }
 
 type Server struct {
@@ -36,7 +38,11 @@ type App struct {
 }
 
 type In struct {
-	DBFolder      string `env:"BANTERBUS_DB_FOLDER"`
+	DBUsername    string `env:"BANTERBUS_DB_USERNAME"`
+	DBPassword    string `env:"BANTERBUS_DB_PASSWORD"`
+	DBHost        string `env:"BANTERBUS_DB_HOST"`
+	DBPort        string `env:"BANTERBUS_DB_PORT, default=5432"`
+	DBName        string `env:"BANTERBUS_DB_NAME, default=banterbus"`
 	Environment   string `env:"BANTERBUS_ENVIRONMENT, default=production"`
 	LogLevel      string `env:"BANTERBUS_LOG_LEVEL, default=info"`
 	Host          string `env:"BANTERBUS_WEBSERVER_HOST, default=0.0.0.0"`
@@ -56,8 +62,19 @@ func LoadConfig(ctx context.Context) (Config, error) {
 		return Config{}, err
 	}
 
+	uri := fmt.Sprintf(
+		"postgresql://%s:%s@%s:%s/%s",
+		input.DBUsername,
+		input.DBPassword,
+		input.DBHost,
+		input.DBPort,
+		input.DBName,
+	)
+
 	config := Config{
-		DBFolder: input.DBFolder,
+		DB: Database{
+			URI: uri,
+		},
 		Server: Server{
 			Host: input.Host,
 			Port: input.Port,
@@ -70,20 +87,6 @@ func LoadConfig(ctx context.Context) (Config, error) {
 			LogLevel:      parseLogLevel(input.LogLevel),
 			DefaultLocale: i18n.Code(input.DefaultLocale),
 		},
-	}
-
-	if config.DBFolder == "" {
-		scope := gap.NewScope(gap.User, "banterbus")
-		dirs, err := scope.DataDirs()
-		if err != nil {
-			return config, fmt.Errorf("unable to get data directory: %w", err)
-		}
-
-		dbFolder, _ := os.UserHomeDir()
-		if len(dirs) > 0 {
-			dbFolder = dirs[0]
-		}
-		config.DBFolder = dbFolder
 	}
 
 	return config, nil

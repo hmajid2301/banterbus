@@ -4,7 +4,6 @@ import (
 	"context"
 	"log/slog"
 	"os"
-	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -18,10 +17,7 @@ func TestLoadConfig(t *testing.T) {
 		actualCfg, err := config.LoadConfig(ctx)
 		assert.NoError(t, err)
 
-		state := os.Getenv("XDG_DATA_HOME")
-		configPath := filepath.Join(state, "banterbus")
 		expectedCfg := config.Config{
-			DBFolder: configPath,
 			App: config.App{
 				Environment:   "production",
 				LogLevel:      slog.LevelInfo,
@@ -31,6 +27,9 @@ func TestLoadConfig(t *testing.T) {
 				Host: "0.0.0.0",
 				Port: 8080,
 			},
+			DB: config.Database{
+				URI: "postgresql://:@:5432/banterbus",
+			},
 		}
 
 		assert.Equal(t, expectedCfg, actualCfg)
@@ -38,11 +37,15 @@ func TestLoadConfig(t *testing.T) {
 
 	t.Run("Should load config from environment values", func(t *testing.T) {
 		ctx := context.Background()
-		os.Setenv("BANTERBUS_DB_FOLDER", "/home/test")
-		config, err := config.LoadConfig(ctx)
+		os.Setenv("BANTERBUS_DB_USERNAME", "banterbus")
+		os.Setenv("BANTERBUS_DB_PASSWORD", "banterbus")
+		os.Setenv("BANTERBUS_DB_HOST", "localhost")
 
+		config, err := config.LoadConfig(ctx)
 		assert.NoError(t, err)
-		assert.Equal(t, "/home/test", config.DBFolder)
+
+		expectedURI := "postgresql://banterbus:banterbus@localhost:5432/banterbus"
+		assert.Equal(t, expectedURI, config.DB.URI)
 	})
 
 	t.Run("Should default to info level logs", func(t *testing.T) {

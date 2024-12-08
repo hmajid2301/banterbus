@@ -32,9 +32,9 @@ type Subscriber struct {
 }
 
 type Websocketer interface {
-	Subscribe(ctx context.Context, id string) <-chan *redis.Message
-	Publish(ctx context.Context, id string, msg []byte) error
-	Close(id string) error
+	Subscribe(ctx context.Context, id uuid.UUID) <-chan *redis.Message
+	Publish(ctx context.Context, id uuid.UUID, msg []byte) error
+	Close(id uuid.UUID) error
 }
 
 type message struct {
@@ -79,7 +79,7 @@ func NewSubscriber(
 func (s *Subscriber) Subscribe(r *http.Request, w http.ResponseWriter) (err error) {
 	ctx := context.Background()
 
-	var playerID string
+	var playerID uuid.UUID
 	var buf bytes.Buffer
 
 	cookie, err := r.Cookie("player_id")
@@ -87,7 +87,10 @@ func (s *Subscriber) Subscribe(r *http.Request, w http.ResponseWriter) (err erro
 		cookie = getPlayerIDCookie()
 		http.SetCookie(w, cookie)
 	} else {
-		playerID = cookie.Value
+		playerID, err = uuid.Parse(cookie.Value)
+		if err != nil {
+			return err
+		}
 
 		buf, err = s.Reconnect(ctx, playerID)
 		if err != nil {
@@ -97,7 +100,10 @@ func (s *Subscriber) Subscribe(r *http.Request, w http.ResponseWriter) (err erro
 		}
 	}
 
-	playerID = cookie.Value
+	playerID, err = uuid.Parse(cookie.Value)
+	if err != nil {
+		return err
+	}
 
 	h := ws.HTTPUpgrader{
 		Header: w.Header(),

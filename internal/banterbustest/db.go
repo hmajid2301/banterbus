@@ -4,24 +4,52 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"math/rand"
 	"os"
 	"path"
 	"path/filepath"
 	"runtime"
 
+	// INFO: Driver to connect to postgres to run DB migrations
+	_ "github.com/jackc/pgx/v5/stdlib"
+	pgxUUID "github.com/vgarvardt/pgx-google-uuid/v5"
+
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/pressly/goose/v3"
 
 	sqlc "gitlab.com/hmajid2301/banterbus/internal/store/db"
-
-	// used to connect to sqlite
-	_ "modernc.org/sqlite"
 )
 
-func CreateDB(_ context.Context) (*sql.DB, error) {
-	db, err := sql.Open("sqlite", "file::memory:?cache=shared")
+func CreateDB(ctx context.Context) (*pgxpool.Pool, error) {
+	uri := getURI()
+	db, err := pgxpool.New(ctx, uri)
+	if err != nil {
+		return db, fmt.Errorf("failed to get database: %w", err)
+	}
+
+	randomNumLimit := 1000000
+	dbName := fmt.Sprintf("banterbus_test_%d", rand.Intn(randomNumLimit))
+	_, err = db.Exec(ctx, fmt.Sprintf("CREATE DATABASE %s", dbName))
 	if err != nil {
 		return db, err
+	}
+
+	fmt.Println("test database name: ", dbName)
+
+	pgxConfig, err := pgxpool.ParseConfig(fmt.Sprintf("%s/%s", uri, dbName))
+	if err != nil {
+		return db, fmt.Errorf("failed to parse db uri: %w", err)
+	}
+
+	pgxConfig.AfterConnect = func(_ context.Context, conn *pgx.Conn) error {
+		pgxUUID.Register(conn.TypeMap())
+		return nil
+	}
+	db, err = pgxpool.NewWithConfig(ctx, pgxConfig)
+	if err != nil {
+		return db, fmt.Errorf("failed to setup database: %w", err)
 	}
 
 	err = runDBMigrations(db)
@@ -29,11 +57,46 @@ func CreateDB(_ context.Context) (*sql.DB, error) {
 		return db, err
 	}
 
-	err = FillWithDummyData(db)
+	err = FillWithDummyData(ctx, db)
 	return db, err
 }
 
-func runDBMigrations(db *sql.DB) error {
+func getURI() string {
+	uri := os.Getenv("BANTERBUS_DB_URI")
+	if uri == "" {
+		uri = "postgresql://banterbus:banterbus@localhost:5432"
+	}
+	return uri
+}
+
+func RemoveDB(ctx context.Context, db *pgxpool.Pool) error {
+	dbName, err := getDatabaseName(db)
+	if err != nil {
+		return fmt.Errorf("failed to connect to database: %w", err)
+	}
+	defer db.Close()
+
+	_, err = db.Exec(ctx, fmt.Sprintf("DROP DATABASE IF EXISTS %s", dbName))
+	if err != nil {
+		return fmt.Errorf("failed to drop database: %w", err)
+	}
+
+	return nil
+}
+
+func getDatabaseName(pool *pgxpool.Pool) (string, error) {
+	connConfig := pool.Config().ConnConfig
+	connString := connConfig.ConnString()
+
+	config, err := pgx.ParseConfig(connString)
+	if err != nil {
+		return "", fmt.Errorf("failed to parse connection string: %w", err)
+	}
+
+	return config.Database, nil
+}
+
+func runDBMigrations(pool *pgxpool.Pool) error {
 	_, filename, _, ok := runtime.Caller(0)
 	if !ok {
 		return fmt.Errorf("failed to get current filename")
@@ -45,19 +108,22 @@ func runDBMigrations(db *sql.DB) error {
 	fs := os.DirFS(migrationFolder)
 	goose.SetBaseFS(fs)
 
-	if err := goose.SetDialect("sqlite3"); err != nil {
+	if err := goose.SetDialect("postgres"); err != nil {
 		return err
 	}
 
-	if err := goose.Up(db, "db/migrations"); err != nil {
+	cp := pool.Config().ConnConfig.ConnString()
+	db, err := sql.Open("pgx/v5", cp)
+	if err != nil {
 		return err
 	}
-	return nil
+
+	err = goose.Up(db, "db/migrations")
+	return err
 }
 
-func FillWithDummyData(db *sql.DB) error {
-	tx, err := db.Begin()
-	ctx := context.Background()
+func FillWithDummyData(ctx context.Context, db *pgxpool.Pool) error {
+	tx, err := db.BeginTx(ctx, pgx.TxOptions{})
 	if err != nil {
 		return err
 	}
@@ -69,15 +135,16 @@ func FillWithDummyData(db *sql.DB) error {
 		"bike_group",
 		"horse_group",
 		"colour_group",
-		"animal",
+		"animal_group",
+		"all",
 	}
 
-	groupNameToID := map[string]map[string]string{}
+	groupNameToID := map[string]map[string]uuid.UUID{}
 
 	for _, group := range groups {
-		groupNameToID[group] = map[string]string{}
+		groupNameToID[group] = map[string]uuid.UUID{}
 		questionGroup, err := queries.WithTx(tx).AddQuestionsGroup(ctx, sqlc.AddQuestionsGroupParams{
-			ID:        uuid.Must(uuid.NewV7()).String(),
+			ID:        uuid.Must(uuid.NewV7()),
 			GroupName: group,
 			GroupType: "questions",
 		})
@@ -87,7 +154,7 @@ func FillWithDummyData(db *sql.DB) error {
 		groupNameToID[group]["questions"] = questionGroup.ID
 
 		answerGroup, err := queries.WithTx(tx).AddQuestionsGroup(ctx, sqlc.AddQuestionsGroupParams{
-			ID:        uuid.Must(uuid.NewV7()).String(),
+			ID:        uuid.Must(uuid.NewV7()),
 			GroupName: group,
 			GroupType: "answers",
 		})
@@ -107,10 +174,10 @@ func FillWithDummyData(db *sql.DB) error {
 		GroupName string
 		GroupType string
 	}{
-		{"fibbing_it", "likely", false, "to get arrested", "en-GB", "", ""},
-		{"fibbing_it", "likely", true, "to eat ice-cream from the tub", "en-GB", "", ""},
-		{"fibbing_it", "likely", true, "to fight a police person", "en-GB", "", ""},
-		{"fibbing_it", "likely", true, "to fight a horse", "en-GB", "", ""},
+		{"fibbing_it", "likely", false, "to get arrested", "en-GB", "all", "questions"},
+		{"fibbing_it", "likely", true, "to eat ice-cream from the tub", "en-GB", "all", "questions"},
+		{"fibbing_it", "likely", true, "to fight a police person", "en-GB", "all", "questions"},
+		{"fibbing_it", "likely", true, "to fight a horse", "en-GB", "all", "questions"},
 		{
 			"fibbing_it",
 			"free_form",
@@ -165,7 +232,7 @@ func FillWithDummyData(db *sql.DB) error {
 		groupID := groupNameToID[q.GroupName][q.GroupType]
 
 		_, err := queries.WithTx(tx).AddQuestion(ctx, sqlc.AddQuestionParams{
-			ID:           uuid.Must(uuid.NewV7()).String(),
+			ID:           uuid.Must(uuid.NewV7()),
 			GameName:     q.GameName,
 			Round:        q.Round,
 			Question:     q.Question,
@@ -177,5 +244,5 @@ func FillWithDummyData(db *sql.DB) error {
 		}
 	}
 
-	return tx.Commit()
+	return tx.Commit(ctx)
 }

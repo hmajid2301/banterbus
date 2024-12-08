@@ -2,12 +2,13 @@ package service_test
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 	"testing"
 	"time"
 
 	"github.com/google/go-cmp/cmp/cmpopts"
+	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/stretchr/testify/assert"
 
 	"gitlab.com/hmajid2301/banterbus/internal/service"
@@ -15,8 +16,7 @@ import (
 	sqlc "gitlab.com/hmajid2301/banterbus/internal/store/db"
 )
 
-const playerID = "33333-9f7a-4392-b523-fd433b3208ea"
-const hostPlayer = "44444-9f7a-4392-b523-fd433b3208ea"
+var playerID = uuid.MustParse("0193a625-dad1-7095-9abb-bebdad739381")
 
 func TestPlayerServiceUpdateNickname(t *testing.T) {
 	t.Run("Should successfully update nickname", func(t *testing.T) {
@@ -43,9 +43,9 @@ func TestPlayerServiceUpdateNickname(t *testing.T) {
 			{
 				ID:         playerID,
 				RoomCode:   roomCode,
-				HostPlayer: hostPlayer,
+				HostPlayer: hostPlayerID,
 				Nickname:   "New Nickname",
-				IsReady:    sql.NullBool{Bool: false, Valid: true},
+				IsReady:    pgtype.Bool{Bool: false, Valid: true},
 			},
 		}, nil).Times(1)
 
@@ -196,9 +196,9 @@ func TestPlayerServiceGenerateAvatar(t *testing.T) {
 				ID:         playerID,
 				Avatar:     []byte("avatar1"),
 				RoomCode:   roomCode,
-				HostPlayer: hostPlayer,
+				HostPlayer: hostPlayerID,
 				Nickname:   "nickname",
-				IsReady:    sql.NullBool{Bool: false, Valid: true},
+				IsReady:    pgtype.Bool{Bool: false, Valid: true},
 			},
 		}, nil).Times(1)
 
@@ -333,9 +333,9 @@ func TestPlayerServiceTogglePlayerIsReady(t *testing.T) {
 					ID:         playerID,
 					Avatar:     []byte("avatar1"),
 					RoomCode:   roomCode,
-					HostPlayer: hostPlayer,
+					HostPlayer: hostPlayerID,
 					Nickname:   "nickname",
-					IsReady:    sql.NullBool{Bool: tt.expectedIsReady, Valid: true},
+					IsReady:    pgtype.Bool{Bool: tt.expectedIsReady, Valid: true},
 				},
 			}, nil).Times(1)
 
@@ -505,9 +505,9 @@ func TestPlayerServiceGetLobby(t *testing.T) {
 			{
 				ID:         playerID,
 				RoomCode:   roomCode,
-				HostPlayer: hostPlayer,
+				HostPlayer: hostPlayerID,
 				Nickname:   "nickname",
-				IsReady:    sql.NullBool{Bool: false, Valid: true},
+				IsReady:    pgtype.Bool{Bool: false, Valid: true},
 			},
 		}, nil)
 		lobby, err := srv.GetLobby(ctx, playerID)
@@ -606,12 +606,12 @@ func TestPlayerServiceGetQuestionState(t *testing.T) {
 			PlayerID:       playerID,
 			Avatar:         []byte(""),
 			Nickname:       "nickname",
-			Role:           sql.NullString{String: "fibber"},
+			Role:           pgtype.Text{String: "fibber"},
 			Question:       "fibber question",
 			Round:          1,
 			RoundType:      "free_form",
 			RoomCode:       "ABC12",
-			SubmitDeadline: deadline,
+			SubmitDeadline: pgtype.Timestamp{Time: deadline},
 		}, nil)
 
 		questionState, err := srv.GetQuestionState(ctx, playerID)
@@ -649,12 +649,12 @@ func TestPlayerServiceGetQuestionState(t *testing.T) {
 			PlayerID:       playerID,
 			Avatar:         []byte(""),
 			Nickname:       "nickname",
-			Role:           sql.NullString{String: "normal"},
+			Role:           pgtype.Text{String: "normal"},
 			Question:       "normal question",
 			Round:          1,
 			RoundType:      "free_form",
 			RoomCode:       "ABC12",
-			SubmitDeadline: deadline,
+			SubmitDeadline: pgtype.Timestamp{Time: deadline},
 		}, nil)
 
 		questionState, err := srv.GetQuestionState(ctx, playerID)
@@ -697,7 +697,7 @@ func TestPlayerServiceGetQuestionState(t *testing.T) {
 }
 
 func TestPlayerServiceGetVotingState(t *testing.T) {
-	roundID := "77777-fbb75599-9f7a-4392-b523-fd433b3208ea"
+	roundID := uuid.MustParse("0193a629-e26c-7326-8df4-81ad3ec82214")
 
 	t.Run("Should successfully get voting state", func(t *testing.T) {
 		mockStore := mockService.NewMockStorer(t)
@@ -711,7 +711,7 @@ func TestPlayerServiceGetVotingState(t *testing.T) {
 			sqlc.GetLatestRoundByPlayerIDRow{
 				ID:             roundID,
 				Round:          1,
-				SubmitDeadline: deadline,
+				SubmitDeadline: pgtype.Timestamp{Time: deadline},
 			}, nil)
 		mockStore.EXPECT().GetVotingState(ctx, roundID).Return(
 			[]sqlc.GetVotingStateRow{

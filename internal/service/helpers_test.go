@@ -2,11 +2,11 @@ package service_test
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -14,13 +14,14 @@ import (
 	"gitlab.com/hmajid2301/banterbus/internal/service"
 )
 
-func setupSubtest(t *testing.T) (*sql.DB, func()) {
+func setupSubtest(t *testing.T) (*pgxpool.Pool, func()) {
 	ctx := context.Background()
 	db, err := banterbustest.CreateDB(ctx)
 	require.NoError(t, err)
 
 	return db, func() {
 		db.Close()
+		banterbustest.RemoveDB(ctx, db)
 	}
 }
 

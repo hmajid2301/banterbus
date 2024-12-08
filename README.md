@@ -35,7 +35,8 @@ More [information here](https://gitlab.com/hmajid2301/nix-go-htmx-tailwind-templ
     - Standard Library HTTP Server
     - Websockets for communication
 - templ as the templating engine
-- SQLite DB
+- Postgres DB
+- Redis (Pub Sub)
 
 ### Frontend
 

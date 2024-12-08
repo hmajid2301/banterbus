@@ -8,6 +8,8 @@ import (
 	"time"
 
 	"github.com/google/go-cmp/cmp/cmpopts"
+	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/stretchr/testify/assert"
 
 	"gitlab.com/hmajid2301/banterbus/internal/service"
@@ -16,12 +18,14 @@ import (
 )
 
 const roomCode = "ABC12"
-const roomID = "fbb75599-9f7a-4392-b523-fd433b3208ea"
-const hostPlayerID = "33333-9f7a-4392-b523-fd433b3208ea"
+
+// TODO: move to generic
+var roomID = uuid.MustParse("0193a627-db9b-7af3-88d8-6b3164d4b969")
+var hostPlayerID = uuid.MustParse("0193a623-8423-74b3-b991-896d7c6df52a")
 
 func TestLobbyServiceCreate(t *testing.T) {
 	defaultNewHostPlayer := service.NewHostPlayer{
-		ID: "11111-9f7a-4392-b523-fd433b3208ea",
+		ID: uuid.MustParse("0193a626-2586-7784-9b5b-104d927d64ca"),
 	}
 
 	defaultNewPlayer := service.NewPlayer{
@@ -70,7 +74,7 @@ func TestLobbyServiceCreate(t *testing.T) {
 
 		newHostPlayer := service.NewHostPlayer{
 			Nickname: "MyNickname",
-			ID:       "11111-9f7a-4392-b523-fd433b3208ea",
+			ID:       uuid.MustParse("0193a626-2586-7784-9b5b-104d927d64ca"),
 		}
 
 		newPlayer := service.NewPlayer{
@@ -211,7 +215,7 @@ func getCreateRoomParams(newCreatedPlayer service.NewPlayer, newPlayer service.N
 
 func TestLobbyServiceJoin(t *testing.T) {
 	defaultNewPlayer := service.NewPlayer{
-		ID:       "11111-9f7a-4392-b523-fd433b3208ea",
+		ID:       uuid.MustParse("0193a626-2586-7784-9b5b-104d927d64ca"),
 		Nickname: "",
 		Avatar:   []byte(""),
 	}
@@ -251,18 +255,18 @@ func TestLobbyServiceJoin(t *testing.T) {
 		mockStore.EXPECT().AddPlayerToRoom(ctx, addPlayerToRoom).Return(nil)
 		mockStore.EXPECT().GetAllPlayersInRoom(ctx, defaultNewPlayer.ID).Return([]sqlc.GetAllPlayersInRoomRow{
 			{
-				ID:         "b75599-9f7a-4392-b523-fd433b3208ea",
+				ID:         uuid.MustParse("0193a628-51bc-7a60-9204-a8667771f278"),
 				Nickname:   "EmotionalTiger",
 				Avatar:     []byte(""),
-				IsReady:    sql.NullBool{Bool: false, Valid: true},
-				HostPlayer: "22222-9f7a-4392-b523-fd433b3208ea",
+				IsReady:    pgtype.Bool{Bool: false, Valid: true},
+				HostPlayer: uuid.MustParse("0193a628-8b7b-7ad9-aefe-031ec85289fa"),
 			},
 			{
-				ID:         "22222-9f7a-4392-b523-fd433b3208ea",
+				ID:         uuid.MustParse("0193a628-8b7b-7ad9-aefe-031ec85289fa"),
 				Nickname:   "Hello",
 				Avatar:     []byte(""),
-				IsReady:    sql.NullBool{Bool: false, Valid: true},
-				HostPlayer: "22222-9f7a-4392-b523-fd433b3208ea",
+				IsReady:    pgtype.Bool{Bool: false, Valid: true},
+				HostPlayer: uuid.MustParse("0193a628-8b7b-7ad9-aefe-031ec85289fa"),
 			},
 		}, nil)
 		lobby, err := srv.Join(ctx, roomCode, defaultNewPlayer.ID, defaultNewPlayer.Nickname)
@@ -270,14 +274,14 @@ func TestLobbyServiceJoin(t *testing.T) {
 			Code: roomCode,
 			Players: []service.LobbyPlayer{
 				{
-					ID:       "b75599-9f7a-4392-b523-fd433b3208ea",
+					ID:       uuid.MustParse("0193a628-51bc-7a60-9204-a8667771f278"),
 					Nickname: "EmotionalTiger",
 					Avatar:   "",
 					IsReady:  false,
 					IsHost:   false,
 				},
 				{
-					ID:       "22222-9f7a-4392-b523-fd433b3208ea",
+					ID:       uuid.MustParse("0193a628-8b7b-7ad9-aefe-031ec85289fa"),
 					Nickname: "Hello",
 					Avatar:   "",
 					IsReady:  false,
@@ -325,18 +329,18 @@ func TestLobbyServiceJoin(t *testing.T) {
 		mockStore.EXPECT().AddPlayerToRoom(ctx, addPlayerToRoom).Return(nil)
 		mockStore.EXPECT().GetAllPlayersInRoom(ctx, defaultNewPlayer.ID).Return([]sqlc.GetAllPlayersInRoomRow{
 			{
-				ID:         "b75599-9f7a-4392-b523-fd433b3208ea",
+				ID:         uuid.MustParse("0193a628-51bc-7a60-9204-a8667771f278"),
 				Nickname:   nickname,
 				Avatar:     []byte(""),
-				IsReady:    sql.NullBool{Bool: false, Valid: true},
-				HostPlayer: "22222-9f7a-4392-b523-fd433b3208ea",
+				IsReady:    pgtype.Bool{Bool: false, Valid: true},
+				HostPlayer: uuid.MustParse("0193a628-8b7b-7ad9-aefe-031ec85289fa"),
 			},
 			{
-				ID:         "22222-9f7a-4392-b523-fd433b3208ea",
+				ID:         uuid.MustParse("0193a628-8b7b-7ad9-aefe-031ec85289fa"),
 				Nickname:   "Hello",
 				Avatar:     []byte(""),
-				IsReady:    sql.NullBool{Bool: false, Valid: true},
-				HostPlayer: "22222-9f7a-4392-b523-fd433b3208ea",
+				IsReady:    pgtype.Bool{Bool: false, Valid: true},
+				HostPlayer: uuid.MustParse("0193a628-8b7b-7ad9-aefe-031ec85289fa"),
 			},
 		}, nil)
 		lobby, err := srv.Join(ctx, roomCode, defaultNewPlayer.ID, nickname)
@@ -344,14 +348,14 @@ func TestLobbyServiceJoin(t *testing.T) {
 			Code: roomCode,
 			Players: []service.LobbyPlayer{
 				{
-					ID:       "b75599-9f7a-4392-b523-fd433b3208ea",
+					ID:       uuid.MustParse("0193a628-51bc-7a60-9204-a8667771f278"),
 					Nickname: nickname,
 					Avatar:   "",
 					IsReady:  false,
 					IsHost:   false,
 				},
 				{
-					ID:       "22222-9f7a-4392-b523-fd433b3208ea",
+					ID:       uuid.MustParse("0193a628-8b7b-7ad9-aefe-031ec85289fa"),
 					Nickname: "Hello",
 					Avatar:   "",
 					IsReady:  false,
@@ -482,7 +486,7 @@ func TestLobbyServiceJoin(t *testing.T) {
 
 func TestLobbyServiceKickPlayer(t *testing.T) {
 	defaultNewPlayer := service.NewPlayer{
-		ID:       "11111-9f7a-4392-b523-fd433b3208ea",
+		ID:       uuid.MustParse("0193a626-2586-7784-9b5b-104d927d64ca"),
 		Nickname: "Hello",
 		Avatar:   []byte(""),
 	}
@@ -635,11 +639,11 @@ func TestLobbyServiceKickPlayer(t *testing.T) {
 
 func TestLobbyServiceStart(t *testing.T) {
 	gameName := "fibbing_it"
-	groupID := "12345-9f7a-4392-b523-fd433b3208ea"
-	gameStateID := "77777-9f7a-4392-b523-fd433b3208ea"
+	groupID := uuid.MustParse("0193a629-1fcf-79dd-ac70-760bedbdffa9")
+	gameStateID := uuid.MustParse("0193a629-373b-7a3e-b6c2-0e7d2f95ce43")
 
 	defaultNewPlayer := service.NewPlayer{
-		ID:       "11111-9f7a-4392-b523-fd433b3208ea",
+		ID:       uuid.MustParse("0193a626-2586-7784-9b5b-104d927d64ca"),
 		Nickname: "Hello",
 		Avatar:   []byte(""),
 	}
@@ -664,14 +668,14 @@ func TestLobbyServiceStart(t *testing.T) {
 				ID:         defaultNewPlayer.ID,
 				Nickname:   "Hello",
 				HostPlayer: hostPlayerID,
-				IsReady:    sql.NullBool{Bool: true, Valid: true},
+				IsReady:    pgtype.Bool{Bool: true, Valid: true},
 				RoomCode:   roomCode,
 			},
 			{
 				ID:         hostPlayerID,
 				Nickname:   "EmotionalTiger",
 				HostPlayer: hostPlayerID,
-				IsReady:    sql.NullBool{Bool: true, Valid: true},
+				IsReady:    pgtype.Bool{Bool: true, Valid: true},
 				RoomCode:   roomCode,
 			},
 		}, nil)
@@ -681,15 +685,15 @@ func TestLobbyServiceStart(t *testing.T) {
 			LanguageCode: "en-GB",
 			Round:        "free_form",
 		}).Return(sqlc.Question{
-			ID:       "555555-9f7a-4392-b523-fd433b3208ea",
+			ID:       uuid.MustParse("0193a629-7dcc-78ad-822f-fd5d83c89ae7"),
 			Question: "What is the capital of France?",
 			GroupID:  groupID,
 		}, nil)
 		mockStore.EXPECT().GetRandomQuestionInGroup(ctx, sqlc.GetRandomQuestionInGroupParams{
 			GroupID: groupID,
-			ID:      "555555-9f7a-4392-b523-fd433b3208ea",
+			ID:      uuid.MustParse("0193a629-7dcc-78ad-822f-fd5d83c89ae7"),
 		}).Return(sqlc.GetRandomQuestionInGroupRow{
-			ID:       "666666-9f7a-4392-b523-fd433b3208ea",
+			ID:       uuid.MustParse("0193a629-a9ac-7fc4-828c-a1334c282e0f"),
 			Question: "What is the capital of Germany?",
 		}, nil)
 		mockRandom.EXPECT().GetFibberIndex(2).Return(1)
@@ -698,20 +702,20 @@ func TestLobbyServiceStart(t *testing.T) {
 		mockStore.EXPECT().StartGame(ctx, sqlc.StartGameArgs{
 			GameStateID:       gameStateID,
 			RoomID:            roomID,
-			NormalsQuestionID: "555555-9f7a-4392-b523-fd433b3208ea",
-			FibberQuestionID:  "666666-9f7a-4392-b523-fd433b3208ea",
+			NormalsQuestionID: uuid.MustParse("0193a629-7dcc-78ad-822f-fd5d83c89ae7"),
+			FibberQuestionID:  uuid.MustParse("0193a629-a9ac-7fc4-828c-a1334c282e0f"),
 			Players: []sqlc.GetAllPlayersInRoomRow{
 				{
 					ID:         defaultNewPlayer.ID,
 					Nickname:   "Hello",
-					IsReady:    sql.NullBool{Bool: true, Valid: true},
+					IsReady:    pgtype.Bool{Bool: true, Valid: true},
 					RoomCode:   roomCode,
 					HostPlayer: hostPlayerID,
 				},
 				{
 					ID:         hostPlayerID,
 					Nickname:   "EmotionalTiger",
-					IsReady:    sql.NullBool{Bool: true, Valid: true},
+					IsReady:    pgtype.Bool{Bool: true, Valid: true},
 					RoomCode:   roomCode,
 					HostPlayer: hostPlayerID,
 				},
@@ -831,7 +835,7 @@ func TestLobbyServiceStart(t *testing.T) {
 				ID:         defaultNewPlayer.ID,
 				Nickname:   "Hello",
 				HostPlayer: hostPlayerID,
-				IsReady:    sql.NullBool{Bool: true, Valid: true},
+				IsReady:    pgtype.Bool{Bool: true, Valid: true},
 				RoomCode:   roomCode,
 			},
 		}, nil)
@@ -862,14 +866,14 @@ func TestLobbyServiceStart(t *testing.T) {
 				ID:         defaultNewPlayer.ID,
 				Nickname:   "Hello",
 				HostPlayer: hostPlayerID,
-				IsReady:    sql.NullBool{Bool: true, Valid: true},
+				IsReady:    pgtype.Bool{Bool: true, Valid: true},
 				RoomCode:   roomCode,
 			},
 			{
 				ID:         hostPlayerID,
 				Nickname:   "EmotionalTiger",
 				HostPlayer: hostPlayerID,
-				IsReady:    sql.NullBool{Bool: false, Valid: true},
+				IsReady:    pgtype.Bool{Bool: false, Valid: true},
 				RoomCode:   roomCode,
 			},
 		}, nil)
@@ -899,14 +903,14 @@ func TestLobbyServiceStart(t *testing.T) {
 				ID:         defaultNewPlayer.ID,
 				Nickname:   "Hello",
 				HostPlayer: hostPlayerID,
-				IsReady:    sql.NullBool{Bool: true, Valid: true},
+				IsReady:    pgtype.Bool{Bool: true, Valid: true},
 				RoomCode:   roomCode,
 			},
 			{
 				ID:         hostPlayerID,
 				Nickname:   "EmotionalTiger",
 				HostPlayer: hostPlayerID,
-				IsReady:    sql.NullBool{Bool: true, Valid: true},
+				IsReady:    pgtype.Bool{Bool: true, Valid: true},
 				RoomCode:   roomCode,
 			},
 		}, nil)
@@ -942,14 +946,14 @@ func TestLobbyServiceStart(t *testing.T) {
 				ID:         defaultNewPlayer.ID,
 				Nickname:   "Hello",
 				HostPlayer: hostPlayerID,
-				IsReady:    sql.NullBool{Bool: true, Valid: true},
+				IsReady:    pgtype.Bool{Bool: true, Valid: true},
 				RoomCode:   roomCode,
 			},
 			{
 				ID:         hostPlayerID,
 				Nickname:   "EmotionalTiger",
 				HostPlayer: hostPlayerID,
-				IsReady:    sql.NullBool{Bool: true, Valid: true},
+				IsReady:    pgtype.Bool{Bool: true, Valid: true},
 				RoomCode:   roomCode,
 			},
 		}, nil)
@@ -959,13 +963,13 @@ func TestLobbyServiceStart(t *testing.T) {
 			LanguageCode: "en-GB",
 			Round:        "free_form",
 		}).Return(sqlc.Question{
-			ID:       "555555-9f7a-4392-b523-fd433b3208ea",
+			ID:       uuid.MustParse("0193a629-7dcc-78ad-822f-fd5d83c89ae7"),
 			Question: "What is the capital of France?",
 			GroupID:  groupID,
 		}, nil)
 		mockStore.EXPECT().GetRandomQuestionInGroup(ctx, sqlc.GetRandomQuestionInGroupParams{
 			GroupID: groupID,
-			ID:      "555555-9f7a-4392-b523-fd433b3208ea",
+			ID:      uuid.MustParse("0193a629-7dcc-78ad-822f-fd5d83c89ae7"),
 		}).Return(sqlc.GetRandomQuestionInGroupRow{}, fmt.Errorf("failed to get random question for fibber"))
 
 		deadline := time.Now().Add(5 * time.Second)
@@ -994,14 +998,14 @@ func TestLobbyServiceStart(t *testing.T) {
 				ID:         defaultNewPlayer.ID,
 				Nickname:   "Hello",
 				HostPlayer: hostPlayerID,
-				IsReady:    sql.NullBool{Bool: true, Valid: true},
+				IsReady:    pgtype.Bool{Bool: true, Valid: true},
 				RoomCode:   roomCode,
 			},
 			{
 				ID:         hostPlayerID,
 				Nickname:   "EmotionalTiger",
 				HostPlayer: hostPlayerID,
-				IsReady:    sql.NullBool{Bool: true, Valid: true},
+				IsReady:    pgtype.Bool{Bool: true, Valid: true},
 				RoomCode:   roomCode,
 			},
 		}, nil)
@@ -1011,15 +1015,15 @@ func TestLobbyServiceStart(t *testing.T) {
 			LanguageCode: "en-GB",
 			Round:        "free_form",
 		}).Return(sqlc.Question{
-			ID:       "555555-9f7a-4392-b523-fd433b3208ea",
+			ID:       uuid.MustParse("0193a629-7dcc-78ad-822f-fd5d83c89ae7"),
 			Question: "What is the capital of France?",
 			GroupID:  groupID,
 		}, nil)
 		mockStore.EXPECT().GetRandomQuestionInGroup(ctx, sqlc.GetRandomQuestionInGroupParams{
 			GroupID: groupID,
-			ID:      "555555-9f7a-4392-b523-fd433b3208ea",
+			ID:      uuid.MustParse("0193a629-7dcc-78ad-822f-fd5d83c89ae7"),
 		}).Return(sqlc.GetRandomQuestionInGroupRow{
-			ID:       "666666-9f7a-4392-b523-fd433b3208ea",
+			ID:       uuid.MustParse("0193a629-a9ac-7fc4-828c-a1334c282e0f"),
 			Question: "What is the capital of Germany?",
 		}, nil)
 		mockRandom.EXPECT().GetFibberIndex(2).Return(1)
@@ -1028,20 +1032,20 @@ func TestLobbyServiceStart(t *testing.T) {
 		mockStore.EXPECT().StartGame(ctx, sqlc.StartGameArgs{
 			GameStateID:       gameStateID,
 			RoomID:            roomID,
-			NormalsQuestionID: "555555-9f7a-4392-b523-fd433b3208ea",
-			FibberQuestionID:  "666666-9f7a-4392-b523-fd433b3208ea",
+			NormalsQuestionID: uuid.MustParse("0193a629-7dcc-78ad-822f-fd5d83c89ae7"),
+			FibberQuestionID:  uuid.MustParse("0193a629-a9ac-7fc4-828c-a1334c282e0f"),
 			Players: []sqlc.GetAllPlayersInRoomRow{
 				{
 					ID:         defaultNewPlayer.ID,
 					Nickname:   "Hello",
-					IsReady:    sql.NullBool{Bool: true, Valid: true},
+					IsReady:    pgtype.Bool{Bool: true, Valid: true},
 					RoomCode:   roomCode,
 					HostPlayer: hostPlayerID,
 				},
 				{
 					ID:         hostPlayerID,
 					Nickname:   "EmotionalTiger",
-					IsReady:    sql.NullBool{Bool: true, Valid: true},
+					IsReady:    pgtype.Bool{Bool: true, Valid: true},
 					RoomCode:   roomCode,
 					HostPlayer: hostPlayerID,
 				},

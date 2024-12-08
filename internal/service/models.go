@@ -1,6 +1,10 @@
 package service
 
-import "time"
+import (
+	"time"
+
+	"github.com/google/uuid"
+)
 
 type Lobby struct {
 	Code    string
@@ -8,19 +12,19 @@ type Lobby struct {
 }
 
 type LobbyPlayer struct {
-	ID       string
+	ID       uuid.UUID
 	Nickname string
 	Avatar   string
 	IsReady  bool
 	IsHost   bool
 }
 type NewHostPlayer struct {
-	ID       string
+	ID       uuid.UUID
 	Nickname string
 }
 
 type NewPlayer struct {
-	ID       string
+	ID       uuid.UUID
 	Nickname string
 	Avatar   []byte
 }
@@ -30,7 +34,7 @@ type NewRoom struct {
 }
 
 type PlayerWithRole struct {
-	ID            string
+	ID            uuid.UUID
 	Nickname      string
 	Role          string
 	Question      string
@@ -40,7 +44,7 @@ type PlayerWithRole struct {
 
 // TODO: could just be a single player
 type QuestionState struct {
-	GameStateID string
+	GameStateID uuid.UUID
 	Players     []PlayerWithRole
 	Round       int
 	RoundType   string
@@ -49,8 +53,8 @@ type QuestionState struct {
 }
 
 type UpdateVotingState struct {
+	GameStateID uuid.UUID
 	Players     []PlayerWithRole
-	GameStateID string
 	Deadline    time.Time
 	Round       int
 }
@@ -63,7 +67,7 @@ type VotingState struct {
 }
 
 type PlayerWithVoting struct {
-	ID       string
+	ID       uuid.UUID
 	Nickname string
 	Avatar   string
 	Votes    int

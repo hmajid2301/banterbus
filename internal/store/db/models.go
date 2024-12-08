@@ -5,101 +5,101 @@
 package sqlc
 
 import (
-	"database/sql"
-	"time"
+	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type FibbingItAnswer struct {
-	ID        string
-	CreatedAt sql.NullTime
-	UpdatedAt sql.NullTime
+	ID        uuid.UUID
+	CreatedAt pgtype.Timestamp
+	UpdatedAt pgtype.Timestamp
 	Answer    string
-	PlayerID  string
-	RoundID   string
-	IsReady   sql.NullBool
+	PlayerID  uuid.UUID
+	RoundID   uuid.UUID
+	IsReady   pgtype.Bool
 }
 
 type FibbingItPlayerRole struct {
-	ID         string
-	CreatedAt  sql.NullTime
-	UpdatedAt  sql.NullTime
+	ID         uuid.UUID
+	CreatedAt  pgtype.Timestamp
+	UpdatedAt  pgtype.Timestamp
 	PlayerRole string
-	RoundID    string
-	PlayerID   string
+	RoundID    uuid.UUID
+	PlayerID   uuid.UUID
 }
 
 type FibbingItRound struct {
-	ID               string
-	CreatedAt        sql.NullTime
-	UpdatedAt        sql.NullTime
+	ID               uuid.UUID
+	CreatedAt        pgtype.Timestamp
+	UpdatedAt        pgtype.Timestamp
 	RoundType        string
-	Round            int64
-	FibberQuestionID string
-	NormalQuestionID string
-	RoomID           string
-	GameStateID      string
+	Round            int32
+	FibberQuestionID uuid.UUID
+	NormalQuestionID uuid.UUID
+	RoomID           uuid.UUID
+	GameStateID      uuid.UUID
 }
 
 type FibbingItVote struct {
-	ID               string
-	CreatedAt        sql.NullTime
-	UpdatedAt        sql.NullTime
-	PlayerID         string
-	VotedForPlayerID string
-	RoundID          string
+	ID               uuid.UUID
+	CreatedAt        pgtype.Timestamp
+	UpdatedAt        pgtype.Timestamp
+	PlayerID         uuid.UUID
+	VotedForPlayerID uuid.UUID
+	RoundID          uuid.UUID
 }
 
 type GameState struct {
-	ID             string
-	CreatedAt      sql.NullTime
-	UpdatedAt      sql.NullTime
-	RoomID         string
-	SubmitDeadline time.Time
+	ID             uuid.UUID
+	CreatedAt      pgtype.Timestamp
+	UpdatedAt      pgtype.Timestamp
+	RoomID         uuid.UUID
+	SubmitDeadline pgtype.Timestamp
 	State          string
 }
 
 type Player struct {
-	ID        string
-	CreatedAt sql.NullTime
-	UpdatedAt sql.NullTime
+	ID        uuid.UUID
+	CreatedAt pgtype.Timestamp
+	UpdatedAt pgtype.Timestamp
 	Avatar    []byte
 	Nickname  string
-	IsReady   sql.NullBool
+	IsReady   pgtype.Bool
 }
 
 type Question struct {
-	ID           string
-	CreatedAt    sql.NullTime
-	UpdatedAt    sql.NullTime
+	ID           uuid.UUID
+	CreatedAt    pgtype.Timestamp
+	UpdatedAt    pgtype.Timestamp
 	GameName     string
 	Round        string
-	Enabled      sql.NullBool
+	Enabled      pgtype.Bool
 	Question     string
 	LanguageCode string
-	GroupID      string
+	GroupID      uuid.UUID
 }
 
 type QuestionsGroup struct {
-	ID        string
-	CreatedAt sql.NullTime
-	UpdatedAt sql.NullTime
+	ID        uuid.UUID
+	CreatedAt pgtype.Timestamp
+	UpdatedAt pgtype.Timestamp
 	GroupName string
 	GroupType string
 }
 
 type Room struct {
-	ID         string
-	CreatedAt  sql.NullTime
-	UpdatedAt  sql.NullTime
+	ID         uuid.UUID
+	CreatedAt  pgtype.Timestamp
+	UpdatedAt  pgtype.Timestamp
 	GameName   string
-	HostPlayer string
+	HostPlayer uuid.UUID
 	RoomState  string
 	RoomCode   string
 }
 
 type RoomsPlayer struct {
-	RoomID    string
-	PlayerID  string
-	CreatedAt sql.NullTime
-	UpdatedAt sql.NullTime
+	RoomID    uuid.UUID
+	PlayerID  uuid.UUID
+	CreatedAt pgtype.Timestamp
+	UpdatedAt pgtype.Timestamp
 }
