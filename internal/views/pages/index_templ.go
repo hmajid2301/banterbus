@@ -54,9 +54,9 @@ func Index(languages map[string]string) templ.Component {
 			}
 			templ_7745c5c3_Err = components.TextInput(
 				components.TextInputProps{
-					LabelName:   i18n.T(ctx, "start_form.nickname_label"),
+					LabelName:   i18n.T(ctx, "home.nickname_label"),
 					InputName:   "nickname",
-					Placeholder: i18n.T(ctx, "start_form.nickname_placeholder"),
+					Placeholder: i18n.T(ctx, "home.nickname_placeholder"),
 				},
 				templ.Attributes{},
 			).Render(ctx, templ_7745c5c3_Buffer)
@@ -65,9 +65,9 @@ func Index(languages map[string]string) templ.Component {
 			}
 			templ_7745c5c3_Err = components.TextInput(
 				components.TextInputProps{
-					LabelName:   i18n.T(ctx, "start_form.roomcode_label"),
+					LabelName:   i18n.T(ctx, "home.roomcode_label"),
 					InputName:   "room_code",
-					Placeholder: i18n.T(ctx, "start_form.roomcode_placeholder"),
+					Placeholder: i18n.T(ctx, "home.roomcode_placeholder"),
 				},
 				templ.Attributes{},
 			).Render(ctx, templ_7745c5c3_Buffer)
@@ -99,9 +99,9 @@ func Index(languages map[string]string) templ.Component {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var4 string
-				templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "start_form.start_button_label"))
+				templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "home.start_button_label"))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/pages/index.templ`, Line: 35, Col: 57}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/pages/index.templ`, Line: 35, Col: 51}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 				if templ_7745c5c3_Err != nil {
@@ -142,9 +142,9 @@ func Index(languages map[string]string) templ.Component {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var6 string
-				templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "start_form.join_button_label"))
+				templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "home.join_button_label"))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/pages/index.templ`, Line: 41, Col: 56}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/pages/index.templ`, Line: 41, Col: 50}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 				if templ_7745c5c3_Err != nil {

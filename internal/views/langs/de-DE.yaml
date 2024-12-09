@@ -1,10 +1,15 @@
 de-DE:
   navbar:
     language: "🇩🇪 Deutsch"
-  start_form:
+  common:
+    ready_button: "Bereit"
+    not_ready_button: "Nicht bereit"
+  home:
     nickname_label: "spitzname"
     nickname_placeholder: "Gib deinen Spitznamen ein"
     roomcode_label: "Raumcode"
     roomcode_placeholder: "ABC12"
     start_button_label: "Starten"
     join_button_label: "Beitreten"
+  lobby:
+    start_game_button: "Spiel starten"

@@ -1,10 +1,15 @@
 pt-PT:
   navbar:
     language: "🇵🇹 Portuguese"
-  start_form:
+  common:
+    ready_button: "Preparar"
+    not_ready_button: "Não está pronto"
+  home:
     nickname_label: "apelido"
     nickname_placeholder: "Insira o seu apelido"
     roomcode_label: "Código da Sala"
     roomcode_placeholder: "ABC12"
     start_button_label: "Iniciar"
     join_button_label: "Entrar"
+  lobby:
+    start_game_button: "Começar o jogo"

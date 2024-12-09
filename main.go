@@ -81,6 +81,7 @@ func mainLogic() error {
 		pgxUUID.Register(conn.TypeMap())
 		return nil
 	}
+
 	db, err := pgxpool.NewWithConfig(ctx, pgxConfig)
 	if err != nil {
 		return fmt.Errorf("failed to setup database: %w", err)

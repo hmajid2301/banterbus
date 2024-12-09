@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"log/slog"
@@ -46,6 +47,8 @@ type WSHandler interface {
 	Validate() error
 }
 
+var errConnectionClosed = fmt.Errorf("connection closed")
+
 func NewSubscriber(
 	lobbyService LobbyServicer,
 	playerService PlayerServicer,
@@ -78,6 +81,7 @@ func NewSubscriber(
 
 func (s *Subscriber) Subscribe(r *http.Request, w http.ResponseWriter) (err error) {
 	ctx := context.Background()
+	ctx, cancel := context.WithCancel(ctx)
 
 	var playerID uuid.UUID
 	var buf bytes.Buffer
@@ -89,6 +93,7 @@ func (s *Subscriber) Subscribe(r *http.Request, w http.ResponseWriter) (err erro
 	} else {
 		playerID, err = uuid.Parse(cookie.Value)
 		if err != nil {
+			cancel()
 			return err
 		}
 
@@ -102,6 +107,7 @@ func (s *Subscriber) Subscribe(r *http.Request, w http.ResponseWriter) (err erro
 
 	playerID, err = uuid.Parse(cookie.Value)
 	if err != nil {
+		cancel()
 		return err
 	}
 
@@ -110,6 +116,7 @@ func (s *Subscriber) Subscribe(r *http.Request, w http.ResponseWriter) (err erro
 	}
 	connection, _, _, err := h.Upgrade(r, w)
 	if err != nil {
+		cancel()
 		return err
 	}
 
@@ -125,8 +132,7 @@ func (s *Subscriber) Subscribe(r *http.Request, w http.ResponseWriter) (err erro
 		err = connection.Close()
 	}()
 
-	quit := make(chan struct{})
-	go s.handleMessages(ctx, quit, client)
+	go s.handleMessages(ctx, cancel, client)
 
 	// TODO: workout what to do with this?
 	// writeTimeout := 10
@@ -150,7 +156,7 @@ func (s *Subscriber) Subscribe(r *http.Request, w http.ResponseWriter) (err erro
 			}
 		case <-ctx.Done():
 			s.logger.DebugContext(ctx, "context done")
-			quit <- struct{}{}
+			cancel()
 			return ctx.Err()
 		}
 	}
@@ -171,10 +177,10 @@ func getPlayerIDCookie() *http.Cookie {
 	return cookie
 }
 
-func (s *Subscriber) handleMessages(ctx context.Context, quit <-chan struct{}, client *client) {
+func (s *Subscriber) handleMessages(ctx context.Context, cancel context.CancelFunc, client *client) {
 	for {
 		select {
-		case <-quit:
+		case <-ctx.Done():
 			return
 		default:
 			err := s.handleMessage(ctx, client)
@@ -188,6 +194,11 @@ func (s *Subscriber) handleMessages(ctx context.Context, quit <-chan struct{}, c
 						slog.Any("error", err),
 					)
 				}
+
+				if errors.Is(err, errConnectionClosed) {
+					cancel()
+					return
+				}
 			}
 		}
 	}
@@ -198,7 +209,7 @@ func (s *Subscriber) handleMessage(ctx context.Context, client *client) error {
 	ctx = slogctx.Append(ctx, "player_id", client.playerID)
 	ctx = slogctx.Append(ctx, "correlation_id", correlationID)
 
-	_, r, err := wsutil.NextReader(client.connection, ws.StateServerSide)
+	hdr, r, err := wsutil.NextReader(client.connection, ws.StateServerSide)
 	if err != nil {
 		if err == io.EOF {
 			return nil
@@ -207,6 +218,10 @@ func (s *Subscriber) handleMessage(ctx context.Context, client *client) error {
 		}
 
 		return fmt.Errorf("failed to get next message: %w", err)
+	}
+
+	if hdr.OpCode == ws.OpClose {
+		return errConnectionClosed
 	}
 
 	data, err := io.ReadAll(r)

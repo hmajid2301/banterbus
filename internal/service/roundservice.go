@@ -2,6 +2,8 @@ package service
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"fmt"
 	"time"
 
@@ -19,6 +21,8 @@ type RoundService struct {
 func NewRoundService(store Storer, randomizer Randomizer) *RoundService {
 	return &RoundService{store: store, randomizer: randomizer}
 }
+
+var ErrMustSubmitAnswer = fmt.Errorf("must submit answer first")
 
 func (r *RoundService) SubmitAnswer(
 	ctx context.Context,
@@ -74,23 +78,14 @@ func (r *RoundService) ToggleAnswerIsReady(
 
 	_, err = r.store.ToggleAnswerIsReady(ctx, playerID)
 	if err != nil {
-		return false, err
-	}
-
-	players, err := r.store.GetAllPlayerAnswerIsReady(ctx, playerID)
-	if err != nil {
-		return false, err
-	}
-
-	allReady := true
-	for _, player := range players {
-		if !player.IsReady {
-			allReady = false
-			break
+		if errors.Is(err, sql.ErrNoRows) {
+			return false, ErrMustSubmitAnswer
 		}
+		return false, err
 	}
 
-	return allReady, nil
+	allReady, err := r.store.GetAllPlayerAnswerIsReady(ctx, playerID)
+	return allReady, err
 }
 
 func (r *RoundService) UpdateStateToVoting(

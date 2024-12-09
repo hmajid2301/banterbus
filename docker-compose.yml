@@ -2,22 +2,34 @@ services:
   otel-collector:
     image: otel/opentelemetry-collector-dev:latest
     ports:
-      - 4317:4317
-      - 55680:55680
+      - "4317:4317"
+      - "55680:55680"
 
   jaeger:
     image: jaegertracing/all-in-one:latest
     ports:
-      - '16686:16686'
+      - "16686:16686"
 
   prometheus:
     image: prom/prometheus
     ports:
-      - '9090:9090'
-    volumes:
-      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - "9090:9090"
 
   redis:
-    image: redis
+    image: redis:7.2.6
     ports:
       - "6379:6379"
+
+  postgres:
+    image: postgres:16.4
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: banterbus
+      POSTGRES_PASSWORD: banterbus
+      POSTGRES_DB: banterbus
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
+volumes:
+  postgres-data:

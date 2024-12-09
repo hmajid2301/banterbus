@@ -67,8 +67,10 @@ func (t *ToggleAnswerIsReady) Handle(ctx context.Context, client *client, sub *S
 	}
 
 	if allReady {
-		// time.Sleep(config.AllReadyToNextScreenFor)
-		go MoveToVoting(ctx, sub, questionState.Players, questionState.GameStateID, questionState.Round)
+		go func() {
+			time.Sleep(config.AllReadyToNextScreenFor)
+			MoveToVoting(ctx, sub, questionState.Players, questionState.GameStateID, questionState.Round)
+		}()
 	}
 
 	return nil
@@ -90,6 +92,7 @@ func (s *SubmitVote) Handle(ctx context.Context, client *client, sub *Subscriber
 	return nil
 }
 
+// TODO: we want to start a state machine, as everything will be time based started by backen by backend.
 func MoveToVoting(
 	ctx context.Context,
 	sub *Subscriber,

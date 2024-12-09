@@ -47,7 +47,7 @@ in
       export GOOSE_MIGRATION_DIR="./db/migrations"
       export TEMPL_EXPERIMENT=rawgo
       ${pre-commit-check.shellHook}
-      arion up -d
+      docker-compose up -d
     '';
     buildInputs = pre-commit-check.enabledPackages;
     packages =

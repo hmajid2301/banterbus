@@ -14,17 +14,17 @@ templ Index(languages map[string]string) {
 				<form ws-send x-bind:hx-vals="action">
 					@components.TextInput(
 						components.TextInputProps{
-							LabelName:   i18n.T(ctx, "start_form.nickname_label"),
+							LabelName:   i18n.T(ctx, "home.nickname_label"),
 							InputName:   "nickname",
-							Placeholder: i18n.T(ctx, "start_form.nickname_placeholder"),
+							Placeholder: i18n.T(ctx, "home.nickname_placeholder"),
 						},
 						templ.Attributes{},
 					)
 					@components.TextInput(
 						components.TextInputProps{
-							LabelName:   i18n.T(ctx, "start_form.roomcode_label"),
+							LabelName:   i18n.T(ctx, "home.roomcode_label"),
 							InputName:   "room_code",
-							Placeholder: i18n.T(ctx, "start_form.roomcode_placeholder"),
+							Placeholder: i18n.T(ctx, "home.roomcode_placeholder"),
 						},
 						templ.Attributes{},
 					)
@@ -32,13 +32,13 @@ templ Index(languages map[string]string) {
 						<div class="w-full" @click="action = JSON.stringify({ message_type: 'create_room', game_name: 'fibbing_it' })">
 							@components.Button(components.ButtonProps{}) {
 								@icons.Play("")
-								<p>{ i18n.T(ctx, "start_form.start_button_label") }</p>
+								<p>{ i18n.T(ctx, "home.start_button_label") }</p>
 							}
 						</div>
 						<div class="w-full" @click="action = JSON.stringify({ message_type: 'join_lobby' })">
 							@components.Button(components.ButtonProps{BackgroundColor: "bg-text2", TextColor: "text-black"}) {
 								@icons.Group("")
-								<p>{ i18n.T(ctx, "start_form.join_button_label") }</p>
+								<p>{ i18n.T(ctx, "home.join_button_label") }</p>
 							}
 						</div>
 					</div>

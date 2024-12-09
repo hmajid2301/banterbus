@@ -83,5 +83,5 @@ coverage.out
 test-results/
 tests/e2e/*.png
 tests/e2e/videos/
-.gitlab-ci-local/*
+.gitlab-ci-local
 *_templ.txt

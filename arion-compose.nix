@@ -59,9 +59,9 @@ in {
           POSTGRES_PASSWORD = "banterbus";
           POSTGRES_DB = "banterbus";
         };
-        volumes = [
-          "postgres-data:/var/lib/postgresql/data"
-        ];
+        # volumes = [
+        #   "postgres-data:/var/lib/postgresql/data"
+        # ];
       };
     };
   };

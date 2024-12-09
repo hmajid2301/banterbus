@@ -169,14 +169,7 @@ func TestRoundServiceToggleAnswerIsReady(t *testing.T) {
 			SubmitDeadline: pgtype.Timestamp{Time: time.Now().Add(1 * time.Hour)},
 		}, nil)
 		mockStore.EXPECT().ToggleAnswerIsReady(ctx, playerID).Return(sqlc.FibbingItAnswer{}, nil)
-		mockStore.EXPECT().GetAllPlayerAnswerIsReady(ctx, playerID).Return([]sqlc.GetAllPlayerAnswerIsReadyRow{
-			{
-				IsReady: false,
-			},
-			{
-				IsReady: true,
-			},
-		}, nil)
+		mockStore.EXPECT().GetAllPlayerAnswerIsReady(ctx, playerID).Return(false, nil)
 
 		allReady, err := srv.ToggleAnswerIsReady(ctx, playerID, time.Now().UTC())
 		assert.NoError(t, err)
@@ -195,14 +188,7 @@ func TestRoundServiceToggleAnswerIsReady(t *testing.T) {
 			SubmitDeadline: pgtype.Timestamp{Time: time.Now().Add(1 * time.Hour)},
 		}, nil)
 		mockStore.EXPECT().ToggleAnswerIsReady(ctx, playerID).Return(sqlc.FibbingItAnswer{}, nil)
-		mockStore.EXPECT().GetAllPlayerAnswerIsReady(ctx, playerID).Return([]sqlc.GetAllPlayerAnswerIsReadyRow{
-			{
-				IsReady: true,
-			},
-			{
-				IsReady: true,
-			},
-		}, nil)
+		mockStore.EXPECT().GetAllPlayerAnswerIsReady(ctx, playerID).Return(true, nil)
 
 		allReady, err := srv.ToggleAnswerIsReady(ctx, playerID, time.Now().UTC())
 		assert.NoError(t, err)
@@ -277,7 +263,7 @@ func TestRoundServiceToggleAnswerIsReady(t *testing.T) {
 			}, nil)
 			mockStore.EXPECT().ToggleAnswerIsReady(ctx, playerID).Return(sqlc.FibbingItAnswer{}, nil)
 			mockStore.EXPECT().GetAllPlayerAnswerIsReady(ctx, playerID).Return(
-				[]sqlc.GetAllPlayerAnswerIsReadyRow{}, fmt.Errorf("failed to get player answer is ready status"),
+				false, fmt.Errorf("failed to get player answer is ready status"),
 			)
 
 			_, err := srv.ToggleAnswerIsReady(ctx, playerID, time.Now().UTC())

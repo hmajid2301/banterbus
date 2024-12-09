@@ -148,11 +148,12 @@ func (p *PlayerService) GetQuestionState(ctx context.Context, playerID uuid.UUID
 
 	players := []PlayerWithRole{
 		{
-			ID:       g.PlayerID,
-			Nickname: g.Nickname,
-			Role:     g.Role.String,
-			Avatar:   g.Avatar,
-			Question: g.Question,
+			ID:            g.PlayerID,
+			Nickname:      g.Nickname,
+			Role:          g.Role.String,
+			Avatar:        g.Avatar,
+			Question:      g.Question,
+			IsAnswerReady: g.IsAnswerReady,
 		},
 	}
 

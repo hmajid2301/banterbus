@@ -633,24 +633,22 @@ func (_c *MockStorer_CreateRoom_Call) RunAndReturn(run func(context.Context, sql
 }
 
 // GetAllPlayerAnswerIsReady provides a mock function with given fields: ctx, playerID
-func (_m *MockStorer) GetAllPlayerAnswerIsReady(ctx context.Context, playerID uuid.UUID) ([]sqlc.GetAllPlayerAnswerIsReadyRow, error) {
+func (_m *MockStorer) GetAllPlayerAnswerIsReady(ctx context.Context, playerID uuid.UUID) (bool, error) {
 	ret := _m.Called(ctx, playerID)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetAllPlayerAnswerIsReady")
 	}
 
-	var r0 []sqlc.GetAllPlayerAnswerIsReadyRow
+	var r0 bool
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) ([]sqlc.GetAllPlayerAnswerIsReadyRow, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) (bool, error)); ok {
 		return rf(ctx, playerID)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) []sqlc.GetAllPlayerAnswerIsReadyRow); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) bool); ok {
 		r0 = rf(ctx, playerID)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]sqlc.GetAllPlayerAnswerIsReadyRow)
-		}
+		r0 = ret.Get(0).(bool)
 	}
 
 	if rf, ok := ret.Get(1).(func(context.Context, uuid.UUID) error); ok {
@@ -681,12 +679,12 @@ func (_c *MockStorer_GetAllPlayerAnswerIsReady_Call) Run(run func(ctx context.Co
 	return _c
 }
 
-func (_c *MockStorer_GetAllPlayerAnswerIsReady_Call) Return(_a0 []sqlc.GetAllPlayerAnswerIsReadyRow, _a1 error) *MockStorer_GetAllPlayerAnswerIsReady_Call {
+func (_c *MockStorer_GetAllPlayerAnswerIsReady_Call) Return(_a0 bool, _a1 error) *MockStorer_GetAllPlayerAnswerIsReady_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *MockStorer_GetAllPlayerAnswerIsReady_Call) RunAndReturn(run func(context.Context, uuid.UUID) ([]sqlc.GetAllPlayerAnswerIsReadyRow, error)) *MockStorer_GetAllPlayerAnswerIsReady_Call {
+func (_c *MockStorer_GetAllPlayerAnswerIsReady_Call) RunAndReturn(run func(context.Context, uuid.UUID) (bool, error)) *MockStorer_GetAllPlayerAnswerIsReady_Call {
 	_c.Call.Return(run)
 	return _c
 }
