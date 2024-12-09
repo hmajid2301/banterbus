@@ -46,6 +46,12 @@ in
       export PLAYWRIGHT_DRIVER_PATH="${pkgs.playwright-driver}"
       export GOOSE_MIGRATION_DIR="./db/migrations"
       export TEMPL_EXPERIMENT=rawgo
+      export BANTERBUS_LOG_LEVEL=debug
+      export BANTERBUS_DB_HOST=localhost
+      export BANTERBUS_DB_USERNAME=banterbus
+      export BANTERBUS_DB_PASSWORD=banterbus
+      export BANTERBUS_REDIS_ADDRESS="localhost:6379"
+
       ${pre-commit-check.shellHook}
       docker-compose up -d
     '';

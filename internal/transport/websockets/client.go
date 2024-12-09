@@ -11,7 +11,6 @@ type client struct {
 	messagesCh <-chan *redis.Message
 	connection net.Conn
 	playerID   uuid.UUID
-	locale     string
 }
 
 func newClient(conn net.Conn, playerID uuid.UUID, ch <-chan *redis.Message) *client {

@@ -4,10 +4,10 @@ en-GB:
   common:
     ready_button: "Ready"
     not_ready_button: "Not Ready"
+    roomcode_label: "Room Code"
   home:
     nickname_label: "nickname"
     nickname_placeholder: "Enter your nickname"
-    roomcode_label: "Room Code"
     roomcode_placeholder: "ABC12"
     start_button_label: "Start"
     join_button_label: "Join"

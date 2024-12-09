@@ -40,6 +40,11 @@ type Websocketer interface {
 
 type message struct {
 	MessageType string `json:"message_type"`
+	Header      header `json:"HEADERS"`
+}
+
+type header struct {
+	Locale string `json:"Accept-Language"`
 }
 
 type WSHandler interface {
@@ -229,6 +234,10 @@ func (s *Subscriber) handleMessage(ctx context.Context, client *client) error {
 		return fmt.Errorf("failed to read message: %w", err)
 	}
 
+	if len(data) > 0 && data[0] == 0x03 {
+		return errConnectionClosed
+	}
+
 	var message message
 	err = json.Unmarshal(data, &message)
 	s.logger.DebugContext(ctx, "received message", slog.Any("message", message))
@@ -258,18 +267,19 @@ func (s *Subscriber) handleMessage(ctx context.Context, client *client) error {
 		return fmt.Errorf("error validating handler message: %w", err)
 	}
 
-	// TODO: do we want to use accept-language header
-	// TODO: default say en-US to en-GB?
-	if client.locale != "" {
-		ctx, err = ctxi18n.WithLocale(ctx, client.locale)
-		if err != nil {
-			s.logger.ErrorContext(
-				ctx,
-				"failed to set locale",
-				slog.String("locale", client.locale),
-				slog.Any("error", err),
-			)
-		}
+	locale := message.Header.Locale
+	if message.Header.Locale == "" {
+		locale = "en-GB"
+	}
+
+	ctx, err = ctxi18n.WithLocale(ctx, locale)
+	if err != nil {
+		s.logger.ErrorContext(
+			ctx,
+			"failed to set locale",
+			slog.String("locale", locale),
+			slog.Any("error", err),
+		)
 	}
 
 	err = handler.Handle(ctx, client, s)

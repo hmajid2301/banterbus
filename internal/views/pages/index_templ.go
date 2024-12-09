@@ -65,7 +65,7 @@ func Index(languages map[string]string) templ.Component {
 			}
 			templ_7745c5c3_Err = components.TextInput(
 				components.TextInputProps{
-					LabelName:   i18n.T(ctx, "home.roomcode_label"),
+					LabelName:   i18n.T(ctx, "common.roomcode_label"),
 					InputName:   "room_code",
 					Placeholder: i18n.T(ctx, "home.roomcode_placeholder"),
 				},

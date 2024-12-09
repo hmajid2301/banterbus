@@ -2,6 +2,7 @@ package sections
 
 import (
 	"fmt"
+	"github.com/invopop/ctxi18n/i18n"
 	"gitlab.com/hmajid2301/banterbus/internal/service"
 	"gitlab.com/hmajid2301/banterbus/internal/views/components"
 	"gitlab.com/hmajid2301/banterbus/internal/views/icons"
@@ -9,7 +10,11 @@ import (
 
 templ Lobby(code string, players []service.LobbyPlayer, currentPlayer service.LobbyPlayer) {
 	<div hx-swap-oob="innerHTML:#page">
-		@components.TextInput(components.TextInputProps{LabelName: "Room Code", InputName: "room_code", Value: code}, templ.Attributes{"disabled": true}) {
+		@components.TextInput(components.TextInputProps{
+			LabelName: i18n.T(ctx, "common.roomcode_label"),
+			InputName: "room_code",
+			Value:     code,
+		}, templ.Attributes{"disabled": true}) {
 			<button class="inline-flex absolute top-1/2 justify-center items-center p-2 rounded-lg text-text2 end-2 hover:text-surface0" aria-label="Copy Room Code" @click={ getClipboardString(code) }>
 				@icons.Clipboard("")
 			</button>
@@ -72,11 +77,11 @@ templ Lobby(code string, players []service.LobbyPlayer, currentPlayer service.Lo
 				<form id="toggle_ready_form" hx-vals='{"message_type": "toggle_player_is_ready" }' ws-send class="w-full">
 					if currentPlayer.IsReady {
 						@components.Button(components.ButtonProps{TextColor: "text-black", BackgroundColor: "bg-text2"}) {
-							Ready
+							{ i18n.T(ctx, "common.ready_button") }
 						}
 					} else {
 						@components.Button(components.ButtonProps{}) {
-							Not Ready
+							{ i18n.T(ctx, "common.not_ready_button") }
 						}
 					}
 				</form>
@@ -84,7 +89,7 @@ templ Lobby(code string, players []service.LobbyPlayer, currentPlayer service.Lo
 					<form id="start_game_form" hx-vals='{"message_type": "start_game" }' ws-send class="w-full">
 						<input class="hidden" name="room_code" value={ code }/>
 						@components.Button(components.ButtonProps{}) {
-							Start Game
+							{ i18n.T(ctx, "lobby.start_game_button") }
 						}
 					</form>
 				}

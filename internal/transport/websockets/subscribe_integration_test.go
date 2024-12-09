@@ -16,6 +16,7 @@ import (
 	"github.com/gobwas/ws"
 	"github.com/gobwas/ws/wsutil"
 	"github.com/google/uuid"
+	"github.com/invopop/ctxi18n"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -25,6 +26,7 @@ import (
 	sqlc "gitlab.com/hmajid2301/banterbus/internal/store/db"
 	"gitlab.com/hmajid2301/banterbus/internal/store/pubsub"
 	"gitlab.com/hmajid2301/banterbus/internal/transport/websockets"
+	"gitlab.com/hmajid2301/banterbus/internal/views"
 )
 
 func TestIntegrationSubscribe(t *testing.T) {
@@ -41,6 +43,11 @@ func TestIntegrationSubscribe(t *testing.T) {
 	roundService := service.NewRoundService(myStore, userRandomizer)
 	handler := slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug})
 	logger := slog.New(handler)
+
+	err = ctxi18n.LoadWithDefault(views.Locales, "en-GB")
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	redisAddr := os.Getenv("BANTERBUS_REDIS_ADDRESS")
 	if redisAddr == "" {
