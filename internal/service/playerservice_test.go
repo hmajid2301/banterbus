@@ -13,7 +13,7 @@ import (
 
 	"gitlab.com/hmajid2301/banterbus/internal/service"
 	mockService "gitlab.com/hmajid2301/banterbus/internal/service/mocks"
-	sqlc "gitlab.com/hmajid2301/banterbus/internal/store/db"
+	"gitlab.com/hmajid2301/banterbus/internal/store/db"
 )
 
 var playerID = uuid.MustParse("0193a625-dad1-7095-9abb-bebdad739381")
@@ -26,20 +26,20 @@ func TestPlayerServiceUpdateNickname(t *testing.T) {
 
 		ctx := context.Background()
 
-		mockStore.EXPECT().GetRoomByPlayerID(ctx, playerID).Return(sqlc.Room{
+		mockStore.EXPECT().GetRoomByPlayerID(ctx, playerID).Return(db.Room{
 			ID:        roomID,
-			RoomState: sqlc.ROOMSTATE_CREATED.String(),
+			RoomState: db.ROOMSTATE_CREATED.String(),
 		}, nil)
-		mockStore.EXPECT().GetAllPlayersInRoom(ctx, playerID).Return([]sqlc.GetAllPlayersInRoomRow{
+		mockStore.EXPECT().GetAllPlayersInRoom(ctx, playerID).Return([]db.GetAllPlayersInRoomRow{
 			{
 				Nickname: "Old Nickname",
 			},
 		}, nil).Times(1)
-		mockStore.EXPECT().UpdateNickname(ctx, sqlc.UpdateNicknameParams{
+		mockStore.EXPECT().UpdateNickname(ctx, db.UpdateNicknameParams{
 			Nickname: "New Nickname",
 			ID:       playerID,
-		}).Return(sqlc.Player{}, nil)
-		mockStore.EXPECT().GetAllPlayersInRoom(ctx, playerID).Return([]sqlc.GetAllPlayersInRoomRow{
+		}).Return(db.Player{}, nil)
+		mockStore.EXPECT().GetAllPlayersInRoom(ctx, playerID).Return([]db.GetAllPlayersInRoomRow{
 			{
 				ID:         playerID,
 				RoomCode:   roomCode,
@@ -73,7 +73,7 @@ func TestPlayerServiceUpdateNickname(t *testing.T) {
 
 		ctx := context.Background()
 		mockStore.EXPECT().GetRoomByPlayerID(ctx, playerID).Return(
-			sqlc.Room{}, fmt.Errorf("failed to get room details"),
+			db.Room{}, fmt.Errorf("failed to get room details"),
 		)
 
 		_, err := srv.UpdateNickname(ctx, "New Nickname", playerID)
@@ -87,9 +87,9 @@ func TestPlayerServiceUpdateNickname(t *testing.T) {
 
 		ctx := context.Background()
 
-		mockStore.EXPECT().GetRoomByPlayerID(ctx, playerID).Return(sqlc.Room{
+		mockStore.EXPECT().GetRoomByPlayerID(ctx, playerID).Return(db.Room{
 			ID:        roomID,
-			RoomState: sqlc.ROOMSTATE_FINISHED.String(),
+			RoomState: db.ROOMSTATE_FINISHED.String(),
 		}, nil)
 
 		_, err := srv.UpdateNickname(ctx, "New Nickname", playerID)
@@ -103,11 +103,11 @@ func TestPlayerServiceUpdateNickname(t *testing.T) {
 
 		ctx := context.Background()
 
-		mockStore.EXPECT().GetRoomByPlayerID(ctx, playerID).Return(sqlc.Room{
+		mockStore.EXPECT().GetRoomByPlayerID(ctx, playerID).Return(db.Room{
 			ID:        roomID,
-			RoomState: sqlc.ROOMSTATE_CREATED.String(),
+			RoomState: db.ROOMSTATE_CREATED.String(),
 		}, nil)
-		mockStore.EXPECT().GetAllPlayersInRoom(ctx, playerID).Return([]sqlc.GetAllPlayersInRoomRow{
+		mockStore.EXPECT().GetAllPlayersInRoom(ctx, playerID).Return([]db.GetAllPlayersInRoomRow{
 			{
 				Nickname: "Old Nickname",
 			},
@@ -127,19 +127,19 @@ func TestPlayerServiceUpdateNickname(t *testing.T) {
 
 		ctx := context.Background()
 
-		mockStore.EXPECT().GetRoomByPlayerID(ctx, playerID).Return(sqlc.Room{
+		mockStore.EXPECT().GetRoomByPlayerID(ctx, playerID).Return(db.Room{
 			ID:        roomID,
-			RoomState: sqlc.ROOMSTATE_CREATED.String(),
+			RoomState: db.ROOMSTATE_CREATED.String(),
 		}, nil)
-		mockStore.EXPECT().GetAllPlayersInRoom(ctx, playerID).Return([]sqlc.GetAllPlayersInRoomRow{
+		mockStore.EXPECT().GetAllPlayersInRoom(ctx, playerID).Return([]db.GetAllPlayersInRoomRow{
 			{
 				Nickname: "Old Nickname",
 			},
 		}, nil).Times(1)
-		mockStore.EXPECT().UpdateNickname(ctx, sqlc.UpdateNicknameParams{
+		mockStore.EXPECT().UpdateNickname(ctx, db.UpdateNicknameParams{
 			Nickname: "New Nickname",
 			ID:       playerID,
-		}).Return(sqlc.Player{}, fmt.Errorf("failed to update nickname"))
+		}).Return(db.Player{}, fmt.Errorf("failed to update nickname"))
 
 		_, err := srv.UpdateNickname(ctx, "New Nickname", playerID)
 		assert.Error(t, err)
@@ -152,21 +152,21 @@ func TestPlayerServiceUpdateNickname(t *testing.T) {
 
 		ctx := context.Background()
 
-		mockStore.EXPECT().GetRoomByPlayerID(ctx, playerID).Return(sqlc.Room{
+		mockStore.EXPECT().GetRoomByPlayerID(ctx, playerID).Return(db.Room{
 			ID:        roomID,
-			RoomState: sqlc.ROOMSTATE_CREATED.String(),
+			RoomState: db.ROOMSTATE_CREATED.String(),
 		}, nil)
-		mockStore.EXPECT().GetAllPlayersInRoom(ctx, playerID).Return([]sqlc.GetAllPlayersInRoomRow{
+		mockStore.EXPECT().GetAllPlayersInRoom(ctx, playerID).Return([]db.GetAllPlayersInRoomRow{
 			{
 				Nickname: "Old Nickname",
 			},
 		}, nil).Times(1)
-		mockStore.EXPECT().UpdateNickname(ctx, sqlc.UpdateNicknameParams{
+		mockStore.EXPECT().UpdateNickname(ctx, db.UpdateNicknameParams{
 			Nickname: "New Nickname",
 			ID:       playerID,
-		}).Return(sqlc.Player{}, nil)
+		}).Return(db.Player{}, nil)
 		mockStore.EXPECT().GetAllPlayersInRoom(ctx, playerID).Return(
-			[]sqlc.GetAllPlayersInRoomRow{}, fmt.Errorf("failed to get all players in room"),
+			[]db.GetAllPlayersInRoomRow{}, fmt.Errorf("failed to get all players in room"),
 		).Times(1)
 
 		_, err := srv.UpdateNickname(ctx, "New Nickname", playerID)
@@ -182,16 +182,16 @@ func TestPlayerServiceGenerateAvatar(t *testing.T) {
 
 		ctx := context.Background()
 
-		mockStore.EXPECT().GetRoomByPlayerID(ctx, playerID).Return(sqlc.Room{
+		mockStore.EXPECT().GetRoomByPlayerID(ctx, playerID).Return(db.Room{
 			ID:        roomID,
-			RoomState: sqlc.ROOMSTATE_CREATED.String(),
+			RoomState: db.ROOMSTATE_CREATED.String(),
 		}, nil)
 		mockRandomizer.EXPECT().GetAvatar().Return([]byte("avatar1"))
-		mockStore.EXPECT().UpdateAvatar(ctx, sqlc.UpdateAvatarParams{
+		mockStore.EXPECT().UpdateAvatar(ctx, db.UpdateAvatarParams{
 			Avatar: []byte("avatar1"),
 			ID:     playerID,
-		}).Return(sqlc.Player{}, nil)
-		mockStore.EXPECT().GetAllPlayersInRoom(ctx, playerID).Return([]sqlc.GetAllPlayersInRoomRow{
+		}).Return(db.Player{}, nil)
+		mockStore.EXPECT().GetAllPlayersInRoom(ctx, playerID).Return([]db.GetAllPlayersInRoomRow{
 			{
 				ID:         playerID,
 				Avatar:     []byte("avatar1"),
@@ -228,7 +228,7 @@ func TestPlayerServiceGenerateAvatar(t *testing.T) {
 		ctx := context.Background()
 
 		mockStore.EXPECT().GetRoomByPlayerID(ctx, playerID).Return(
-			sqlc.Room{}, fmt.Errorf("failed to get room details"),
+			db.Room{}, fmt.Errorf("failed to get room details"),
 		)
 
 		_, err := srv.GenerateNewAvatar(ctx, playerID)
@@ -242,9 +242,9 @@ func TestPlayerServiceGenerateAvatar(t *testing.T) {
 
 		ctx := context.Background()
 
-		mockStore.EXPECT().GetRoomByPlayerID(ctx, playerID).Return(sqlc.Room{
+		mockStore.EXPECT().GetRoomByPlayerID(ctx, playerID).Return(db.Room{
 			ID:        roomID,
-			RoomState: sqlc.ROOMSTATE_PLAYING.String(),
+			RoomState: db.ROOMSTATE_PLAYING.String(),
 		}, nil)
 
 		_, err := srv.GenerateNewAvatar(ctx, playerID)
@@ -258,15 +258,15 @@ func TestPlayerServiceGenerateAvatar(t *testing.T) {
 
 		ctx := context.Background()
 
-		mockStore.EXPECT().GetRoomByPlayerID(ctx, playerID).Return(sqlc.Room{
+		mockStore.EXPECT().GetRoomByPlayerID(ctx, playerID).Return(db.Room{
 			ID:        roomID,
-			RoomState: sqlc.ROOMSTATE_CREATED.String(),
+			RoomState: db.ROOMSTATE_CREATED.String(),
 		}, nil)
 		mockRandomizer.EXPECT().GetAvatar().Return([]byte("avatar1"))
-		mockStore.EXPECT().UpdateAvatar(ctx, sqlc.UpdateAvatarParams{
+		mockStore.EXPECT().UpdateAvatar(ctx, db.UpdateAvatarParams{
 			Avatar: []byte("avatar1"),
 			ID:     playerID,
-		}).Return(sqlc.Player{}, fmt.Errorf("failed to update avatar"))
+		}).Return(db.Player{}, fmt.Errorf("failed to update avatar"))
 
 		_, err := srv.GenerateNewAvatar(ctx, playerID)
 		assert.Error(t, err)
@@ -279,17 +279,17 @@ func TestPlayerServiceGenerateAvatar(t *testing.T) {
 
 		ctx := context.Background()
 
-		mockStore.EXPECT().GetRoomByPlayerID(ctx, playerID).Return(sqlc.Room{
+		mockStore.EXPECT().GetRoomByPlayerID(ctx, playerID).Return(db.Room{
 			ID:        roomID,
-			RoomState: sqlc.ROOMSTATE_CREATED.String(),
+			RoomState: db.ROOMSTATE_CREATED.String(),
 		}, nil)
 		mockRandomizer.EXPECT().GetAvatar().Return([]byte("avatar1"))
-		mockStore.EXPECT().UpdateAvatar(ctx, sqlc.UpdateAvatarParams{
+		mockStore.EXPECT().UpdateAvatar(ctx, db.UpdateAvatarParams{
 			Avatar: []byte("avatar1"),
 			ID:     playerID,
-		}).Return(sqlc.Player{}, nil)
+		}).Return(db.Player{}, nil)
 		mockStore.EXPECT().GetAllPlayersInRoom(ctx, playerID).Return(
-			[]sqlc.GetAllPlayersInRoomRow{}, fmt.Errorf("failed to get all players in room"),
+			[]db.GetAllPlayersInRoomRow{}, fmt.Errorf("failed to get all players in room"),
 		).Times(1)
 
 		_, err := srv.GenerateNewAvatar(ctx, playerID)
@@ -323,12 +323,12 @@ func TestPlayerServiceTogglePlayerIsReady(t *testing.T) {
 
 			ctx := context.Background()
 
-			mockStore.EXPECT().GetRoomByPlayerID(ctx, playerID).Return(sqlc.Room{
+			mockStore.EXPECT().GetRoomByPlayerID(ctx, playerID).Return(db.Room{
 				ID:        roomID,
-				RoomState: sqlc.ROOMSTATE_CREATED.String(),
+				RoomState: db.ROOMSTATE_CREATED.String(),
 			}, nil)
-			mockStore.EXPECT().TogglePlayerIsReady(ctx, playerID).Return(sqlc.Player{}, nil)
-			mockStore.EXPECT().GetAllPlayersInRoom(ctx, playerID).Return([]sqlc.GetAllPlayersInRoomRow{
+			mockStore.EXPECT().TogglePlayerIsReady(ctx, playerID).Return(db.Player{}, nil)
+			mockStore.EXPECT().GetAllPlayersInRoom(ctx, playerID).Return([]db.GetAllPlayersInRoomRow{
 				{
 					ID:         playerID,
 					Avatar:     []byte("avatar1"),
@@ -365,7 +365,7 @@ func TestPlayerServiceTogglePlayerIsReady(t *testing.T) {
 
 		ctx := context.Background()
 		mockStore.EXPECT().GetRoomByPlayerID(ctx, playerID).Return(
-			sqlc.Room{}, fmt.Errorf("failed to get room details"),
+			db.Room{}, fmt.Errorf("failed to get room details"),
 		)
 
 		_, err := srv.TogglePlayerIsReady(ctx, playerID)
@@ -379,9 +379,9 @@ func TestPlayerServiceTogglePlayerIsReady(t *testing.T) {
 
 		ctx := context.Background()
 
-		mockStore.EXPECT().GetRoomByPlayerID(ctx, playerID).Return(sqlc.Room{
+		mockStore.EXPECT().GetRoomByPlayerID(ctx, playerID).Return(db.Room{
 			ID:        roomID,
-			RoomState: sqlc.ROOMSTATE_PLAYING.String(),
+			RoomState: db.ROOMSTATE_PLAYING.String(),
 		}, nil)
 
 		_, err := srv.TogglePlayerIsReady(ctx, playerID)
@@ -395,12 +395,12 @@ func TestPlayerServiceTogglePlayerIsReady(t *testing.T) {
 
 		ctx := context.Background()
 
-		mockStore.EXPECT().GetRoomByPlayerID(ctx, playerID).Return(sqlc.Room{
+		mockStore.EXPECT().GetRoomByPlayerID(ctx, playerID).Return(db.Room{
 			ID:        roomID,
-			RoomState: sqlc.ROOMSTATE_CREATED.String(),
+			RoomState: db.ROOMSTATE_CREATED.String(),
 		}, nil)
 		mockStore.EXPECT().TogglePlayerIsReady(ctx, playerID).Return(
-			sqlc.Player{}, fmt.Errorf("failed to update is ready"),
+			db.Player{}, fmt.Errorf("failed to update is ready"),
 		)
 
 		_, err := srv.TogglePlayerIsReady(ctx, playerID)
@@ -414,13 +414,13 @@ func TestPlayerServiceTogglePlayerIsReady(t *testing.T) {
 
 		ctx := context.Background()
 
-		mockStore.EXPECT().GetRoomByPlayerID(ctx, playerID).Return(sqlc.Room{
+		mockStore.EXPECT().GetRoomByPlayerID(ctx, playerID).Return(db.Room{
 			ID:        roomID,
-			RoomState: sqlc.ROOMSTATE_CREATED.String(),
+			RoomState: db.ROOMSTATE_CREATED.String(),
 		}, nil)
-		mockStore.EXPECT().TogglePlayerIsReady(ctx, playerID).Return(sqlc.Player{}, nil)
+		mockStore.EXPECT().TogglePlayerIsReady(ctx, playerID).Return(db.Player{}, nil)
 		mockStore.EXPECT().GetAllPlayersInRoom(ctx, playerID).Return(
-			[]sqlc.GetAllPlayersInRoomRow{}, fmt.Errorf("failed to get players in room"),
+			[]db.GetAllPlayersInRoomRow{}, fmt.Errorf("failed to get players in room"),
 		)
 
 		_, err := srv.TogglePlayerIsReady(ctx, playerID)
@@ -431,33 +431,33 @@ func TestPlayerServiceTogglePlayerIsReady(t *testing.T) {
 func TestPlayerServiceGetRoomState(t *testing.T) {
 	tests := []struct {
 		name          string
-		roomState     sqlc.RoomState
-		expectedState sqlc.RoomState
+		roomState     db.RoomState
+		expectedState db.RoomState
 	}{
 		{
 			name:          "Should successfully get room state CREATED",
-			roomState:     sqlc.ROOMSTATE_CREATED,
-			expectedState: sqlc.ROOMSTATE_CREATED,
+			roomState:     db.ROOMSTATE_CREATED,
+			expectedState: db.ROOMSTATE_CREATED,
 		},
 		{
 			name:          "Should successfully get room state PLAYING",
-			roomState:     sqlc.ROOMSTATE_PLAYING,
-			expectedState: sqlc.ROOMSTATE_PLAYING,
+			roomState:     db.ROOMSTATE_PLAYING,
+			expectedState: db.ROOMSTATE_PLAYING,
 		},
 		{
 			name:          "Should successfully get room state PAUSED",
-			roomState:     sqlc.ROOMSTATE_PAUSED,
-			expectedState: sqlc.ROOMSTATE_PAUSED,
+			roomState:     db.ROOMSTATE_PAUSED,
+			expectedState: db.ROOMSTATE_PAUSED,
 		},
 		{
 			name:          "Should successfully get room state FINISHED",
-			roomState:     sqlc.ROOMSTATE_FINISHED,
-			expectedState: sqlc.ROOMSTATE_FINISHED,
+			roomState:     db.ROOMSTATE_FINISHED,
+			expectedState: db.ROOMSTATE_FINISHED,
 		},
 		{
 			name:          "Should successfully get room state ABANDONED",
-			roomState:     sqlc.ROOMSTATE_ABANDONED,
-			expectedState: sqlc.ROOMSTATE_ABANDONED,
+			roomState:     db.ROOMSTATE_ABANDONED,
+			expectedState: db.ROOMSTATE_ABANDONED,
 		},
 	}
 
@@ -468,7 +468,7 @@ func TestPlayerServiceGetRoomState(t *testing.T) {
 			srv := service.NewPlayerService(mockStore, mockRandomizer)
 
 			ctx := context.Background()
-			mockStore.EXPECT().GetRoomByPlayerID(ctx, playerID).Return(sqlc.Room{
+			mockStore.EXPECT().GetRoomByPlayerID(ctx, playerID).Return(db.Room{
 				RoomState: tt.roomState.String(),
 			}, nil)
 
@@ -485,7 +485,7 @@ func TestPlayerServiceGetRoomState(t *testing.T) {
 
 		ctx := context.Background()
 		mockStore.EXPECT().GetRoomByPlayerID(ctx, playerID).Return(
-			sqlc.Room{}, fmt.Errorf("failed to get room details"),
+			db.Room{}, fmt.Errorf("failed to get room details"),
 		)
 
 		_, err := srv.GetRoomState(ctx, playerID)
@@ -501,7 +501,7 @@ func TestPlayerServiceGetLobby(t *testing.T) {
 
 		ctx := context.Background()
 
-		mockStore.EXPECT().GetAllPlayersInRoom(ctx, playerID).Return([]sqlc.GetAllPlayersInRoomRow{
+		mockStore.EXPECT().GetAllPlayersInRoom(ctx, playerID).Return([]db.GetAllPlayersInRoomRow{
 			{
 				ID:         playerID,
 				RoomCode:   roomCode,
@@ -535,7 +535,7 @@ func TestPlayerServiceGetLobby(t *testing.T) {
 		ctx := context.Background()
 
 		mockStore.EXPECT().GetAllPlayersInRoom(ctx, playerID).Return(
-			[]sqlc.GetAllPlayersInRoomRow{}, fmt.Errorf("failed to get players in room"),
+			[]db.GetAllPlayersInRoomRow{}, fmt.Errorf("failed to get players in room"),
 		)
 
 		_, err := srv.GetLobby(ctx, playerID)
@@ -546,18 +546,18 @@ func TestPlayerServiceGetLobby(t *testing.T) {
 func TestPlayerServiceGetGameState(t *testing.T) {
 	tests := []struct {
 		name          string
-		gameState     sqlc.GameStateEnum
-		expectedState sqlc.GameStateEnum
+		gameState     db.GameStateEnum
+		expectedState db.GameStateEnum
 	}{
 		{
 			name:          "Should successfully get game state QUESTION",
-			gameState:     sqlc.GAMESTATE_FIBBING_IT_SHOW_QUESTION,
-			expectedState: sqlc.GAMESTATE_FIBBING_IT_SHOW_QUESTION,
+			gameState:     db.GAMESTATE_FIBBING_IT_SHOW_QUESTION,
+			expectedState: db.GAMESTATE_FIBBING_IT_SHOW_QUESTION,
 		},
 		{
 			name:          "Should successfully get game state VOTING",
-			gameState:     sqlc.GAMESTATE_FIBBING_IT_VOTING,
-			expectedState: sqlc.GAMESTATE_FIBBING_IT_VOTING,
+			gameState:     db.GAMESTATE_FIBBING_IT_VOTING,
+			expectedState: db.GAMESTATE_FIBBING_IT_VOTING,
 		},
 	}
 
@@ -568,7 +568,7 @@ func TestPlayerServiceGetGameState(t *testing.T) {
 			srv := service.NewPlayerService(mockStore, mockRandomizer)
 
 			ctx := context.Background()
-			mockStore.EXPECT().GetGameStateByPlayerID(ctx, playerID).Return(sqlc.GameState{
+			mockStore.EXPECT().GetGameStateByPlayerID(ctx, playerID).Return(db.GameState{
 				State: tt.gameState.String(),
 			}, nil)
 
@@ -585,7 +585,7 @@ func TestPlayerServiceGetGameState(t *testing.T) {
 
 		ctx := context.Background()
 		mockStore.EXPECT().GetGameStateByPlayerID(ctx, playerID).Return(
-			sqlc.GameState{}, fmt.Errorf("failed to get game state details"),
+			db.GameState{}, fmt.Errorf("failed to get game state details"),
 		)
 
 		_, err := srv.GetGameState(ctx, playerID)
@@ -602,7 +602,7 @@ func TestPlayerServiceGetQuestionState(t *testing.T) {
 		ctx := context.Background()
 
 		deadline := time.Now().Add(5 * time.Second)
-		mockStore.EXPECT().GetCurrentQuestionByPlayerID(ctx, playerID).Return(sqlc.GetCurrentQuestionByPlayerIDRow{
+		mockStore.EXPECT().GetCurrentQuestionByPlayerID(ctx, playerID).Return(db.GetCurrentQuestionByPlayerIDRow{
 			PlayerID:       playerID,
 			Avatar:         []byte(""),
 			Nickname:       "nickname",
@@ -645,7 +645,7 @@ func TestPlayerServiceGetQuestionState(t *testing.T) {
 		ctx := context.Background()
 
 		deadline := time.Now().Add(5 * time.Second)
-		mockStore.EXPECT().GetCurrentQuestionByPlayerID(ctx, playerID).Return(sqlc.GetCurrentQuestionByPlayerIDRow{
+		mockStore.EXPECT().GetCurrentQuestionByPlayerID(ctx, playerID).Return(db.GetCurrentQuestionByPlayerIDRow{
 			PlayerID:       playerID,
 			Avatar:         []byte(""),
 			Nickname:       "nickname",
@@ -688,95 +688,10 @@ func TestPlayerServiceGetQuestionState(t *testing.T) {
 		ctx := context.Background()
 
 		mockStore.EXPECT().GetCurrentQuestionByPlayerID(ctx, playerID).Return(
-			sqlc.GetCurrentQuestionByPlayerIDRow{}, fmt.Errorf("failed to get questions"),
+			db.GetCurrentQuestionByPlayerIDRow{}, fmt.Errorf("failed to get questions"),
 		)
 
 		_, err := srv.GetQuestionState(ctx, playerID)
-		assert.Error(t, err)
-	})
-}
-
-func TestPlayerServiceGetVotingState(t *testing.T) {
-	roundID := uuid.MustParse("0193a629-e26c-7326-8df4-81ad3ec82214")
-
-	t.Run("Should successfully get voting state", func(t *testing.T) {
-		mockStore := mockService.NewMockStorer(t)
-		mockRandomizer := mockService.NewMockRandomizer(t)
-		srv := service.NewPlayerService(mockStore, mockRandomizer)
-
-		ctx := context.Background()
-
-		deadline := time.Now().Add(5 * time.Second)
-		mockStore.EXPECT().GetLatestRoundByPlayerID(ctx, playerID).Return(
-			sqlc.GetLatestRoundByPlayerIDRow{
-				ID:             roundID,
-				Round:          1,
-				SubmitDeadline: pgtype.Timestamp{Time: deadline},
-			}, nil)
-		mockStore.EXPECT().GetVotingState(ctx, roundID).Return(
-			[]sqlc.GetVotingStateRow{
-				{
-					VotedForPlayerID: playerID,
-					Nickname:         "nickname",
-					VoteCount:        1,
-					Avatar:           []byte(""),
-					Question:         "My  question",
-					Round:            1,
-				},
-			}, nil)
-
-		votingState, err := srv.GetVotingState(ctx, playerID)
-
-		assert.NoError(t, err)
-		expectedVotingState := service.VotingState{
-			Question: "My  question",
-			Round:    1,
-			Players: []service.PlayerWithVoting{
-				{
-					ID:       playerID,
-					Nickname: "nickname",
-					Avatar:   "",
-					Votes:    1,
-				},
-			},
-		}
-
-		diffOpts := cmpopts.IgnoreFields(votingState, "Deadline")
-		PartialEqual(t, expectedVotingState, votingState, diffOpts)
-		assert.LessOrEqual(t, int(votingState.Deadline.Seconds()), 5)
-	})
-
-	t.Run("Should fail to get voting state because fail to get round info from DB", func(t *testing.T) {
-		mockStore := mockService.NewMockStorer(t)
-		mockRandomizer := mockService.NewMockRandomizer(t)
-		srv := service.NewPlayerService(mockStore, mockRandomizer)
-
-		ctx := context.Background()
-
-		mockStore.EXPECT().GetLatestRoundByPlayerID(ctx, playerID).Return(
-			sqlc.GetLatestRoundByPlayerIDRow{}, fmt.Errorf("failed to get round info"),
-		)
-		_, err := srv.GetVotingState(ctx, playerID)
-		assert.Error(t, err)
-	})
-
-	t.Run("Should fail to get voting state because fail to get votes from DB", func(t *testing.T) {
-		mockStore := mockService.NewMockStorer(t)
-		mockRandomizer := mockService.NewMockRandomizer(t)
-		srv := service.NewPlayerService(mockStore, mockRandomizer)
-
-		ctx := context.Background()
-
-		mockStore.EXPECT().GetLatestRoundByPlayerID(ctx, playerID).Return(
-			sqlc.GetLatestRoundByPlayerIDRow{
-				ID: roundID,
-			}, nil)
-		mockStore.EXPECT().GetVotingState(ctx, roundID).Return(
-			[]sqlc.GetVotingStateRow{}, fmt.Errorf("failed to get votes"),
-		)
-
-		_, err := srv.GetVotingState(ctx, playerID)
-
 		assert.Error(t, err)
 	})
 }

@@ -19,9 +19,9 @@ import (
 	"gitlab.com/hmajid2301/banterbus/internal/banterbustest"
 	"gitlab.com/hmajid2301/banterbus/internal/service"
 	"gitlab.com/hmajid2301/banterbus/internal/service/randomizer"
-	sqlc "gitlab.com/hmajid2301/banterbus/internal/store/db"
+	"gitlab.com/hmajid2301/banterbus/internal/store/db"
 	"gitlab.com/hmajid2301/banterbus/internal/store/pubsub"
-	transport "gitlab.com/hmajid2301/banterbus/internal/transport/http"
+	transporthttp "gitlab.com/hmajid2301/banterbus/internal/transport/http"
 	"gitlab.com/hmajid2301/banterbus/internal/transport/websockets"
 	"gitlab.com/hmajid2301/banterbus/internal/views"
 )
@@ -105,12 +105,12 @@ func getBrowserName() string {
 
 func newTestServer() (*httptest.Server, error) {
 	ctx := context.Background()
-	db, err := banterbustest.CreateDB(ctx)
+	pool, err := banterbustest.CreateDB(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	myStore, err := sqlc.NewDB(db)
+	myStore, err := db.NewDB(pool)
 	if err != nil {
 		return nil, err
 	}
@@ -134,12 +134,12 @@ func newTestServer() (*httptest.Server, error) {
 	}
 
 	staticFS := http.Dir("../../static")
-	serverConfig := transport.ServerConfig{
+	serverConfig := transporthttp.ServerConfig{
 		Host:          "localhost",
 		Port:          8198,
 		DefaultLocale: i18n.Code("en-GB"),
 	}
-	srv := transport.NewServer(subscriber, logger, staticFS, serverConfig)
+	srv := transporthttp.NewServer(subscriber, logger, staticFS, serverConfig)
 	server := httptest.NewServer(srv.Server.Handler)
 
 	serverAddress = server.Listener.Addr().String()

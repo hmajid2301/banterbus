@@ -1,4 +1,4 @@
-package sqlc
+package db
 
 import (
 	"context"
@@ -16,7 +16,7 @@ type CreateRoomParams struct {
 }
 
 func (s DB) CreateRoom(ctx context.Context, arg CreateRoomParams) error {
-	tx, err := s.db.BeginTx(ctx, pgx.TxOptions{})
+	tx, err := s.pool.BeginTx(ctx, pgx.TxOptions{})
 	if err != nil {
 		return err
 	}
@@ -47,7 +47,7 @@ type AddPlayerToRoomArgs struct {
 }
 
 func (s DB) AddPlayerToRoom(ctx context.Context, arg AddPlayerToRoomArgs) error {
-	tx, err := s.db.BeginTx(ctx, pgx.TxOptions{})
+	tx, err := s.pool.BeginTx(ctx, pgx.TxOptions{})
 	if err != nil {
 		return err
 	}
@@ -78,7 +78,7 @@ type StartGameArgs struct {
 }
 
 func (s DB) StartGame(ctx context.Context, arg StartGameArgs) error {
-	tx, err := s.db.BeginTx(ctx, pgx.TxOptions{})
+	tx, err := s.pool.BeginTx(ctx, pgx.TxOptions{})
 	if err != nil {
 		return err
 	}

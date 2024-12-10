@@ -23,7 +23,7 @@ import (
 	"gitlab.com/hmajid2301/banterbus/internal/banterbustest"
 	"gitlab.com/hmajid2301/banterbus/internal/service"
 	"gitlab.com/hmajid2301/banterbus/internal/service/randomizer"
-	sqlc "gitlab.com/hmajid2301/banterbus/internal/store/db"
+	"gitlab.com/hmajid2301/banterbus/internal/store/db"
 	"gitlab.com/hmajid2301/banterbus/internal/store/pubsub"
 	"gitlab.com/hmajid2301/banterbus/internal/transport/websockets"
 	"gitlab.com/hmajid2301/banterbus/internal/views"
@@ -31,16 +31,16 @@ import (
 
 func TestIntegrationSubscribe(t *testing.T) {
 	ctx := context.Background()
-	db, err := banterbustest.CreateDB(ctx)
+	pool, err := banterbustest.CreateDB(ctx)
 	require.NoError(t, err)
 
-	myStore, err := sqlc.NewDB(db)
+	str, err := db.NewDB(pool)
 	require.NoError(t, err)
 
 	userRandomizer := randomizer.NewUserRandomizer()
-	lobbyService := service.NewLobbyService(myStore, userRandomizer)
-	playerService := service.NewPlayerService(myStore, userRandomizer)
-	roundService := service.NewRoundService(myStore, userRandomizer)
+	lobbyService := service.NewLobbyService(str, userRandomizer)
+	playerService := service.NewPlayerService(str, userRandomizer)
+	roundService := service.NewRoundService(str, userRandomizer)
 	handler := slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug})
 	logger := slog.New(handler)
 

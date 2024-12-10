@@ -68,7 +68,7 @@ func (s *Subscriber) updateClientsAboutQuestion(
 	return nil
 }
 
-func (s *Subscriber) updateClientAboutVoting(ctx context.Context, votingState service.VotingState) error {
+func (s *Subscriber) updateClientsAboutVoting(ctx context.Context, votingState service.VotingState) error {
 	var buf bytes.Buffer
 	for _, player := range votingState.Players {
 		component := sections.Voting(votingState, player.ID.String())

@@ -7,7 +7,7 @@ import (
 
 	mock "github.com/stretchr/testify/mock"
 
-	sqlc "gitlab.com/hmajid2301/banterbus/internal/store/db"
+	db "gitlab.com/hmajid2301/banterbus/internal/store/db"
 
 	uuid "github.com/google/uuid"
 )
@@ -26,25 +26,25 @@ func (_m *MockStorer) EXPECT() *MockStorer_Expecter {
 }
 
 // AddFibbingItAnswer provides a mock function with given fields: ctx, arg
-func (_m *MockStorer) AddFibbingItAnswer(ctx context.Context, arg sqlc.AddFibbingItAnswerParams) (sqlc.FibbingItAnswer, error) {
+func (_m *MockStorer) AddFibbingItAnswer(ctx context.Context, arg db.AddFibbingItAnswerParams) (db.FibbingItAnswer, error) {
 	ret := _m.Called(ctx, arg)
 
 	if len(ret) == 0 {
 		panic("no return value specified for AddFibbingItAnswer")
 	}
 
-	var r0 sqlc.FibbingItAnswer
+	var r0 db.FibbingItAnswer
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, sqlc.AddFibbingItAnswerParams) (sqlc.FibbingItAnswer, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, db.AddFibbingItAnswerParams) (db.FibbingItAnswer, error)); ok {
 		return rf(ctx, arg)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, sqlc.AddFibbingItAnswerParams) sqlc.FibbingItAnswer); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, db.AddFibbingItAnswerParams) db.FibbingItAnswer); ok {
 		r0 = rf(ctx, arg)
 	} else {
-		r0 = ret.Get(0).(sqlc.FibbingItAnswer)
+		r0 = ret.Get(0).(db.FibbingItAnswer)
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, sqlc.AddFibbingItAnswerParams) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, db.AddFibbingItAnswerParams) error); ok {
 		r1 = rf(ctx, arg)
 	} else {
 		r1 = ret.Error(1)
@@ -60,48 +60,48 @@ type MockStorer_AddFibbingItAnswer_Call struct {
 
 // AddFibbingItAnswer is a helper method to define mock.On call
 //   - ctx context.Context
-//   - arg sqlc.AddFibbingItAnswerParams
+//   - arg db.AddFibbingItAnswerParams
 func (_e *MockStorer_Expecter) AddFibbingItAnswer(ctx interface{}, arg interface{}) *MockStorer_AddFibbingItAnswer_Call {
 	return &MockStorer_AddFibbingItAnswer_Call{Call: _e.mock.On("AddFibbingItAnswer", ctx, arg)}
 }
 
-func (_c *MockStorer_AddFibbingItAnswer_Call) Run(run func(ctx context.Context, arg sqlc.AddFibbingItAnswerParams)) *MockStorer_AddFibbingItAnswer_Call {
+func (_c *MockStorer_AddFibbingItAnswer_Call) Run(run func(ctx context.Context, arg db.AddFibbingItAnswerParams)) *MockStorer_AddFibbingItAnswer_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(sqlc.AddFibbingItAnswerParams))
+		run(args[0].(context.Context), args[1].(db.AddFibbingItAnswerParams))
 	})
 	return _c
 }
 
-func (_c *MockStorer_AddFibbingItAnswer_Call) Return(_a0 sqlc.FibbingItAnswer, _a1 error) *MockStorer_AddFibbingItAnswer_Call {
+func (_c *MockStorer_AddFibbingItAnswer_Call) Return(_a0 db.FibbingItAnswer, _a1 error) *MockStorer_AddFibbingItAnswer_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *MockStorer_AddFibbingItAnswer_Call) RunAndReturn(run func(context.Context, sqlc.AddFibbingItAnswerParams) (sqlc.FibbingItAnswer, error)) *MockStorer_AddFibbingItAnswer_Call {
+func (_c *MockStorer_AddFibbingItAnswer_Call) RunAndReturn(run func(context.Context, db.AddFibbingItAnswerParams) (db.FibbingItAnswer, error)) *MockStorer_AddFibbingItAnswer_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // AddFibbingItRole provides a mock function with given fields: ctx, arg
-func (_m *MockStorer) AddFibbingItRole(ctx context.Context, arg sqlc.AddFibbingItRoleParams) (sqlc.FibbingItPlayerRole, error) {
+func (_m *MockStorer) AddFibbingItRole(ctx context.Context, arg db.AddFibbingItRoleParams) (db.FibbingItPlayerRole, error) {
 	ret := _m.Called(ctx, arg)
 
 	if len(ret) == 0 {
 		panic("no return value specified for AddFibbingItRole")
 	}
 
-	var r0 sqlc.FibbingItPlayerRole
+	var r0 db.FibbingItPlayerRole
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, sqlc.AddFibbingItRoleParams) (sqlc.FibbingItPlayerRole, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, db.AddFibbingItRoleParams) (db.FibbingItPlayerRole, error)); ok {
 		return rf(ctx, arg)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, sqlc.AddFibbingItRoleParams) sqlc.FibbingItPlayerRole); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, db.AddFibbingItRoleParams) db.FibbingItPlayerRole); ok {
 		r0 = rf(ctx, arg)
 	} else {
-		r0 = ret.Get(0).(sqlc.FibbingItPlayerRole)
+		r0 = ret.Get(0).(db.FibbingItPlayerRole)
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, sqlc.AddFibbingItRoleParams) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, db.AddFibbingItRoleParams) error); ok {
 		r1 = rf(ctx, arg)
 	} else {
 		r1 = ret.Error(1)
@@ -117,48 +117,48 @@ type MockStorer_AddFibbingItRole_Call struct {
 
 // AddFibbingItRole is a helper method to define mock.On call
 //   - ctx context.Context
-//   - arg sqlc.AddFibbingItRoleParams
+//   - arg db.AddFibbingItRoleParams
 func (_e *MockStorer_Expecter) AddFibbingItRole(ctx interface{}, arg interface{}) *MockStorer_AddFibbingItRole_Call {
 	return &MockStorer_AddFibbingItRole_Call{Call: _e.mock.On("AddFibbingItRole", ctx, arg)}
 }
 
-func (_c *MockStorer_AddFibbingItRole_Call) Run(run func(ctx context.Context, arg sqlc.AddFibbingItRoleParams)) *MockStorer_AddFibbingItRole_Call {
+func (_c *MockStorer_AddFibbingItRole_Call) Run(run func(ctx context.Context, arg db.AddFibbingItRoleParams)) *MockStorer_AddFibbingItRole_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(sqlc.AddFibbingItRoleParams))
+		run(args[0].(context.Context), args[1].(db.AddFibbingItRoleParams))
 	})
 	return _c
 }
 
-func (_c *MockStorer_AddFibbingItRole_Call) Return(_a0 sqlc.FibbingItPlayerRole, _a1 error) *MockStorer_AddFibbingItRole_Call {
+func (_c *MockStorer_AddFibbingItRole_Call) Return(_a0 db.FibbingItPlayerRole, _a1 error) *MockStorer_AddFibbingItRole_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *MockStorer_AddFibbingItRole_Call) RunAndReturn(run func(context.Context, sqlc.AddFibbingItRoleParams) (sqlc.FibbingItPlayerRole, error)) *MockStorer_AddFibbingItRole_Call {
+func (_c *MockStorer_AddFibbingItRole_Call) RunAndReturn(run func(context.Context, db.AddFibbingItRoleParams) (db.FibbingItPlayerRole, error)) *MockStorer_AddFibbingItRole_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // AddFibbingItRound provides a mock function with given fields: ctx, arg
-func (_m *MockStorer) AddFibbingItRound(ctx context.Context, arg sqlc.AddFibbingItRoundParams) (sqlc.FibbingItRound, error) {
+func (_m *MockStorer) AddFibbingItRound(ctx context.Context, arg db.AddFibbingItRoundParams) (db.FibbingItRound, error) {
 	ret := _m.Called(ctx, arg)
 
 	if len(ret) == 0 {
 		panic("no return value specified for AddFibbingItRound")
 	}
 
-	var r0 sqlc.FibbingItRound
+	var r0 db.FibbingItRound
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, sqlc.AddFibbingItRoundParams) (sqlc.FibbingItRound, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, db.AddFibbingItRoundParams) (db.FibbingItRound, error)); ok {
 		return rf(ctx, arg)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, sqlc.AddFibbingItRoundParams) sqlc.FibbingItRound); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, db.AddFibbingItRoundParams) db.FibbingItRound); ok {
 		r0 = rf(ctx, arg)
 	} else {
-		r0 = ret.Get(0).(sqlc.FibbingItRound)
+		r0 = ret.Get(0).(db.FibbingItRound)
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, sqlc.AddFibbingItRoundParams) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, db.AddFibbingItRoundParams) error); ok {
 		r1 = rf(ctx, arg)
 	} else {
 		r1 = ret.Error(1)
@@ -174,48 +174,48 @@ type MockStorer_AddFibbingItRound_Call struct {
 
 // AddFibbingItRound is a helper method to define mock.On call
 //   - ctx context.Context
-//   - arg sqlc.AddFibbingItRoundParams
+//   - arg db.AddFibbingItRoundParams
 func (_e *MockStorer_Expecter) AddFibbingItRound(ctx interface{}, arg interface{}) *MockStorer_AddFibbingItRound_Call {
 	return &MockStorer_AddFibbingItRound_Call{Call: _e.mock.On("AddFibbingItRound", ctx, arg)}
 }
 
-func (_c *MockStorer_AddFibbingItRound_Call) Run(run func(ctx context.Context, arg sqlc.AddFibbingItRoundParams)) *MockStorer_AddFibbingItRound_Call {
+func (_c *MockStorer_AddFibbingItRound_Call) Run(run func(ctx context.Context, arg db.AddFibbingItRoundParams)) *MockStorer_AddFibbingItRound_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(sqlc.AddFibbingItRoundParams))
+		run(args[0].(context.Context), args[1].(db.AddFibbingItRoundParams))
 	})
 	return _c
 }
 
-func (_c *MockStorer_AddFibbingItRound_Call) Return(_a0 sqlc.FibbingItRound, _a1 error) *MockStorer_AddFibbingItRound_Call {
+func (_c *MockStorer_AddFibbingItRound_Call) Return(_a0 db.FibbingItRound, _a1 error) *MockStorer_AddFibbingItRound_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *MockStorer_AddFibbingItRound_Call) RunAndReturn(run func(context.Context, sqlc.AddFibbingItRoundParams) (sqlc.FibbingItRound, error)) *MockStorer_AddFibbingItRound_Call {
+func (_c *MockStorer_AddFibbingItRound_Call) RunAndReturn(run func(context.Context, db.AddFibbingItRoundParams) (db.FibbingItRound, error)) *MockStorer_AddFibbingItRound_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // AddGameState provides a mock function with given fields: ctx, arg
-func (_m *MockStorer) AddGameState(ctx context.Context, arg sqlc.AddGameStateParams) (sqlc.GameState, error) {
+func (_m *MockStorer) AddGameState(ctx context.Context, arg db.AddGameStateParams) (db.GameState, error) {
 	ret := _m.Called(ctx, arg)
 
 	if len(ret) == 0 {
 		panic("no return value specified for AddGameState")
 	}
 
-	var r0 sqlc.GameState
+	var r0 db.GameState
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, sqlc.AddGameStateParams) (sqlc.GameState, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, db.AddGameStateParams) (db.GameState, error)); ok {
 		return rf(ctx, arg)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, sqlc.AddGameStateParams) sqlc.GameState); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, db.AddGameStateParams) db.GameState); ok {
 		r0 = rf(ctx, arg)
 	} else {
-		r0 = ret.Get(0).(sqlc.GameState)
+		r0 = ret.Get(0).(db.GameState)
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, sqlc.AddGameStateParams) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, db.AddGameStateParams) error); ok {
 		r1 = rf(ctx, arg)
 	} else {
 		r1 = ret.Error(1)
@@ -231,48 +231,48 @@ type MockStorer_AddGameState_Call struct {
 
 // AddGameState is a helper method to define mock.On call
 //   - ctx context.Context
-//   - arg sqlc.AddGameStateParams
+//   - arg db.AddGameStateParams
 func (_e *MockStorer_Expecter) AddGameState(ctx interface{}, arg interface{}) *MockStorer_AddGameState_Call {
 	return &MockStorer_AddGameState_Call{Call: _e.mock.On("AddGameState", ctx, arg)}
 }
 
-func (_c *MockStorer_AddGameState_Call) Run(run func(ctx context.Context, arg sqlc.AddGameStateParams)) *MockStorer_AddGameState_Call {
+func (_c *MockStorer_AddGameState_Call) Run(run func(ctx context.Context, arg db.AddGameStateParams)) *MockStorer_AddGameState_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(sqlc.AddGameStateParams))
+		run(args[0].(context.Context), args[1].(db.AddGameStateParams))
 	})
 	return _c
 }
 
-func (_c *MockStorer_AddGameState_Call) Return(_a0 sqlc.GameState, _a1 error) *MockStorer_AddGameState_Call {
+func (_c *MockStorer_AddGameState_Call) Return(_a0 db.GameState, _a1 error) *MockStorer_AddGameState_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *MockStorer_AddGameState_Call) RunAndReturn(run func(context.Context, sqlc.AddGameStateParams) (sqlc.GameState, error)) *MockStorer_AddGameState_Call {
+func (_c *MockStorer_AddGameState_Call) RunAndReturn(run func(context.Context, db.AddGameStateParams) (db.GameState, error)) *MockStorer_AddGameState_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // AddPlayer provides a mock function with given fields: ctx, arg
-func (_m *MockStorer) AddPlayer(ctx context.Context, arg sqlc.AddPlayerParams) (sqlc.Player, error) {
+func (_m *MockStorer) AddPlayer(ctx context.Context, arg db.AddPlayerParams) (db.Player, error) {
 	ret := _m.Called(ctx, arg)
 
 	if len(ret) == 0 {
 		panic("no return value specified for AddPlayer")
 	}
 
-	var r0 sqlc.Player
+	var r0 db.Player
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, sqlc.AddPlayerParams) (sqlc.Player, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, db.AddPlayerParams) (db.Player, error)); ok {
 		return rf(ctx, arg)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, sqlc.AddPlayerParams) sqlc.Player); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, db.AddPlayerParams) db.Player); ok {
 		r0 = rf(ctx, arg)
 	} else {
-		r0 = ret.Get(0).(sqlc.Player)
+		r0 = ret.Get(0).(db.Player)
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, sqlc.AddPlayerParams) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, db.AddPlayerParams) error); ok {
 		r1 = rf(ctx, arg)
 	} else {
 		r1 = ret.Error(1)
@@ -288,30 +288,30 @@ type MockStorer_AddPlayer_Call struct {
 
 // AddPlayer is a helper method to define mock.On call
 //   - ctx context.Context
-//   - arg sqlc.AddPlayerParams
+//   - arg db.AddPlayerParams
 func (_e *MockStorer_Expecter) AddPlayer(ctx interface{}, arg interface{}) *MockStorer_AddPlayer_Call {
 	return &MockStorer_AddPlayer_Call{Call: _e.mock.On("AddPlayer", ctx, arg)}
 }
 
-func (_c *MockStorer_AddPlayer_Call) Run(run func(ctx context.Context, arg sqlc.AddPlayerParams)) *MockStorer_AddPlayer_Call {
+func (_c *MockStorer_AddPlayer_Call) Run(run func(ctx context.Context, arg db.AddPlayerParams)) *MockStorer_AddPlayer_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(sqlc.AddPlayerParams))
+		run(args[0].(context.Context), args[1].(db.AddPlayerParams))
 	})
 	return _c
 }
 
-func (_c *MockStorer_AddPlayer_Call) Return(_a0 sqlc.Player, _a1 error) *MockStorer_AddPlayer_Call {
+func (_c *MockStorer_AddPlayer_Call) Return(_a0 db.Player, _a1 error) *MockStorer_AddPlayer_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *MockStorer_AddPlayer_Call) RunAndReturn(run func(context.Context, sqlc.AddPlayerParams) (sqlc.Player, error)) *MockStorer_AddPlayer_Call {
+func (_c *MockStorer_AddPlayer_Call) RunAndReturn(run func(context.Context, db.AddPlayerParams) (db.Player, error)) *MockStorer_AddPlayer_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // AddPlayerToRoom provides a mock function with given fields: ctx, arg
-func (_m *MockStorer) AddPlayerToRoom(ctx context.Context, arg sqlc.AddPlayerToRoomArgs) error {
+func (_m *MockStorer) AddPlayerToRoom(ctx context.Context, arg db.AddPlayerToRoomArgs) error {
 	ret := _m.Called(ctx, arg)
 
 	if len(ret) == 0 {
@@ -319,7 +319,7 @@ func (_m *MockStorer) AddPlayerToRoom(ctx context.Context, arg sqlc.AddPlayerToR
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, sqlc.AddPlayerToRoomArgs) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, db.AddPlayerToRoomArgs) error); ok {
 		r0 = rf(ctx, arg)
 	} else {
 		r0 = ret.Error(0)
@@ -335,14 +335,14 @@ type MockStorer_AddPlayerToRoom_Call struct {
 
 // AddPlayerToRoom is a helper method to define mock.On call
 //   - ctx context.Context
-//   - arg sqlc.AddPlayerToRoomArgs
+//   - arg db.AddPlayerToRoomArgs
 func (_e *MockStorer_Expecter) AddPlayerToRoom(ctx interface{}, arg interface{}) *MockStorer_AddPlayerToRoom_Call {
 	return &MockStorer_AddPlayerToRoom_Call{Call: _e.mock.On("AddPlayerToRoom", ctx, arg)}
 }
 
-func (_c *MockStorer_AddPlayerToRoom_Call) Run(run func(ctx context.Context, arg sqlc.AddPlayerToRoomArgs)) *MockStorer_AddPlayerToRoom_Call {
+func (_c *MockStorer_AddPlayerToRoom_Call) Run(run func(ctx context.Context, arg db.AddPlayerToRoomArgs)) *MockStorer_AddPlayerToRoom_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(sqlc.AddPlayerToRoomArgs))
+		run(args[0].(context.Context), args[1].(db.AddPlayerToRoomArgs))
 	})
 	return _c
 }
@@ -352,31 +352,31 @@ func (_c *MockStorer_AddPlayerToRoom_Call) Return(_a0 error) *MockStorer_AddPlay
 	return _c
 }
 
-func (_c *MockStorer_AddPlayerToRoom_Call) RunAndReturn(run func(context.Context, sqlc.AddPlayerToRoomArgs) error) *MockStorer_AddPlayerToRoom_Call {
+func (_c *MockStorer_AddPlayerToRoom_Call) RunAndReturn(run func(context.Context, db.AddPlayerToRoomArgs) error) *MockStorer_AddPlayerToRoom_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // AddQuestion provides a mock function with given fields: ctx, arg
-func (_m *MockStorer) AddQuestion(ctx context.Context, arg sqlc.AddQuestionParams) (sqlc.Question, error) {
+func (_m *MockStorer) AddQuestion(ctx context.Context, arg db.AddQuestionParams) (db.Question, error) {
 	ret := _m.Called(ctx, arg)
 
 	if len(ret) == 0 {
 		panic("no return value specified for AddQuestion")
 	}
 
-	var r0 sqlc.Question
+	var r0 db.Question
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, sqlc.AddQuestionParams) (sqlc.Question, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, db.AddQuestionParams) (db.Question, error)); ok {
 		return rf(ctx, arg)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, sqlc.AddQuestionParams) sqlc.Question); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, db.AddQuestionParams) db.Question); ok {
 		r0 = rf(ctx, arg)
 	} else {
-		r0 = ret.Get(0).(sqlc.Question)
+		r0 = ret.Get(0).(db.Question)
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, sqlc.AddQuestionParams) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, db.AddQuestionParams) error); ok {
 		r1 = rf(ctx, arg)
 	} else {
 		r1 = ret.Error(1)
@@ -392,48 +392,48 @@ type MockStorer_AddQuestion_Call struct {
 
 // AddQuestion is a helper method to define mock.On call
 //   - ctx context.Context
-//   - arg sqlc.AddQuestionParams
+//   - arg db.AddQuestionParams
 func (_e *MockStorer_Expecter) AddQuestion(ctx interface{}, arg interface{}) *MockStorer_AddQuestion_Call {
 	return &MockStorer_AddQuestion_Call{Call: _e.mock.On("AddQuestion", ctx, arg)}
 }
 
-func (_c *MockStorer_AddQuestion_Call) Run(run func(ctx context.Context, arg sqlc.AddQuestionParams)) *MockStorer_AddQuestion_Call {
+func (_c *MockStorer_AddQuestion_Call) Run(run func(ctx context.Context, arg db.AddQuestionParams)) *MockStorer_AddQuestion_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(sqlc.AddQuestionParams))
+		run(args[0].(context.Context), args[1].(db.AddQuestionParams))
 	})
 	return _c
 }
 
-func (_c *MockStorer_AddQuestion_Call) Return(_a0 sqlc.Question, _a1 error) *MockStorer_AddQuestion_Call {
+func (_c *MockStorer_AddQuestion_Call) Return(_a0 db.Question, _a1 error) *MockStorer_AddQuestion_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *MockStorer_AddQuestion_Call) RunAndReturn(run func(context.Context, sqlc.AddQuestionParams) (sqlc.Question, error)) *MockStorer_AddQuestion_Call {
+func (_c *MockStorer_AddQuestion_Call) RunAndReturn(run func(context.Context, db.AddQuestionParams) (db.Question, error)) *MockStorer_AddQuestion_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // AddQuestionsGroup provides a mock function with given fields: ctx, arg
-func (_m *MockStorer) AddQuestionsGroup(ctx context.Context, arg sqlc.AddQuestionsGroupParams) (sqlc.QuestionsGroup, error) {
+func (_m *MockStorer) AddQuestionsGroup(ctx context.Context, arg db.AddQuestionsGroupParams) (db.QuestionsGroup, error) {
 	ret := _m.Called(ctx, arg)
 
 	if len(ret) == 0 {
 		panic("no return value specified for AddQuestionsGroup")
 	}
 
-	var r0 sqlc.QuestionsGroup
+	var r0 db.QuestionsGroup
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, sqlc.AddQuestionsGroupParams) (sqlc.QuestionsGroup, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, db.AddQuestionsGroupParams) (db.QuestionsGroup, error)); ok {
 		return rf(ctx, arg)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, sqlc.AddQuestionsGroupParams) sqlc.QuestionsGroup); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, db.AddQuestionsGroupParams) db.QuestionsGroup); ok {
 		r0 = rf(ctx, arg)
 	} else {
-		r0 = ret.Get(0).(sqlc.QuestionsGroup)
+		r0 = ret.Get(0).(db.QuestionsGroup)
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, sqlc.AddQuestionsGroupParams) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, db.AddQuestionsGroupParams) error); ok {
 		r1 = rf(ctx, arg)
 	} else {
 		r1 = ret.Error(1)
@@ -449,48 +449,48 @@ type MockStorer_AddQuestionsGroup_Call struct {
 
 // AddQuestionsGroup is a helper method to define mock.On call
 //   - ctx context.Context
-//   - arg sqlc.AddQuestionsGroupParams
+//   - arg db.AddQuestionsGroupParams
 func (_e *MockStorer_Expecter) AddQuestionsGroup(ctx interface{}, arg interface{}) *MockStorer_AddQuestionsGroup_Call {
 	return &MockStorer_AddQuestionsGroup_Call{Call: _e.mock.On("AddQuestionsGroup", ctx, arg)}
 }
 
-func (_c *MockStorer_AddQuestionsGroup_Call) Run(run func(ctx context.Context, arg sqlc.AddQuestionsGroupParams)) *MockStorer_AddQuestionsGroup_Call {
+func (_c *MockStorer_AddQuestionsGroup_Call) Run(run func(ctx context.Context, arg db.AddQuestionsGroupParams)) *MockStorer_AddQuestionsGroup_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(sqlc.AddQuestionsGroupParams))
+		run(args[0].(context.Context), args[1].(db.AddQuestionsGroupParams))
 	})
 	return _c
 }
 
-func (_c *MockStorer_AddQuestionsGroup_Call) Return(_a0 sqlc.QuestionsGroup, _a1 error) *MockStorer_AddQuestionsGroup_Call {
+func (_c *MockStorer_AddQuestionsGroup_Call) Return(_a0 db.QuestionsGroup, _a1 error) *MockStorer_AddQuestionsGroup_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *MockStorer_AddQuestionsGroup_Call) RunAndReturn(run func(context.Context, sqlc.AddQuestionsGroupParams) (sqlc.QuestionsGroup, error)) *MockStorer_AddQuestionsGroup_Call {
+func (_c *MockStorer_AddQuestionsGroup_Call) RunAndReturn(run func(context.Context, db.AddQuestionsGroupParams) (db.QuestionsGroup, error)) *MockStorer_AddQuestionsGroup_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // AddRoom provides a mock function with given fields: ctx, arg
-func (_m *MockStorer) AddRoom(ctx context.Context, arg sqlc.AddRoomParams) (sqlc.Room, error) {
+func (_m *MockStorer) AddRoom(ctx context.Context, arg db.AddRoomParams) (db.Room, error) {
 	ret := _m.Called(ctx, arg)
 
 	if len(ret) == 0 {
 		panic("no return value specified for AddRoom")
 	}
 
-	var r0 sqlc.Room
+	var r0 db.Room
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, sqlc.AddRoomParams) (sqlc.Room, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, db.AddRoomParams) (db.Room, error)); ok {
 		return rf(ctx, arg)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, sqlc.AddRoomParams) sqlc.Room); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, db.AddRoomParams) db.Room); ok {
 		r0 = rf(ctx, arg)
 	} else {
-		r0 = ret.Get(0).(sqlc.Room)
+		r0 = ret.Get(0).(db.Room)
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, sqlc.AddRoomParams) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, db.AddRoomParams) error); ok {
 		r1 = rf(ctx, arg)
 	} else {
 		r1 = ret.Error(1)
@@ -506,48 +506,48 @@ type MockStorer_AddRoom_Call struct {
 
 // AddRoom is a helper method to define mock.On call
 //   - ctx context.Context
-//   - arg sqlc.AddRoomParams
+//   - arg db.AddRoomParams
 func (_e *MockStorer_Expecter) AddRoom(ctx interface{}, arg interface{}) *MockStorer_AddRoom_Call {
 	return &MockStorer_AddRoom_Call{Call: _e.mock.On("AddRoom", ctx, arg)}
 }
 
-func (_c *MockStorer_AddRoom_Call) Run(run func(ctx context.Context, arg sqlc.AddRoomParams)) *MockStorer_AddRoom_Call {
+func (_c *MockStorer_AddRoom_Call) Run(run func(ctx context.Context, arg db.AddRoomParams)) *MockStorer_AddRoom_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(sqlc.AddRoomParams))
+		run(args[0].(context.Context), args[1].(db.AddRoomParams))
 	})
 	return _c
 }
 
-func (_c *MockStorer_AddRoom_Call) Return(_a0 sqlc.Room, _a1 error) *MockStorer_AddRoom_Call {
+func (_c *MockStorer_AddRoom_Call) Return(_a0 db.Room, _a1 error) *MockStorer_AddRoom_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *MockStorer_AddRoom_Call) RunAndReturn(run func(context.Context, sqlc.AddRoomParams) (sqlc.Room, error)) *MockStorer_AddRoom_Call {
+func (_c *MockStorer_AddRoom_Call) RunAndReturn(run func(context.Context, db.AddRoomParams) (db.Room, error)) *MockStorer_AddRoom_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // AddRoomPlayer provides a mock function with given fields: ctx, arg
-func (_m *MockStorer) AddRoomPlayer(ctx context.Context, arg sqlc.AddRoomPlayerParams) (sqlc.RoomsPlayer, error) {
+func (_m *MockStorer) AddRoomPlayer(ctx context.Context, arg db.AddRoomPlayerParams) (db.RoomsPlayer, error) {
 	ret := _m.Called(ctx, arg)
 
 	if len(ret) == 0 {
 		panic("no return value specified for AddRoomPlayer")
 	}
 
-	var r0 sqlc.RoomsPlayer
+	var r0 db.RoomsPlayer
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, sqlc.AddRoomPlayerParams) (sqlc.RoomsPlayer, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, db.AddRoomPlayerParams) (db.RoomsPlayer, error)); ok {
 		return rf(ctx, arg)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, sqlc.AddRoomPlayerParams) sqlc.RoomsPlayer); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, db.AddRoomPlayerParams) db.RoomsPlayer); ok {
 		r0 = rf(ctx, arg)
 	} else {
-		r0 = ret.Get(0).(sqlc.RoomsPlayer)
+		r0 = ret.Get(0).(db.RoomsPlayer)
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, sqlc.AddRoomPlayerParams) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, db.AddRoomPlayerParams) error); ok {
 		r1 = rf(ctx, arg)
 	} else {
 		r1 = ret.Error(1)
@@ -563,30 +563,30 @@ type MockStorer_AddRoomPlayer_Call struct {
 
 // AddRoomPlayer is a helper method to define mock.On call
 //   - ctx context.Context
-//   - arg sqlc.AddRoomPlayerParams
+//   - arg db.AddRoomPlayerParams
 func (_e *MockStorer_Expecter) AddRoomPlayer(ctx interface{}, arg interface{}) *MockStorer_AddRoomPlayer_Call {
 	return &MockStorer_AddRoomPlayer_Call{Call: _e.mock.On("AddRoomPlayer", ctx, arg)}
 }
 
-func (_c *MockStorer_AddRoomPlayer_Call) Run(run func(ctx context.Context, arg sqlc.AddRoomPlayerParams)) *MockStorer_AddRoomPlayer_Call {
+func (_c *MockStorer_AddRoomPlayer_Call) Run(run func(ctx context.Context, arg db.AddRoomPlayerParams)) *MockStorer_AddRoomPlayer_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(sqlc.AddRoomPlayerParams))
+		run(args[0].(context.Context), args[1].(db.AddRoomPlayerParams))
 	})
 	return _c
 }
 
-func (_c *MockStorer_AddRoomPlayer_Call) Return(_a0 sqlc.RoomsPlayer, _a1 error) *MockStorer_AddRoomPlayer_Call {
+func (_c *MockStorer_AddRoomPlayer_Call) Return(_a0 db.RoomsPlayer, _a1 error) *MockStorer_AddRoomPlayer_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *MockStorer_AddRoomPlayer_Call) RunAndReturn(run func(context.Context, sqlc.AddRoomPlayerParams) (sqlc.RoomsPlayer, error)) *MockStorer_AddRoomPlayer_Call {
+func (_c *MockStorer_AddRoomPlayer_Call) RunAndReturn(run func(context.Context, db.AddRoomPlayerParams) (db.RoomsPlayer, error)) *MockStorer_AddRoomPlayer_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // CreateRoom provides a mock function with given fields: ctx, arg
-func (_m *MockStorer) CreateRoom(ctx context.Context, arg sqlc.CreateRoomParams) error {
+func (_m *MockStorer) CreateRoom(ctx context.Context, arg db.CreateRoomParams) error {
 	ret := _m.Called(ctx, arg)
 
 	if len(ret) == 0 {
@@ -594,7 +594,7 @@ func (_m *MockStorer) CreateRoom(ctx context.Context, arg sqlc.CreateRoomParams)
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, sqlc.CreateRoomParams) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, db.CreateRoomParams) error); ok {
 		r0 = rf(ctx, arg)
 	} else {
 		r0 = ret.Error(0)
@@ -610,14 +610,14 @@ type MockStorer_CreateRoom_Call struct {
 
 // CreateRoom is a helper method to define mock.On call
 //   - ctx context.Context
-//   - arg sqlc.CreateRoomParams
+//   - arg db.CreateRoomParams
 func (_e *MockStorer_Expecter) CreateRoom(ctx interface{}, arg interface{}) *MockStorer_CreateRoom_Call {
 	return &MockStorer_CreateRoom_Call{Call: _e.mock.On("CreateRoom", ctx, arg)}
 }
 
-func (_c *MockStorer_CreateRoom_Call) Run(run func(ctx context.Context, arg sqlc.CreateRoomParams)) *MockStorer_CreateRoom_Call {
+func (_c *MockStorer_CreateRoom_Call) Run(run func(ctx context.Context, arg db.CreateRoomParams)) *MockStorer_CreateRoom_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(sqlc.CreateRoomParams))
+		run(args[0].(context.Context), args[1].(db.CreateRoomParams))
 	})
 	return _c
 }
@@ -627,7 +627,7 @@ func (_c *MockStorer_CreateRoom_Call) Return(_a0 error) *MockStorer_CreateRoom_C
 	return _c
 }
 
-func (_c *MockStorer_CreateRoom_Call) RunAndReturn(run func(context.Context, sqlc.CreateRoomParams) error) *MockStorer_CreateRoom_Call {
+func (_c *MockStorer_CreateRoom_Call) RunAndReturn(run func(context.Context, db.CreateRoomParams) error) *MockStorer_CreateRoom_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -690,23 +690,23 @@ func (_c *MockStorer_GetAllPlayerAnswerIsReady_Call) RunAndReturn(run func(conte
 }
 
 // GetAllPlayerByRoomCode provides a mock function with given fields: ctx, roomCode
-func (_m *MockStorer) GetAllPlayerByRoomCode(ctx context.Context, roomCode string) ([]sqlc.GetAllPlayerByRoomCodeRow, error) {
+func (_m *MockStorer) GetAllPlayerByRoomCode(ctx context.Context, roomCode string) ([]db.GetAllPlayerByRoomCodeRow, error) {
 	ret := _m.Called(ctx, roomCode)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetAllPlayerByRoomCode")
 	}
 
-	var r0 []sqlc.GetAllPlayerByRoomCodeRow
+	var r0 []db.GetAllPlayerByRoomCodeRow
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string) ([]sqlc.GetAllPlayerByRoomCodeRow, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, string) ([]db.GetAllPlayerByRoomCodeRow, error)); ok {
 		return rf(ctx, roomCode)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, string) []sqlc.GetAllPlayerByRoomCodeRow); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, string) []db.GetAllPlayerByRoomCodeRow); ok {
 		r0 = rf(ctx, roomCode)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]sqlc.GetAllPlayerByRoomCodeRow)
+			r0 = ret.Get(0).([]db.GetAllPlayerByRoomCodeRow)
 		}
 	}
 
@@ -738,34 +738,34 @@ func (_c *MockStorer_GetAllPlayerByRoomCode_Call) Run(run func(ctx context.Conte
 	return _c
 }
 
-func (_c *MockStorer_GetAllPlayerByRoomCode_Call) Return(_a0 []sqlc.GetAllPlayerByRoomCodeRow, _a1 error) *MockStorer_GetAllPlayerByRoomCode_Call {
+func (_c *MockStorer_GetAllPlayerByRoomCode_Call) Return(_a0 []db.GetAllPlayerByRoomCodeRow, _a1 error) *MockStorer_GetAllPlayerByRoomCode_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *MockStorer_GetAllPlayerByRoomCode_Call) RunAndReturn(run func(context.Context, string) ([]sqlc.GetAllPlayerByRoomCodeRow, error)) *MockStorer_GetAllPlayerByRoomCode_Call {
+func (_c *MockStorer_GetAllPlayerByRoomCode_Call) RunAndReturn(run func(context.Context, string) ([]db.GetAllPlayerByRoomCodeRow, error)) *MockStorer_GetAllPlayerByRoomCode_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // GetAllPlayersInRoom provides a mock function with given fields: ctx, playerID
-func (_m *MockStorer) GetAllPlayersInRoom(ctx context.Context, playerID uuid.UUID) ([]sqlc.GetAllPlayersInRoomRow, error) {
+func (_m *MockStorer) GetAllPlayersInRoom(ctx context.Context, playerID uuid.UUID) ([]db.GetAllPlayersInRoomRow, error) {
 	ret := _m.Called(ctx, playerID)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetAllPlayersInRoom")
 	}
 
-	var r0 []sqlc.GetAllPlayersInRoomRow
+	var r0 []db.GetAllPlayersInRoomRow
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) ([]sqlc.GetAllPlayersInRoomRow, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) ([]db.GetAllPlayersInRoomRow, error)); ok {
 		return rf(ctx, playerID)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) []sqlc.GetAllPlayersInRoomRow); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) []db.GetAllPlayersInRoomRow); ok {
 		r0 = rf(ctx, playerID)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]sqlc.GetAllPlayersInRoomRow)
+			r0 = ret.Get(0).([]db.GetAllPlayersInRoomRow)
 		}
 	}
 
@@ -797,33 +797,33 @@ func (_c *MockStorer_GetAllPlayersInRoom_Call) Run(run func(ctx context.Context,
 	return _c
 }
 
-func (_c *MockStorer_GetAllPlayersInRoom_Call) Return(_a0 []sqlc.GetAllPlayersInRoomRow, _a1 error) *MockStorer_GetAllPlayersInRoom_Call {
+func (_c *MockStorer_GetAllPlayersInRoom_Call) Return(_a0 []db.GetAllPlayersInRoomRow, _a1 error) *MockStorer_GetAllPlayersInRoom_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *MockStorer_GetAllPlayersInRoom_Call) RunAndReturn(run func(context.Context, uuid.UUID) ([]sqlc.GetAllPlayersInRoomRow, error)) *MockStorer_GetAllPlayersInRoom_Call {
+func (_c *MockStorer_GetAllPlayersInRoom_Call) RunAndReturn(run func(context.Context, uuid.UUID) ([]db.GetAllPlayersInRoomRow, error)) *MockStorer_GetAllPlayersInRoom_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // GetCurrentQuestionByPlayerID provides a mock function with given fields: ctx, id
-func (_m *MockStorer) GetCurrentQuestionByPlayerID(ctx context.Context, id uuid.UUID) (sqlc.GetCurrentQuestionByPlayerIDRow, error) {
+func (_m *MockStorer) GetCurrentQuestionByPlayerID(ctx context.Context, id uuid.UUID) (db.GetCurrentQuestionByPlayerIDRow, error) {
 	ret := _m.Called(ctx, id)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetCurrentQuestionByPlayerID")
 	}
 
-	var r0 sqlc.GetCurrentQuestionByPlayerIDRow
+	var r0 db.GetCurrentQuestionByPlayerIDRow
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) (sqlc.GetCurrentQuestionByPlayerIDRow, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) (db.GetCurrentQuestionByPlayerIDRow, error)); ok {
 		return rf(ctx, id)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) sqlc.GetCurrentQuestionByPlayerIDRow); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) db.GetCurrentQuestionByPlayerIDRow); ok {
 		r0 = rf(ctx, id)
 	} else {
-		r0 = ret.Get(0).(sqlc.GetCurrentQuestionByPlayerIDRow)
+		r0 = ret.Get(0).(db.GetCurrentQuestionByPlayerIDRow)
 	}
 
 	if rf, ok := ret.Get(1).(func(context.Context, uuid.UUID) error); ok {
@@ -854,33 +854,90 @@ func (_c *MockStorer_GetCurrentQuestionByPlayerID_Call) Run(run func(ctx context
 	return _c
 }
 
-func (_c *MockStorer_GetCurrentQuestionByPlayerID_Call) Return(_a0 sqlc.GetCurrentQuestionByPlayerIDRow, _a1 error) *MockStorer_GetCurrentQuestionByPlayerID_Call {
+func (_c *MockStorer_GetCurrentQuestionByPlayerID_Call) Return(_a0 db.GetCurrentQuestionByPlayerIDRow, _a1 error) *MockStorer_GetCurrentQuestionByPlayerID_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *MockStorer_GetCurrentQuestionByPlayerID_Call) RunAndReturn(run func(context.Context, uuid.UUID) (sqlc.GetCurrentQuestionByPlayerIDRow, error)) *MockStorer_GetCurrentQuestionByPlayerID_Call {
+func (_c *MockStorer_GetCurrentQuestionByPlayerID_Call) RunAndReturn(run func(context.Context, uuid.UUID) (db.GetCurrentQuestionByPlayerIDRow, error)) *MockStorer_GetCurrentQuestionByPlayerID_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetGameState provides a mock function with given fields: ctx, id
+func (_m *MockStorer) GetGameState(ctx context.Context, id uuid.UUID) (db.GameState, error) {
+	ret := _m.Called(ctx, id)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetGameState")
+	}
+
+	var r0 db.GameState
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) (db.GameState, error)); ok {
+		return rf(ctx, id)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) db.GameState); ok {
+		r0 = rf(ctx, id)
+	} else {
+		r0 = ret.Get(0).(db.GameState)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, uuid.UUID) error); ok {
+		r1 = rf(ctx, id)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockStorer_GetGameState_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetGameState'
+type MockStorer_GetGameState_Call struct {
+	*mock.Call
+}
+
+// GetGameState is a helper method to define mock.On call
+//   - ctx context.Context
+//   - id uuid.UUID
+func (_e *MockStorer_Expecter) GetGameState(ctx interface{}, id interface{}) *MockStorer_GetGameState_Call {
+	return &MockStorer_GetGameState_Call{Call: _e.mock.On("GetGameState", ctx, id)}
+}
+
+func (_c *MockStorer_GetGameState_Call) Run(run func(ctx context.Context, id uuid.UUID)) *MockStorer_GetGameState_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(uuid.UUID))
+	})
+	return _c
+}
+
+func (_c *MockStorer_GetGameState_Call) Return(_a0 db.GameState, _a1 error) *MockStorer_GetGameState_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockStorer_GetGameState_Call) RunAndReturn(run func(context.Context, uuid.UUID) (db.GameState, error)) *MockStorer_GetGameState_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // GetGameStateByPlayerID provides a mock function with given fields: ctx, playerID
-func (_m *MockStorer) GetGameStateByPlayerID(ctx context.Context, playerID uuid.UUID) (sqlc.GameState, error) {
+func (_m *MockStorer) GetGameStateByPlayerID(ctx context.Context, playerID uuid.UUID) (db.GameState, error) {
 	ret := _m.Called(ctx, playerID)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetGameStateByPlayerID")
 	}
 
-	var r0 sqlc.GameState
+	var r0 db.GameState
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) (sqlc.GameState, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) (db.GameState, error)); ok {
 		return rf(ctx, playerID)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) sqlc.GameState); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) db.GameState); ok {
 		r0 = rf(ctx, playerID)
 	} else {
-		r0 = ret.Get(0).(sqlc.GameState)
+		r0 = ret.Get(0).(db.GameState)
 	}
 
 	if rf, ok := ret.Get(1).(func(context.Context, uuid.UUID) error); ok {
@@ -911,33 +968,33 @@ func (_c *MockStorer_GetGameStateByPlayerID_Call) Run(run func(ctx context.Conte
 	return _c
 }
 
-func (_c *MockStorer_GetGameStateByPlayerID_Call) Return(_a0 sqlc.GameState, _a1 error) *MockStorer_GetGameStateByPlayerID_Call {
+func (_c *MockStorer_GetGameStateByPlayerID_Call) Return(_a0 db.GameState, _a1 error) *MockStorer_GetGameStateByPlayerID_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *MockStorer_GetGameStateByPlayerID_Call) RunAndReturn(run func(context.Context, uuid.UUID) (sqlc.GameState, error)) *MockStorer_GetGameStateByPlayerID_Call {
+func (_c *MockStorer_GetGameStateByPlayerID_Call) RunAndReturn(run func(context.Context, uuid.UUID) (db.GameState, error)) *MockStorer_GetGameStateByPlayerID_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // GetLatestRoundByPlayerID provides a mock function with given fields: ctx, playerID
-func (_m *MockStorer) GetLatestRoundByPlayerID(ctx context.Context, playerID uuid.UUID) (sqlc.GetLatestRoundByPlayerIDRow, error) {
+func (_m *MockStorer) GetLatestRoundByPlayerID(ctx context.Context, playerID uuid.UUID) (db.GetLatestRoundByPlayerIDRow, error) {
 	ret := _m.Called(ctx, playerID)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetLatestRoundByPlayerID")
 	}
 
-	var r0 sqlc.GetLatestRoundByPlayerIDRow
+	var r0 db.GetLatestRoundByPlayerIDRow
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) (sqlc.GetLatestRoundByPlayerIDRow, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) (db.GetLatestRoundByPlayerIDRow, error)); ok {
 		return rf(ctx, playerID)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) sqlc.GetLatestRoundByPlayerIDRow); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) db.GetLatestRoundByPlayerIDRow); ok {
 		r0 = rf(ctx, playerID)
 	} else {
-		r0 = ret.Get(0).(sqlc.GetLatestRoundByPlayerIDRow)
+		r0 = ret.Get(0).(db.GetLatestRoundByPlayerIDRow)
 	}
 
 	if rf, ok := ret.Get(1).(func(context.Context, uuid.UUID) error); ok {
@@ -968,33 +1025,33 @@ func (_c *MockStorer_GetLatestRoundByPlayerID_Call) Run(run func(ctx context.Con
 	return _c
 }
 
-func (_c *MockStorer_GetLatestRoundByPlayerID_Call) Return(_a0 sqlc.GetLatestRoundByPlayerIDRow, _a1 error) *MockStorer_GetLatestRoundByPlayerID_Call {
+func (_c *MockStorer_GetLatestRoundByPlayerID_Call) Return(_a0 db.GetLatestRoundByPlayerIDRow, _a1 error) *MockStorer_GetLatestRoundByPlayerID_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *MockStorer_GetLatestRoundByPlayerID_Call) RunAndReturn(run func(context.Context, uuid.UUID) (sqlc.GetLatestRoundByPlayerIDRow, error)) *MockStorer_GetLatestRoundByPlayerID_Call {
+func (_c *MockStorer_GetLatestRoundByPlayerID_Call) RunAndReturn(run func(context.Context, uuid.UUID) (db.GetLatestRoundByPlayerIDRow, error)) *MockStorer_GetLatestRoundByPlayerID_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // GetPlayerByID provides a mock function with given fields: ctx, id
-func (_m *MockStorer) GetPlayerByID(ctx context.Context, id uuid.UUID) (sqlc.Player, error) {
+func (_m *MockStorer) GetPlayerByID(ctx context.Context, id uuid.UUID) (db.Player, error) {
 	ret := _m.Called(ctx, id)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetPlayerByID")
 	}
 
-	var r0 sqlc.Player
+	var r0 db.Player
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) (sqlc.Player, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) (db.Player, error)); ok {
 		return rf(ctx, id)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) sqlc.Player); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) db.Player); ok {
 		r0 = rf(ctx, id)
 	} else {
-		r0 = ret.Get(0).(sqlc.Player)
+		r0 = ret.Get(0).(db.Player)
 	}
 
 	if rf, ok := ret.Get(1).(func(context.Context, uuid.UUID) error); ok {
@@ -1025,36 +1082,36 @@ func (_c *MockStorer_GetPlayerByID_Call) Run(run func(ctx context.Context, id uu
 	return _c
 }
 
-func (_c *MockStorer_GetPlayerByID_Call) Return(_a0 sqlc.Player, _a1 error) *MockStorer_GetPlayerByID_Call {
+func (_c *MockStorer_GetPlayerByID_Call) Return(_a0 db.Player, _a1 error) *MockStorer_GetPlayerByID_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *MockStorer_GetPlayerByID_Call) RunAndReturn(run func(context.Context, uuid.UUID) (sqlc.Player, error)) *MockStorer_GetPlayerByID_Call {
+func (_c *MockStorer_GetPlayerByID_Call) RunAndReturn(run func(context.Context, uuid.UUID) (db.Player, error)) *MockStorer_GetPlayerByID_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // GetRandomQuestionByRound provides a mock function with given fields: ctx, arg
-func (_m *MockStorer) GetRandomQuestionByRound(ctx context.Context, arg sqlc.GetRandomQuestionByRoundParams) (sqlc.Question, error) {
+func (_m *MockStorer) GetRandomQuestionByRound(ctx context.Context, arg db.GetRandomQuestionByRoundParams) (db.Question, error) {
 	ret := _m.Called(ctx, arg)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetRandomQuestionByRound")
 	}
 
-	var r0 sqlc.Question
+	var r0 db.Question
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, sqlc.GetRandomQuestionByRoundParams) (sqlc.Question, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, db.GetRandomQuestionByRoundParams) (db.Question, error)); ok {
 		return rf(ctx, arg)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, sqlc.GetRandomQuestionByRoundParams) sqlc.Question); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, db.GetRandomQuestionByRoundParams) db.Question); ok {
 		r0 = rf(ctx, arg)
 	} else {
-		r0 = ret.Get(0).(sqlc.Question)
+		r0 = ret.Get(0).(db.Question)
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, sqlc.GetRandomQuestionByRoundParams) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, db.GetRandomQuestionByRoundParams) error); ok {
 		r1 = rf(ctx, arg)
 	} else {
 		r1 = ret.Error(1)
@@ -1070,48 +1127,48 @@ type MockStorer_GetRandomQuestionByRound_Call struct {
 
 // GetRandomQuestionByRound is a helper method to define mock.On call
 //   - ctx context.Context
-//   - arg sqlc.GetRandomQuestionByRoundParams
+//   - arg db.GetRandomQuestionByRoundParams
 func (_e *MockStorer_Expecter) GetRandomQuestionByRound(ctx interface{}, arg interface{}) *MockStorer_GetRandomQuestionByRound_Call {
 	return &MockStorer_GetRandomQuestionByRound_Call{Call: _e.mock.On("GetRandomQuestionByRound", ctx, arg)}
 }
 
-func (_c *MockStorer_GetRandomQuestionByRound_Call) Run(run func(ctx context.Context, arg sqlc.GetRandomQuestionByRoundParams)) *MockStorer_GetRandomQuestionByRound_Call {
+func (_c *MockStorer_GetRandomQuestionByRound_Call) Run(run func(ctx context.Context, arg db.GetRandomQuestionByRoundParams)) *MockStorer_GetRandomQuestionByRound_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(sqlc.GetRandomQuestionByRoundParams))
+		run(args[0].(context.Context), args[1].(db.GetRandomQuestionByRoundParams))
 	})
 	return _c
 }
 
-func (_c *MockStorer_GetRandomQuestionByRound_Call) Return(_a0 sqlc.Question, _a1 error) *MockStorer_GetRandomQuestionByRound_Call {
+func (_c *MockStorer_GetRandomQuestionByRound_Call) Return(_a0 db.Question, _a1 error) *MockStorer_GetRandomQuestionByRound_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *MockStorer_GetRandomQuestionByRound_Call) RunAndReturn(run func(context.Context, sqlc.GetRandomQuestionByRoundParams) (sqlc.Question, error)) *MockStorer_GetRandomQuestionByRound_Call {
+func (_c *MockStorer_GetRandomQuestionByRound_Call) RunAndReturn(run func(context.Context, db.GetRandomQuestionByRoundParams) (db.Question, error)) *MockStorer_GetRandomQuestionByRound_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // GetRandomQuestionInGroup provides a mock function with given fields: ctx, arg
-func (_m *MockStorer) GetRandomQuestionInGroup(ctx context.Context, arg sqlc.GetRandomQuestionInGroupParams) (sqlc.GetRandomQuestionInGroupRow, error) {
+func (_m *MockStorer) GetRandomQuestionInGroup(ctx context.Context, arg db.GetRandomQuestionInGroupParams) (db.GetRandomQuestionInGroupRow, error) {
 	ret := _m.Called(ctx, arg)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetRandomQuestionInGroup")
 	}
 
-	var r0 sqlc.GetRandomQuestionInGroupRow
+	var r0 db.GetRandomQuestionInGroupRow
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, sqlc.GetRandomQuestionInGroupParams) (sqlc.GetRandomQuestionInGroupRow, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, db.GetRandomQuestionInGroupParams) (db.GetRandomQuestionInGroupRow, error)); ok {
 		return rf(ctx, arg)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, sqlc.GetRandomQuestionInGroupParams) sqlc.GetRandomQuestionInGroupRow); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, db.GetRandomQuestionInGroupParams) db.GetRandomQuestionInGroupRow); ok {
 		r0 = rf(ctx, arg)
 	} else {
-		r0 = ret.Get(0).(sqlc.GetRandomQuestionInGroupRow)
+		r0 = ret.Get(0).(db.GetRandomQuestionInGroupRow)
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, sqlc.GetRandomQuestionInGroupParams) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, db.GetRandomQuestionInGroupParams) error); ok {
 		r1 = rf(ctx, arg)
 	} else {
 		r1 = ret.Error(1)
@@ -1127,45 +1184,45 @@ type MockStorer_GetRandomQuestionInGroup_Call struct {
 
 // GetRandomQuestionInGroup is a helper method to define mock.On call
 //   - ctx context.Context
-//   - arg sqlc.GetRandomQuestionInGroupParams
+//   - arg db.GetRandomQuestionInGroupParams
 func (_e *MockStorer_Expecter) GetRandomQuestionInGroup(ctx interface{}, arg interface{}) *MockStorer_GetRandomQuestionInGroup_Call {
 	return &MockStorer_GetRandomQuestionInGroup_Call{Call: _e.mock.On("GetRandomQuestionInGroup", ctx, arg)}
 }
 
-func (_c *MockStorer_GetRandomQuestionInGroup_Call) Run(run func(ctx context.Context, arg sqlc.GetRandomQuestionInGroupParams)) *MockStorer_GetRandomQuestionInGroup_Call {
+func (_c *MockStorer_GetRandomQuestionInGroup_Call) Run(run func(ctx context.Context, arg db.GetRandomQuestionInGroupParams)) *MockStorer_GetRandomQuestionInGroup_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(sqlc.GetRandomQuestionInGroupParams))
+		run(args[0].(context.Context), args[1].(db.GetRandomQuestionInGroupParams))
 	})
 	return _c
 }
 
-func (_c *MockStorer_GetRandomQuestionInGroup_Call) Return(_a0 sqlc.GetRandomQuestionInGroupRow, _a1 error) *MockStorer_GetRandomQuestionInGroup_Call {
+func (_c *MockStorer_GetRandomQuestionInGroup_Call) Return(_a0 db.GetRandomQuestionInGroupRow, _a1 error) *MockStorer_GetRandomQuestionInGroup_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *MockStorer_GetRandomQuestionInGroup_Call) RunAndReturn(run func(context.Context, sqlc.GetRandomQuestionInGroupParams) (sqlc.GetRandomQuestionInGroupRow, error)) *MockStorer_GetRandomQuestionInGroup_Call {
+func (_c *MockStorer_GetRandomQuestionInGroup_Call) RunAndReturn(run func(context.Context, db.GetRandomQuestionInGroupParams) (db.GetRandomQuestionInGroupRow, error)) *MockStorer_GetRandomQuestionInGroup_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // GetRoomByCode provides a mock function with given fields: ctx, roomCode
-func (_m *MockStorer) GetRoomByCode(ctx context.Context, roomCode string) (sqlc.Room, error) {
+func (_m *MockStorer) GetRoomByCode(ctx context.Context, roomCode string) (db.Room, error) {
 	ret := _m.Called(ctx, roomCode)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetRoomByCode")
 	}
 
-	var r0 sqlc.Room
+	var r0 db.Room
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string) (sqlc.Room, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, string) (db.Room, error)); ok {
 		return rf(ctx, roomCode)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, string) sqlc.Room); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, string) db.Room); ok {
 		r0 = rf(ctx, roomCode)
 	} else {
-		r0 = ret.Get(0).(sqlc.Room)
+		r0 = ret.Get(0).(db.Room)
 	}
 
 	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
@@ -1196,33 +1253,33 @@ func (_c *MockStorer_GetRoomByCode_Call) Run(run func(ctx context.Context, roomC
 	return _c
 }
 
-func (_c *MockStorer_GetRoomByCode_Call) Return(_a0 sqlc.Room, _a1 error) *MockStorer_GetRoomByCode_Call {
+func (_c *MockStorer_GetRoomByCode_Call) Return(_a0 db.Room, _a1 error) *MockStorer_GetRoomByCode_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *MockStorer_GetRoomByCode_Call) RunAndReturn(run func(context.Context, string) (sqlc.Room, error)) *MockStorer_GetRoomByCode_Call {
+func (_c *MockStorer_GetRoomByCode_Call) RunAndReturn(run func(context.Context, string) (db.Room, error)) *MockStorer_GetRoomByCode_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // GetRoomByPlayerID provides a mock function with given fields: ctx, playerID
-func (_m *MockStorer) GetRoomByPlayerID(ctx context.Context, playerID uuid.UUID) (sqlc.Room, error) {
+func (_m *MockStorer) GetRoomByPlayerID(ctx context.Context, playerID uuid.UUID) (db.Room, error) {
 	ret := _m.Called(ctx, playerID)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetRoomByPlayerID")
 	}
 
-	var r0 sqlc.Room
+	var r0 db.Room
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) (sqlc.Room, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) (db.Room, error)); ok {
 		return rf(ctx, playerID)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) sqlc.Room); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) db.Room); ok {
 		r0 = rf(ctx, playerID)
 	} else {
-		r0 = ret.Get(0).(sqlc.Room)
+		r0 = ret.Get(0).(db.Room)
 	}
 
 	if rf, ok := ret.Get(1).(func(context.Context, uuid.UUID) error); ok {
@@ -1253,39 +1310,39 @@ func (_c *MockStorer_GetRoomByPlayerID_Call) Run(run func(ctx context.Context, p
 	return _c
 }
 
-func (_c *MockStorer_GetRoomByPlayerID_Call) Return(_a0 sqlc.Room, _a1 error) *MockStorer_GetRoomByPlayerID_Call {
+func (_c *MockStorer_GetRoomByPlayerID_Call) Return(_a0 db.Room, _a1 error) *MockStorer_GetRoomByPlayerID_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *MockStorer_GetRoomByPlayerID_Call) RunAndReturn(run func(context.Context, uuid.UUID) (sqlc.Room, error)) *MockStorer_GetRoomByPlayerID_Call {
+func (_c *MockStorer_GetRoomByPlayerID_Call) RunAndReturn(run func(context.Context, uuid.UUID) (db.Room, error)) *MockStorer_GetRoomByPlayerID_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
-// GetVotingState provides a mock function with given fields: ctx, roundID
-func (_m *MockStorer) GetVotingState(ctx context.Context, roundID uuid.UUID) ([]sqlc.GetVotingStateRow, error) {
-	ret := _m.Called(ctx, roundID)
+// GetVotingState provides a mock function with given fields: ctx, id
+func (_m *MockStorer) GetVotingState(ctx context.Context, id uuid.UUID) ([]db.GetVotingStateRow, error) {
+	ret := _m.Called(ctx, id)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetVotingState")
 	}
 
-	var r0 []sqlc.GetVotingStateRow
+	var r0 []db.GetVotingStateRow
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) ([]sqlc.GetVotingStateRow, error)); ok {
-		return rf(ctx, roundID)
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) ([]db.GetVotingStateRow, error)); ok {
+		return rf(ctx, id)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) []sqlc.GetVotingStateRow); ok {
-		r0 = rf(ctx, roundID)
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) []db.GetVotingStateRow); ok {
+		r0 = rf(ctx, id)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]sqlc.GetVotingStateRow)
+			r0 = ret.Get(0).([]db.GetVotingStateRow)
 		}
 	}
 
 	if rf, ok := ret.Get(1).(func(context.Context, uuid.UUID) error); ok {
-		r1 = rf(ctx, roundID)
+		r1 = rf(ctx, id)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -1300,45 +1357,45 @@ type MockStorer_GetVotingState_Call struct {
 
 // GetVotingState is a helper method to define mock.On call
 //   - ctx context.Context
-//   - roundID uuid.UUID
-func (_e *MockStorer_Expecter) GetVotingState(ctx interface{}, roundID interface{}) *MockStorer_GetVotingState_Call {
-	return &MockStorer_GetVotingState_Call{Call: _e.mock.On("GetVotingState", ctx, roundID)}
+//   - id uuid.UUID
+func (_e *MockStorer_Expecter) GetVotingState(ctx interface{}, id interface{}) *MockStorer_GetVotingState_Call {
+	return &MockStorer_GetVotingState_Call{Call: _e.mock.On("GetVotingState", ctx, id)}
 }
 
-func (_c *MockStorer_GetVotingState_Call) Run(run func(ctx context.Context, roundID uuid.UUID)) *MockStorer_GetVotingState_Call {
+func (_c *MockStorer_GetVotingState_Call) Run(run func(ctx context.Context, id uuid.UUID)) *MockStorer_GetVotingState_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		run(args[0].(context.Context), args[1].(uuid.UUID))
 	})
 	return _c
 }
 
-func (_c *MockStorer_GetVotingState_Call) Return(_a0 []sqlc.GetVotingStateRow, _a1 error) *MockStorer_GetVotingState_Call {
+func (_c *MockStorer_GetVotingState_Call) Return(_a0 []db.GetVotingStateRow, _a1 error) *MockStorer_GetVotingState_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *MockStorer_GetVotingState_Call) RunAndReturn(run func(context.Context, uuid.UUID) ([]sqlc.GetVotingStateRow, error)) *MockStorer_GetVotingState_Call {
+func (_c *MockStorer_GetVotingState_Call) RunAndReturn(run func(context.Context, uuid.UUID) ([]db.GetVotingStateRow, error)) *MockStorer_GetVotingState_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // RemovePlayerFromRoom provides a mock function with given fields: ctx, playerID
-func (_m *MockStorer) RemovePlayerFromRoom(ctx context.Context, playerID uuid.UUID) (sqlc.RoomsPlayer, error) {
+func (_m *MockStorer) RemovePlayerFromRoom(ctx context.Context, playerID uuid.UUID) (db.RoomsPlayer, error) {
 	ret := _m.Called(ctx, playerID)
 
 	if len(ret) == 0 {
 		panic("no return value specified for RemovePlayerFromRoom")
 	}
 
-	var r0 sqlc.RoomsPlayer
+	var r0 db.RoomsPlayer
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) (sqlc.RoomsPlayer, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) (db.RoomsPlayer, error)); ok {
 		return rf(ctx, playerID)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) sqlc.RoomsPlayer); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) db.RoomsPlayer); ok {
 		r0 = rf(ctx, playerID)
 	} else {
-		r0 = ret.Get(0).(sqlc.RoomsPlayer)
+		r0 = ret.Get(0).(db.RoomsPlayer)
 	}
 
 	if rf, ok := ret.Get(1).(func(context.Context, uuid.UUID) error); ok {
@@ -1369,18 +1426,18 @@ func (_c *MockStorer_RemovePlayerFromRoom_Call) Run(run func(ctx context.Context
 	return _c
 }
 
-func (_c *MockStorer_RemovePlayerFromRoom_Call) Return(_a0 sqlc.RoomsPlayer, _a1 error) *MockStorer_RemovePlayerFromRoom_Call {
+func (_c *MockStorer_RemovePlayerFromRoom_Call) Return(_a0 db.RoomsPlayer, _a1 error) *MockStorer_RemovePlayerFromRoom_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *MockStorer_RemovePlayerFromRoom_Call) RunAndReturn(run func(context.Context, uuid.UUID) (sqlc.RoomsPlayer, error)) *MockStorer_RemovePlayerFromRoom_Call {
+func (_c *MockStorer_RemovePlayerFromRoom_Call) RunAndReturn(run func(context.Context, uuid.UUID) (db.RoomsPlayer, error)) *MockStorer_RemovePlayerFromRoom_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // StartGame provides a mock function with given fields: ctx, arg
-func (_m *MockStorer) StartGame(ctx context.Context, arg sqlc.StartGameArgs) error {
+func (_m *MockStorer) StartGame(ctx context.Context, arg db.StartGameArgs) error {
 	ret := _m.Called(ctx, arg)
 
 	if len(ret) == 0 {
@@ -1388,7 +1445,7 @@ func (_m *MockStorer) StartGame(ctx context.Context, arg sqlc.StartGameArgs) err
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, sqlc.StartGameArgs) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, db.StartGameArgs) error); ok {
 		r0 = rf(ctx, arg)
 	} else {
 		r0 = ret.Error(0)
@@ -1404,14 +1461,14 @@ type MockStorer_StartGame_Call struct {
 
 // StartGame is a helper method to define mock.On call
 //   - ctx context.Context
-//   - arg sqlc.StartGameArgs
+//   - arg db.StartGameArgs
 func (_e *MockStorer_Expecter) StartGame(ctx interface{}, arg interface{}) *MockStorer_StartGame_Call {
 	return &MockStorer_StartGame_Call{Call: _e.mock.On("StartGame", ctx, arg)}
 }
 
-func (_c *MockStorer_StartGame_Call) Run(run func(ctx context.Context, arg sqlc.StartGameArgs)) *MockStorer_StartGame_Call {
+func (_c *MockStorer_StartGame_Call) Run(run func(ctx context.Context, arg db.StartGameArgs)) *MockStorer_StartGame_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(sqlc.StartGameArgs))
+		run(args[0].(context.Context), args[1].(db.StartGameArgs))
 	})
 	return _c
 }
@@ -1421,28 +1478,28 @@ func (_c *MockStorer_StartGame_Call) Return(_a0 error) *MockStorer_StartGame_Cal
 	return _c
 }
 
-func (_c *MockStorer_StartGame_Call) RunAndReturn(run func(context.Context, sqlc.StartGameArgs) error) *MockStorer_StartGame_Call {
+func (_c *MockStorer_StartGame_Call) RunAndReturn(run func(context.Context, db.StartGameArgs) error) *MockStorer_StartGame_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // ToggleAnswerIsReady provides a mock function with given fields: ctx, playerID
-func (_m *MockStorer) ToggleAnswerIsReady(ctx context.Context, playerID uuid.UUID) (sqlc.FibbingItAnswer, error) {
+func (_m *MockStorer) ToggleAnswerIsReady(ctx context.Context, playerID uuid.UUID) (db.FibbingItAnswer, error) {
 	ret := _m.Called(ctx, playerID)
 
 	if len(ret) == 0 {
 		panic("no return value specified for ToggleAnswerIsReady")
 	}
 
-	var r0 sqlc.FibbingItAnswer
+	var r0 db.FibbingItAnswer
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) (sqlc.FibbingItAnswer, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) (db.FibbingItAnswer, error)); ok {
 		return rf(ctx, playerID)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) sqlc.FibbingItAnswer); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) db.FibbingItAnswer); ok {
 		r0 = rf(ctx, playerID)
 	} else {
-		r0 = ret.Get(0).(sqlc.FibbingItAnswer)
+		r0 = ret.Get(0).(db.FibbingItAnswer)
 	}
 
 	if rf, ok := ret.Get(1).(func(context.Context, uuid.UUID) error); ok {
@@ -1473,33 +1530,33 @@ func (_c *MockStorer_ToggleAnswerIsReady_Call) Run(run func(ctx context.Context,
 	return _c
 }
 
-func (_c *MockStorer_ToggleAnswerIsReady_Call) Return(_a0 sqlc.FibbingItAnswer, _a1 error) *MockStorer_ToggleAnswerIsReady_Call {
+func (_c *MockStorer_ToggleAnswerIsReady_Call) Return(_a0 db.FibbingItAnswer, _a1 error) *MockStorer_ToggleAnswerIsReady_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *MockStorer_ToggleAnswerIsReady_Call) RunAndReturn(run func(context.Context, uuid.UUID) (sqlc.FibbingItAnswer, error)) *MockStorer_ToggleAnswerIsReady_Call {
+func (_c *MockStorer_ToggleAnswerIsReady_Call) RunAndReturn(run func(context.Context, uuid.UUID) (db.FibbingItAnswer, error)) *MockStorer_ToggleAnswerIsReady_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // TogglePlayerIsReady provides a mock function with given fields: ctx, id
-func (_m *MockStorer) TogglePlayerIsReady(ctx context.Context, id uuid.UUID) (sqlc.Player, error) {
+func (_m *MockStorer) TogglePlayerIsReady(ctx context.Context, id uuid.UUID) (db.Player, error) {
 	ret := _m.Called(ctx, id)
 
 	if len(ret) == 0 {
 		panic("no return value specified for TogglePlayerIsReady")
 	}
 
-	var r0 sqlc.Player
+	var r0 db.Player
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) (sqlc.Player, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) (db.Player, error)); ok {
 		return rf(ctx, id)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) sqlc.Player); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) db.Player); ok {
 		r0 = rf(ctx, id)
 	} else {
-		r0 = ret.Get(0).(sqlc.Player)
+		r0 = ret.Get(0).(db.Player)
 	}
 
 	if rf, ok := ret.Get(1).(func(context.Context, uuid.UUID) error); ok {
@@ -1530,36 +1587,36 @@ func (_c *MockStorer_TogglePlayerIsReady_Call) Run(run func(ctx context.Context,
 	return _c
 }
 
-func (_c *MockStorer_TogglePlayerIsReady_Call) Return(_a0 sqlc.Player, _a1 error) *MockStorer_TogglePlayerIsReady_Call {
+func (_c *MockStorer_TogglePlayerIsReady_Call) Return(_a0 db.Player, _a1 error) *MockStorer_TogglePlayerIsReady_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *MockStorer_TogglePlayerIsReady_Call) RunAndReturn(run func(context.Context, uuid.UUID) (sqlc.Player, error)) *MockStorer_TogglePlayerIsReady_Call {
+func (_c *MockStorer_TogglePlayerIsReady_Call) RunAndReturn(run func(context.Context, uuid.UUID) (db.Player, error)) *MockStorer_TogglePlayerIsReady_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // UpdateAvatar provides a mock function with given fields: ctx, arg
-func (_m *MockStorer) UpdateAvatar(ctx context.Context, arg sqlc.UpdateAvatarParams) (sqlc.Player, error) {
+func (_m *MockStorer) UpdateAvatar(ctx context.Context, arg db.UpdateAvatarParams) (db.Player, error) {
 	ret := _m.Called(ctx, arg)
 
 	if len(ret) == 0 {
 		panic("no return value specified for UpdateAvatar")
 	}
 
-	var r0 sqlc.Player
+	var r0 db.Player
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, sqlc.UpdateAvatarParams) (sqlc.Player, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, db.UpdateAvatarParams) (db.Player, error)); ok {
 		return rf(ctx, arg)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, sqlc.UpdateAvatarParams) sqlc.Player); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, db.UpdateAvatarParams) db.Player); ok {
 		r0 = rf(ctx, arg)
 	} else {
-		r0 = ret.Get(0).(sqlc.Player)
+		r0 = ret.Get(0).(db.Player)
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, sqlc.UpdateAvatarParams) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, db.UpdateAvatarParams) error); ok {
 		r1 = rf(ctx, arg)
 	} else {
 		r1 = ret.Error(1)
@@ -1575,48 +1632,48 @@ type MockStorer_UpdateAvatar_Call struct {
 
 // UpdateAvatar is a helper method to define mock.On call
 //   - ctx context.Context
-//   - arg sqlc.UpdateAvatarParams
+//   - arg db.UpdateAvatarParams
 func (_e *MockStorer_Expecter) UpdateAvatar(ctx interface{}, arg interface{}) *MockStorer_UpdateAvatar_Call {
 	return &MockStorer_UpdateAvatar_Call{Call: _e.mock.On("UpdateAvatar", ctx, arg)}
 }
 
-func (_c *MockStorer_UpdateAvatar_Call) Run(run func(ctx context.Context, arg sqlc.UpdateAvatarParams)) *MockStorer_UpdateAvatar_Call {
+func (_c *MockStorer_UpdateAvatar_Call) Run(run func(ctx context.Context, arg db.UpdateAvatarParams)) *MockStorer_UpdateAvatar_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(sqlc.UpdateAvatarParams))
+		run(args[0].(context.Context), args[1].(db.UpdateAvatarParams))
 	})
 	return _c
 }
 
-func (_c *MockStorer_UpdateAvatar_Call) Return(_a0 sqlc.Player, _a1 error) *MockStorer_UpdateAvatar_Call {
+func (_c *MockStorer_UpdateAvatar_Call) Return(_a0 db.Player, _a1 error) *MockStorer_UpdateAvatar_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *MockStorer_UpdateAvatar_Call) RunAndReturn(run func(context.Context, sqlc.UpdateAvatarParams) (sqlc.Player, error)) *MockStorer_UpdateAvatar_Call {
+func (_c *MockStorer_UpdateAvatar_Call) RunAndReturn(run func(context.Context, db.UpdateAvatarParams) (db.Player, error)) *MockStorer_UpdateAvatar_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // UpdateGameState provides a mock function with given fields: ctx, arg
-func (_m *MockStorer) UpdateGameState(ctx context.Context, arg sqlc.UpdateGameStateParams) (sqlc.GameState, error) {
+func (_m *MockStorer) UpdateGameState(ctx context.Context, arg db.UpdateGameStateParams) (db.GameState, error) {
 	ret := _m.Called(ctx, arg)
 
 	if len(ret) == 0 {
 		panic("no return value specified for UpdateGameState")
 	}
 
-	var r0 sqlc.GameState
+	var r0 db.GameState
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, sqlc.UpdateGameStateParams) (sqlc.GameState, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, db.UpdateGameStateParams) (db.GameState, error)); ok {
 		return rf(ctx, arg)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, sqlc.UpdateGameStateParams) sqlc.GameState); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, db.UpdateGameStateParams) db.GameState); ok {
 		r0 = rf(ctx, arg)
 	} else {
-		r0 = ret.Get(0).(sqlc.GameState)
+		r0 = ret.Get(0).(db.GameState)
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, sqlc.UpdateGameStateParams) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, db.UpdateGameStateParams) error); ok {
 		r1 = rf(ctx, arg)
 	} else {
 		r1 = ret.Error(1)
@@ -1632,48 +1689,48 @@ type MockStorer_UpdateGameState_Call struct {
 
 // UpdateGameState is a helper method to define mock.On call
 //   - ctx context.Context
-//   - arg sqlc.UpdateGameStateParams
+//   - arg db.UpdateGameStateParams
 func (_e *MockStorer_Expecter) UpdateGameState(ctx interface{}, arg interface{}) *MockStorer_UpdateGameState_Call {
 	return &MockStorer_UpdateGameState_Call{Call: _e.mock.On("UpdateGameState", ctx, arg)}
 }
 
-func (_c *MockStorer_UpdateGameState_Call) Run(run func(ctx context.Context, arg sqlc.UpdateGameStateParams)) *MockStorer_UpdateGameState_Call {
+func (_c *MockStorer_UpdateGameState_Call) Run(run func(ctx context.Context, arg db.UpdateGameStateParams)) *MockStorer_UpdateGameState_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(sqlc.UpdateGameStateParams))
+		run(args[0].(context.Context), args[1].(db.UpdateGameStateParams))
 	})
 	return _c
 }
 
-func (_c *MockStorer_UpdateGameState_Call) Return(_a0 sqlc.GameState, _a1 error) *MockStorer_UpdateGameState_Call {
+func (_c *MockStorer_UpdateGameState_Call) Return(_a0 db.GameState, _a1 error) *MockStorer_UpdateGameState_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *MockStorer_UpdateGameState_Call) RunAndReturn(run func(context.Context, sqlc.UpdateGameStateParams) (sqlc.GameState, error)) *MockStorer_UpdateGameState_Call {
+func (_c *MockStorer_UpdateGameState_Call) RunAndReturn(run func(context.Context, db.UpdateGameStateParams) (db.GameState, error)) *MockStorer_UpdateGameState_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // UpdateNickname provides a mock function with given fields: ctx, arg
-func (_m *MockStorer) UpdateNickname(ctx context.Context, arg sqlc.UpdateNicknameParams) (sqlc.Player, error) {
+func (_m *MockStorer) UpdateNickname(ctx context.Context, arg db.UpdateNicknameParams) (db.Player, error) {
 	ret := _m.Called(ctx, arg)
 
 	if len(ret) == 0 {
 		panic("no return value specified for UpdateNickname")
 	}
 
-	var r0 sqlc.Player
+	var r0 db.Player
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, sqlc.UpdateNicknameParams) (sqlc.Player, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, db.UpdateNicknameParams) (db.Player, error)); ok {
 		return rf(ctx, arg)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, sqlc.UpdateNicknameParams) sqlc.Player); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, db.UpdateNicknameParams) db.Player); ok {
 		r0 = rf(ctx, arg)
 	} else {
-		r0 = ret.Get(0).(sqlc.Player)
+		r0 = ret.Get(0).(db.Player)
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, sqlc.UpdateNicknameParams) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, db.UpdateNicknameParams) error); ok {
 		r1 = rf(ctx, arg)
 	} else {
 		r1 = ret.Error(1)
@@ -1689,48 +1746,48 @@ type MockStorer_UpdateNickname_Call struct {
 
 // UpdateNickname is a helper method to define mock.On call
 //   - ctx context.Context
-//   - arg sqlc.UpdateNicknameParams
+//   - arg db.UpdateNicknameParams
 func (_e *MockStorer_Expecter) UpdateNickname(ctx interface{}, arg interface{}) *MockStorer_UpdateNickname_Call {
 	return &MockStorer_UpdateNickname_Call{Call: _e.mock.On("UpdateNickname", ctx, arg)}
 }
 
-func (_c *MockStorer_UpdateNickname_Call) Run(run func(ctx context.Context, arg sqlc.UpdateNicknameParams)) *MockStorer_UpdateNickname_Call {
+func (_c *MockStorer_UpdateNickname_Call) Run(run func(ctx context.Context, arg db.UpdateNicknameParams)) *MockStorer_UpdateNickname_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(sqlc.UpdateNicknameParams))
+		run(args[0].(context.Context), args[1].(db.UpdateNicknameParams))
 	})
 	return _c
 }
 
-func (_c *MockStorer_UpdateNickname_Call) Return(_a0 sqlc.Player, _a1 error) *MockStorer_UpdateNickname_Call {
+func (_c *MockStorer_UpdateNickname_Call) Return(_a0 db.Player, _a1 error) *MockStorer_UpdateNickname_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *MockStorer_UpdateNickname_Call) RunAndReturn(run func(context.Context, sqlc.UpdateNicknameParams) (sqlc.Player, error)) *MockStorer_UpdateNickname_Call {
+func (_c *MockStorer_UpdateNickname_Call) RunAndReturn(run func(context.Context, db.UpdateNicknameParams) (db.Player, error)) *MockStorer_UpdateNickname_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // UpdateRoomState provides a mock function with given fields: ctx, arg
-func (_m *MockStorer) UpdateRoomState(ctx context.Context, arg sqlc.UpdateRoomStateParams) (sqlc.Room, error) {
+func (_m *MockStorer) UpdateRoomState(ctx context.Context, arg db.UpdateRoomStateParams) (db.Room, error) {
 	ret := _m.Called(ctx, arg)
 
 	if len(ret) == 0 {
 		panic("no return value specified for UpdateRoomState")
 	}
 
-	var r0 sqlc.Room
+	var r0 db.Room
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, sqlc.UpdateRoomStateParams) (sqlc.Room, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, db.UpdateRoomStateParams) (db.Room, error)); ok {
 		return rf(ctx, arg)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, sqlc.UpdateRoomStateParams) sqlc.Room); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, db.UpdateRoomStateParams) db.Room); ok {
 		r0 = rf(ctx, arg)
 	} else {
-		r0 = ret.Get(0).(sqlc.Room)
+		r0 = ret.Get(0).(db.Room)
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, sqlc.UpdateRoomStateParams) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, db.UpdateRoomStateParams) error); ok {
 		r1 = rf(ctx, arg)
 	} else {
 		r1 = ret.Error(1)
@@ -1746,30 +1803,30 @@ type MockStorer_UpdateRoomState_Call struct {
 
 // UpdateRoomState is a helper method to define mock.On call
 //   - ctx context.Context
-//   - arg sqlc.UpdateRoomStateParams
+//   - arg db.UpdateRoomStateParams
 func (_e *MockStorer_Expecter) UpdateRoomState(ctx interface{}, arg interface{}) *MockStorer_UpdateRoomState_Call {
 	return &MockStorer_UpdateRoomState_Call{Call: _e.mock.On("UpdateRoomState", ctx, arg)}
 }
 
-func (_c *MockStorer_UpdateRoomState_Call) Run(run func(ctx context.Context, arg sqlc.UpdateRoomStateParams)) *MockStorer_UpdateRoomState_Call {
+func (_c *MockStorer_UpdateRoomState_Call) Run(run func(ctx context.Context, arg db.UpdateRoomStateParams)) *MockStorer_UpdateRoomState_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(sqlc.UpdateRoomStateParams))
+		run(args[0].(context.Context), args[1].(db.UpdateRoomStateParams))
 	})
 	return _c
 }
 
-func (_c *MockStorer_UpdateRoomState_Call) Return(_a0 sqlc.Room, _a1 error) *MockStorer_UpdateRoomState_Call {
+func (_c *MockStorer_UpdateRoomState_Call) Return(_a0 db.Room, _a1 error) *MockStorer_UpdateRoomState_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *MockStorer_UpdateRoomState_Call) RunAndReturn(run func(context.Context, sqlc.UpdateRoomStateParams) (sqlc.Room, error)) *MockStorer_UpdateRoomState_Call {
+func (_c *MockStorer_UpdateRoomState_Call) RunAndReturn(run func(context.Context, db.UpdateRoomStateParams) (db.Room, error)) *MockStorer_UpdateRoomState_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // UpsertFibbingItVote provides a mock function with given fields: ctx, arg
-func (_m *MockStorer) UpsertFibbingItVote(ctx context.Context, arg sqlc.UpsertFibbingItVoteParams) error {
+func (_m *MockStorer) UpsertFibbingItVote(ctx context.Context, arg db.UpsertFibbingItVoteParams) error {
 	ret := _m.Called(ctx, arg)
 
 	if len(ret) == 0 {
@@ -1777,7 +1834,7 @@ func (_m *MockStorer) UpsertFibbingItVote(ctx context.Context, arg sqlc.UpsertFi
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, sqlc.UpsertFibbingItVoteParams) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, db.UpsertFibbingItVoteParams) error); ok {
 		r0 = rf(ctx, arg)
 	} else {
 		r0 = ret.Error(0)
@@ -1793,14 +1850,14 @@ type MockStorer_UpsertFibbingItVote_Call struct {
 
 // UpsertFibbingItVote is a helper method to define mock.On call
 //   - ctx context.Context
-//   - arg sqlc.UpsertFibbingItVoteParams
+//   - arg db.UpsertFibbingItVoteParams
 func (_e *MockStorer_Expecter) UpsertFibbingItVote(ctx interface{}, arg interface{}) *MockStorer_UpsertFibbingItVote_Call {
 	return &MockStorer_UpsertFibbingItVote_Call{Call: _e.mock.On("UpsertFibbingItVote", ctx, arg)}
 }
 
-func (_c *MockStorer_UpsertFibbingItVote_Call) Run(run func(ctx context.Context, arg sqlc.UpsertFibbingItVoteParams)) *MockStorer_UpsertFibbingItVote_Call {
+func (_c *MockStorer_UpsertFibbingItVote_Call) Run(run func(ctx context.Context, arg db.UpsertFibbingItVoteParams)) *MockStorer_UpsertFibbingItVote_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(sqlc.UpsertFibbingItVoteParams))
+		run(args[0].(context.Context), args[1].(db.UpsertFibbingItVoteParams))
 	})
 	return _c
 }
@@ -1810,7 +1867,7 @@ func (_c *MockStorer_UpsertFibbingItVote_Call) Return(_a0 error) *MockStorer_Ups
 	return _c
 }
 
-func (_c *MockStorer_UpsertFibbingItVote_Call) RunAndReturn(run func(context.Context, sqlc.UpsertFibbingItVoteParams) error) *MockStorer_UpsertFibbingItVote_Call {
+func (_c *MockStorer_UpsertFibbingItVote_Call) RunAndReturn(run func(context.Context, db.UpsertFibbingItVoteParams) error) *MockStorer_UpsertFibbingItVote_Call {
 	_c.Call.Return(run)
 	return _c
 }

@@ -1,4 +1,4 @@
-package sqlc
+package db
 
 import (
 	"errors"
@@ -8,13 +8,13 @@ import (
 
 type DB struct {
 	*Queries
-	db *pgxpool.Pool
+	pool *pgxpool.Pool
 }
 
-func NewDB(db *pgxpool.Pool) (DB, error) {
-	queries := New(db)
+func NewDB(pool *pgxpool.Pool) (DB, error) {
+	queries := New(pool)
 	store := DB{
-		db:      db,
+		pool:    pool,
 		Queries: queries,
 	}
 

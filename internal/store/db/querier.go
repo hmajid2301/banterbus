@@ -2,7 +2,7 @@
 // versions:
 //   sqlc v1.27.0
 
-package sqlc
+package db
 
 import (
 	"context"
@@ -24,6 +24,7 @@ type Querier interface {
 	GetAllPlayerByRoomCode(ctx context.Context, roomCode string) ([]GetAllPlayerByRoomCodeRow, error)
 	GetAllPlayersInRoom(ctx context.Context, playerID uuid.UUID) ([]GetAllPlayersInRoomRow, error)
 	GetCurrentQuestionByPlayerID(ctx context.Context, id uuid.UUID) (GetCurrentQuestionByPlayerIDRow, error)
+	GetGameState(ctx context.Context, id uuid.UUID) (GameState, error)
 	GetGameStateByPlayerID(ctx context.Context, playerID uuid.UUID) (GameState, error)
 	GetLatestRoundByPlayerID(ctx context.Context, playerID uuid.UUID) (GetLatestRoundByPlayerIDRow, error)
 	GetPlayerByID(ctx context.Context, id uuid.UUID) (Player, error)
@@ -31,7 +32,7 @@ type Querier interface {
 	GetRandomQuestionInGroup(ctx context.Context, arg GetRandomQuestionInGroupParams) (GetRandomQuestionInGroupRow, error)
 	GetRoomByCode(ctx context.Context, roomCode string) (Room, error)
 	GetRoomByPlayerID(ctx context.Context, playerID uuid.UUID) (Room, error)
-	GetVotingState(ctx context.Context, roundID uuid.UUID) ([]GetVotingStateRow, error)
+	GetVotingState(ctx context.Context, id uuid.UUID) ([]GetVotingStateRow, error)
 	RemovePlayerFromRoom(ctx context.Context, playerID uuid.UUID) (RoomsPlayer, error)
 	ToggleAnswerIsReady(ctx context.Context, playerID uuid.UUID) (FibbingItAnswer, error)
 	TogglePlayerIsReady(ctx context.Context, id uuid.UUID) (Player, error)

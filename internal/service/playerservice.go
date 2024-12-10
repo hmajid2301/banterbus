@@ -7,7 +7,7 @@ import (
 
 	"github.com/google/uuid"
 
-	sqlc "gitlab.com/hmajid2301/banterbus/internal/store/db"
+	"gitlab.com/hmajid2301/banterbus/internal/store/db"
 )
 
 type PlayerService struct {
@@ -25,7 +25,7 @@ func (p *PlayerService) UpdateNickname(ctx context.Context, nickname string, pla
 		return Lobby{}, err
 	}
 
-	if room.RoomState != sqlc.ROOMSTATE_CREATED.String() {
+	if room.RoomState != db.ROOMSTATE_CREATED.String() {
 		return Lobby{}, fmt.Errorf("room is not in CREATED state")
 	}
 
@@ -40,7 +40,7 @@ func (p *PlayerService) UpdateNickname(ctx context.Context, nickname string, pla
 		}
 	}
 
-	_, err = p.store.UpdateNickname(ctx, sqlc.UpdateNicknameParams{
+	_, err = p.store.UpdateNickname(ctx, db.UpdateNicknameParams{
 		Nickname: nickname,
 		ID:       playerID,
 	})
@@ -63,13 +63,13 @@ func (p *PlayerService) GenerateNewAvatar(ctx context.Context, playerID uuid.UUI
 		return Lobby{}, err
 	}
 
-	if room.RoomState != sqlc.ROOMSTATE_CREATED.String() {
+	if room.RoomState != db.ROOMSTATE_CREATED.String() {
 		return Lobby{}, fmt.Errorf("room is not in CREATED state")
 	}
 
 	avatar := p.randomizer.GetAvatar()
 
-	_, err = p.store.UpdateAvatar(ctx, sqlc.UpdateAvatarParams{
+	_, err = p.store.UpdateAvatar(ctx, db.UpdateAvatarParams{
 		Avatar: avatar,
 		ID:     playerID,
 	})
@@ -92,7 +92,7 @@ func (p *PlayerService) TogglePlayerIsReady(ctx context.Context, playerID uuid.U
 		return Lobby{}, err
 	}
 
-	if room.RoomState != sqlc.ROOMSTATE_CREATED.String() {
+	if room.RoomState != db.ROOMSTATE_CREATED.String() {
 		return Lobby{}, fmt.Errorf("room is not in CREATED state")
 	}
 
@@ -111,13 +111,13 @@ func (p *PlayerService) TogglePlayerIsReady(ctx context.Context, playerID uuid.U
 }
 
 // TODO: move these to their own service file don't really belong
-func (p *PlayerService) GetRoomState(ctx context.Context, playerID uuid.UUID) (sqlc.RoomState, error) {
+func (p *PlayerService) GetRoomState(ctx context.Context, playerID uuid.UUID) (db.RoomState, error) {
 	room, err := p.store.GetRoomByPlayerID(ctx, playerID)
 	if err != nil {
-		return sqlc.ROOMSTATE_CREATED, err
+		return db.ROOMSTATE_CREATED, err
 	}
 
-	roomState, err := sqlc.RoomStateFromString(room.RoomState)
+	roomState, err := db.RoomStateFromString(room.RoomState)
 	return roomState, err
 }
 
@@ -130,13 +130,13 @@ func (p *PlayerService) GetLobby(ctx context.Context, playerID uuid.UUID) (Lobby
 	room := getLobbyPlayers(players, players[0].RoomCode)
 	return room, err
 }
-func (p *PlayerService) GetGameState(ctx context.Context, playerID uuid.UUID) (sqlc.GameStateEnum, error) {
+func (p *PlayerService) GetGameState(ctx context.Context, playerID uuid.UUID) (db.GameStateEnum, error) {
 	game, err := p.store.GetGameStateByPlayerID(ctx, playerID)
 	if err != nil {
-		return sqlc.GAMESTATE_FIBBING_IT_SHOW_QUESTION, err
+		return db.GAMESTATE_FIBBING_IT_SHOW_QUESTION, err
 	}
 
-	gameState, err := sqlc.GameStateFromString(game.State)
+	gameState, err := db.GameStateFromString(game.State)
 	return gameState, err
 }
 
@@ -158,47 +158,13 @@ func (p *PlayerService) GetQuestionState(ctx context.Context, playerID uuid.UUID
 	}
 
 	gameState := QuestionState{
-		Players:   players,
-		Round:     int(g.Round),
-		RoundType: g.RoundType,
-		RoomCode:  g.RoomCode,
-		Deadline:  time.Until(g.SubmitDeadline.Time),
+		GameStateID: g.GameStateID,
+		Players:     players,
+		Round:       int(g.Round),
+		RoundType:   g.RoundType,
+		RoomCode:    g.RoomCode,
+		Deadline:    time.Until(g.SubmitDeadline.Time),
 	}
 
 	return gameState, nil
-}
-
-func (p *PlayerService) GetVotingState(ctx context.Context, playerID uuid.UUID) (VotingState, error) {
-	round, err := p.store.GetLatestRoundByPlayerID(ctx, playerID)
-	if err != nil {
-		return VotingState{}, err
-	}
-
-	votes, err := p.store.GetVotingState(ctx, round.ID)
-	if err != nil {
-		return VotingState{}, err
-	}
-
-	var votingPlayers []PlayerWithVoting
-	for _, p := range votes {
-		votingPlayers = append(votingPlayers, PlayerWithVoting{
-			ID:       p.VotedForPlayerID,
-			Nickname: p.Nickname,
-			Avatar:   string(p.Avatar),
-			Votes:    int(p.VoteCount),
-		})
-	}
-
-	if len(votingPlayers) == 0 {
-		return VotingState{}, fmt.Errorf("no players found in room")
-	}
-
-	votingState := VotingState{
-		Round:    int(round.Round),
-		Players:  votingPlayers,
-		Question: votes[0].Question,
-		Deadline: time.Until(votes[0].SubmitDeadline.Time),
-	}
-
-	return votingState, nil
 }

@@ -3,7 +3,7 @@
 //   sqlc v1.27.0
 // source: query.sql
 
-package sqlc
+package db
 
 import (
 	"context"
@@ -471,6 +471,32 @@ func (q *Queries) GetCurrentQuestionByPlayerID(ctx context.Context, id uuid.UUID
 	return i, err
 }
 
+const getGameState = `-- name: GetGameState :one
+SELECT
+    gs.id,
+    gs.created_at,
+    gs.updated_at,
+    gs.room_id,
+    gs.submit_deadline,
+    gs.state
+FROM game_state gs
+WHERE gs.id = $1
+`
+
+func (q *Queries) GetGameState(ctx context.Context, id uuid.UUID) (GameState, error) {
+	row := q.db.QueryRow(ctx, getGameState, id)
+	var i GameState
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.RoomID,
+		&i.SubmitDeadline,
+		&i.State,
+	)
+	return i, err
+}
+
 const getGameStateByPlayerID = `-- name: GetGameStateByPlayerID :one
 SELECT
     gs.id,
@@ -679,38 +705,47 @@ func (q *Queries) GetRoomByPlayerID(ctx context.Context, playerID uuid.UUID) (Ro
 }
 
 const getVotingState = `-- name: GetVotingState :many
-SELECT
-    fiv.voted_for_player_id,
-    COUNT(*) AS vote_count,
+SELECT 
+    fir.round AS round,
+    q.question,
+    gs.submit_deadline,
+    p.id AS player_id,
     p.nickname,
     p.avatar,
-    fia.answer,
-    q.question,
-    fir.round,
-    gs.submit_deadline
-FROM fibbing_it_votes fiv
-JOIN players p ON fiv.voted_for_player_id = p.id
-JOIN fibbing_it_answers fia ON fiv.voted_for_player_id = fia.player_id AND fiv.round_id = fia.round_id
-JOIN fibbing_it_rounds fir ON fiv.round_id = fir.id
+    COALESCE(COUNT(fv.id), 0) AS votes,
+    fia.answer
+FROM fibbing_it_rounds fir
+JOIN questions q ON fir.fibber_question_id = q.id
 JOIN game_state gs ON fir.game_state_id = gs.id
-JOIN questions q ON fir.normal_question_id = q.id
-WHERE fiv.round_id = $1
-GROUP BY fiv.voted_for_player_id
+JOIN rooms_players rp ON rp.room_id = fir.room_id
+JOIN players p ON p.id = rp.player_id
+LEFT JOIN fibbing_it_answers fia ON fia.round_id = fir.id AND fia.player_id = p.id
+LEFT JOIN fibbing_it_votes fv ON fv.round_id = fir.id AND fv.voted_for_player_id = p.id
+WHERE fir.id = $1
+GROUP BY
+    fir.round,
+    q.question,
+    gs.submit_deadline,
+    p.id,
+    p.nickname,
+    p.avatar,
+    fia.answer
+ORDER BY votes DESC, p.nickname
 `
 
 type GetVotingStateRow struct {
-	VotedForPlayerID uuid.UUID
-	VoteCount        int64
-	Nickname         string
-	Avatar           []byte
-	Answer           string
-	Question         string
-	Round            int32
-	SubmitDeadline   pgtype.Timestamp
+	Round          int32
+	Question       string
+	SubmitDeadline pgtype.Timestamp
+	PlayerID       uuid.UUID
+	Nickname       string
+	Avatar         []byte
+	Votes          interface{}
+	Answer         pgtype.Text
 }
 
-func (q *Queries) GetVotingState(ctx context.Context, roundID uuid.UUID) ([]GetVotingStateRow, error) {
-	rows, err := q.db.Query(ctx, getVotingState, roundID)
+func (q *Queries) GetVotingState(ctx context.Context, id uuid.UUID) ([]GetVotingStateRow, error) {
+	rows, err := q.db.Query(ctx, getVotingState, id)
 	if err != nil {
 		return nil, err
 	}
@@ -719,14 +754,14 @@ func (q *Queries) GetVotingState(ctx context.Context, roundID uuid.UUID) ([]GetV
 	for rows.Next() {
 		var i GetVotingStateRow
 		if err := rows.Scan(
-			&i.VotedForPlayerID,
-			&i.VoteCount,
+			&i.Round,
+			&i.Question,
+			&i.SubmitDeadline,
+			&i.PlayerID,
 			&i.Nickname,
 			&i.Avatar,
+			&i.Votes,
 			&i.Answer,
-			&i.Question,
-			&i.Round,
-			&i.SubmitDeadline,
 		); err != nil {
 			return nil, err
 		}

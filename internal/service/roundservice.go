@@ -10,7 +10,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 
-	sqlc "gitlab.com/hmajid2301/banterbus/internal/store/db"
+	"gitlab.com/hmajid2301/banterbus/internal/store/db"
 )
 
 type RoundService struct {
@@ -35,7 +35,7 @@ func (r *RoundService) SubmitAnswer(
 		return err
 	}
 
-	if room.RoomState != sqlc.ROOMSTATE_PLAYING.String() {
+	if room.RoomState != db.ROOMSTATE_PLAYING.String() {
 		return fmt.Errorf("room is not in PLAYING state")
 	}
 
@@ -48,7 +48,7 @@ func (r *RoundService) SubmitAnswer(
 		return fmt.Errorf("answer submission deadline has passed")
 	}
 
-	_, err = r.store.AddFibbingItAnswer(ctx, sqlc.AddFibbingItAnswerParams{
+	_, err = r.store.AddFibbingItAnswer(ctx, db.AddFibbingItAnswerParams{
 		ID:       r.randomizer.GetID(),
 		RoundID:  round.ID,
 		PlayerID: playerID,
@@ -68,7 +68,7 @@ func (r *RoundService) ToggleAnswerIsReady(
 		return false, err
 	}
 
-	if gameState.State != sqlc.GAMESTATE_FIBBING_IT_SHOW_QUESTION.String() {
+	if gameState.State != db.GAMESTATE_FIBBING_IT_SHOW_QUESTION.String() {
 		return false, fmt.Errorf("room game state is not in FIBBING_IT_SHOW_QUESTION state")
 	}
 
@@ -90,43 +90,33 @@ func (r *RoundService) ToggleAnswerIsReady(
 
 func (r *RoundService) UpdateStateToVoting(
 	ctx context.Context,
-	updateVoting UpdateVotingState,
+	gameStateID uuid.UUID,
+	playerID uuid.UUID,
+	deadline time.Time,
 ) (VotingState, error) {
-	_, err := r.store.UpdateGameState(ctx, sqlc.UpdateGameStateParams{
-		ID:             updateVoting.GameStateID,
-		SubmitDeadline: pgtype.Timestamp{Time: updateVoting.Deadline},
-		State:          sqlc.GAMESTATE_FIBBING_IT_VOTING.String(),
+	game, err := r.store.GetGameState(ctx, gameStateID)
+	if err != nil {
+		return VotingState{}, err
+	}
+
+	gameState, err := db.GameStateFromString(game.State)
+	if err != nil {
+		return VotingState{}, err
+	} else if gameState != db.GAMESTATE_FIBBING_IT_SHOW_QUESTION {
+		return VotingState{}, fmt.Errorf("game state is not in FIBBING_IT_SHOW_QUESTION state")
+	}
+
+	_, err = r.store.UpdateGameState(ctx, db.UpdateGameStateParams{
+		ID:             gameStateID,
+		SubmitDeadline: pgtype.Timestamp{Time: deadline, Valid: true},
+		State:          db.GAMESTATE_FIBBING_IT_VOTING.String(),
 	})
 	if err != nil {
 		return VotingState{}, err
 	}
 
-	var votingPlayer []PlayerWithVoting
-	var normalQuestion string
-	for _, player := range updateVoting.Players {
-		if player.Role == "normal" {
-			normalQuestion = player.Question
-		}
-		votingPlayer = append(votingPlayer, PlayerWithVoting{
-			ID:       player.ID,
-			Nickname: player.Nickname,
-			Avatar:   string(player.Avatar),
-		})
-	}
-
-	// INFO: Shouldn't happen
-	if len(votingPlayer) == 0 {
-		return VotingState{}, fmt.Errorf("no players in room")
-	}
-
-	// TODO: handle localistion will need to return one per player i think
-	votingState := VotingState{
-		Question: normalQuestion,
-		Players:  votingPlayer,
-		Round:    updateVoting.Round,
-	}
-
-	return votingState, nil
+	votingState, err := r.GetVotingState(ctx, playerID)
+	return votingState, err
 }
 
 func (r *RoundService) SubmitVote(
@@ -140,7 +130,7 @@ func (r *RoundService) SubmitVote(
 		return VotingState{}, err
 	}
 
-	if gameState.State != sqlc.GAMESTATE_FIBBING_IT_VOTING.String() {
+	if gameState.State != db.GAMESTATE_FIBBING_IT_VOTING.String() {
 		return VotingState{}, fmt.Errorf("game state is not in FIBBING_IT_VOTING state")
 	}
 
@@ -180,11 +170,15 @@ func (r *RoundService) SubmitVote(
 
 	var votingPlayers []PlayerWithVoting
 	for _, p := range playersWithVoteAndAnswers {
+		voteCount := 0
+		if vc, ok := p.Votes.(int); ok {
+			voteCount = vc
+		}
 		votingPlayers = append(votingPlayers, PlayerWithVoting{
-			ID:       p.VotedForPlayerID,
+			ID:       p.PlayerID,
 			Nickname: p.Nickname,
 			Avatar:   string(p.Avatar),
-			Votes:    int(p.VoteCount),
+			Votes:    voteCount,
 		})
 	}
 
@@ -201,4 +195,43 @@ func (r *RoundService) SubmitVote(
 	}
 
 	return votingState, err
+}
+
+func (r *RoundService) GetVotingState(ctx context.Context, playerID uuid.UUID) (VotingState, error) {
+	round, err := r.store.GetLatestRoundByPlayerID(ctx, playerID)
+	if err != nil {
+		return VotingState{}, err
+	}
+
+	votes, err := r.store.GetVotingState(ctx, round.ID)
+	if err != nil {
+		return VotingState{}, err
+	}
+
+	var votingPlayers []PlayerWithVoting
+	for _, p := range votes {
+		voteCount := 0
+		if vc, ok := p.Votes.(int); ok {
+			voteCount = vc
+		}
+		votingPlayers = append(votingPlayers, PlayerWithVoting{
+			ID:       p.PlayerID,
+			Nickname: p.Nickname,
+			Avatar:   string(p.Avatar),
+			Votes:    voteCount,
+		})
+	}
+
+	if len(votingPlayers) == 0 {
+		return VotingState{}, fmt.Errorf("no players in room")
+	}
+
+	votingState := VotingState{
+		Round:    int(round.Round),
+		Players:  votingPlayers,
+		Question: votes[0].Question,
+		Deadline: time.Until(votes[0].SubmitDeadline.Time),
+	}
+
+	return votingState, nil
 }

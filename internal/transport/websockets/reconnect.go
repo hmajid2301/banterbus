@@ -12,7 +12,7 @@ import (
 	"github.com/invopop/ctxi18n"
 
 	"gitlab.com/hmajid2301/banterbus/internal/service"
-	sqlc "gitlab.com/hmajid2301/banterbus/internal/store/db"
+	"gitlab.com/hmajid2301/banterbus/internal/store/db"
 	"gitlab.com/hmajid2301/banterbus/internal/views/sections"
 )
 
@@ -40,7 +40,7 @@ func (s Subscriber) Reconnect(ctx context.Context, playerID uuid.UUID) (bytes.Bu
 
 	var component templ.Component
 	switch roomState {
-	case sqlc.ROOMSTATE_CREATED:
+	case db.ROOMSTATE_CREATED:
 		lobby, err := s.playerService.GetLobby(ctx, playerID)
 		if err != nil {
 			clientErr := s.updateClientAboutErr(ctx, playerID, errStr)
@@ -55,16 +55,16 @@ func (s Subscriber) Reconnect(ctx context.Context, playerID uuid.UUID) (bytes.Bu
 		}
 
 		component = sections.Lobby(lobby.Code, lobby.Players, mePlayer)
-	case sqlc.ROOMSTATE_PLAYING:
+	case db.ROOMSTATE_PLAYING:
 		component, err = s.reconnectToPlayingGame(ctx, playerID)
 		if err != nil {
 			return buf, err
 		}
-	case sqlc.ROOMSTATE_PAUSED:
+	case db.ROOMSTATE_PAUSED:
 		return buf, fmt.Errorf("cannot reconnect game to paused game, as this is not implemented")
-	case sqlc.ROOMSTATE_ABANDONED:
+	case db.ROOMSTATE_ABANDONED:
 		return buf, fmt.Errorf("cannot reconnect game is abandoned")
-	case sqlc.ROOMSTATE_FINISHED:
+	case db.ROOMSTATE_FINISHED:
 		return buf, fmt.Errorf("cannot reconnect game is finished")
 	default:
 		return buf, fmt.Errorf("unknown room state: %s", roomState)
@@ -87,7 +87,7 @@ func (s Subscriber) reconnectToPlayingGame(ctx context.Context, playerID uuid.UU
 	}
 
 	switch gameState {
-	case sqlc.GAMESTATE_FIBBING_IT_SHOW_QUESTION:
+	case db.GAMESTATE_FIBBING_IT_SHOW_QUESTION:
 		question, err := s.playerService.GetQuestionState(ctx, playerID)
 		if err != nil {
 			clientErr := s.updateClientAboutErr(ctx, playerID, errStr)
@@ -96,8 +96,8 @@ func (s Subscriber) reconnectToPlayingGame(ctx context.Context, playerID uuid.UU
 
 		showRole := false
 		component = sections.Question(question, question.Players[0], showRole)
-	case sqlc.GAMESTATE_FIBBING_IT_VOTING:
-		voting, err := s.playerService.GetVotingState(ctx, playerID)
+	case db.GAMESTATE_FIBBING_IT_VOTING:
+		voting, err := s.roundService.GetVotingState(ctx, playerID)
 		if err != nil {
 			clientErr := s.updateClientAboutErr(ctx, playerID, errStr)
 			return component, errors.Join(clientErr, err)

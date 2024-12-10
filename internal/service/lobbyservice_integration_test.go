@@ -10,7 +10,7 @@ import (
 
 	"gitlab.com/hmajid2301/banterbus/internal/service"
 	"gitlab.com/hmajid2301/banterbus/internal/service/randomizer"
-	sqlc "gitlab.com/hmajid2301/banterbus/internal/store/db"
+	db "gitlab.com/hmajid2301/banterbus/internal/store/db"
 )
 
 var defaultHostPlayerID = uuid.MustParse("0193a5e6-50db-7082-b0dd-42d7c88dd3ba")
@@ -21,10 +21,10 @@ const defaultOtherPlayerNickname = "another_player"
 
 func TestIntegrationLobbyCreate(t *testing.T) {
 	t.Run("Should successfully create room", func(t *testing.T) {
-		db, teardown := setupSubtest(t)
+		pool, teardown := setupSubtest(t)
 		defer teardown()
 
-		str, err := sqlc.NewDB(db)
+		str, err := db.NewDB(pool)
 		assert.NoError(t, err)
 		randomizer := randomizer.NewUserRandomizer()
 
@@ -47,10 +47,10 @@ func TestIntegrationLobbyCreate(t *testing.T) {
 	})
 
 	t.Run("Should create room successfully, when player specifies their own nickname", func(t *testing.T) {
-		db, teardown := setupSubtest(t)
+		pool, teardown := setupSubtest(t)
 		defer teardown()
 
-		str, err := sqlc.NewDB(db)
+		str, err := db.NewDB(pool)
 		assert.NoError(t, err)
 		randomizer := randomizer.NewUserRandomizer()
 
@@ -72,10 +72,10 @@ func TestIntegrationLobbyCreate(t *testing.T) {
 
 func TestIntegrationLobbyJoin(t *testing.T) {
 	t.Run("Should successfully join room", func(t *testing.T) {
-		db, teardown := setupSubtest(t)
+		pool, teardown := setupSubtest(t)
 		defer teardown()
 
-		str, err := sqlc.NewDB(db)
+		str, err := db.NewDB(pool)
 		assert.NoError(t, err)
 		randomizer := randomizer.NewUserRandomizer()
 
@@ -103,10 +103,10 @@ func TestIntegrationLobbyJoin(t *testing.T) {
 	})
 
 	t.Run("Should successfully join room, with nickname", func(t *testing.T) {
-		db, teardown := setupSubtest(t)
+		pool, teardown := setupSubtest(t)
 		defer teardown()
 
-		str, err := sqlc.NewDB(db)
+		str, err := db.NewDB(pool)
 		assert.NoError(t, err)
 		randomizer := randomizer.NewUserRandomizer()
 
@@ -125,10 +125,10 @@ func TestIntegrationLobbyJoin(t *testing.T) {
 	})
 
 	t.Run("Should fail to join room where room code doesn't exist", func(t *testing.T) {
-		db, teardown := setupSubtest(t)
+		pool, teardown := setupSubtest(t)
 		defer teardown()
 
-		str, err := sqlc.NewDB(db)
+		str, err := db.NewDB(pool)
 		assert.NoError(t, err)
 		randomizer := randomizer.NewUserRandomizer()
 
@@ -143,10 +143,10 @@ func TestIntegrationLobbyJoin(t *testing.T) {
 	})
 
 	t.Run("Should fail to join room where not in CREATED state", func(t *testing.T) {
-		db, teardown := setupSubtest(t)
+		pool, teardown := setupSubtest(t)
 		defer teardown()
 
-		str, err := sqlc.NewDB(db)
+		str, err := db.NewDB(pool)
 		assert.NoError(t, err)
 		randomizer := randomizer.NewUserRandomizer()
 
@@ -156,7 +156,7 @@ func TestIntegrationLobbyJoin(t *testing.T) {
 		lobby, err := createRoom(ctx, srv)
 		assert.NoError(t, err)
 
-		_, err = db.Exec(
+		_, err = pool.Exec(
 			ctx,
 			"UPDATE rooms SET room_state = 'PLAYING' WHERE room_code = $1",
 			lobby.Code,
@@ -170,10 +170,10 @@ func TestIntegrationLobbyJoin(t *testing.T) {
 
 func TestIntegrationLobbyKickPlayer(t *testing.T) {
 	t.Run("Should successfully kick player from room", func(t *testing.T) {
-		db, teardown := setupSubtest(t)
+		pool, teardown := setupSubtest(t)
 		defer teardown()
 
-		str, err := sqlc.NewDB(db)
+		str, err := db.NewDB(pool)
 		assert.NoError(t, err)
 		randomizer := randomizer.NewUserRandomizer()
 
@@ -190,10 +190,10 @@ func TestIntegrationLobbyKickPlayer(t *testing.T) {
 	})
 
 	t.Run("Should fail to kick player because room code does not exist", func(t *testing.T) {
-		db, teardown := setupSubtest(t)
+		pool, teardown := setupSubtest(t)
 		defer teardown()
 
-		str, err := sqlc.NewDB(db)
+		str, err := db.NewDB(pool)
 		assert.NoError(t, err)
 		randomizer := randomizer.NewUserRandomizer()
 
@@ -207,10 +207,10 @@ func TestIntegrationLobbyKickPlayer(t *testing.T) {
 	})
 
 	t.Run("Should fail to kick player is not host of the room", func(t *testing.T) {
-		db, teardown := setupSubtest(t)
+		pool, teardown := setupSubtest(t)
 		defer teardown()
 
-		str, err := sqlc.NewDB(db)
+		str, err := db.NewDB(pool)
 		assert.NoError(t, err)
 		randomizer := randomizer.NewUserRandomizer()
 
@@ -224,10 +224,10 @@ func TestIntegrationLobbyKickPlayer(t *testing.T) {
 	})
 
 	t.Run("Should fail to kick player because room is not in CREATED state", func(t *testing.T) {
-		db, teardown := setupSubtest(t)
+		pool, teardown := setupSubtest(t)
 		defer teardown()
 
-		str, err := sqlc.NewDB(db)
+		str, err := db.NewDB(pool)
 		assert.NoError(t, err)
 		randomizer := randomizer.NewUserRandomizer()
 
@@ -236,7 +236,7 @@ func TestIntegrationLobbyKickPlayer(t *testing.T) {
 		lobby, err := lobbyWithTwoPlayers(ctx, srv)
 		assert.NoError(t, err)
 
-		_, err = db.Exec(
+		_, err = pool.Exec(
 			ctx,
 			"UPDATE rooms SET room_state = 'PLAYING' WHERE room_code = $1",
 			lobby.Code,
@@ -248,10 +248,10 @@ func TestIntegrationLobbyKickPlayer(t *testing.T) {
 	})
 
 	t.Run("Should fail to kick player because player with nickname not in room", func(t *testing.T) {
-		db, teardown := setupSubtest(t)
+		pool, teardown := setupSubtest(t)
 		defer teardown()
 
-		str, err := sqlc.NewDB(db)
+		str, err := db.NewDB(pool)
 		assert.NoError(t, err)
 		randomizer := randomizer.NewUserRandomizer()
 
@@ -267,10 +267,10 @@ func TestIntegrationLobbyKickPlayer(t *testing.T) {
 
 func TestIntegrationLobbyStart(t *testing.T) {
 	t.Run("Should successfully start game", func(t *testing.T) {
-		db, teardown := setupSubtest(t)
+		pool, teardown := setupSubtest(t)
 		defer teardown()
 
-		str, err := sqlc.NewDB(db)
+		str, err := db.NewDB(pool)
 		assert.NoError(t, err)
 		randomizer := randomizer.NewUserRandomizer()
 
@@ -316,10 +316,10 @@ func TestIntegrationLobbyStart(t *testing.T) {
 	})
 
 	t.Run("Should fail to start game because room not found", func(t *testing.T) {
-		db, teardown := setupSubtest(t)
+		pool, teardown := setupSubtest(t)
 		defer teardown()
 
-		str, err := sqlc.NewDB(db)
+		str, err := db.NewDB(pool)
 		assert.NoError(t, err)
 		randomizer := randomizer.NewUserRandomizer()
 
@@ -340,10 +340,10 @@ func TestIntegrationLobbyStart(t *testing.T) {
 	})
 
 	t.Run("Should fail to start game because player starting is not host of the room", func(t *testing.T) {
-		db, teardown := setupSubtest(t)
+		pool, teardown := setupSubtest(t)
 		defer teardown()
 
-		str, err := sqlc.NewDB(db)
+		str, err := db.NewDB(pool)
 		assert.NoError(t, err)
 		randomizer := randomizer.NewUserRandomizer()
 
@@ -364,10 +364,10 @@ func TestIntegrationLobbyStart(t *testing.T) {
 	})
 
 	t.Run("Should fail to start game because room is not in CREATED state", func(t *testing.T) {
-		db, teardown := setupSubtest(t)
+		pool, teardown := setupSubtest(t)
 		defer teardown()
 
-		str, err := sqlc.NewDB(db)
+		str, err := db.NewDB(pool)
 		assert.NoError(t, err)
 		randomizer := randomizer.NewUserRandomizer()
 
@@ -382,7 +382,7 @@ func TestIntegrationLobbyStart(t *testing.T) {
 		_, err = plySrv.TogglePlayerIsReady(ctx, defaultOtherPlayerID)
 		assert.NoError(t, err)
 
-		_, err = db.Exec(
+		_, err = pool.Exec(
 			ctx,
 			"UPDATE rooms SET room_state = 'PLAYING' WHERE room_code = $1",
 			lobby.Code,
@@ -395,10 +395,10 @@ func TestIntegrationLobbyStart(t *testing.T) {
 	})
 
 	t.Run("Should fail to start game as there is only one player in room", func(t *testing.T) {
-		db, teardown := setupSubtest(t)
+		pool, teardown := setupSubtest(t)
 		defer teardown()
 
-		str, err := sqlc.NewDB(db)
+		str, err := db.NewDB(pool)
 		assert.NoError(t, err)
 		randomizer := randomizer.NewUserRandomizer()
 
@@ -413,10 +413,10 @@ func TestIntegrationLobbyStart(t *testing.T) {
 	})
 
 	t.Run("Should fail to start game as not every one is ready", func(t *testing.T) {
-		db, teardown := setupSubtest(t)
+		pool, teardown := setupSubtest(t)
 		defer teardown()
 
-		str, err := sqlc.NewDB(db)
+		str, err := db.NewDB(pool)
 		assert.NoError(t, err)
 		randomizer := randomizer.NewUserRandomizer()
 

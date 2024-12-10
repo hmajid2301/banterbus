@@ -26,7 +26,7 @@ import (
 	"gitlab.com/hmajid2301/banterbus/internal/logging"
 	"gitlab.com/hmajid2301/banterbus/internal/service"
 	"gitlab.com/hmajid2301/banterbus/internal/service/randomizer"
-	sqlc "gitlab.com/hmajid2301/banterbus/internal/store/db"
+	"gitlab.com/hmajid2301/banterbus/internal/store/db"
 	"gitlab.com/hmajid2301/banterbus/internal/store/pubsub"
 	"gitlab.com/hmajid2301/banterbus/internal/telemetry"
 	transporthttp "gitlab.com/hmajid2301/banterbus/internal/transport/http"
@@ -34,7 +34,7 @@ import (
 	"gitlab.com/hmajid2301/banterbus/internal/views"
 )
 
-//go:embed db/migrations/*.sql
+//go:embed internal/store/db/sqlc/migrations/*.sql
 var migrations embed.FS
 
 //go:embed static
@@ -82,11 +82,11 @@ func mainLogic() error {
 		return nil
 	}
 
-	db, err := pgxpool.NewWithConfig(ctx, pgxConfig)
+	pool, err := pgxpool.NewWithConfig(ctx, pgxConfig)
 	if err != nil {
 		return fmt.Errorf("failed to setup database: %w", err)
 	}
-	defer db.Close()
+	defer pool.Close()
 
 	otelShutdown, err := telemetry.SetupOTelSDK(ctx)
 	if err != nil {
@@ -98,12 +98,12 @@ func mainLogic() error {
 	}()
 
 	logger.Info("applying migrations")
-	err = runDBMigrations(db)
+	err = runDBMigrations(pool)
 	if err != nil {
 		return fmt.Errorf("failed to run migrations: %w", err)
 	}
 
-	str, err := sqlc.NewDB(db)
+	str, err := db.NewDB(pool)
 	if err != nil {
 		return fmt.Errorf("failed to setup store: %w", err)
 	}

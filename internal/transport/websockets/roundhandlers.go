@@ -11,7 +11,6 @@ import (
 
 	"gitlab.com/hmajid2301/banterbus/internal/config"
 	"gitlab.com/hmajid2301/banterbus/internal/service"
-	sqlc "gitlab.com/hmajid2301/banterbus/internal/store/db"
 )
 
 type RoundServicer interface {
@@ -22,8 +21,14 @@ type RoundServicer interface {
 		votedNickname string,
 		submittedAt time.Time,
 	) (service.VotingState, error)
-	UpdateStateToVoting(ctx context.Context, updateVoting service.UpdateVotingState) (service.VotingState, error)
+	UpdateStateToVoting(
+		ctx context.Context,
+		gameStateID uuid.UUID,
+		playerID uuid.UUID,
+		deadline time.Time,
+	) (service.VotingState, error)
 	ToggleAnswerIsReady(ctx context.Context, playerID uuid.UUID, submittedAt time.Time) (bool, error)
+	GetVotingState(ctx context.Context, playerID uuid.UUID) (service.VotingState, error)
 }
 
 func (s *SubmitAnswer) Handle(ctx context.Context, client *client, sub *Subscriber) error {
@@ -69,7 +74,7 @@ func (t *ToggleAnswerIsReady) Handle(ctx context.Context, client *client, sub *S
 	if allReady {
 		go func() {
 			time.Sleep(config.AllReadyToNextScreenFor)
-			MoveToVoting(ctx, sub, questionState.Players, questionState.GameStateID, questionState.Round)
+			MoveToVoting(ctx, sub, questionState.GameStateID, client.playerID)
 		}()
 	}
 
@@ -84,7 +89,7 @@ func (s *SubmitVote) Handle(ctx context.Context, client *client, sub *Subscriber
 		return errors.Join(clientErr, err)
 	}
 
-	err = sub.updateClientAboutVoting(ctx, votingState)
+	err = sub.updateClientsAboutVoting(ctx, votingState)
 	if err != nil {
 		sub.logger.Error("failed to update clients", slog.Any("error", err))
 	}
@@ -93,40 +98,23 @@ func (s *SubmitVote) Handle(ctx context.Context, client *client, sub *Subscriber
 }
 
 // TODO: we want to start a state machine, as everything will be time based started by backen by backend.
-func MoveToVoting(
-	ctx context.Context,
-	sub *Subscriber,
-	players []service.PlayerWithRole,
-	gameStateID uuid.UUID,
-	round int,
-) {
-	// TODO: Maybe mixing businsess logic with transport logic here look at fixing this
-	gameState, err := sub.playerService.GetGameState(ctx, gameStateID)
+func MoveToVoting(ctx context.Context, sub *Subscriber, gameStateID uuid.UUID, playerID uuid.UUID) {
+	deadline := time.Now().UTC().Add(config.ShowVotingScreenFor)
+	votingState, err := sub.roundService.UpdateStateToVoting(ctx, gameStateID, playerID, deadline)
 	if err != nil {
-		sub.logger.Error("failed to get game state", slog.Any("error", err))
-		return
+		sub.logger.Error(
+			"failed to update game state to voting",
+			slog.Any("error", err),
+			slog.String("gameStateID", gameStateID.String()),
+		)
 	}
 
-	if gameState != sqlc.GAMESTATE_FIBBING_IT_SHOW_QUESTION {
-		sub.logger.WarnContext(ctx, "game state is not in FIBBING_IT_SHOW_QUESTION state")
-		return
-	}
-
-	deadline := time.Now().Add(config.ShowVotingScreenFor)
-	updateState := service.UpdateVotingState{
-		GameStateID: gameStateID,
-		Players:     players,
-		Deadline:    deadline,
-		Round:       round,
-	}
-
-	votingState, err := sub.roundService.UpdateStateToVoting(ctx, updateState)
+	err = sub.updateClientsAboutVoting(ctx, votingState)
 	if err != nil {
-		sub.logger.Error("failed to update game state", slog.Any("error", err))
-	}
-
-	err = sub.updateClientAboutVoting(ctx, votingState)
-	if err != nil {
-		sub.logger.Error("failed to move to voting", slog.Any("error", err))
+		sub.logger.Error(
+			"failed to update clients to voting screen",
+			slog.Any("error", err),
+			slog.String("gameStateID", gameStateID.String()),
+		)
 	}
 }

@@ -9,7 +9,7 @@ import (
 
 	"github.com/google/uuid"
 
-	sqlc "gitlab.com/hmajid2301/banterbus/internal/store/db"
+	"gitlab.com/hmajid2301/banterbus/internal/store/db"
 )
 
 type LobbyService struct {
@@ -46,32 +46,32 @@ func (r *LobbyService) Create(ctx context.Context, gameName string, newHostPlaye
 			return Lobby{}, err
 		}
 
-		if room.RoomState == sqlc.ROOMSTATE_FINISHED.String() || room.RoomState == sqlc.ROOMSTATE_ABANDONED.String() {
+		if room.RoomState == db.ROOMSTATE_FINISHED.String() || room.RoomState == db.ROOMSTATE_ABANDONED.String() {
 			break
 		}
 	}
 
-	addPlayer := sqlc.AddPlayerParams{
+	addPlayer := db.AddPlayerParams{
 		ID:       player.ID,
 		Avatar:   player.Avatar,
 		Nickname: player.Nickname,
 	}
 
 	roomID := r.randomizer.GetID()
-	addRoom := sqlc.AddRoomParams{
+	addRoom := db.AddRoomParams{
 		ID:         roomID,
 		GameName:   gameName,
 		RoomCode:   roomCode,
-		RoomState:  sqlc.ROOMSTATE_CREATED.String(),
+		RoomState:  db.ROOMSTATE_CREATED.String(),
 		HostPlayer: player.ID,
 	}
 
-	addRoomPlayer := sqlc.AddRoomPlayerParams{
+	addRoomPlayer := db.AddRoomPlayerParams{
 		RoomID:   addRoom.ID,
 		PlayerID: player.ID,
 	}
 
-	createRoom := sqlc.CreateRoomParams{
+	createRoom := db.CreateRoomParams{
 		Room:       addRoom,
 		Player:     addPlayer,
 		RoomPlayer: addRoomPlayer,
@@ -104,7 +104,7 @@ func (r *LobbyService) Join(ctx context.Context, roomCode string, playerID uuid.
 		return Lobby{}, err
 	}
 
-	if room.RoomState != sqlc.ROOMSTATE_CREATED.String() {
+	if room.RoomState != db.ROOMSTATE_CREATED.String() {
 		return Lobby{}, fmt.Errorf("room is not in CREATED state")
 	}
 
@@ -119,18 +119,18 @@ func (r *LobbyService) Join(ctx context.Context, roomCode string, playerID uuid.
 		}
 	}
 
-	addPlayer := sqlc.AddPlayerParams{
+	addPlayer := db.AddPlayerParams{
 		ID:       newPlayer.ID,
 		Avatar:   newPlayer.Avatar,
 		Nickname: newPlayer.Nickname,
 	}
 
-	addRoomPlayer := sqlc.AddRoomPlayerParams{
+	addRoomPlayer := db.AddRoomPlayerParams{
 		RoomID:   room.ID,
 		PlayerID: newPlayer.ID,
 	}
 
-	addPlayerToRoom := sqlc.AddPlayerToRoomArgs{
+	addPlayerToRoom := db.AddPlayerToRoomArgs{
 		Player:     addPlayer,
 		RoomPlayer: addRoomPlayer,
 	}
@@ -166,7 +166,7 @@ func (r *LobbyService) KickPlayer(
 		return Lobby{}, playerToKickID, fmt.Errorf("player is not the host of the room")
 	}
 
-	if room.RoomState != sqlc.ROOMSTATE_CREATED.String() {
+	if room.RoomState != db.ROOMSTATE_CREATED.String() {
 		return Lobby{}, playerToKickID, fmt.Errorf("room is not in CREATED state")
 	}
 
@@ -214,7 +214,7 @@ func (r *LobbyService) Start(
 		return QuestionState{}, fmt.Errorf("player is not the host of the room")
 	}
 
-	if room.RoomState != sqlc.ROOMSTATE_CREATED.String() {
+	if room.RoomState != db.ROOMSTATE_CREATED.String() {
 		return QuestionState{}, fmt.Errorf("room is not in CREATED state")
 	}
 
@@ -234,7 +234,7 @@ func (r *LobbyService) Start(
 		}
 	}
 
-	normalsQuestion, err := r.store.GetRandomQuestionByRound(ctx, sqlc.GetRandomQuestionByRoundParams{
+	normalsQuestion, err := r.store.GetRandomQuestionByRound(ctx, db.GetRandomQuestionByRoundParams{
 		GameName:     room.GameName,
 		LanguageCode: "en-GB",
 		Round:        "free_form",
@@ -243,7 +243,7 @@ func (r *LobbyService) Start(
 		return QuestionState{}, err
 	}
 
-	fibberQuestion, err := r.store.GetRandomQuestionInGroup(ctx, sqlc.GetRandomQuestionInGroupParams{
+	fibberQuestion, err := r.store.GetRandomQuestionInGroup(ctx, db.GetRandomQuestionInGroupParams{
 		GroupID: normalsQuestion.GroupID,
 		ID:      normalsQuestion.ID,
 	})
@@ -255,7 +255,7 @@ func (r *LobbyService) Start(
 	randomFibberLoc := r.randomizer.GetFibberIndex(len(playersInRoom))
 
 	gameStateID := r.randomizer.GetID()
-	err = r.store.StartGame(ctx, sqlc.StartGameArgs{
+	err = r.store.StartGame(ctx, db.StartGameArgs{
 		GameStateID:       gameStateID,
 		RoomID:            room.ID,
 		NormalsQuestionID: normalsQuestion.ID,

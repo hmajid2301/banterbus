@@ -73,7 +73,7 @@ func (s *StartGame) Handle(ctx context.Context, client *client, sub *Subscriber)
 	// TODO: we want to start a state machine, as everything will be time based started by backen by backend.
 	go func() {
 		time.Sleep(questionState.Deadline)
-		MoveToVoting(ctx, sub, questionState.Players, questionState.GameStateID, questionState.Round)
+		MoveToVoting(ctx, sub, client.playerID, questionState.GameStateID)
 	}()
 
 	return nil

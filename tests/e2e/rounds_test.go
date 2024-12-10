@@ -64,8 +64,10 @@ func TestE2ERounds(t *testing.T) {
 		err = otherPlayerPage.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Not Ready"}).Click()
 		require.NoError(t, err)
 
-		// b, err := otherPlayerPage.GetByText("Votes:").IsVisible()
-		// require.NoError(t, err)
-		// require.True(t, b)
+		b := otherPlayerPage.GetByText("Votes:")
+		expect.Locator(b).ToBeVisible()
+
+		b = hostPlayerPage.GetByText("Votes:")
+		expect.Locator(b).ToBeVisible()
 	})
 }

@@ -7,58 +7,57 @@ import (
 	"math/rand"
 	"os"
 	"path"
-	"path/filepath"
 	"runtime"
 
 	// INFO: Driver to connect to postgres to run DB migrations
 	_ "github.com/jackc/pgx/v5/stdlib"
 	pgxUUID "github.com/vgarvardt/pgx-google-uuid/v5"
 
+	"gitlab.com/hmajid2301/banterbus/internal/store/db"
+
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/pressly/goose/v3"
-
-	sqlc "gitlab.com/hmajid2301/banterbus/internal/store/db"
 )
 
 func CreateDB(ctx context.Context) (*pgxpool.Pool, error) {
 	uri := getURI()
-	db, err := pgxpool.New(ctx, uri)
+	pool, err := pgxpool.New(ctx, uri)
 	if err != nil {
-		return db, fmt.Errorf("failed to get database: %w", err)
+		return pool, fmt.Errorf("failed to get database: %w", err)
 	}
 
 	randomNumLimit := 1000000
 	dbName := fmt.Sprintf("banterbus_test_%d", rand.Intn(randomNumLimit))
-	_, err = db.Exec(ctx, fmt.Sprintf("CREATE DATABASE %s", dbName))
+	_, err = pool.Exec(ctx, fmt.Sprintf("CREATE DATABASE %s", dbName))
 	if err != nil {
-		return db, err
+		return pool, err
 	}
 
 	fmt.Println("test database name: ", dbName)
 
 	pgxConfig, err := pgxpool.ParseConfig(fmt.Sprintf("%s/%s", uri, dbName))
 	if err != nil {
-		return db, fmt.Errorf("failed to parse db uri: %w", err)
+		return pool, fmt.Errorf("failed to parse db uri: %w", err)
 	}
 
 	pgxConfig.AfterConnect = func(_ context.Context, conn *pgx.Conn) error {
 		pgxUUID.Register(conn.TypeMap())
 		return nil
 	}
-	db, err = pgxpool.NewWithConfig(ctx, pgxConfig)
+	pool, err = pgxpool.NewWithConfig(ctx, pgxConfig)
 	if err != nil {
-		return db, fmt.Errorf("failed to setup database: %w", err)
+		return pool, fmt.Errorf("failed to setup database: %w", err)
 	}
 
-	err = runDBMigrations(db)
+	err = runDBMigrations(pool)
 	if err != nil {
-		return db, err
+		return pool, err
 	}
 
-	err = FillWithDummyData(ctx, db)
-	return db, err
+	err = FillWithDummyData(ctx, pool)
+	return pool, err
 }
 
 func getURI() string {
@@ -69,14 +68,14 @@ func getURI() string {
 	return uri
 }
 
-func RemoveDB(ctx context.Context, db *pgxpool.Pool) error {
-	dbName, err := getDatabaseName(db)
+func RemoveDB(ctx context.Context, pool *pgxpool.Pool) error {
+	dbName, err := getDatabaseName(pool)
 	if err != nil {
 		return fmt.Errorf("failed to connect to database: %w", err)
 	}
-	defer db.Close()
+	defer pool.Close()
 
-	_, err = db.Exec(ctx, fmt.Sprintf("DROP DATABASE IF EXISTS %s", dbName))
+	_, err = pool.Exec(ctx, fmt.Sprintf("DROP DATABASE IF EXISTS %s", dbName))
 	if err != nil {
 		return fmt.Errorf("failed to drop database: %w", err)
 	}
@@ -102,10 +101,9 @@ func runDBMigrations(pool *pgxpool.Pool) error {
 		return fmt.Errorf("failed to get current filename")
 	}
 
-	dir := path.Join(path.Dir(filename), "..")
-	migrationFolder := filepath.Join(dir, "../")
+	dir := path.Join(path.Dir(filename), "..", "store", "db", "sqlc")
 
-	fs := os.DirFS(migrationFolder)
+	fs := os.DirFS(dir)
 	goose.SetBaseFS(fs)
 
 	if err := goose.SetDialect("postgres"); err != nil {
@@ -113,22 +111,22 @@ func runDBMigrations(pool *pgxpool.Pool) error {
 	}
 
 	cp := pool.Config().ConnConfig.ConnString()
-	db, err := sql.Open("pgx/v5", cp)
+	sqlDB, err := sql.Open("pgx/v5", cp)
 	if err != nil {
 		return err
 	}
 
-	err = goose.Up(db, "db/migrations")
+	err = goose.Up(sqlDB, "migrations")
 	return err
 }
 
-func FillWithDummyData(ctx context.Context, db *pgxpool.Pool) error {
-	tx, err := db.BeginTx(ctx, pgx.TxOptions{})
+func FillWithDummyData(ctx context.Context, pool *pgxpool.Pool) error {
+	tx, err := pool.BeginTx(ctx, pgx.TxOptions{})
 	if err != nil {
 		return err
 	}
 
-	queries := sqlc.New(db)
+	queries := db.New(pool)
 	groups := []string{
 		"programming_group",
 		"cat_group",
@@ -143,7 +141,7 @@ func FillWithDummyData(ctx context.Context, db *pgxpool.Pool) error {
 
 	for _, group := range groups {
 		groupNameToID[group] = map[string]uuid.UUID{}
-		questionGroup, err := queries.WithTx(tx).AddQuestionsGroup(ctx, sqlc.AddQuestionsGroupParams{
+		questionGroup, err := queries.WithTx(tx).AddQuestionsGroup(ctx, db.AddQuestionsGroupParams{
 			ID:        uuid.Must(uuid.NewV7()),
 			GroupName: group,
 			GroupType: "questions",
@@ -153,7 +151,7 @@ func FillWithDummyData(ctx context.Context, db *pgxpool.Pool) error {
 		}
 		groupNameToID[group]["questions"] = questionGroup.ID
 
-		answerGroup, err := queries.WithTx(tx).AddQuestionsGroup(ctx, sqlc.AddQuestionsGroupParams{
+		answerGroup, err := queries.WithTx(tx).AddQuestionsGroup(ctx, db.AddQuestionsGroupParams{
 			ID:        uuid.Must(uuid.NewV7()),
 			GroupName: group,
 			GroupType: "answers",
@@ -231,7 +229,7 @@ func FillWithDummyData(ctx context.Context, db *pgxpool.Pool) error {
 	for _, q := range questions {
 		groupID := groupNameToID[q.GroupName][q.GroupType]
 
-		_, err := queries.WithTx(tx).AddQuestion(ctx, sqlc.AddQuestionParams{
+		_, err := queries.WithTx(tx).AddQuestion(ctx, db.AddQuestionParams{
 			ID:           uuid.Must(uuid.NewV7()),
 			GameName:     q.GameName,
 			Round:        q.Round,

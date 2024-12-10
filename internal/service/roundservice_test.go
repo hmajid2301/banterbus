@@ -13,7 +13,7 @@ import (
 
 	"gitlab.com/hmajid2301/banterbus/internal/service"
 	mockService "gitlab.com/hmajid2301/banterbus/internal/service/mocks"
-	sqlc "gitlab.com/hmajid2301/banterbus/internal/store/db"
+	"gitlab.com/hmajid2301/banterbus/internal/store/db"
 )
 
 func TestRoundServiceSubmitAnswer(t *testing.T) {
@@ -28,24 +28,24 @@ func TestRoundServiceSubmitAnswer(t *testing.T) {
 		now := time.Now()
 		ctx := context.Background()
 
-		mockStore.EXPECT().GetRoomByPlayerID(ctx, playerID).Return(sqlc.Room{
+		mockStore.EXPECT().GetRoomByPlayerID(ctx, playerID).Return(db.Room{
 			ID:        roomID,
-			RoomState: sqlc.ROOMSTATE_PLAYING.String(),
+			RoomState: db.ROOMSTATE_PLAYING.String(),
 		}, nil)
 		mockStore.EXPECT().GetLatestRoundByPlayerID(ctx, playerID).Return(
-			sqlc.GetLatestRoundByPlayerIDRow{
+			db.GetLatestRoundByPlayerIDRow{
 				ID:             roundID,
 				SubmitDeadline: pgtype.Timestamp{Time: now.Add(1 * time.Hour)},
 			}, nil)
 
 		u := uuid.Must(uuid.NewV7())
 		mockRandomizer.EXPECT().GetID().Return(u)
-		mockStore.EXPECT().AddFibbingItAnswer(ctx, sqlc.AddFibbingItAnswerParams{
+		mockStore.EXPECT().AddFibbingItAnswer(ctx, db.AddFibbingItAnswerParams{
 			ID:       u,
 			RoundID:  roundID,
 			PlayerID: playerID,
 			Answer:   "My answer",
-		}).Return(sqlc.FibbingItAnswer{}, nil)
+		}).Return(db.FibbingItAnswer{}, nil)
 
 		err := srv.SubmitAnswer(ctx, playerID, "My answer", now)
 		assert.NoError(t, err)
@@ -61,7 +61,7 @@ func TestRoundServiceSubmitAnswer(t *testing.T) {
 
 		mockStore.EXPECT().
 			GetRoomByPlayerID(ctx, playerID).
-			Return(sqlc.Room{}, fmt.Errorf("failed to get room details"))
+			Return(db.Room{}, fmt.Errorf("failed to get room details"))
 		err := srv.SubmitAnswer(ctx, playerID, "My answer", now)
 		assert.Error(t, err)
 	})
@@ -74,9 +74,9 @@ func TestRoundServiceSubmitAnswer(t *testing.T) {
 		now := time.Now()
 		ctx := context.Background()
 
-		mockStore.EXPECT().GetRoomByPlayerID(ctx, playerID).Return(sqlc.Room{
+		mockStore.EXPECT().GetRoomByPlayerID(ctx, playerID).Return(db.Room{
 			ID:        roomID,
-			RoomState: sqlc.ROOMSTATE_CREATED.String(),
+			RoomState: db.ROOMSTATE_CREATED.String(),
 		}, nil)
 
 		err := srv.SubmitAnswer(ctx, playerID, "My answer", now)
@@ -91,12 +91,12 @@ func TestRoundServiceSubmitAnswer(t *testing.T) {
 		now := time.Now()
 		ctx := context.Background()
 
-		mockStore.EXPECT().GetRoomByPlayerID(ctx, playerID).Return(sqlc.Room{
+		mockStore.EXPECT().GetRoomByPlayerID(ctx, playerID).Return(db.Room{
 			ID:        roomID,
-			RoomState: sqlc.ROOMSTATE_PLAYING.String(),
+			RoomState: db.ROOMSTATE_PLAYING.String(),
 		}, nil)
 		mockStore.EXPECT().GetLatestRoundByPlayerID(ctx, playerID).Return(
-			sqlc.GetLatestRoundByPlayerIDRow{},
+			db.GetLatestRoundByPlayerIDRow{},
 			fmt.Errorf("failed to get latest round"),
 		)
 
@@ -112,12 +112,12 @@ func TestRoundServiceSubmitAnswer(t *testing.T) {
 		now := time.Now()
 		ctx := context.Background()
 
-		mockStore.EXPECT().GetRoomByPlayerID(ctx, playerID).Return(sqlc.Room{
+		mockStore.EXPECT().GetRoomByPlayerID(ctx, playerID).Return(db.Room{
 			ID:        roomID,
-			RoomState: sqlc.ROOMSTATE_PLAYING.String(),
+			RoomState: db.ROOMSTATE_PLAYING.String(),
 		}, nil)
 		mockStore.EXPECT().GetLatestRoundByPlayerID(ctx, playerID).Return(
-			sqlc.GetLatestRoundByPlayerIDRow{
+			db.GetLatestRoundByPlayerIDRow{
 				ID: roundID,
 			}, nil)
 
@@ -133,23 +133,23 @@ func TestRoundServiceSubmitAnswer(t *testing.T) {
 		now := time.Now()
 		ctx := context.Background()
 
-		mockStore.EXPECT().GetRoomByPlayerID(ctx, playerID).Return(sqlc.Room{
+		mockStore.EXPECT().GetRoomByPlayerID(ctx, playerID).Return(db.Room{
 			ID:        roomID,
-			RoomState: sqlc.ROOMSTATE_PLAYING.String(),
+			RoomState: db.ROOMSTATE_PLAYING.String(),
 		}, nil)
 		mockStore.EXPECT().GetLatestRoundByPlayerID(ctx, playerID).Return(
-			sqlc.GetLatestRoundByPlayerIDRow{
+			db.GetLatestRoundByPlayerIDRow{
 				ID:             roundID,
 				SubmitDeadline: pgtype.Timestamp{Time: now.Add(1 * time.Hour)},
 			}, nil)
 
 		mockRandomizer.EXPECT().GetID().Return(defaultHostPlayerID)
-		mockStore.EXPECT().AddFibbingItAnswer(ctx, sqlc.AddFibbingItAnswerParams{
+		mockStore.EXPECT().AddFibbingItAnswer(ctx, db.AddFibbingItAnswerParams{
 			ID:       defaultHostPlayerID,
 			RoundID:  roundID,
 			PlayerID: playerID,
 			Answer:   "My answer",
-		}).Return(sqlc.FibbingItAnswer{}, fmt.Errorf("failed to add answer to DB"))
+		}).Return(db.FibbingItAnswer{}, fmt.Errorf("failed to add answer to DB"))
 
 		err := srv.SubmitAnswer(ctx, playerID, "My answer", now)
 		assert.Error(t, err)
@@ -164,11 +164,11 @@ func TestRoundServiceToggleAnswerIsReady(t *testing.T) {
 
 		ctx := context.Background()
 
-		mockStore.EXPECT().GetGameStateByPlayerID(ctx, playerID).Return(sqlc.GameState{
-			State:          sqlc.GAMESTATE_FIBBING_IT_SHOW_QUESTION.String(),
+		mockStore.EXPECT().GetGameStateByPlayerID(ctx, playerID).Return(db.GameState{
+			State:          db.GAMESTATE_FIBBING_IT_SHOW_QUESTION.String(),
 			SubmitDeadline: pgtype.Timestamp{Time: time.Now().Add(1 * time.Hour)},
 		}, nil)
-		mockStore.EXPECT().ToggleAnswerIsReady(ctx, playerID).Return(sqlc.FibbingItAnswer{}, nil)
+		mockStore.EXPECT().ToggleAnswerIsReady(ctx, playerID).Return(db.FibbingItAnswer{}, nil)
 		mockStore.EXPECT().GetAllPlayerAnswerIsReady(ctx, playerID).Return(false, nil)
 
 		allReady, err := srv.ToggleAnswerIsReady(ctx, playerID, time.Now().UTC())
@@ -183,11 +183,11 @@ func TestRoundServiceToggleAnswerIsReady(t *testing.T) {
 
 		ctx := context.Background()
 
-		mockStore.EXPECT().GetGameStateByPlayerID(ctx, playerID).Return(sqlc.GameState{
-			State:          sqlc.GAMESTATE_FIBBING_IT_SHOW_QUESTION.String(),
+		mockStore.EXPECT().GetGameStateByPlayerID(ctx, playerID).Return(db.GameState{
+			State:          db.GAMESTATE_FIBBING_IT_SHOW_QUESTION.String(),
 			SubmitDeadline: pgtype.Timestamp{Time: time.Now().Add(1 * time.Hour)},
 		}, nil)
-		mockStore.EXPECT().ToggleAnswerIsReady(ctx, playerID).Return(sqlc.FibbingItAnswer{}, nil)
+		mockStore.EXPECT().ToggleAnswerIsReady(ctx, playerID).Return(db.FibbingItAnswer{}, nil)
 		mockStore.EXPECT().GetAllPlayerAnswerIsReady(ctx, playerID).Return(true, nil)
 
 		allReady, err := srv.ToggleAnswerIsReady(ctx, playerID, time.Now().UTC())
@@ -203,7 +203,7 @@ func TestRoundServiceToggleAnswerIsReady(t *testing.T) {
 		ctx := context.Background()
 
 		mockStore.EXPECT().GetGameStateByPlayerID(ctx, playerID).Return(
-			sqlc.GameState{}, fmt.Errorf("failed to get state"),
+			db.GameState{}, fmt.Errorf("failed to get state"),
 		)
 
 		_, err := srv.ToggleAnswerIsReady(ctx, playerID, time.Now().UTC())
@@ -217,8 +217,8 @@ func TestRoundServiceToggleAnswerIsReady(t *testing.T) {
 
 		ctx := context.Background()
 
-		mockStore.EXPECT().GetGameStateByPlayerID(ctx, playerID).Return(sqlc.GameState{
-			State:          sqlc.GAMESTATE_FIBBING_IT_VOTING.String(),
+		mockStore.EXPECT().GetGameStateByPlayerID(ctx, playerID).Return(db.GameState{
+			State:          db.GAMESTATE_FIBBING_IT_VOTING.String(),
 			SubmitDeadline: pgtype.Timestamp{Time: time.Now().Add(1 * time.Hour)},
 		}, nil)
 
@@ -235,12 +235,12 @@ func TestRoundServiceToggleAnswerIsReady(t *testing.T) {
 
 			ctx := context.Background()
 
-			mockStore.EXPECT().GetGameStateByPlayerID(ctx, playerID).Return(sqlc.GameState{
-				State:          sqlc.GAMESTATE_FIBBING_IT_SHOW_QUESTION.String(),
+			mockStore.EXPECT().GetGameStateByPlayerID(ctx, playerID).Return(db.GameState{
+				State:          db.GAMESTATE_FIBBING_IT_SHOW_QUESTION.String(),
 				SubmitDeadline: pgtype.Timestamp{Time: time.Now().Add(1 * time.Hour)},
 			}, nil)
 			mockStore.EXPECT().ToggleAnswerIsReady(ctx, playerID).Return(
-				sqlc.FibbingItAnswer{}, fmt.Errorf("failed to toggle answer is ready"),
+				db.FibbingItAnswer{}, fmt.Errorf("failed to toggle answer is ready"),
 			)
 
 			_, err := srv.ToggleAnswerIsReady(ctx, playerID, time.Now().UTC())
@@ -257,11 +257,11 @@ func TestRoundServiceToggleAnswerIsReady(t *testing.T) {
 
 			ctx := context.Background()
 
-			mockStore.EXPECT().GetGameStateByPlayerID(ctx, playerID).Return(sqlc.GameState{
-				State:          sqlc.GAMESTATE_FIBBING_IT_SHOW_QUESTION.String(),
+			mockStore.EXPECT().GetGameStateByPlayerID(ctx, playerID).Return(db.GameState{
+				State:          db.GAMESTATE_FIBBING_IT_SHOW_QUESTION.String(),
 				SubmitDeadline: pgtype.Timestamp{Time: time.Now().Add(1 * time.Hour)},
 			}, nil)
-			mockStore.EXPECT().ToggleAnswerIsReady(ctx, playerID).Return(sqlc.FibbingItAnswer{}, nil)
+			mockStore.EXPECT().ToggleAnswerIsReady(ctx, playerID).Return(db.FibbingItAnswer{}, nil)
 			mockStore.EXPECT().GetAllPlayerAnswerIsReady(ctx, playerID).Return(
 				false, fmt.Errorf("failed to get player answer is ready status"),
 			)
@@ -280,8 +280,8 @@ func TestRoundServiceToggleAnswerIsReady(t *testing.T) {
 
 			ctx := context.Background()
 
-			mockStore.EXPECT().GetGameStateByPlayerID(ctx, playerID).Return(sqlc.GameState{
-				State:          sqlc.GAMESTATE_FIBBING_IT_SHOW_QUESTION.String(),
+			mockStore.EXPECT().GetGameStateByPlayerID(ctx, playerID).Return(db.GameState{
+				State:          db.GAMESTATE_FIBBING_IT_SHOW_QUESTION.String(),
 				SubmitDeadline: pgtype.Timestamp{Time: time.Now().Add(-1 * time.Second)},
 			}, nil)
 
@@ -293,46 +293,48 @@ func TestRoundServiceToggleAnswerIsReady(t *testing.T) {
 
 func TestRoundServiceUpdateStateToVoting(t *testing.T) {
 	gameStateID := uuid.MustParse("fbb75599-9f7a-4392-b523-fd433b3208ea")
+	roundID := uuid.MustParse("0193a62a-364e-751a-9088-cf3b9711153e")
 
 	t.Run("Should successfully update state to voting", func(t *testing.T) {
 		mockStore := mockService.NewMockStorer(t)
 		mockRandomizer := mockService.NewMockRandomizer(t)
 		srv := service.NewRoundService(mockStore, mockRandomizer)
 
-		players := []service.PlayerWithRole{
-			{
-				ID:       defaultHostPlayerID,
-				Nickname: "Player 1",
-				Avatar:   []byte("avatar1"),
-				Role:     "fibber",
-				Question: "My other question",
-			},
-			{
-				ID:       defaultOtherPlayerID,
-				Nickname: "Player 2",
-				Avatar:   []byte("avatar2"),
-				Role:     "normal",
-				Question: "My question",
-			},
-		}
-
 		ctx := context.Background()
 		now := time.Now().Add(30 * time.Second)
 
-		mockStore.EXPECT().UpdateGameState(ctx, sqlc.UpdateGameStateParams{
+		mockStore.EXPECT().GetGameState(ctx, gameStateID).Return(db.GameState{
+			State: db.GAMESTATE_FIBBING_IT_SHOW_QUESTION.String(),
+		}, nil)
+		mockStore.EXPECT().UpdateGameState(ctx, db.UpdateGameStateParams{
 			ID:             gameStateID,
-			SubmitDeadline: pgtype.Timestamp{Time: now},
-			State:          sqlc.GAMESTATE_FIBBING_IT_VOTING.String(),
-		}).Return(sqlc.GameState{}, nil)
+			SubmitDeadline: pgtype.Timestamp{Time: now, Valid: true},
+			State:          db.GAMESTATE_FIBBING_IT_VOTING.String(),
+		}).Return(db.GameState{}, nil)
+		mockStore.EXPECT().GetLatestRoundByPlayerID(ctx, playerID).Return(db.GetLatestRoundByPlayerIDRow{
+			ID:    roundID,
+			Round: 1,
+		}, nil)
+		mockStore.EXPECT().GetVotingState(ctx, roundID).Return([]db.GetVotingStateRow{
+			{
+				PlayerID:       defaultHostPlayerID,
+				Nickname:       "Player 1",
+				Avatar:         []byte("avatar1"),
+				Question:       "My question",
+				Votes:          0,
+				SubmitDeadline: pgtype.Timestamp{Time: now},
+			},
+			{
+				PlayerID:       defaultOtherPlayerID,
+				Nickname:       "Player 2",
+				Avatar:         []byte("avatar2"),
+				Question:       "My question",
+				Votes:          0,
+				SubmitDeadline: pgtype.Timestamp{Time: now},
+			},
+		}, nil)
 
-		updateState := service.UpdateVotingState{
-			Players:     players,
-			GameStateID: gameStateID,
-			Deadline:    now,
-			Round:       1,
-		}
-
-		votes, err := srv.UpdateStateToVoting(ctx, updateState)
+		votes, err := srv.UpdateStateToVoting(ctx, gameStateID, playerID, now)
 		assert.NoError(t, err)
 		expectedVotes := service.VotingState{
 			Question: "My question",
@@ -352,46 +354,60 @@ func TestRoundServiceUpdateStateToVoting(t *testing.T) {
 				},
 			},
 		}
-		assert.Equal(t, expectedVotes, votes)
+		diffOpts := cmpopts.IgnoreFields(votes, "Deadline")
+		PartialEqual(t, expectedVotes, votes, diffOpts)
+		assert.LessOrEqual(t, int(votes.Deadline.Seconds()), 30)
 	})
 
-	t.Run("Should fail to move state because fail to update DB", func(t *testing.T) {
+	t.Run("Should fail to get game state", func(t *testing.T) {
 		mockStore := mockService.NewMockStorer(t)
 		mockRandomizer := mockService.NewMockRandomizer(t)
 		srv := service.NewRoundService(mockStore, mockRandomizer)
 
-		players := []service.PlayerWithRole{
-			{
-				ID:       defaultHostPlayerID,
-				Nickname: "Player 1",
-				Avatar:   []byte("avatar1"),
-			},
-			{
-				ID:       defaultOtherPlayerID,
-				Nickname: "Player 2",
-				Avatar:   []byte("avatar2"),
-			},
-		}
+		ctx := context.Background()
+		now := time.Now().Add(30 * time.Second)
+
+		mockStore.EXPECT().GetGameState(ctx, gameStateID).Return(
+			db.GameState{}, fmt.Errorf("failed to get game state"),
+		)
+		_, err := srv.UpdateStateToVoting(ctx, gameStateID, playerID, now)
+		assert.Error(t, err)
+	})
+
+	t.Run("Should fail because state FIBBING_IT_VOTING", func(t *testing.T) {
+		mockStore := mockService.NewMockStorer(t)
+		mockRandomizer := mockService.NewMockRandomizer(t)
+		srv := service.NewRoundService(mockStore, mockRandomizer)
 
 		ctx := context.Background()
 		now := time.Now().Add(30 * time.Second)
 
-		mockStore.EXPECT().UpdateGameState(ctx, sqlc.UpdateGameStateParams{
+		mockStore.EXPECT().GetGameState(ctx, gameStateID).Return(db.GameState{
+			State: db.GAMESTATE_FIBBING_IT_VOTING.String(),
+		}, nil)
+
+		_, err := srv.UpdateStateToVoting(ctx, gameStateID, playerID, now)
+		assert.ErrorContains(t, err, "game state is not in FIBBING_IT_SHOW_QUESTION state")
+	})
+
+	t.Run("Should fail because update game state", func(t *testing.T) {
+		mockStore := mockService.NewMockStorer(t)
+		mockRandomizer := mockService.NewMockRandomizer(t)
+		srv := service.NewRoundService(mockStore, mockRandomizer)
+
+		ctx := context.Background()
+		now := time.Now().Add(30 * time.Second)
+
+		mockStore.EXPECT().GetGameState(ctx, gameStateID).Return(db.GameState{
+			State: db.GAMESTATE_FIBBING_IT_SHOW_QUESTION.String(),
+		}, nil)
+		mockStore.EXPECT().UpdateGameState(ctx, db.UpdateGameStateParams{
 			ID:             gameStateID,
-			SubmitDeadline: pgtype.Timestamp{Time: now},
-			State:          sqlc.GAMESTATE_FIBBING_IT_VOTING.String(),
-		}).Return(
-			sqlc.GameState{}, fmt.Errorf("failed to update game state"),
-		)
+			SubmitDeadline: pgtype.Timestamp{Time: now, Valid: true},
+			State:          db.GAMESTATE_FIBBING_IT_VOTING.String(),
+		}).Return(db.GameState{}, fmt.Errorf("failed to update game state"))
 
-		updateState := service.UpdateVotingState{
-			Players:     players,
-			GameStateID: gameStateID,
-			Deadline:    now,
-			Round:       1,
-		}
-
-		_, err := srv.UpdateStateToVoting(ctx, updateState)
+		_, err := srv.UpdateStateToVoting(ctx, gameStateID, playerID, now)
 		assert.Error(t, err)
 	})
 }
@@ -406,10 +422,10 @@ func TestRoundServiceSubmitVote(t *testing.T) {
 
 		ctx := context.Background()
 
-		mockStore.EXPECT().GetGameStateByPlayerID(ctx, defaultHostPlayerID).Return(sqlc.GameState{
-			State: sqlc.GAMESTATE_FIBBING_IT_VOTING.String(),
+		mockStore.EXPECT().GetGameStateByPlayerID(ctx, defaultHostPlayerID).Return(db.GameState{
+			State: db.GAMESTATE_FIBBING_IT_VOTING.String(),
 		}, nil)
-		mockStore.EXPECT().GetAllPlayersInRoom(ctx, defaultHostPlayerID).Return([]sqlc.GetAllPlayersInRoomRow{
+		mockStore.EXPECT().GetAllPlayersInRoom(ctx, defaultHostPlayerID).Return([]db.GetAllPlayersInRoomRow{
 			{
 				ID:       defaultHostPlayerID,
 				Nickname: "Player 1",
@@ -420,28 +436,28 @@ func TestRoundServiceSubmitVote(t *testing.T) {
 			},
 		}, nil)
 		deadline := time.Now().Add(5 * time.Second)
-		mockStore.EXPECT().GetLatestRoundByPlayerID(ctx, defaultHostPlayerID).Return(sqlc.GetLatestRoundByPlayerIDRow{
+		mockStore.EXPECT().GetLatestRoundByPlayerID(ctx, defaultHostPlayerID).Return(db.GetLatestRoundByPlayerIDRow{
 			ID:             roundID,
 			SubmitDeadline: pgtype.Timestamp{Time: deadline},
 		}, nil)
-		mockStore.EXPECT().GetVotingState(ctx, roundID).Return([]sqlc.GetVotingStateRow{
+		mockStore.EXPECT().GetVotingState(ctx, roundID).Return([]db.GetVotingStateRow{
 			{
-				VotedForPlayerID: defaultHostPlayerID,
-				Nickname:         "Player 1",
-				Avatar:           []byte("avatar1"),
-				VoteCount:        0,
-				Question:         "My question",
-				Round:            1,
-				SubmitDeadline:   pgtype.Timestamp{Time: deadline},
+				PlayerID:       defaultHostPlayerID,
+				Nickname:       "Player 1",
+				Avatar:         []byte("avatar1"),
+				Votes:          0,
+				Question:       "My question",
+				Round:          1,
+				SubmitDeadline: pgtype.Timestamp{Time: deadline},
 			},
 			{
-				VotedForPlayerID: defaultOtherPlayerID,
-				Nickname:         "Player 2",
-				Avatar:           []byte("avatar2"),
-				VoteCount:        1,
-				Question:         "My question",
-				Round:            1,
-				SubmitDeadline:   pgtype.Timestamp{Time: deadline},
+				PlayerID:       defaultOtherPlayerID,
+				Nickname:       "Player 2",
+				Avatar:         []byte("avatar2"),
+				Votes:          1,
+				Question:       "My question",
+				Round:          1,
+				SubmitDeadline: pgtype.Timestamp{Time: deadline},
 			},
 		}, nil)
 
@@ -482,7 +498,7 @@ func TestRoundServiceSubmitVote(t *testing.T) {
 		now := time.Now().Add(30 * time.Second)
 
 		mockStore.EXPECT().GetGameStateByPlayerID(ctx, defaultHostPlayerID).Return(
-			sqlc.GameState{}, fmt.Errorf("failed to get game state"),
+			db.GameState{}, fmt.Errorf("failed to get game state"),
 		)
 
 		_, err := srv.SubmitVote(ctx, defaultHostPlayerID, "Player 2", now)
@@ -497,8 +513,8 @@ func TestRoundServiceSubmitVote(t *testing.T) {
 		ctx := context.Background()
 		now := time.Now().Add(30 * time.Second)
 
-		mockStore.EXPECT().GetGameStateByPlayerID(ctx, defaultHostPlayerID).Return(sqlc.GameState{
-			State: sqlc.GAMESTATE_FIBBING_IT_SHOW_QUESTION.String(),
+		mockStore.EXPECT().GetGameStateByPlayerID(ctx, defaultHostPlayerID).Return(db.GameState{
+			State: db.GAMESTATE_FIBBING_IT_SHOW_QUESTION.String(),
 		}, nil)
 
 		_, err := srv.SubmitVote(ctx, defaultHostPlayerID, "Player 2", now)
@@ -513,11 +529,11 @@ func TestRoundServiceSubmitVote(t *testing.T) {
 		ctx := context.Background()
 		now := time.Now().Add(30 * time.Second)
 
-		mockStore.EXPECT().GetGameStateByPlayerID(ctx, defaultHostPlayerID).Return(sqlc.GameState{
-			State: sqlc.GAMESTATE_FIBBING_IT_VOTING.String(),
+		mockStore.EXPECT().GetGameStateByPlayerID(ctx, defaultHostPlayerID).Return(db.GameState{
+			State: db.GAMESTATE_FIBBING_IT_VOTING.String(),
 		}, nil)
 		mockStore.EXPECT().GetAllPlayersInRoom(ctx, defaultHostPlayerID).Return(
-			[]sqlc.GetAllPlayersInRoomRow{}, fmt.Errorf("failed to get all players in room"),
+			[]db.GetAllPlayersInRoomRow{}, fmt.Errorf("failed to get all players in room"),
 		)
 
 		_, err := srv.SubmitVote(ctx, defaultHostPlayerID, "Player 2", now)
@@ -532,10 +548,10 @@ func TestRoundServiceSubmitVote(t *testing.T) {
 		ctx := context.Background()
 		now := time.Now().Add(30 * time.Second)
 
-		mockStore.EXPECT().GetGameStateByPlayerID(ctx, defaultHostPlayerID).Return(sqlc.GameState{
-			State: sqlc.GAMESTATE_FIBBING_IT_VOTING.String(),
+		mockStore.EXPECT().GetGameStateByPlayerID(ctx, defaultHostPlayerID).Return(db.GameState{
+			State: db.GAMESTATE_FIBBING_IT_VOTING.String(),
 		}, nil)
-		mockStore.EXPECT().GetAllPlayersInRoom(ctx, defaultHostPlayerID).Return([]sqlc.GetAllPlayersInRoomRow{
+		mockStore.EXPECT().GetAllPlayersInRoom(ctx, defaultHostPlayerID).Return([]db.GetAllPlayersInRoomRow{
 			{
 				ID:       defaultHostPlayerID,
 				Nickname: "Player 1",
@@ -558,10 +574,10 @@ func TestRoundServiceSubmitVote(t *testing.T) {
 		ctx := context.Background()
 		now := time.Now().Add(30 * time.Second)
 
-		mockStore.EXPECT().GetGameStateByPlayerID(ctx, defaultHostPlayerID).Return(sqlc.GameState{
-			State: sqlc.GAMESTATE_FIBBING_IT_VOTING.String(),
+		mockStore.EXPECT().GetGameStateByPlayerID(ctx, defaultHostPlayerID).Return(db.GameState{
+			State: db.GAMESTATE_FIBBING_IT_VOTING.String(),
 		}, nil)
-		mockStore.EXPECT().GetAllPlayersInRoom(ctx, defaultHostPlayerID).Return([]sqlc.GetAllPlayersInRoomRow{
+		mockStore.EXPECT().GetAllPlayersInRoom(ctx, defaultHostPlayerID).Return([]db.GetAllPlayersInRoomRow{
 			{
 				ID:       defaultHostPlayerID,
 				Nickname: "Player 1",
@@ -584,10 +600,10 @@ func TestRoundServiceSubmitVote(t *testing.T) {
 		ctx := context.Background()
 		now := time.Now().Add(30 * time.Second)
 
-		mockStore.EXPECT().GetGameStateByPlayerID(ctx, defaultHostPlayerID).Return(sqlc.GameState{
-			State: sqlc.GAMESTATE_FIBBING_IT_VOTING.String(),
+		mockStore.EXPECT().GetGameStateByPlayerID(ctx, defaultHostPlayerID).Return(db.GameState{
+			State: db.GAMESTATE_FIBBING_IT_VOTING.String(),
 		}, nil)
-		mockStore.EXPECT().GetAllPlayersInRoom(ctx, defaultHostPlayerID).Return([]sqlc.GetAllPlayersInRoomRow{
+		mockStore.EXPECT().GetAllPlayersInRoom(ctx, defaultHostPlayerID).Return([]db.GetAllPlayersInRoomRow{
 			{
 				ID:       defaultHostPlayerID,
 				Nickname: "Player 1",
@@ -598,7 +614,7 @@ func TestRoundServiceSubmitVote(t *testing.T) {
 			},
 		}, nil)
 		mockStore.EXPECT().GetLatestRoundByPlayerID(ctx, defaultHostPlayerID).Return(
-			sqlc.GetLatestRoundByPlayerIDRow{}, fmt.Errorf("failed to get latest round"),
+			db.GetLatestRoundByPlayerIDRow{}, fmt.Errorf("failed to get latest round"),
 		)
 
 		_, err := srv.SubmitVote(ctx, defaultHostPlayerID, "Player 2", now)
@@ -613,10 +629,10 @@ func TestRoundServiceSubmitVote(t *testing.T) {
 		ctx := context.Background()
 		now := time.Now().Add(30 * time.Second)
 
-		mockStore.EXPECT().GetGameStateByPlayerID(ctx, defaultHostPlayerID).Return(sqlc.GameState{
-			State: sqlc.GAMESTATE_FIBBING_IT_VOTING.String(),
+		mockStore.EXPECT().GetGameStateByPlayerID(ctx, defaultHostPlayerID).Return(db.GameState{
+			State: db.GAMESTATE_FIBBING_IT_VOTING.String(),
 		}, nil)
-		mockStore.EXPECT().GetAllPlayersInRoom(ctx, defaultHostPlayerID).Return([]sqlc.GetAllPlayersInRoomRow{
+		mockStore.EXPECT().GetAllPlayersInRoom(ctx, defaultHostPlayerID).Return([]db.GetAllPlayersInRoomRow{
 			{
 				ID:       defaultHostPlayerID,
 				Nickname: "Player 1",
@@ -626,7 +642,7 @@ func TestRoundServiceSubmitVote(t *testing.T) {
 				Nickname: "Player 2",
 			},
 		}, nil)
-		mockStore.EXPECT().GetLatestRoundByPlayerID(ctx, defaultHostPlayerID).Return(sqlc.GetLatestRoundByPlayerIDRow{
+		mockStore.EXPECT().GetLatestRoundByPlayerID(ctx, defaultHostPlayerID).Return(db.GetLatestRoundByPlayerIDRow{
 			ID:             roundID,
 			SubmitDeadline: pgtype.Timestamp{Time: now.Add(-1 * time.Hour)},
 		}, nil)
@@ -643,10 +659,10 @@ func TestRoundServiceSubmitVote(t *testing.T) {
 		ctx := context.Background()
 		now := time.Now().Add(30 * time.Second)
 
-		mockStore.EXPECT().GetGameStateByPlayerID(ctx, defaultHostPlayerID).Return(sqlc.GameState{
-			State: sqlc.GAMESTATE_FIBBING_IT_VOTING.String(),
+		mockStore.EXPECT().GetGameStateByPlayerID(ctx, defaultHostPlayerID).Return(db.GameState{
+			State: db.GAMESTATE_FIBBING_IT_VOTING.String(),
 		}, nil)
-		mockStore.EXPECT().GetAllPlayersInRoom(ctx, defaultHostPlayerID).Return([]sqlc.GetAllPlayersInRoomRow{
+		mockStore.EXPECT().GetAllPlayersInRoom(ctx, defaultHostPlayerID).Return([]db.GetAllPlayersInRoomRow{
 			{
 				ID:       defaultHostPlayerID,
 				Nickname: "Player 1",
@@ -656,15 +672,100 @@ func TestRoundServiceSubmitVote(t *testing.T) {
 				Nickname: "Player 2",
 			},
 		}, nil)
-		mockStore.EXPECT().GetLatestRoundByPlayerID(ctx, defaultHostPlayerID).Return(sqlc.GetLatestRoundByPlayerIDRow{
+		mockStore.EXPECT().GetLatestRoundByPlayerID(ctx, defaultHostPlayerID).Return(db.GetLatestRoundByPlayerIDRow{
 			ID:             roundID,
 			SubmitDeadline: pgtype.Timestamp{Time: now.Add(1 * time.Hour)},
 		}, nil)
 		mockStore.EXPECT().GetVotingState(ctx, roundID).Return(
-			[]sqlc.GetVotingStateRow{}, fmt.Errorf("failed to get vote count"),
+			[]db.GetVotingStateRow{}, fmt.Errorf("failed to get vote count"),
 		)
 
 		_, err := srv.SubmitVote(ctx, defaultHostPlayerID, "Player 2", now)
+		assert.Error(t, err)
+	})
+}
+
+func TestPlayerServiceGetVotingState(t *testing.T) {
+	roundID := uuid.MustParse("0193a629-e26c-7326-8df4-81ad3ec82214")
+
+	t.Run("Should successfully get voting state", func(t *testing.T) {
+		mockStore := mockService.NewMockStorer(t)
+		mockRandomizer := mockService.NewMockRandomizer(t)
+		srv := service.NewRoundService(mockStore, mockRandomizer)
+
+		ctx := context.Background()
+
+		deadline := time.Now().Add(5 * time.Second)
+		mockStore.EXPECT().GetLatestRoundByPlayerID(ctx, playerID).Return(
+			db.GetLatestRoundByPlayerIDRow{
+				ID:             roundID,
+				Round:          1,
+				SubmitDeadline: pgtype.Timestamp{Time: deadline},
+			}, nil)
+		mockStore.EXPECT().GetVotingState(ctx, roundID).Return(
+			[]db.GetVotingStateRow{
+				{
+					PlayerID: playerID,
+					Nickname: "nickname",
+					Votes:    1,
+					Avatar:   []byte(""),
+					Question: "My  question",
+					Round:    1,
+				},
+			}, nil)
+
+		votingState, err := srv.GetVotingState(ctx, playerID)
+
+		assert.NoError(t, err)
+		expectedVotingState := service.VotingState{
+			Question: "My  question",
+			Round:    1,
+			Players: []service.PlayerWithVoting{
+				{
+					ID:       playerID,
+					Nickname: "nickname",
+					Avatar:   "",
+					Votes:    1,
+				},
+			},
+		}
+
+		diffOpts := cmpopts.IgnoreFields(votingState, "Deadline")
+		PartialEqual(t, expectedVotingState, votingState, diffOpts)
+		assert.LessOrEqual(t, int(votingState.Deadline.Seconds()), 5)
+	})
+
+	t.Run("Should fail to get voting state because fail to get round info from DB", func(t *testing.T) {
+		mockStore := mockService.NewMockStorer(t)
+		mockRandomizer := mockService.NewMockRandomizer(t)
+		srv := service.NewRoundService(mockStore, mockRandomizer)
+
+		ctx := context.Background()
+
+		mockStore.EXPECT().GetLatestRoundByPlayerID(ctx, playerID).Return(
+			db.GetLatestRoundByPlayerIDRow{}, fmt.Errorf("failed to get round info"),
+		)
+		_, err := srv.GetVotingState(ctx, playerID)
+		assert.Error(t, err)
+	})
+
+	t.Run("Should fail to get voting state because fail to get votes from DB", func(t *testing.T) {
+		mockStore := mockService.NewMockStorer(t)
+		mockRandomizer := mockService.NewMockRandomizer(t)
+		srv := service.NewRoundService(mockStore, mockRandomizer)
+
+		ctx := context.Background()
+
+		mockStore.EXPECT().GetLatestRoundByPlayerID(ctx, playerID).Return(
+			db.GetLatestRoundByPlayerIDRow{
+				ID: roundID,
+			}, nil)
+		mockStore.EXPECT().GetVotingState(ctx, roundID).Return(
+			[]db.GetVotingStateRow{}, fmt.Errorf("failed to get votes"),
+		)
+
+		_, err := srv.GetVotingState(ctx, playerID)
+
 		assert.Error(t, err)
 	})
 }

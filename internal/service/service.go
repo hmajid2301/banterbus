@@ -3,17 +3,17 @@ package service
 import (
 	"context"
 
-	sqlc "gitlab.com/hmajid2301/banterbus/internal/store/db"
+	"gitlab.com/hmajid2301/banterbus/internal/store/db"
 )
 
 type Storer interface {
-	sqlc.Querier
-	CreateRoom(ctx context.Context, arg sqlc.CreateRoomParams) error
-	AddPlayerToRoom(ctx context.Context, arg sqlc.AddPlayerToRoomArgs) error
-	StartGame(ctx context.Context, arg sqlc.StartGameArgs) error
+	db.Querier
+	CreateRoom(ctx context.Context, arg db.CreateRoomParams) error
+	AddPlayerToRoom(ctx context.Context, arg db.AddPlayerToRoomArgs) error
+	StartGame(ctx context.Context, arg db.StartGameArgs) error
 }
 
-func getLobbyPlayers(playerRows []sqlc.GetAllPlayersInRoomRow, roomCode string) Lobby {
+func getLobbyPlayers(playerRows []db.GetAllPlayersInRoomRow, roomCode string) Lobby {
 	var players []LobbyPlayer
 	for _, player := range playerRows {
 		isHost := false
