@@ -32,7 +32,7 @@ var (
 	browserContexts []playwright.BrowserContext
 	pages           []playwright.Page
 	expect          playwright.PlaywrightAssertions
-	headless        = os.Getenv("HEADLESS") == ""
+	headless        = os.Getenv("BANTERBUS_PLAYWRIGHT_HEADLESS") == ""
 	browserName     = getBrowserName()
 	browserType     playwright.BrowserType
 	serverAddress   string

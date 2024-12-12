@@ -51,9 +51,10 @@ in
       export BANTERBUS_DB_USERNAME=banterbus
       export BANTERBUS_DB_PASSWORD=banterbus
       export BANTERBUS_REDIS_ADDRESS="localhost:6379"
+      export BANTERBUS_PLAYWRIGHT_HEADLESS=false
 
       ${pre-commit-check.shellHook}
-      docker-compose up -d
+      podman-compose up -d
     '';
     buildInputs = pre-commit-check.enabledPackages;
     packages =

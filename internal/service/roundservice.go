@@ -228,6 +228,7 @@ func (r *RoundService) getVotingState(ctx context.Context, roundID uuid.UUID, ro
 			Nickname: p.Nickname,
 			Avatar:   string(p.Avatar),
 			Votes:    voteCount,
+			Answer:   p.Answer.String,
 		})
 	}
 

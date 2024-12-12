@@ -68,8 +68,9 @@ func (t *ToggleAnswerIsReady) Handle(ctx context.Context, client *client, sub *S
 
 	if allReady {
 		votingState := VotingState{
-			deadline:   time.Now().UTC().Add(config.AllReadyToNextScreenFor),
-			subscriber: *sub,
+			gameStateID: questionState.GameStateID,
+			deadline:    time.Now().UTC().Add(config.AllReadyToNextScreenFor),
+			subscriber:  *sub,
 		}
 		go StartStateMachine(ctx, &votingState)
 	}

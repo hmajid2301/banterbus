@@ -711,6 +711,7 @@ func TestPlayerServiceGetVotingState(t *testing.T) {
 					Avatar:   []byte(""),
 					Question: "My  question",
 					Round:    1,
+					Answer:   pgtype.Text{String: "A cat"},
 				},
 			}, nil)
 
@@ -726,6 +727,7 @@ func TestPlayerServiceGetVotingState(t *testing.T) {
 					Nickname: "nickname",
 					Avatar:   "",
 					Votes:    1,
+					Answer:   "A cat",
 				},
 			},
 		}
