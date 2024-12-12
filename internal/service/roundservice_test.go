@@ -311,7 +311,7 @@ func TestRoundServiceUpdateStateToVoting(t *testing.T) {
 			SubmitDeadline: pgtype.Timestamp{Time: now, Valid: true},
 			State:          db.GAMESTATE_FIBBING_IT_VOTING.String(),
 		}).Return(db.GameState{}, nil)
-		mockStore.EXPECT().GetLatestRoundByPlayerID(ctx, playerID).Return(db.GetLatestRoundByPlayerIDRow{
+		mockStore.EXPECT().GetLatestRoundByGameStateID(ctx, gameStateID).Return(db.GetLatestRoundByGameStateIDRow{
 			ID:    roundID,
 			Round: 1,
 		}, nil)
@@ -334,7 +334,7 @@ func TestRoundServiceUpdateStateToVoting(t *testing.T) {
 			},
 		}, nil)
 
-		votes, err := srv.UpdateStateToVoting(ctx, gameStateID, playerID, now)
+		votes, err := srv.UpdateStateToVoting(ctx, gameStateID, now)
 		assert.NoError(t, err)
 		expectedVotes := service.VotingState{
 			Question: "My question",
@@ -370,7 +370,7 @@ func TestRoundServiceUpdateStateToVoting(t *testing.T) {
 		mockStore.EXPECT().GetGameState(ctx, gameStateID).Return(
 			db.GameState{}, fmt.Errorf("failed to get game state"),
 		)
-		_, err := srv.UpdateStateToVoting(ctx, gameStateID, playerID, now)
+		_, err := srv.UpdateStateToVoting(ctx, gameStateID, now)
 		assert.Error(t, err)
 	})
 
@@ -386,7 +386,7 @@ func TestRoundServiceUpdateStateToVoting(t *testing.T) {
 			State: db.GAMESTATE_FIBBING_IT_VOTING.String(),
 		}, nil)
 
-		_, err := srv.UpdateStateToVoting(ctx, gameStateID, playerID, now)
+		_, err := srv.UpdateStateToVoting(ctx, gameStateID, now)
 		assert.ErrorContains(t, err, "game state is not in FIBBING_IT_SHOW_QUESTION state")
 	})
 
@@ -407,7 +407,7 @@ func TestRoundServiceUpdateStateToVoting(t *testing.T) {
 			State:          db.GAMESTATE_FIBBING_IT_VOTING.String(),
 		}).Return(db.GameState{}, fmt.Errorf("failed to update game state"))
 
-		_, err := srv.UpdateStateToVoting(ctx, gameStateID, playerID, now)
+		_, err := srv.UpdateStateToVoting(ctx, gameStateID, now)
 		assert.Error(t, err)
 	})
 }

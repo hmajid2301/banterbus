@@ -175,6 +175,6 @@ func runDBMigrations(pool *pgxpool.Pool) error {
 		return err
 	}
 
-	err = goose.Up(db, "db/migrations")
+	err = goose.Up(db, "internal/store/db/sqlc/migrations")
 	return err
 }

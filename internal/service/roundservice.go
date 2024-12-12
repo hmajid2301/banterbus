@@ -91,7 +91,6 @@ func (r *RoundService) ToggleAnswerIsReady(
 func (r *RoundService) UpdateStateToVoting(
 	ctx context.Context,
 	gameStateID uuid.UUID,
-	playerID uuid.UUID,
 	deadline time.Time,
 ) (VotingState, error) {
 	game, err := r.store.GetGameState(ctx, gameStateID)
@@ -115,7 +114,12 @@ func (r *RoundService) UpdateStateToVoting(
 		return VotingState{}, err
 	}
 
-	votingState, err := r.GetVotingState(ctx, playerID)
+	round, err := r.store.GetLatestRoundByGameStateID(ctx, gameStateID)
+	if err != nil {
+		return VotingState{}, err
+	}
+
+	votingState, err := r.getVotingState(ctx, round.ID, round.Round)
 	return votingState, err
 }
 
@@ -203,7 +207,12 @@ func (r *RoundService) GetVotingState(ctx context.Context, playerID uuid.UUID) (
 		return VotingState{}, err
 	}
 
-	votes, err := r.store.GetVotingState(ctx, round.ID)
+	votingState, err := r.getVotingState(ctx, round.ID, round.Round)
+	return votingState, err
+}
+
+func (r *RoundService) getVotingState(ctx context.Context, roundID uuid.UUID, round int32) (VotingState, error) {
+	votes, err := r.store.GetVotingState(ctx, roundID)
 	if err != nil {
 		return VotingState{}, err
 	}
@@ -227,11 +236,10 @@ func (r *RoundService) GetVotingState(ctx context.Context, playerID uuid.UUID) (
 	}
 
 	votingState := VotingState{
-		Round:    int(round.Round),
+		Round:    int(round),
 		Players:  votingPlayers,
 		Question: votes[0].Question,
 		Deadline: time.Until(votes[0].SubmitDeadline.Time),
 	}
-
 	return votingState, nil
 }

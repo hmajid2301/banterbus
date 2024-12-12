@@ -21,12 +21,7 @@ type RoundServicer interface {
 		votedNickname string,
 		submittedAt time.Time,
 	) (service.VotingState, error)
-	UpdateStateToVoting(
-		ctx context.Context,
-		gameStateID uuid.UUID,
-		playerID uuid.UUID,
-		deadline time.Time,
-	) (service.VotingState, error)
+	UpdateStateToVoting(ctx context.Context, gameStateID uuid.UUID, deadline time.Time) (service.VotingState, error)
 	ToggleAnswerIsReady(ctx context.Context, playerID uuid.UUID, submittedAt time.Time) (bool, error)
 	GetVotingState(ctx context.Context, playerID uuid.UUID) (service.VotingState, error)
 }
@@ -72,10 +67,11 @@ func (t *ToggleAnswerIsReady) Handle(ctx context.Context, client *client, sub *S
 	}
 
 	if allReady {
-		go func() {
-			time.Sleep(config.AllReadyToNextScreenFor)
-			MoveToVoting(ctx, sub, questionState.GameStateID, client.playerID)
-		}()
+		votingState := VotingState{
+			Deadline:   time.Now().UTC().Add(config.AllReadyToNextScreenFor),
+			Subscriber: *sub,
+		}
+		go StartStateMachine(ctx, &votingState)
 	}
 
 	return nil
@@ -95,26 +91,4 @@ func (s *SubmitVote) Handle(ctx context.Context, client *client, sub *Subscriber
 	}
 
 	return nil
-}
-
-// TODO: we want to start a state machine, as everything will be time based started by backen by backend.
-func MoveToVoting(ctx context.Context, sub *Subscriber, gameStateID uuid.UUID, playerID uuid.UUID) {
-	deadline := time.Now().UTC().Add(config.ShowVotingScreenFor)
-	votingState, err := sub.roundService.UpdateStateToVoting(ctx, gameStateID, playerID, deadline)
-	if err != nil {
-		sub.logger.Error(
-			"failed to update game state to voting",
-			slog.Any("error", err),
-			slog.String("gameStateID", gameStateID.String()),
-		)
-	}
-
-	err = sub.updateClientsAboutVoting(ctx, votingState)
-	if err != nil {
-		sub.logger.Error(
-			"failed to update clients to voting screen",
-			slog.Any("error", err),
-			slog.String("gameStateID", gameStateID.String()),
-		)
-	}
 }

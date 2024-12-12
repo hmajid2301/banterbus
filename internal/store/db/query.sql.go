@@ -524,6 +524,46 @@ func (q *Queries) GetGameStateByPlayerID(ctx context.Context, playerID uuid.UUID
 	return i, err
 }
 
+const getLatestRoundByGameStateID = `-- name: GetLatestRoundByGameStateID :one
+SELECT fir.id, fir.created_at, fir.updated_at, fir.round_type, fir.round, fir.fibber_question_id, fir.normal_question_id, fir.room_id, fir.game_state_id, gs.submit_deadline
+FROM fibbing_it_rounds fir
+JOIN game_state gs ON fir.room_id = gs.room_id
+WHERE gs.id = $1
+ORDER BY fir.created_at DESC
+LIMIT 1
+`
+
+type GetLatestRoundByGameStateIDRow struct {
+	ID               uuid.UUID
+	CreatedAt        pgtype.Timestamp
+	UpdatedAt        pgtype.Timestamp
+	RoundType        string
+	Round            int32
+	FibberQuestionID uuid.UUID
+	NormalQuestionID uuid.UUID
+	RoomID           uuid.UUID
+	GameStateID      uuid.UUID
+	SubmitDeadline   pgtype.Timestamp
+}
+
+func (q *Queries) GetLatestRoundByGameStateID(ctx context.Context, id uuid.UUID) (GetLatestRoundByGameStateIDRow, error) {
+	row := q.db.QueryRow(ctx, getLatestRoundByGameStateID, id)
+	var i GetLatestRoundByGameStateIDRow
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.RoundType,
+		&i.Round,
+		&i.FibberQuestionID,
+		&i.NormalQuestionID,
+		&i.RoomID,
+		&i.GameStateID,
+		&i.SubmitDeadline,
+	)
+	return i, err
+}
+
 const getLatestRoundByPlayerID = `-- name: GetLatestRoundByPlayerID :one
 SELECT fir.id, fir.created_at, fir.updated_at, fir.round_type, fir.round, fir.fibber_question_id, fir.normal_question_id, fir.room_id, fir.game_state_id, gs.submit_deadline
 FROM fibbing_it_rounds fir

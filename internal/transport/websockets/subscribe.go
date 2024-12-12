@@ -234,10 +234,6 @@ func (s *Subscriber) handleMessage(ctx context.Context, client *client) error {
 		return fmt.Errorf("failed to read message: %w", err)
 	}
 
-	if len(data) > 0 && data[0] == 0x03 {
-		return errConnectionClosed
-	}
-
 	var message message
 	err = json.Unmarshal(data, &message)
 	s.logger.DebugContext(ctx, "received message", slog.Any("message", message))

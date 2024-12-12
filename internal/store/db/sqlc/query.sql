@@ -131,6 +131,14 @@ WHERE rp.player_id = $1
 ORDER BY fir.created_at DESC
 LIMIT 1;
 
+-- name: GetLatestRoundByGameStateID :one
+SELECT fir.*, gs.submit_deadline
+FROM fibbing_it_rounds fir
+JOIN game_state gs ON fir.room_id = gs.room_id
+WHERE gs.id = $1
+ORDER BY fir.created_at DESC
+LIMIT 1;
+
 -- name: GetCurrentQuestionByPlayerID :one
 SELECT
     gs.id AS game_state_id,
