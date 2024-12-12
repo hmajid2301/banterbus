@@ -17,8 +17,8 @@ type State interface {
 }
 
 type QuestionState struct {
-	GameStateID uuid.UUID
-	Subscriber  Subscriber
+	gameStateID uuid.UUID
+	subscriber  Subscriber
 }
 
 func (q *QuestionState) Start(ctx context.Context) {
@@ -27,36 +27,36 @@ func (q *QuestionState) Start(ctx context.Context) {
 
 func (q *QuestionState) Update(ctx context.Context) {
 	deadline := time.Now().UTC().Add(config.ShowVotingScreenFor)
-	v := &VotingState{GameStateID: q.GameStateID, Deadline: deadline, Subscriber: q.Subscriber}
+	v := &VotingState{gameStateID: q.gameStateID, deadline: deadline, subscriber: q.subscriber}
 	go v.Start(ctx)
 }
 
 type VotingState struct {
-	Subscriber  Subscriber
-	GameStateID uuid.UUID
-	Deadline    time.Time
+	subscriber  Subscriber
+	gameStateID uuid.UUID
+	deadline    time.Time
 }
 
 func (v *VotingState) Start(ctx context.Context) {
-	time.Sleep(time.Until(v.Deadline))
+	time.Sleep(time.Until(v.deadline))
 
 	deadline := time.Now().UTC().Add(config.ShowVotingScreenFor)
-	votingState, err := v.Subscriber.roundService.UpdateStateToVoting(ctx, v.GameStateID, deadline)
+	votingState, err := v.subscriber.roundService.UpdateStateToVoting(ctx, v.gameStateID, deadline)
 	if err != nil {
-		v.Subscriber.logger.Error(
+		v.subscriber.logger.Error(
 			"failed to update game state to voting",
 			slog.Any("error", err),
-			slog.String("game_state_id", v.GameStateID.String()),
+			slog.String("game_state_id", v.gameStateID.String()),
 		)
 		return
 	}
 
-	err = v.Subscriber.updateClientsAboutVoting(ctx, votingState)
+	err = v.subscriber.updateClientsAboutVoting(ctx, votingState)
 	if err != nil {
-		v.Subscriber.logger.Error(
+		v.subscriber.logger.Error(
 			"failed to update clients to voting screen",
 			slog.Any("error", err),
-			slog.String("game_state_id", v.GameStateID.String()),
+			slog.String("game_state_id", v.gameStateID.String()),
 		)
 		return
 	}

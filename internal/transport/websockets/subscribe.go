@@ -23,6 +23,7 @@ import (
 	"gitlab.com/hmajid2301/banterbus/internal/telemetry"
 )
 
+// TODO: give this struct a better name, it doesn't really have much to with subscribing users anymore.
 type Subscriber struct {
 	lobbyService  LobbyServicer
 	playerService PlayerServicer

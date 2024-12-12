@@ -71,8 +71,8 @@ func (s *StartGame) Handle(ctx context.Context, client *client, sub *Subscriber)
 	}
 
 	questionSM := QuestionState{
-		GameStateID: questionState.GameStateID,
-		Subscriber:  *sub,
+		gameStateID: questionState.GameStateID,
+		subscriber:  *sub,
 	}
 	go StartStateMachine(ctx, &questionSM)
 	return nil
