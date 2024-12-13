@@ -108,6 +108,7 @@ CREATE TABLE fibbing_it_votes (
     player_id UUID NOT NULL,
     voted_for_player_id UUID NOT NULL,
     round_id UUID NOT NULL,
+    is_ready BOOLEAN DEFAULT FALSE,
     FOREIGN KEY (player_id) REFERENCES players (id),
     FOREIGN KEY (voted_for_player_id) REFERENCES players (id),
     FOREIGN KEY (round_id) REFERENCES fibbing_it_rounds (id),

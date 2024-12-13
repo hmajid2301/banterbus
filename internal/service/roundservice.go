@@ -23,6 +23,7 @@ func NewRoundService(store Storer, randomizer Randomizer) *RoundService {
 }
 
 var ErrMustSubmitAnswer = fmt.Errorf("must submit answer first")
+var ErrMustSubmitVote = fmt.Errorf("must submit vote first")
 
 func (r *RoundService) SubmitAnswer(
 	ctx context.Context,
@@ -241,6 +242,7 @@ func (r *RoundService) getVotingState(ctx context.Context, roundID uuid.UUID, ro
 			Avatar:   string(p.Avatar),
 			Votes:    voteCount,
 			Answer:   p.Answer.String,
+			IsReady:  p.IsReady.Bool,
 		})
 	}
 
@@ -249,10 +251,41 @@ func (r *RoundService) getVotingState(ctx context.Context, roundID uuid.UUID, ro
 	}
 
 	votingState := VotingState{
+		RoundID:  roundID,
 		Round:    int(round),
 		Players:  votingPlayers,
 		Question: votes[0].Question,
 		Deadline: time.Until(votes[0].SubmitDeadline.Time),
 	}
 	return votingState, nil
+}
+
+func (r *RoundService) ToggleVotingIsReady(
+	ctx context.Context,
+	playerID uuid.UUID,
+	submittedAt time.Time,
+) (bool, error) {
+	gameState, err := r.store.GetGameStateByPlayerID(ctx, playerID)
+	if err != nil {
+		return false, err
+	}
+
+	if gameState.State != db.GAMESTATE_FIBBING_IT_VOTING.String() {
+		return false, fmt.Errorf("room game state is not in FIBBING_IT_VOTING state")
+	}
+
+	if submittedAt.After(gameState.SubmitDeadline.Time) {
+		return false, fmt.Errorf("toggle ready deadline has passed")
+	}
+
+	_, err = r.store.ToggleVotingIsReady(ctx, playerID)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return false, ErrMustSubmitVote
+		}
+		return false, err
+	}
+
+	allReady, err := r.store.GetAllPlayersVotingIsReady(ctx, playerID)
+	return allReady, err
 }

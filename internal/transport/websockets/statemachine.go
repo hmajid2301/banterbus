@@ -69,7 +69,19 @@ func (v *VotingState) Update(ctx context.Context) {
 }
 
 type RevealState struct {
-	Deadline time.Time
+	subscriber Subscriber
+	roundID    uuid.UUID
+	deadline   time.Time
+}
+
+func (v *RevealState) Start(ctx context.Context) {
+	fmt.Println("VotingState.Start", ctx)
+
+	v.Update(ctx)
+}
+
+func (v *RevealState) Update(ctx context.Context) {
+	fmt.Println("VotingState.Update", ctx)
 }
 
 type ScoringState struct {

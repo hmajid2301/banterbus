@@ -71,7 +71,7 @@ func (s *Subscriber) updateClientsAboutQuestion(
 func (s *Subscriber) updateClientsAboutVoting(ctx context.Context, votingState service.VotingState) error {
 	var buf bytes.Buffer
 	for _, player := range votingState.Players {
-		component := sections.Voting(votingState, player.ID.String())
+		component := sections.Voting(votingState, player)
 		err := component.Render(ctx, &buf)
 		if err != nil {
 			return err

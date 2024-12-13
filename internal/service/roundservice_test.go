@@ -338,6 +338,7 @@ func TestRoundServiceUpdateStateToVoting(t *testing.T) {
 		assert.NoError(t, err)
 		expectedVotes := service.VotingState{
 			Question: "My question",
+			RoundID:  roundID,
 			Round:    1,
 			Players: []service.PlayerWithVoting{
 				{
@@ -345,12 +346,14 @@ func TestRoundServiceUpdateStateToVoting(t *testing.T) {
 					Nickname: "Player 1",
 					Avatar:   "avatar1",
 					Votes:    0,
+					IsReady:  false,
 				},
 				{
 					ID:       defaultOtherPlayerID,
 					Nickname: "Player 2",
 					Avatar:   "avatar2",
 					Votes:    0,
+					IsReady:  false,
 				},
 			},
 		}
@@ -779,6 +782,7 @@ func TestPlayerServiceGetVotingState(t *testing.T) {
 
 		assert.NoError(t, err)
 		expectedVotingState := service.VotingState{
+			RoundID:  roundID,
 			Question: "My  question",
 			Round:    1,
 			Players: []service.PlayerWithVoting{
@@ -788,6 +792,7 @@ func TestPlayerServiceGetVotingState(t *testing.T) {
 					Avatar:   "",
 					Votes:    1,
 					Answer:   "A cat",
+					IsReady:  false,
 				},
 			},
 		}
@@ -830,4 +835,139 @@ func TestPlayerServiceGetVotingState(t *testing.T) {
 
 		assert.Error(t, err)
 	})
+}
+
+func TestRoundServiceToggleVotingIsReady(t *testing.T) {
+	t.Run("Should successfully toggle voting ready state", func(t *testing.T) {
+		mockStore := mockService.NewMockStorer(t)
+		mockRandomizer := mockService.NewMockRandomizer(t)
+		srv := service.NewRoundService(mockStore, mockRandomizer)
+
+		ctx := context.Background()
+
+		mockStore.EXPECT().GetGameStateByPlayerID(ctx, playerID).Return(db.GameState{
+			State:          db.GAMESTATE_FIBBING_IT_VOTING.String(),
+			SubmitDeadline: pgtype.Timestamp{Time: time.Now().Add(1 * time.Hour)},
+		}, nil)
+		mockStore.EXPECT().ToggleVotingIsReady(ctx, playerID).Return(db.FibbingItVote{}, nil)
+		mockStore.EXPECT().GetAllPlayersVotingIsReady(ctx, playerID).Return(false, nil)
+
+		allReady, err := srv.ToggleVotingIsReady(ctx, playerID, time.Now().UTC())
+		assert.NoError(t, err)
+		assert.False(t, allReady)
+	})
+
+	t.Run("Should successfully toggle answer ready state and return all players are ready", func(t *testing.T) {
+		mockStore := mockService.NewMockStorer(t)
+		mockRandomizer := mockService.NewMockRandomizer(t)
+		srv := service.NewRoundService(mockStore, mockRandomizer)
+
+		ctx := context.Background()
+
+		mockStore.EXPECT().GetGameStateByPlayerID(ctx, playerID).Return(db.GameState{
+			State:          db.GAMESTATE_FIBBING_IT_VOTING.String(),
+			SubmitDeadline: pgtype.Timestamp{Time: time.Now().Add(1 * time.Hour)},
+		}, nil)
+		mockStore.EXPECT().ToggleVotingIsReady(ctx, playerID).Return(db.FibbingItVote{}, nil)
+		mockStore.EXPECT().GetAllPlayersVotingIsReady(ctx, playerID).Return(true, nil)
+
+		allReady, err := srv.ToggleVotingIsReady(ctx, playerID, time.Now().UTC())
+		assert.NoError(t, err)
+		assert.True(t, allReady)
+	})
+
+	t.Run("Should fail to toggle voting ready state, because we fail to get game state", func(t *testing.T) {
+		mockStore := mockService.NewMockStorer(t)
+		mockRandomizer := mockService.NewMockRandomizer(t)
+		srv := service.NewRoundService(mockStore, mockRandomizer)
+
+		ctx := context.Background()
+
+		mockStore.EXPECT().GetGameStateByPlayerID(ctx, playerID).Return(
+			db.GameState{}, fmt.Errorf("failed to get state"),
+		)
+
+		_, err := srv.ToggleAnswerIsReady(ctx, playerID, time.Now().UTC())
+		assert.Error(t, err)
+	})
+
+	t.Run(
+		"Should fail to voting toggle ready state because after deadline",
+		func(t *testing.T) {
+			mockStore := mockService.NewMockStorer(t)
+			mockRandomizer := mockService.NewMockRandomizer(t)
+			srv := service.NewRoundService(mockStore, mockRandomizer)
+
+			ctx := context.Background()
+
+			mockStore.EXPECT().GetGameStateByPlayerID(ctx, playerID).Return(db.GameState{
+				State:          db.GAMESTATE_FIBBING_IT_VOTING.String(),
+				SubmitDeadline: pgtype.Timestamp{Time: time.Now().Add(-1 * time.Second)},
+			}, nil)
+
+			_, err := srv.ToggleVotingIsReady(ctx, playerID, time.Now().UTC())
+			assert.Error(t, err)
+		},
+	)
+
+	t.Run("Should fail to toggle voting ready state because game state not in voting state", func(t *testing.T) {
+		mockStore := mockService.NewMockStorer(t)
+		mockRandomizer := mockService.NewMockRandomizer(t)
+		srv := service.NewRoundService(mockStore, mockRandomizer)
+
+		ctx := context.Background()
+
+		mockStore.EXPECT().GetGameStateByPlayerID(ctx, playerID).Return(db.GameState{
+			State:          db.GAMESTATE_FIBBING_IT_SHOW_QUESTION.String(),
+			SubmitDeadline: pgtype.Timestamp{Time: time.Now().Add(1 * time.Hour)},
+		}, nil)
+
+		_, err := srv.ToggleVotingIsReady(ctx, playerID, time.Now().UTC())
+		assert.ErrorContains(t, err, "room game state is not in FIBBING_IT_VOTING state")
+	})
+
+	t.Run(
+		"Should fail to toggle voting ready state, because we fail to toggle answer ready state in DB",
+		func(t *testing.T) {
+			mockStore := mockService.NewMockStorer(t)
+			mockRandomizer := mockService.NewMockRandomizer(t)
+			srv := service.NewRoundService(mockStore, mockRandomizer)
+
+			ctx := context.Background()
+
+			mockStore.EXPECT().GetGameStateByPlayerID(ctx, playerID).Return(db.GameState{
+				State:          db.GAMESTATE_FIBBING_IT_VOTING.String(),
+				SubmitDeadline: pgtype.Timestamp{Time: time.Now().Add(1 * time.Hour)},
+			}, nil)
+			mockStore.EXPECT().ToggleVotingIsReady(ctx, playerID).Return(
+				db.FibbingItVote{}, fmt.Errorf("failed to toggle voting is ready"),
+			)
+
+			_, err := srv.ToggleVotingIsReady(ctx, playerID, time.Now().UTC())
+			assert.Error(t, err)
+		},
+	)
+
+	t.Run(
+		"Should fail to toggle voting ready state because we fail to get all players ready status from DB",
+		func(t *testing.T) {
+			mockStore := mockService.NewMockStorer(t)
+			mockRandomizer := mockService.NewMockRandomizer(t)
+			srv := service.NewRoundService(mockStore, mockRandomizer)
+
+			ctx := context.Background()
+
+			mockStore.EXPECT().GetGameStateByPlayerID(ctx, playerID).Return(db.GameState{
+				State:          db.GAMESTATE_FIBBING_IT_VOTING.String(),
+				SubmitDeadline: pgtype.Timestamp{Time: time.Now().Add(1 * time.Hour)},
+			}, nil)
+			mockStore.EXPECT().ToggleVotingIsReady(ctx, playerID).Return(db.FibbingItVote{}, nil)
+			mockStore.EXPECT().GetAllPlayersVotingIsReady(ctx, playerID).Return(
+				false, fmt.Errorf("failed to get player voting is ready status"),
+			)
+
+			_, err := srv.ToggleVotingIsReady(ctx, playerID, time.Now().UTC())
+			assert.Error(t, err)
+		},
+	)
 }

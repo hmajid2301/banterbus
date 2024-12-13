@@ -807,6 +807,63 @@ func (_c *MockStorer_GetAllPlayersInRoom_Call) RunAndReturn(run func(context.Con
 	return _c
 }
 
+// GetAllPlayersVotingIsReady provides a mock function with given fields: ctx, playerID
+func (_m *MockStorer) GetAllPlayersVotingIsReady(ctx context.Context, playerID uuid.UUID) (bool, error) {
+	ret := _m.Called(ctx, playerID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetAllPlayersVotingIsReady")
+	}
+
+	var r0 bool
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) (bool, error)); ok {
+		return rf(ctx, playerID)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) bool); ok {
+		r0 = rf(ctx, playerID)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, uuid.UUID) error); ok {
+		r1 = rf(ctx, playerID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockStorer_GetAllPlayersVotingIsReady_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetAllPlayersVotingIsReady'
+type MockStorer_GetAllPlayersVotingIsReady_Call struct {
+	*mock.Call
+}
+
+// GetAllPlayersVotingIsReady is a helper method to define mock.On call
+//   - ctx context.Context
+//   - playerID uuid.UUID
+func (_e *MockStorer_Expecter) GetAllPlayersVotingIsReady(ctx interface{}, playerID interface{}) *MockStorer_GetAllPlayersVotingIsReady_Call {
+	return &MockStorer_GetAllPlayersVotingIsReady_Call{Call: _e.mock.On("GetAllPlayersVotingIsReady", ctx, playerID)}
+}
+
+func (_c *MockStorer_GetAllPlayersVotingIsReady_Call) Run(run func(ctx context.Context, playerID uuid.UUID)) *MockStorer_GetAllPlayersVotingIsReady_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(uuid.UUID))
+	})
+	return _c
+}
+
+func (_c *MockStorer_GetAllPlayersVotingIsReady_Call) Return(_a0 bool, _a1 error) *MockStorer_GetAllPlayersVotingIsReady_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockStorer_GetAllPlayersVotingIsReady_Call) RunAndReturn(run func(context.Context, uuid.UUID) (bool, error)) *MockStorer_GetAllPlayersVotingIsReady_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetCurrentQuestionByPlayerID provides a mock function with given fields: ctx, id
 func (_m *MockStorer) GetCurrentQuestionByPlayerID(ctx context.Context, id uuid.UUID) (db.GetCurrentQuestionByPlayerIDRow, error) {
 	ret := _m.Called(ctx, id)
@@ -1650,6 +1707,63 @@ func (_c *MockStorer_TogglePlayerIsReady_Call) Return(_a0 db.Player, _a1 error) 
 }
 
 func (_c *MockStorer_TogglePlayerIsReady_Call) RunAndReturn(run func(context.Context, uuid.UUID) (db.Player, error)) *MockStorer_TogglePlayerIsReady_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// ToggleVotingIsReady provides a mock function with given fields: ctx, playerID
+func (_m *MockStorer) ToggleVotingIsReady(ctx context.Context, playerID uuid.UUID) (db.FibbingItVote, error) {
+	ret := _m.Called(ctx, playerID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ToggleVotingIsReady")
+	}
+
+	var r0 db.FibbingItVote
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) (db.FibbingItVote, error)); ok {
+		return rf(ctx, playerID)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) db.FibbingItVote); ok {
+		r0 = rf(ctx, playerID)
+	} else {
+		r0 = ret.Get(0).(db.FibbingItVote)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, uuid.UUID) error); ok {
+		r1 = rf(ctx, playerID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockStorer_ToggleVotingIsReady_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ToggleVotingIsReady'
+type MockStorer_ToggleVotingIsReady_Call struct {
+	*mock.Call
+}
+
+// ToggleVotingIsReady is a helper method to define mock.On call
+//   - ctx context.Context
+//   - playerID uuid.UUID
+func (_e *MockStorer_Expecter) ToggleVotingIsReady(ctx interface{}, playerID interface{}) *MockStorer_ToggleVotingIsReady_Call {
+	return &MockStorer_ToggleVotingIsReady_Call{Call: _e.mock.On("ToggleVotingIsReady", ctx, playerID)}
+}
+
+func (_c *MockStorer_ToggleVotingIsReady_Call) Run(run func(ctx context.Context, playerID uuid.UUID)) *MockStorer_ToggleVotingIsReady_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(uuid.UUID))
+	})
+	return _c
+}
+
+func (_c *MockStorer_ToggleVotingIsReady_Call) Return(_a0 db.FibbingItVote, _a1 error) *MockStorer_ToggleVotingIsReady_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockStorer_ToggleVotingIsReady_Call) RunAndReturn(run func(context.Context, uuid.UUID) (db.FibbingItVote, error)) *MockStorer_ToggleVotingIsReady_Call {
 	_c.Call.Return(run)
 	return _c
 }

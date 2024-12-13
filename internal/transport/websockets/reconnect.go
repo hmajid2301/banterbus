@@ -102,7 +102,7 @@ func (s Subscriber) reconnectToPlayingGame(ctx context.Context, playerID uuid.UU
 			clientErr := s.updateClientAboutErr(ctx, playerID, errStr)
 			return component, errors.Join(clientErr, err)
 		}
-		component = sections.Voting(voting, playerID.String())
+		component = sections.Voting(voting, voting.Players[0])
 	default:
 		return component, fmt.Errorf("unknown game state: %s", gameState)
 	}

@@ -63,6 +63,7 @@ type VotingState struct {
 	Players  []PlayerWithVoting
 	Question string
 	Round    int
+	RoundID  uuid.UUID
 	Deadline time.Duration
 }
 
@@ -72,4 +73,5 @@ type PlayerWithVoting struct {
 	Avatar   string
 	Votes    int
 	Answer   string
+	IsReady  bool
 }

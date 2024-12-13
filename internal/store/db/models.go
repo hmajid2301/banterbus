@@ -47,6 +47,7 @@ type FibbingItVote struct {
 	PlayerID         uuid.UUID
 	VotedForPlayerID uuid.UUID
 	RoundID          uuid.UUID
+	IsReady          pgtype.Bool
 }
 
 type GameState struct {

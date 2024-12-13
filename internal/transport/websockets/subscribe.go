@@ -81,6 +81,7 @@ func NewSubscriber(
 		"submit_answer":          &SubmitAnswer{},
 		"toggle_answer_is_ready": &ToggleAnswerIsReady{},
 		"submit_vote":            &SubmitVote{},
+		"toggle_voting_is_ready": &ToggleVotingIsReady{},
 	}
 
 	return s

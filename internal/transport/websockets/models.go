@@ -107,3 +107,10 @@ type ToggleAnswerIsReady struct {
 func (t *ToggleAnswerIsReady) Validate() error {
 	return nil
 }
+
+type ToggleVotingIsReady struct {
+}
+
+func (t *ToggleVotingIsReady) Validate() error {
+	return nil
+}

@@ -24,6 +24,7 @@ type RoundServicer interface {
 	UpdateStateToVoting(ctx context.Context, gameStateID uuid.UUID, deadline time.Time) (service.VotingState, error)
 	ToggleAnswerIsReady(ctx context.Context, playerID uuid.UUID, submittedAt time.Time) (bool, error)
 	GetVotingState(ctx context.Context, playerID uuid.UUID) (service.VotingState, error)
+	ToggleVotingIsReady(ctx context.Context, playerID uuid.UUID, submittedAt time.Time) (bool, error)
 }
 
 func (s *SubmitAnswer) Handle(ctx context.Context, client *client, sub *Subscriber) error {
@@ -89,6 +90,38 @@ func (s *SubmitVote) Handle(ctx context.Context, client *client, sub *Subscriber
 	err = sub.updateClientsAboutVoting(ctx, votingState)
 	if err != nil {
 		sub.logger.Error("failed to update clients", slog.Any("error", err))
+	}
+
+	return nil
+}
+
+func (t *ToggleVotingIsReady) Handle(ctx context.Context, client *client, sub *Subscriber) error {
+	allReady, err := sub.roundService.ToggleVotingIsReady(ctx, client.playerID, time.Now().UTC())
+	if err != nil {
+		errStr := "failed to toggle voting you are ready, try again"
+		clientErr := sub.updateClientAboutErr(ctx, client.playerID, errStr)
+		return errors.Join(clientErr, err)
+	}
+
+	votingState, err := sub.roundService.GetVotingState(ctx, client.playerID)
+	if err != nil {
+		errStr := "failed to toggle voting you are ready, try again"
+		clientErr := sub.updateClientAboutErr(ctx, client.playerID, errStr)
+		return errors.Join(clientErr, err)
+	}
+
+	err = sub.updateClientsAboutVoting(ctx, votingState)
+	if err != nil {
+		return err
+	}
+
+	if allReady {
+		revealState := RevealState{
+			roundID:    votingState.RoundID,
+			deadline:   time.Now().UTC().Add(config.AllReadyToNextScreenFor),
+			subscriber: *sub,
+		}
+		go StartStateMachine(ctx, &revealState)
 	}
 
 	return nil

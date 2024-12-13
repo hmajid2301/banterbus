@@ -175,7 +175,8 @@ SELECT
     p.nickname,
     p.avatar,
     COALESCE(COUNT(fv.id), 0) AS votes,
-    fia.answer
+    fia.answer,
+    fv.is_ready
 FROM fibbing_it_rounds fir
 JOIN questions q ON fir.fibber_question_id = q.id
 JOIN game_state gs ON fir.game_state_id = gs.id
@@ -191,7 +192,8 @@ GROUP BY
     p.id,
     p.nickname,
     p.avatar,
-    fia.answer
+    fia.answer,
+    fv.is_ready
 ORDER BY votes DESC, p.nickname;
 
 -- name: ToggleAnswerIsReady :one
@@ -202,6 +204,28 @@ SELECT
     COUNT(*) = SUM(CASE WHEN COALESCE(fa.is_ready, FALSE) THEN 1 ELSE 0 END) AS all_players_ready
 FROM rooms_players rp
 LEFT JOIN fibbing_it_answers fa ON fa.player_id = rp.player_id AND fa.round_id = (
+    SELECT fir.id
+    FROM fibbing_it_rounds fir
+    WHERE fir.room_id = rp.room_id
+    ORDER BY fir.created_at DESC
+    LIMIT 1
+)
+WHERE rp.room_id = (
+    SELECT room_id
+    FROM rooms_players rp
+    WHERE rp.player_id = $1
+    LIMIT 1
+);
+
+-- name: ToggleVotingIsReady :one
+UPDATE fibbing_it_votes SET is_ready = NOT is_ready WHERE player_id = $1 RETURNING *;
+
+
+-- name: GetAllPlayersVotingIsReady :one
+SELECT
+    COUNT(*) = SUM(CASE WHEN COALESCE(fa.is_ready, FALSE) THEN 1 ELSE 0 END) AS all_players_ready
+FROM rooms_players rp
+LEFT JOIN fibbing_it_votes fa ON fa.player_id = rp.player_id AND fa.round_id = (
     SELECT fir.id
     FROM fibbing_it_rounds fir
     WHERE fir.room_id = rp.room_id
