@@ -961,13 +961,13 @@ func (q *Queries) UpdateRoomState(ctx context.Context, arg UpdateRoomStateParams
 }
 
 const upsertFibbingItVote = `-- name: UpsertFibbingItVote :exec
-INSERT INTO fibbing_it_votes (id, created_at, updated_at, player_id, voted_for_player_id, round_id)
-VALUES ($1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, $2, $3, $4)
-ON CONFLICT(id) DO UPDATE SET
+INSERT INTO fibbing_it_votes (id, player_id, voted_for_player_id, round_id)
+VALUES ($1, $2, $3, $4)
+ON CONFLICT(player_id, round_id) DO UPDATE SET
     updated_at = EXCLUDED.updated_at,
     player_id = EXCLUDED.player_id,
     voted_for_player_id = EXCLUDED.voted_for_player_id,
-    round_id = EXCLUDED.round
+    round_id = EXCLUDED.round_id
 RETURNING id, created_at, updated_at, player_id, voted_for_player_id, round_id
 `
 

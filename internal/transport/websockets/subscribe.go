@@ -80,6 +80,7 @@ func NewSubscriber(
 		"start_game":             &StartGame{},
 		"submit_answer":          &SubmitAnswer{},
 		"toggle_answer_is_ready": &ToggleAnswerIsReady{},
+		"submit_vote":            &SubmitVote{},
 	}
 
 	return s

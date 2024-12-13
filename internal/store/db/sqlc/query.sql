@@ -41,14 +41,15 @@ INSERT INTO fibbing_it_answers (id, answer, round_id, player_id) VALUES ($1, $2,
 INSERT INTO fibbing_it_player_roles (id, player_role, round_id, player_id) VALUES ($1, $2, $3, $4) RETURNING *;
 
 -- name: UpsertFibbingItVote :exec
-INSERT INTO fibbing_it_votes (id, created_at, updated_at, player_id, voted_for_player_id, round_id)
-VALUES ($1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, $2, $3, $4)
-ON CONFLICT(id) DO UPDATE SET
+INSERT INTO fibbing_it_votes (id, player_id, voted_for_player_id, round_id)
+VALUES ($1, $2, $3, $4)
+ON CONFLICT(player_id, round_id) DO UPDATE SET
     updated_at = EXCLUDED.updated_at,
     player_id = EXCLUDED.player_id,
     voted_for_player_id = EXCLUDED.voted_for_player_id,
-    round_id = EXCLUDED.round
+    round_id = EXCLUDED.round_id
 RETURNING *;
+
 
 -- name: AddQuestion :one
 INSERT INTO questions (id, game_name, round, question, language_code, group_id) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *;

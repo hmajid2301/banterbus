@@ -440,24 +440,35 @@ func TestRoundServiceSubmitVote(t *testing.T) {
 			ID:             roundID,
 			SubmitDeadline: pgtype.Timestamp{Time: deadline},
 		}, nil)
+
+		u := uuid.Must(uuid.NewV7())
+		mockRandomizer.EXPECT().GetID().Return(u)
+		mockStore.EXPECT().UpsertFibbingItVote(ctx, db.UpsertFibbingItVoteParams{
+			ID:               u,
+			RoundID:          roundID,
+			PlayerID:         defaultHostPlayerID,
+			VotedForPlayerID: defaultOtherPlayerID,
+		}).Return(nil)
 		mockStore.EXPECT().GetVotingState(ctx, roundID).Return([]db.GetVotingStateRow{
 			{
 				PlayerID:       defaultHostPlayerID,
 				Nickname:       "Player 1",
 				Avatar:         []byte("avatar1"),
-				Votes:          0,
+				Votes:          int64(0),
 				Question:       "My question",
 				Round:          1,
 				SubmitDeadline: pgtype.Timestamp{Time: deadline},
+				Answer:         pgtype.Text{String: "My answer"},
 			},
 			{
 				PlayerID:       defaultOtherPlayerID,
 				Nickname:       "Player 2",
 				Avatar:         []byte("avatar2"),
-				Votes:          1,
+				Votes:          int64(1),
 				Question:       "My question",
 				Round:          1,
 				SubmitDeadline: pgtype.Timestamp{Time: deadline},
+				Answer:         pgtype.Text{String: "My other answer"},
 			},
 		}, nil)
 
@@ -474,12 +485,14 @@ func TestRoundServiceSubmitVote(t *testing.T) {
 					Nickname: "Player 1",
 					Avatar:   "avatar1",
 					Votes:    0,
+					Answer:   "My answer",
 				},
 				{
 					ID:       defaultOtherPlayerID,
 					Nickname: "Player 2",
 					Avatar:   "avatar2",
 					Votes:    1,
+					Answer:   "My other answer",
 				},
 			},
 		}
@@ -651,6 +664,45 @@ func TestRoundServiceSubmitVote(t *testing.T) {
 		assert.ErrorContains(t, err, "answer submission deadline has passed")
 	})
 
+	t.Run("Should fail because we fail to upsert fibbing it vote", func(t *testing.T) {
+		mockStore := mockService.NewMockStorer(t)
+		mockRandomizer := mockService.NewMockRandomizer(t)
+		srv := service.NewRoundService(mockStore, mockRandomizer)
+
+		ctx := context.Background()
+		now := time.Now().Add(30 * time.Second)
+
+		mockStore.EXPECT().GetGameStateByPlayerID(ctx, defaultHostPlayerID).Return(db.GameState{
+			State: db.GAMESTATE_FIBBING_IT_VOTING.String(),
+		}, nil)
+		mockStore.EXPECT().GetAllPlayersInRoom(ctx, defaultHostPlayerID).Return([]db.GetAllPlayersInRoomRow{
+			{
+				ID:       defaultHostPlayerID,
+				Nickname: "Player 1",
+			},
+			{
+				ID:       defaultOtherPlayerID,
+				Nickname: "Player 2",
+			},
+		}, nil)
+		mockStore.EXPECT().GetLatestRoundByPlayerID(ctx, defaultHostPlayerID).Return(db.GetLatestRoundByPlayerIDRow{
+			ID:             roundID,
+			SubmitDeadline: pgtype.Timestamp{Time: now.Add(1 * time.Hour)},
+		}, nil)
+
+		u := uuid.Must(uuid.NewV7())
+		mockRandomizer.EXPECT().GetID().Return(u)
+		mockStore.EXPECT().UpsertFibbingItVote(ctx, db.UpsertFibbingItVoteParams{
+			ID:               u,
+			RoundID:          roundID,
+			PlayerID:         defaultHostPlayerID,
+			VotedForPlayerID: defaultOtherPlayerID,
+		}).Return(fmt.Errorf("failed to upsert fibbing it vote"))
+
+		_, err := srv.SubmitVote(ctx, defaultHostPlayerID, "Player 2", now)
+		assert.Error(t, err)
+	})
+
 	t.Run("Should fail because we fail to get vote count", func(t *testing.T) {
 		mockStore := mockService.NewMockStorer(t)
 		mockRandomizer := mockService.NewMockRandomizer(t)
@@ -676,6 +728,14 @@ func TestRoundServiceSubmitVote(t *testing.T) {
 			ID:             roundID,
 			SubmitDeadline: pgtype.Timestamp{Time: now.Add(1 * time.Hour)},
 		}, nil)
+		u := uuid.Must(uuid.NewV7())
+		mockRandomizer.EXPECT().GetID().Return(u)
+		mockStore.EXPECT().UpsertFibbingItVote(ctx, db.UpsertFibbingItVoteParams{
+			ID:               u,
+			RoundID:          roundID,
+			PlayerID:         defaultHostPlayerID,
+			VotedForPlayerID: defaultOtherPlayerID,
+		}).Return(nil)
 		mockStore.EXPECT().GetVotingState(ctx, roundID).Return(
 			[]db.GetVotingStateRow{}, fmt.Errorf("failed to get vote count"),
 		)

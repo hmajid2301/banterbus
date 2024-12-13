@@ -110,7 +110,8 @@ CREATE TABLE fibbing_it_votes (
     round_id UUID NOT NULL,
     FOREIGN KEY (player_id) REFERENCES players (id),
     FOREIGN KEY (voted_for_player_id) REFERENCES players (id),
-    FOREIGN KEY (round_id) REFERENCES fibbing_it_rounds (id)
+    FOREIGN KEY (round_id) REFERENCES fibbing_it_rounds (id),
+    UNIQUE (player_id, round_id)
 );
 
 -- +goose StatementEnd

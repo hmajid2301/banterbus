@@ -167,6 +167,17 @@ func (r *RoundService) SubmitVote(
 		return VotingState{}, fmt.Errorf("answer submission deadline has passed")
 	}
 
+	u := r.randomizer.GetID()
+	err = r.store.UpsertFibbingItVote(ctx, db.UpsertFibbingItVoteParams{
+		ID:               u,
+		RoundID:          round.ID,
+		PlayerID:         playerID,
+		VotedForPlayerID: votedPlayerID,
+	})
+	if err != nil {
+		return VotingState{}, err
+	}
+
 	playersWithVoteAndAnswers, err := r.store.GetVotingState(ctx, round.ID)
 	if err != nil {
 		return VotingState{}, err
@@ -175,14 +186,15 @@ func (r *RoundService) SubmitVote(
 	var votingPlayers []PlayerWithVoting
 	for _, p := range playersWithVoteAndAnswers {
 		voteCount := 0
-		if vc, ok := p.Votes.(int); ok {
-			voteCount = vc
+		if vc, ok := p.Votes.(int64); ok {
+			voteCount = int(vc)
 		}
 		votingPlayers = append(votingPlayers, PlayerWithVoting{
 			ID:       p.PlayerID,
 			Nickname: p.Nickname,
 			Avatar:   string(p.Avatar),
 			Votes:    voteCount,
+			Answer:   p.Answer.String,
 		})
 	}
 
