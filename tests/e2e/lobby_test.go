@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/playwright-community/playwright-go"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -22,6 +23,36 @@ func TestE2ELobby(t *testing.T) {
 		require.NoError(t, err)
 
 		err = expect.Locator(otherPlayerPage.Locator("text=failed to join room")).ToBeVisible()
+		require.NoError(t, err)
+	})
+
+	t.Run("Should be able to join game using the join URL", func(t *testing.T) {
+		t.Cleanup(ResetBrowserContexts)
+		hostPlayerPage := pages[0]
+		otherPlayerPage := pages[1]
+
+		err := hostPlayerPage.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Start"}).Click()
+		require.NoError(t, err)
+		err = hostPlayerPage.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Copy Join Link"}).Click()
+		require.NoError(t, err)
+
+		locator := hostPlayerPage.Locator("input[name='room_code']")
+		code, err := locator.InputValue()
+		require.NoError(t, err)
+
+		url, err := hostPlayerPage.Evaluate("navigator.clipboard.readText()")
+		require.NoError(t, err)
+
+		expectedURL := fmt.Sprintf("%sjoin/%s", hostPlayerPage.URL(), code)
+		assert.Equal(t, expectedURL, url)
+
+		_, err = otherPlayerPage.Goto(expectedURL)
+		require.NoError(t, err)
+
+		err = otherPlayerPage.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Join"}).Click()
+		require.NoError(t, err)
+
+		expect.Locator(otherPlayerPage.GetByText(code)).ToBeVisible()
 		require.NoError(t, err)
 	})
 

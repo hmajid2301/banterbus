@@ -48,8 +48,9 @@ in
       export TEMPL_EXPERIMENT=rawgo
       export BANTERBUS_LOG_LEVEL=debug
       export BANTERBUS_DB_HOST=localhost
-      export BANTERBUS_DB_USERNAME=banterbus
-      export BANTERBUS_DB_PASSWORD=banterbus
+      export BANTERBUS_DB_USERNAME=postgres
+      export BANTERBUS_DB_PASSWORD=postgres
+      export BANTERBUS_DB_NAME=postgres
       export BANTERBUS_REDIS_ADDRESS="localhost:6379"
       export BANTERBUS_PLAYWRIGHT_HEADLESS=false
 
@@ -63,6 +64,5 @@ in
         goEnv
         gomod2nix
         pkgs.gitlab-ci-local
-        pkgs.arion
       ];
   }

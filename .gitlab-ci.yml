@@ -65,7 +65,7 @@ stages:
     DOCKER_TLS_CERTDIR: ""
     IMMUTABLE: "true"
   services:
-    - docker:27-dind
+    - docker:dind
   script:
     - echo "experimental-features = nix-command flakes" > /etc/nix/nix.conf
     - nix-env -iA nixpkgs.docker nixpkgs.go-task

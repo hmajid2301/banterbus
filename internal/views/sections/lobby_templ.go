@@ -54,7 +54,7 @@ func Lobby(code string, players []service.LobbyPlayer, currentPlayer service.Lob
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<button class=\"inline-flex absolute top-1/2 justify-center items-center p-2 rounded-lg text-text2 end-2 hover:text-surface0\" aria-label=\"Copy Room Code\" @click=\"")
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<button class=\"inline-flex absolute top-1/2 justify-center items-center p-2 rounded-lg text-text2 end-2 hover:text-surface0\" aria-label=\"Copy Join Link\" @click=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -380,7 +380,7 @@ func Lobby(code string, players []service.LobbyPlayer, currentPlayer service.Lob
 }
 
 func getClipboardString(code string) string {
-	return fmt.Sprintf("navigator.clipboard.writeText(\"%s\"), showMsg = true, setTimeout(() => showMsg = false, 1000)", code)
+	return fmt.Sprintf("navigator.clipboard.writeText(`${window.location.origin}/join/%s`), showMsg = true, setTimeout(() => showMsg = false, 1000)", code)
 }
 
 func allPlayersReady(players []service.LobbyPlayer) bool {

@@ -96,7 +96,7 @@ func (s *Subscriber) Subscribe(r *http.Request, w http.ResponseWriter) (err erro
 
 	cookie, err := r.Cookie("player_id")
 	if err != nil {
-		cookie = getPlayerIDCookie()
+		cookie = setPlayerIDCookie()
 		http.SetCookie(w, cookie)
 	} else {
 		playerID, err = uuid.Parse(cookie.Value)
@@ -108,7 +108,7 @@ func (s *Subscriber) Subscribe(r *http.Request, w http.ResponseWriter) (err erro
 		buf, err = s.Reconnect(ctx, playerID)
 		if err != nil {
 			s.logger.WarnContext(ctx, "failed to reconnect", slog.Any("error", err))
-			cookie = getPlayerIDCookie()
+			cookie = setPlayerIDCookie()
 			http.SetCookie(w, cookie)
 		}
 	}
@@ -170,7 +170,7 @@ func (s *Subscriber) Subscribe(r *http.Request, w http.ResponseWriter) (err erro
 	}
 }
 
-func getPlayerIDCookie() *http.Cookie {
+func setPlayerIDCookie() *http.Cookie {
 	playerID := uuid.Must(uuid.NewV7()).String()
 
 	cookie := &http.Cookie{

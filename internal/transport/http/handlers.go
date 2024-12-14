@@ -46,6 +46,7 @@ func NewServer(websocketer websocketer, logger *slog.Logger, staticFS http.FileS
 	mux.Handle("/", s.LocaleMiddleware(http.HandlerFunc(s.indexHandler)))
 	mux.Handle("/static/", http.StripPrefix("/static", http.FileServer(staticFS)))
 	mux.Handle("/ws", s.LocaleMiddleware(http.HandlerFunc(s.subscribeHandler)))
+	mux.Handle("/join/{room_code}", s.LocaleMiddleware(http.HandlerFunc(s.joinHandler)))
 	mux.HandleFunc("/health", s.healthHandler)
 	mux.HandleFunc("/readiness", s.readinessHandler)
 	mux.Handle("/metrics", promhttp.Handler())
@@ -105,6 +106,20 @@ func (s *Server) healthHandler(w http.ResponseWriter, _ *http.Request) {
 
 func (s *Server) readinessHandler(w http.ResponseWriter, _ *http.Request) {
 	w.WriteHeader(http.StatusOK)
+}
+
+func (s *Server) joinHandler(w http.ResponseWriter, r *http.Request) {
+	s.Logger.Debug("join handler called")
+	roomCode := r.PathValue("room_code")
+
+	languages, err := views.ListLanguages()
+	if err != nil {
+		s.Logger.ErrorContext(r.Context(), "failed to list supported languages", slog.Any("error", err))
+		http.Error(w, "internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	templ.Handler(pages.Join(languages, roomCode)).ServeHTTP(w, r)
 }
 
 func (s *Server) LocaleMiddleware(next http.Handler) http.Handler {

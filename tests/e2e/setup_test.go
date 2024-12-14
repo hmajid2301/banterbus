@@ -157,6 +157,7 @@ func ResetBrowserContexts() {
 			RecordVideo: &playwright.RecordVideo{
 				Dir: "videos/",
 			},
+			Permissions: []string{"clipboard-read", "clipboard-write"},
 		})
 
 		if err != nil {
@@ -179,7 +180,7 @@ func ResetBrowserContexts() {
 func setupLogger() *slog.Logger {
 	logLevel := os.Getenv("LOG_LEVEL")
 	if logLevel == "" {
-		logLevel = "DEBUG" // default log level
+		logLevel = "DEBUG"
 	}
 
 	var level slog.Level

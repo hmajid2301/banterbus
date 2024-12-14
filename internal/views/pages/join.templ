@@ -1,0 +1,44 @@
+package pages
+
+import (
+	"github.com/invopop/ctxi18n/i18n"
+	"gitlab.com/hmajid2301/banterbus/internal/views/components"
+	"gitlab.com/hmajid2301/banterbus/internal/views/icons"
+	"gitlab.com/hmajid2301/banterbus/internal/views/layouts"
+)
+
+templ Join(languages map[string]string, roomCode string) {
+	@layouts.Base(languages) {
+		<div class="flex flex-col my-1">
+			<div>
+				<form ws-send hx-vals='{ "message_type": "join_lobby" }'>
+					@components.TextInput(
+						components.TextInputProps{
+							LabelName:   i18n.T(ctx, "home.nickname_label"),
+							InputName:   "nickname",
+							Placeholder: i18n.T(ctx, "home.nickname_placeholder"),
+						},
+						templ.Attributes{},
+					)
+					@components.TextInput(
+						components.TextInputProps{
+							LabelName:   i18n.T(ctx, "common.roomcode_label"),
+							InputName:   "room_code",
+							Value:       roomCode,
+							Placeholder: i18n.T(ctx, "home.roomcode_placeholder"),
+						},
+						templ.Attributes{},
+					)
+					<div class="flex flex-row mt-12 space-x-4 w-full">
+						<div class="w-full">
+							@components.Button(components.ButtonProps{BackgroundColor: "bg-text2", TextColor: "text-black"}) {
+								@icons.Group("")
+								<p>{ i18n.T(ctx, "home.join_button_label") }</p>
+							}
+						</div>
+					</div>
+				</form>
+			</div>
+		</div>
+	}
+}

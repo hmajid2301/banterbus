@@ -63,7 +63,7 @@ func CreateDB(ctx context.Context) (*pgxpool.Pool, error) {
 func getURI() string {
 	uri := os.Getenv("BANTERBUS_DB_URI")
 	if uri == "" {
-		uri = "postgresql://banterbus:banterbus@localhost:5432"
+		uri = "postgresql://postgres:postgres@localhost:5432"
 	}
 	return uri
 }

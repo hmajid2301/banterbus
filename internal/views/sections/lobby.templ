@@ -15,7 +15,7 @@ templ Lobby(code string, players []service.LobbyPlayer, currentPlayer service.Lo
 			InputName: "room_code",
 			Value:     code,
 		}, templ.Attributes{"disabled": true}) {
-			<button class="inline-flex absolute top-1/2 justify-center items-center p-2 rounded-lg text-text2 end-2 hover:text-surface0" aria-label="Copy Room Code" @click={ getClipboardString(code) }>
+			<button class="inline-flex absolute top-1/2 justify-center items-center p-2 rounded-lg text-text2 end-2 hover:text-surface0" aria-label="Copy Join Link" @click={ getClipboardString(code) }>
 				@icons.Clipboard("")
 			</button>
 		}
@@ -99,7 +99,7 @@ templ Lobby(code string, players []service.LobbyPlayer, currentPlayer service.Lo
 }
 
 func getClipboardString(code string) string {
-	return fmt.Sprintf("navigator.clipboard.writeText(\"%s\"), showMsg = true, setTimeout(() => showMsg = false, 1000)", code)
+	return fmt.Sprintf("navigator.clipboard.writeText(`${window.location.origin}/join/%s`), showMsg = true, setTimeout(() => showMsg = false, 1000)", code)
 }
 
 func allPlayersReady(players []service.LobbyPlayer) bool {

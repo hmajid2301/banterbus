@@ -50,7 +50,6 @@ ON CONFLICT(player_id, round_id) DO UPDATE SET
     round_id = EXCLUDED.round_id
 RETURNING *;
 
-
 -- name: AddQuestion :one
 INSERT INTO questions (id, game_name, round, question, language_code, group_id) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *;
 
@@ -238,3 +237,4 @@ WHERE rp.room_id = (
     WHERE rp.player_id = $1
     LIMIT 1
 );
+

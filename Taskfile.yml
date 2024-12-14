@@ -5,10 +5,6 @@ tasks:
     desc: Start the app in dev mode with live-reloading.
     env:
       BANTERBUS_LOG_LEVEL: debug
-      BANTERBUS_DB_HOST: localhost
-      BANTERBUS_DB_USERNAME: banterbus
-      BANTERBUS_DB_PASSWORD: banterbus
-      BANTERBUS_REDIS_ADDRESS: "localhost:6379"
     cmds:
       - task: watch
       - air
