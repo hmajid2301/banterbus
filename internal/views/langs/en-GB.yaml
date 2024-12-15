@@ -13,3 +13,9 @@ en-GB:
     join_button_label: "Join"
   lobby:
     start_game_button: "Start Game"
+  question:
+    round: "Round"
+    answer_placeholder: "Enter your answer here ..."
+    submit_answer_button: "Submit Answer"
+  voting:
+    votes: "Votes"

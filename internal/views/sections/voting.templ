@@ -1,6 +1,7 @@
 package sections
 
 import (
+	"github.com/invopop/ctxi18n/i18n"
 	"gitlab.com/hmajid2301/banterbus/internal/service"
 	"gitlab.com/hmajid2301/banterbus/internal/views/components"
 	"strconv"
@@ -22,7 +23,7 @@ templ Voting(state service.VotingState, currentPlayer service.PlayerWithVoting) 
 									<img src={ player.Avatar } alt="avatar" class="w-full h-full rounded-full"/>
 								</div>
 								{ player.Answer }
-								<p class="text-center">Votes: { strconv.Itoa(player.Votes) }</p>
+								<p class="text-center">{ i18n.T(ctx, "voting.votes") } { strconv.Itoa(player.Votes) }</p>
 							</div>
 						}
 					}
@@ -37,7 +38,7 @@ templ Voting(state service.VotingState, currentPlayer service.PlayerWithVoting) 
 											<img src={ player.Avatar } alt="avatar" class="w-full h-full rounded-full"/>
 										</div>
 										{ player.Answer }
-										<p class="text-center">Votes: { strconv.Itoa(player.Votes) }</p>
+										<p class="text-center">{ i18n.T(ctx, "voting.votes") }: { strconv.Itoa(player.Votes) }</p>
 										<input class="hidden" name="voted_player_nickname" value={ player.Nickname }/>
 									</button>
 								</form>
@@ -47,11 +48,11 @@ templ Voting(state service.VotingState, currentPlayer service.PlayerWithVoting) 
 					<form id="toggle_ready_form" hx-vals='{"message_type": "toggle_voting_is_ready" }' ws-send class="w-full">
 						if currentPlayer.IsReady {
 							@components.Button(components.ButtonProps{TextColor: "text-black", BackgroundColor: "bg-text2"}) {
-								Ready
+								{ i18n.T(ctx, "common.ready_button") }
 							}
 						} else {
 							@components.Button(components.ButtonProps{}) {
-								Not Ready
+								{ i18n.T(ctx, "common.not_ready_button") }
 							}
 						}
 					</form>

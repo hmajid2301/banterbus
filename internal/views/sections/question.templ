@@ -2,6 +2,7 @@ package sections
 
 import (
 	"encoding/json"
+	"github.com/invopop/ctxi18n/i18n"
 	"gitlab.com/hmajid2301/banterbus/internal/service"
 	"gitlab.com/hmajid2301/banterbus/internal/views/components"
 	"strconv"
@@ -15,7 +16,7 @@ templ Question(gameState service.QuestionState, currentPlayer service.PlayerWith
 					<div>
 						@components.Role(currentPlayer.Role, showRole)
 					</div>
-					<p class="text-2xl text-center">Round { strconv.Itoa(gameState.Round) } / 3</p>
+					<p class="text-2xl text-center">{ i18n.T(ctx, "question.round") } { strconv.Itoa(gameState.Round) } / 3</p>
 					<div class="text-right">
 						<div class="flex justify-center items-center w-16 h-16 rounded-full border-2 border-blue-500">
 							<p x-text="timer"></p>
@@ -26,20 +27,20 @@ templ Question(gameState service.QuestionState, currentPlayer service.PlayerWith
 				<form id="submit_answer_form" hx-vals='{"message_type": "submit_answer" }' ws-send>
 					@components.TextInput(components.TextInputProps{
 						InputName:   "answer",
-						Placeholder: "Enter your answer",
+						Placeholder: i18n.T(ctx, "question.answer_placeholder"),
 					}, templ.Attributes{})
 					@components.Button(components.ButtonProps{}) {
-						Submit Answer
+						{ i18n.T(ctx, "question.submit_answer_button") }
 					}
 				</form>
 				<form id="toggle_ready_form" hx-vals='{"message_type": "toggle_answer_is_ready" }' ws-send class="w-full">
 					if currentPlayer.IsAnswerReady {
 						@components.Button(components.ButtonProps{TextColor: "text-black", BackgroundColor: "bg-text2"}) {
-							Ready
+							{ i18n.T(ctx, "common.ready_button") }
 						}
 					} else {
 						@components.Button(components.ButtonProps{}) {
-							Not Ready
+							{ i18n.T(ctx, "common.not_ready_button") }
 						}
 					}
 				</form>

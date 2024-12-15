@@ -41,11 +41,6 @@ type Websocketer interface {
 
 type message struct {
 	MessageType string `json:"message_type"`
-	Header      header `json:"HEADERS"`
-}
-
-type header struct {
-	Locale string `json:"Accept-Language"`
 }
 
 type WSHandler interface {
@@ -91,10 +86,37 @@ func (s *Subscriber) Subscribe(r *http.Request, w http.ResponseWriter) (err erro
 	ctx := context.Background()
 	ctx, cancel := context.WithCancel(ctx)
 
-	var playerID uuid.UUID
-	var buf bytes.Buffer
+	locale := "en-GB"
+	cookie, err := r.Cookie("locale")
+	if err == nil {
+		locale = cookie.Value
+	}
 
-	cookie, err := r.Cookie("player_id")
+	ctx, err = ctxi18n.WithLocale(ctx, locale)
+	if err != nil {
+		s.logger.ErrorContext(
+			ctx,
+			"failed to set locale",
+			slog.String("locale", locale),
+			slog.Any("error", err),
+		)
+
+		// TODO: Use app default
+		ctx, err = ctxi18n.WithLocale(ctx, "en-GB")
+		if err != nil {
+			s.logger.ErrorContext(
+				ctx,
+				"failed to set locale to default",
+				slog.String("locale", locale),
+				slog.Any("error", err),
+			)
+		}
+	}
+
+	var component bytes.Buffer
+	var playerID uuid.UUID
+
+	cookie, err = r.Cookie("player_id")
 	if err != nil {
 		cookie = setPlayerIDCookie()
 		http.SetCookie(w, cookie)
@@ -105,7 +127,7 @@ func (s *Subscriber) Subscribe(r *http.Request, w http.ResponseWriter) (err erro
 			return err
 		}
 
-		buf, err = s.Reconnect(ctx, playerID)
+		component, err = s.Reconnect(ctx, playerID)
 		if err != nil {
 			s.logger.WarnContext(ctx, "failed to reconnect", slog.Any("error", err))
 			cookie = setPlayerIDCookie()
@@ -131,9 +153,9 @@ func (s *Subscriber) Subscribe(r *http.Request, w http.ResponseWriter) (err erro
 	subscribeCh := s.websocket.Subscribe(ctx, playerID)
 	client := newClient(connection, playerID, subscribeCh)
 
-	// INFO: Send the reconnection message to the client.
-	if buf.Len() > 0 {
-		err = s.websocket.Publish(ctx, playerID, buf.Bytes())
+	// INFO: Send the reconnection message to the client if they should reconnect.
+	if component.Len() > 0 {
+		err = s.websocket.Publish(ctx, playerID, component.Bytes())
 	}
 
 	defer func() {
@@ -264,21 +286,6 @@ func (s *Subscriber) handleMessage(ctx context.Context, client *client) error {
 	err = handler.Validate()
 	if err != nil {
 		return fmt.Errorf("error validating handler message: %w", err)
-	}
-
-	locale := message.Header.Locale
-	if message.Header.Locale == "" {
-		locale = "en-GB"
-	}
-
-	ctx, err = ctxi18n.WithLocale(ctx, locale)
-	if err != nil {
-		s.logger.ErrorContext(
-			ctx,
-			"failed to set locale",
-			slog.String("locale", locale),
-			slog.Any("error", err),
-		)
 	}
 
 	err = handler.Handle(ctx, client, s)

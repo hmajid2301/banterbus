@@ -13,3 +13,9 @@ de-DE:
     join_button_label: "Beitreten"
   lobby:
     start_game_button: "Spiel starten"
+  question:
+    round: "Runden"
+    answer_placeholder: "Geben Sie hier Ihre Antwort ein ..."
+    submit_answer_button: "Antwort Abschickenr"
+  voting:
+    votes: "Stimmen"

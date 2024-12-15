@@ -141,6 +141,16 @@ func (s *Server) LocaleMiddleware(next http.Handler) http.Handler {
 			}
 		}
 
+		http.SetCookie(w, &http.Cookie{
+			Name:     "locale",
+			Value:    locale,
+			Path:     "/",
+			HttpOnly: true,
+			Secure:   true,
+			SameSite: http.SameSiteStrictMode,
+			Expires:  time.Now().Add(time.Hour),
+		})
+
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }

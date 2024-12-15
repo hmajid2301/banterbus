@@ -9,7 +9,6 @@ import (
 
 	"github.com/a-h/templ"
 	"github.com/google/uuid"
-	"github.com/invopop/ctxi18n"
 
 	"gitlab.com/hmajid2301/banterbus/internal/service"
 	"gitlab.com/hmajid2301/banterbus/internal/store/db"
@@ -24,18 +23,6 @@ func (s Subscriber) Reconnect(ctx context.Context, playerID uuid.UUID) (bytes.Bu
 	roomState, err := s.playerService.GetRoomState(ctx, playerID)
 	if err != nil {
 		return buf, err
-	}
-
-	// TODO: handle locale here?
-	locale := "en-GB"
-	ctx, err = ctxi18n.WithLocale(ctx, locale)
-	if err != nil {
-		s.logger.ErrorContext(
-			ctx,
-			"failed to set locale",
-			slog.String("locale", locale),
-			slog.Any("error", err),
-		)
 	}
 
 	var component templ.Component

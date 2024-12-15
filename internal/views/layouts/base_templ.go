@@ -8,7 +8,6 @@ package layouts
 import (
 	"github.com/a-h/templ"
 	templruntime "github.com/a-h/templ/runtime"
-	"github.com/invopop/ctxi18n"
 
 	"gitlab.com/hmajid2301/banterbus/internal/views/components"
 )
@@ -58,32 +57,12 @@ func Base(languages map[string]string) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</div></div></div></div></section><div id=\"error\"></div></div></body><script src=\"/static/js/htmx.min.js\"></script><script src=\"/static/js/htmx.ws.js\"></script><script src=\"/static/js/alpine.min.js\"></script><script defer>\n            htmx.on(\"htmx:wsBeforeMessage\", (evt) => {\n                try {\n                    const {message, type} = JSON.parse(event.detail.message);\n                    window.toast(message, type);\n                } catch (_) {}\n            });\n        </script>")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = setLangOnWSRequest(ctxi18n.Locale(ctx).Code().String()).Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</html>")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</div></div></div></div></section><div id=\"error\"></div></div></body><script src=\"/static/js/htmx.min.js\"></script><script src=\"/static/js/htmx.ws.js\"></script><script src=\"/static/js/alpine.min.js\"></script><script defer>\n            htmx.on(\"htmx:wsBeforeMessage\", (evt) => {\n                try {\n                    const {message, type} = JSON.parse(event.detail.message);\n                    window.toast(message, type);\n                } catch (_) {}\n            });\n        </script></html>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		return templ_7745c5c3_Err
 	})
-}
-
-func setLangOnWSRequest(lang string) templ.ComponentScript {
-	return templ.ComponentScript{
-		Name: `__templ_setLangOnWSRequest_d9f8`,
-		Function: `function __templ_setLangOnWSRequest_d9f8(lang){htmx.on("htmx:wsConfigSend", (evt) => {
-        evt.detail.headers['Accept-Language'] = lang;
-    });
-}`,
-		Call:       templ.SafeScript(`__templ_setLangOnWSRequest_d9f8`, lang),
-		CallInline: templ.SafeScriptInline(`__templ_setLangOnWSRequest_d9f8`, lang),
-	}
 }
 
 var _ = templruntime.GeneratedTemplate

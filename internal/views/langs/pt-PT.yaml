@@ -13,3 +13,9 @@ pt-PT:
     join_button_label: "Entrar"
   lobby:
     start_game_button: "Começar o jogo"
+  question:
+    round: "Redondo"
+    answer_placeholder: "Digite sua resposta aqui..."
+    submit_answer_button: "Enviar Resposta"
+  voting:
+    votes: "Votos"

@@ -1,9 +1,6 @@
 package layouts
 
-import (
-	"github.com/invopop/ctxi18n"
-	"gitlab.com/hmajid2301/banterbus/internal/views/components"
-)
+import "gitlab.com/hmajid2301/banterbus/internal/views/components"
 
 templ Base(languages map[string]string) {
 	<!DOCTYPE html>
@@ -56,12 +53,5 @@ templ Base(languages map[string]string) {
                 } catch (_) {}
             });
         </script>
-		@setLangOnWSRequest(ctxi18n.Locale(ctx).Code().String())
 	</html>
-}
-
-script setLangOnWSRequest(lang string) {
-    htmx.on("htmx:wsConfigSend", (evt) => {
-        evt.detail.headers['Accept-Language'] = lang;
-    });
 }
