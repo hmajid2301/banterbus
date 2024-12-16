@@ -5,6 +5,8 @@ de-DE:
     ready_button: "Bereit"
     not_ready_button: "Nicht bereit"
     roomcode_label: "Raumcode"
+    fibber: "Flunkerer"
+    normal: "normal"
   home:
     nickname_label: "spitzname"
     nickname_placeholder: "Gib deinen Spitznamen ein"
@@ -13,9 +15,16 @@ de-DE:
     join_button_label: "Beitreten"
   lobby:
     start_game_button: "Spiel starten"
+  role:
+     sush: "Pssst, sag es niemandem!"
+     you_are: "Du bist"
   question:
     round: "Runden"
     answer_placeholder: "Geben Sie hier Ihre Antwort ein ..."
     submit_answer_button: "Antwort Abschickenr"
   voting:
     votes: "Stimmen"
+  reveal:
+    voted_for: "Sie haben alle gestimmt für"
+    they_were: "Sie waren"
+    you_failed: "Sie haben es versäumt, für einen einzigen Spieler zu stimmen ..."

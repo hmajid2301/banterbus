@@ -25,6 +25,7 @@ type RoundServicer interface {
 	ToggleAnswerIsReady(ctx context.Context, playerID uuid.UUID, submittedAt time.Time) (bool, error)
 	GetVotingState(ctx context.Context, playerID uuid.UUID) (service.VotingState, error)
 	ToggleVotingIsReady(ctx context.Context, playerID uuid.UUID, submittedAt time.Time) (bool, error)
+	UpdateStateToReveal(ctx context.Context, gameStateID uuid.UUID, deadline time.Time) (service.RevealRoleState, error)
 }
 
 func (s *SubmitAnswer) Handle(ctx context.Context, client *client, sub *Subscriber) error {
@@ -73,7 +74,7 @@ func (t *ToggleAnswerIsReady) Handle(ctx context.Context, client *client, sub *S
 			deadline:    time.Now().UTC().Add(config.AllReadyToNextScreenFor),
 			subscriber:  *sub,
 		}
-		go StartStateMachine(ctx, &votingState)
+		go votingState.Start(ctx)
 	}
 
 	return nil
@@ -117,11 +118,11 @@ func (t *ToggleVotingIsReady) Handle(ctx context.Context, client *client, sub *S
 
 	if allReady {
 		revealState := RevealState{
-			roundID:    votingState.RoundID,
-			deadline:   time.Now().UTC().Add(config.AllReadyToNextScreenFor),
-			subscriber: *sub,
+			gameStateID: votingState.GameStateID,
+			deadline:    time.Now().UTC().Add(config.AllReadyToNextScreenFor),
+			subscriber:  *sub,
 		}
-		go StartStateMachine(ctx, &revealState)
+		go revealState.Start(ctx)
 	}
 
 	return nil

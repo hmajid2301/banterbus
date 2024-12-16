@@ -133,7 +133,7 @@ func (p *PlayerService) GetLobby(ctx context.Context, playerID uuid.UUID) (Lobby
 func (p *PlayerService) GetGameState(ctx context.Context, playerID uuid.UUID) (db.GameStateEnum, error) {
 	game, err := p.store.GetGameStateByPlayerID(ctx, playerID)
 	if err != nil {
-		return db.GAMESTATE_FIBBING_IT_SHOW_QUESTION, err
+		return db.GAMESTATE_FIBBING_IT_QUESTION, err
 	}
 
 	gameState, err := db.GameStateFromString(game.State)

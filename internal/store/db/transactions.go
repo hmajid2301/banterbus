@@ -95,7 +95,7 @@ func (s DB) StartGame(ctx context.Context, arg StartGameArgs) error {
 	_, err = s.WithTx(tx).AddGameState(ctx, AddGameStateParams{
 		ID:             arg.GameStateID,
 		RoomID:         arg.RoomID,
-		State:          GAMESTATE_FIBBING_IT_SHOW_QUESTION.String(),
+		State:          GAMESTATE_FIBBING_IT_QUESTION.String(),
 		SubmitDeadline: pgtype.Timestamp{Time: arg.Deadline, Valid: true},
 	})
 	if err != nil {

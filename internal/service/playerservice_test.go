@@ -551,8 +551,8 @@ func TestPlayerServiceGetGameState(t *testing.T) {
 	}{
 		{
 			name:          "Should successfully get game state QUESTION",
-			gameState:     db.GAMESTATE_FIBBING_IT_SHOW_QUESTION,
-			expectedState: db.GAMESTATE_FIBBING_IT_SHOW_QUESTION,
+			gameState:     db.GAMESTATE_FIBBING_IT_QUESTION,
+			expectedState: db.GAMESTATE_FIBBING_IT_QUESTION,
 		},
 		{
 			name:          "Should successfully get game state VOTING",

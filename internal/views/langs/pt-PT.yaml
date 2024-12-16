@@ -5,6 +5,8 @@ pt-PT:
     ready_button: "Preparar"
     not_ready_button: "Não está pronto"
     roomcode_label: "Código da Sala"
+    fibber: "fibra"
+    normal: "normal"
   home:
     nickname_placeholder: "Insira o seu apelido"
     nickname_label: "apelido"
@@ -13,9 +15,16 @@ pt-PT:
     join_button_label: "Entrar"
   lobby:
     start_game_button: "Começar o jogo"
+  role:
+     sush: "Sush, não conte a ninguém!"
+     you_are: "Tu és"
   question:
     round: "Redondo"
     answer_placeholder: "Digite sua resposta aqui..."
     submit_answer_button: "Enviar Resposta"
   voting:
     votes: "Votos"
+  reveal:
+    voted_for: "Todos vocês votaram"
+    they_were: "Eles eram"
+    you_failed: "Não conseguiu votar num único jogador ..."

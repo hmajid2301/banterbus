@@ -74,7 +74,7 @@ func (s Subscriber) reconnectToPlayingGame(ctx context.Context, playerID uuid.UU
 	}
 
 	switch gameState {
-	case db.GAMESTATE_FIBBING_IT_SHOW_QUESTION:
+	case db.GAMESTATE_FIBBING_IT_QUESTION:
 		question, err := s.playerService.GetQuestionState(ctx, playerID)
 		if err != nil {
 			clientErr := s.updateClientAboutErr(ctx, playerID, errStr)

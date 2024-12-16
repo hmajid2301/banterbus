@@ -22,12 +22,13 @@ type QuestionState struct {
 }
 
 func (q *QuestionState) Start(ctx context.Context) {
+	deadline := time.Now().UTC().Add(config.ShowQuestionScreenFor)
+	time.Sleep(time.Until(deadline))
 	q.Update(ctx)
 }
 
 func (q *QuestionState) Update(ctx context.Context) {
-	deadline := time.Now().UTC().Add(config.ShowVotingScreenFor)
-	v := &VotingState{gameStateID: q.gameStateID, deadline: deadline, subscriber: q.subscriber}
+	v := &VotingState{gameStateID: q.gameStateID, subscriber: q.subscriber}
 	go v.Start(ctx)
 }
 
@@ -38,8 +39,6 @@ type VotingState struct {
 }
 
 func (v *VotingState) Start(ctx context.Context) {
-	time.Sleep(time.Until(v.deadline))
-
 	deadline := time.Now().UTC().Add(config.ShowVotingScreenFor)
 	votingState, err := v.subscriber.roundService.UpdateStateToVoting(ctx, v.gameStateID, deadline)
 	if err != nil {
@@ -61,21 +60,44 @@ func (v *VotingState) Start(ctx context.Context) {
 		return
 	}
 
+	time.Sleep(time.Until(deadline))
 	v.Update(ctx)
 }
 
 func (v *VotingState) Update(ctx context.Context) {
-	fmt.Println("VotingState.Update", ctx)
+	r := &RevealState{gameStateID: v.gameStateID, subscriber: v.subscriber}
+	go r.Start(ctx)
 }
 
 type RevealState struct {
-	subscriber Subscriber
-	roundID    uuid.UUID
-	deadline   time.Time
+	subscriber  Subscriber
+	gameStateID uuid.UUID
+	deadline    time.Time
 }
 
 func (v *RevealState) Start(ctx context.Context) {
-	fmt.Println("VotingState.Start", ctx)
+	deadline := time.Now().UTC().Add(config.ShowRevealScreenFor)
+	votingState, err := v.subscriber.roundService.UpdateStateToReveal(ctx, v.gameStateID, deadline)
+	if err != nil {
+		v.subscriber.logger.Error(
+			"failed to update game state to reveal",
+			slog.Any("error", err),
+			slog.String("game_state_id", v.gameStateID.String()),
+		)
+		return
+	}
+
+	err = v.subscriber.updateClientsAboutReveal(ctx, votingState)
+	if err != nil {
+		v.subscriber.logger.Error(
+			"failed to update clients to reveal screen",
+			slog.Any("error", err),
+			slog.String("game_state_id", v.gameStateID.String()),
+		)
+		return
+	}
+
+	time.Sleep(time.Until(deadline))
 
 	v.Update(ctx)
 }
@@ -86,8 +108,4 @@ func (v *RevealState) Update(ctx context.Context) {
 
 type ScoringState struct {
 	Deadline time.Time
-}
-
-func StartStateMachine(ctx context.Context, initialState State) {
-	initialState.Start(ctx)
 }

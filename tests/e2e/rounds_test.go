@@ -83,5 +83,8 @@ func TestE2ERounds(t *testing.T) {
 		b, err := hostPlayerPage.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Ready"}).IsVisible()
 		require.NoError(t, err)
 		assert.True(t, b)
+
+		votedFor := hostPlayerPage.GetByText("You all voted for")
+		expect.Locator(votedFor).ToBeVisible()
 	})
 }

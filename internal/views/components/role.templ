@@ -1,7 +1,9 @@
 package components
 
 import (
+	"context"
 	"encoding/json"
+	"github.com/invopop/ctxi18n/i18n"
 	"gitlab.com/hmajid2301/banterbus/internal/views/icons"
 )
 
@@ -39,10 +41,10 @@ templ Role(role string, showRole bool) {
 								@icons.User("")
 							}
 							<p class="font-bold">
-								Sush don't tell anyone!
+								{ i18n.T(ctx, "role.sush") }
 							</p>
 							<p class="font-bold">
-								You are { role }
+								{ i18n.T(ctx, "role.you_are") } { toRoleI18N(ctx, role) }
 							</p>
 						</div>
 					</div>
@@ -55,4 +57,11 @@ templ Role(role string, showRole bool) {
 func toJSON(v any) string {
 	b, _ := json.Marshal(v)
 	return string(b)
+}
+
+func toRoleI18N(ctx context.Context, role string) string {
+	if role == "fibber" {
+		return i18n.T(ctx, "common.fibber")
+	}
+	return i18n.T(ctx, "common.normal")
 }

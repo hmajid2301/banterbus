@@ -60,11 +60,11 @@ type UpdateVotingState struct {
 }
 
 type VotingState struct {
-	Players  []PlayerWithVoting
-	Question string
-	Round    int
-	RoundID  uuid.UUID
-	Deadline time.Duration
+	Players     []PlayerWithVoting
+	Question    string
+	Round       int
+	GameStateID uuid.UUID
+	Deadline    time.Duration
 }
 
 type PlayerWithVoting struct {
@@ -74,4 +74,15 @@ type PlayerWithVoting struct {
 	Votes    int
 	Answer   string
 	IsReady  bool
+	Role     string
+}
+
+type RevealRoleState struct {
+	VotedForPlayerNickname string
+	VotedForPlayerAvatar   string
+	VotedForPlayerRole     string
+	ShouldReveal           bool
+	Deadline               time.Duration
+	Round                  int
+	PlayerIDs              []uuid.UUID
 }

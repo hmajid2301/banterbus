@@ -36,6 +36,7 @@ func (r *RoundService) SubmitAnswer(
 		return err
 	}
 
+	// TODO: check game state
 	if room.RoomState != db.ROOMSTATE_PLAYING.String() {
 		return fmt.Errorf("room is not in PLAYING state")
 	}
@@ -69,8 +70,8 @@ func (r *RoundService) ToggleAnswerIsReady(
 		return false, err
 	}
 
-	if gameState.State != db.GAMESTATE_FIBBING_IT_SHOW_QUESTION.String() {
-		return false, fmt.Errorf("room game state is not in FIBBING_IT_SHOW_QUESTION state")
+	if gameState.State != db.GAMESTATE_FIBBING_IT_QUESTION.String() {
+		return false, fmt.Errorf("room game state is not in FIBBING_IT_QUESTION state")
 	}
 
 	if submittedAt.After(gameState.SubmitDeadline.Time) {
@@ -102,8 +103,8 @@ func (r *RoundService) UpdateStateToVoting(
 	gameState, err := db.GameStateFromString(game.State)
 	if err != nil {
 		return VotingState{}, err
-	} else if gameState != db.GAMESTATE_FIBBING_IT_SHOW_QUESTION {
-		return VotingState{}, fmt.Errorf("game state is not in FIBBING_IT_SHOW_QUESTION state")
+	} else if gameState != db.GAMESTATE_FIBBING_IT_QUESTION {
+		return VotingState{}, fmt.Errorf("game state is not in FIBBING_IT_QUESTION state")
 	}
 
 	_, err = r.store.UpdateGameState(ctx, db.UpdateGameStateParams{
@@ -243,6 +244,7 @@ func (r *RoundService) getVotingState(ctx context.Context, roundID uuid.UUID, ro
 			Votes:    voteCount,
 			Answer:   p.Answer.String,
 			IsReady:  p.IsReady.Bool,
+			Role:     p.Role.String,
 		})
 	}
 
@@ -251,11 +253,11 @@ func (r *RoundService) getVotingState(ctx context.Context, roundID uuid.UUID, ro
 	}
 
 	votingState := VotingState{
-		RoundID:  roundID,
-		Round:    int(round),
-		Players:  votingPlayers,
-		Question: votes[0].Question,
-		Deadline: time.Until(votes[0].SubmitDeadline.Time),
+		GameStateID: votes[0].GameStateID,
+		Round:       int(round),
+		Players:     votingPlayers,
+		Question:    votes[0].Question,
+		Deadline:    time.Until(votes[0].SubmitDeadline.Time),
 	}
 	return votingState, nil
 }
@@ -288,4 +290,57 @@ func (r *RoundService) ToggleVotingIsReady(
 
 	allReady, err := r.store.GetAllPlayersVotingIsReady(ctx, playerID)
 	return allReady, err
+}
+
+func (r *RoundService) UpdateStateToReveal(
+	ctx context.Context,
+	gameStateID uuid.UUID,
+	deadline time.Time,
+) (RevealRoleState, error) {
+	game, err := r.store.GetGameState(ctx, gameStateID)
+	if err != nil {
+		return RevealRoleState{}, err
+	}
+
+	gameState, err := db.GameStateFromString(game.State)
+	if err != nil {
+		return RevealRoleState{}, err
+	} else if gameState != db.GAMESTATE_FIBBING_IT_VOTING {
+		return RevealRoleState{}, fmt.Errorf("game state is not in FIBBING_IT_VOTING state")
+	}
+
+	_, err = r.store.UpdateGameState(ctx, db.UpdateGameStateParams{
+		ID:             gameStateID,
+		SubmitDeadline: pgtype.Timestamp{Time: deadline, Valid: true},
+		State:          db.GAMESTATE_FIBBING_IT_REVEAL_ROLE.String(),
+	})
+	if err != nil {
+		return RevealRoleState{}, err
+	}
+	round, err := r.store.GetLatestRoundByGameStateID(ctx, gameStateID)
+	if err != nil {
+		return RevealRoleState{}, err
+	}
+
+	votingState, err := r.getVotingState(ctx, round.ID, round.Round)
+	if err != nil {
+		return RevealRoleState{}, err
+	}
+
+	reveal := RevealRoleState{Deadline: time.Until(deadline), Round: votingState.Round, ShouldReveal: false}
+	playerIDs := []uuid.UUID{}
+	playersLen := len(votingState.Players)
+
+	for _, p := range votingState.Players {
+		playerIDs = append(playerIDs, p.ID)
+		if p.Votes == playersLen-1 {
+			reveal.VotedForPlayerNickname = p.Nickname
+			reveal.VotedForPlayerAvatar = p.Avatar
+			reveal.VotedForPlayerRole = p.Role
+			reveal.ShouldReveal = true
+		}
+	}
+
+	reveal.PlayerIDs = playerIDs
+	return reveal, nil
 }

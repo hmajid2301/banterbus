@@ -166,8 +166,9 @@ ORDER BY p.created_at
 LIMIT 1;
 
 -- name: GetVotingState :many
-SELECT 
+SELECT
     fir.round AS round,
+    gs.id as game_state_id,
     q.question,
     gs.submit_deadline,
     p.id AS player_id,
@@ -175,7 +176,8 @@ SELECT
     p.avatar,
     COALESCE(COUNT(fv.id), 0) AS votes,
     fia.answer,
-    fv.is_ready
+    fv.is_ready,
+    fpr.player_role AS role
 FROM fibbing_it_rounds fir
 JOIN questions q ON fir.fibber_question_id = q.id
 JOIN game_state gs ON fir.game_state_id = gs.id
@@ -183,6 +185,7 @@ JOIN rooms_players rp ON rp.room_id = fir.room_id
 JOIN players p ON p.id = rp.player_id
 LEFT JOIN fibbing_it_answers fia ON fia.round_id = fir.id AND fia.player_id = p.id
 LEFT JOIN fibbing_it_votes fv ON fv.round_id = fir.id AND fv.voted_for_player_id = p.id
+LEFT JOIN fibbing_it_player_roles fpr ON p.id = fpr.player_id AND fir.id = fpr.round_id
 WHERE fir.id = $1
 GROUP BY
     fir.round,
@@ -192,7 +195,9 @@ GROUP BY
     p.nickname,
     p.avatar,
     fia.answer,
-    fv.is_ready
+    fv.is_ready,
+    fpr.player_role,
+    gs.id
 ORDER BY votes DESC, p.nickname;
 
 -- name: ToggleAnswerIsReady :one
@@ -218,7 +223,6 @@ WHERE rp.room_id = (
 
 -- name: ToggleVotingIsReady :one
 UPDATE fibbing_it_votes SET is_ready = NOT is_ready WHERE player_id = $1 RETURNING *;
-
 
 -- name: GetAllPlayersVotingIsReady :one
 SELECT

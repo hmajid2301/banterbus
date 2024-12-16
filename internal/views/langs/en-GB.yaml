@@ -5,6 +5,8 @@ en-GB:
     ready_button: "Ready"
     not_ready_button: "Not Ready"
     roomcode_label: "Room Code"
+    fibber: "fibber"
+    normal: "normal"
   home:
     nickname_label: "nickname"
     nickname_placeholder: "Enter your nickname"
@@ -13,9 +15,16 @@ en-GB:
     join_button_label: "Join"
   lobby:
     start_game_button: "Start Game"
+  role:
+     sush: "Sush don't tell anyone!"
+     you_are: "You are"
   question:
     round: "Round"
     answer_placeholder: "Enter your answer here ..."
     submit_answer_button: "Submit Answer"
   voting:
     votes: "Votes"
+  reveal:
+    voted_for: "You all voted for"
+    they_were: "They were"
+    you_failed: "You failed to vote for a single player ..."

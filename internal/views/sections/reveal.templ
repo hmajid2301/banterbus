@@ -1,0 +1,42 @@
+package sections
+
+import (
+	"context"
+	"github.com/invopop/ctxi18n/i18n"
+	"gitlab.com/hmajid2301/banterbus/internal/service"
+	"strconv"
+)
+
+templ Reveal(state service.RevealRoleState) {
+	<div hx-swap-oob="innerHTML:#page">
+		<div x-data={ toJSON(int(state.Deadline.Seconds())) } x-init="setInterval(() => { if (timer > 0) timer--; }, 1000)">
+			<div class="flex flex-col justify-center items-center space-y-4 text-text2">
+				<div>{ strconv.Itoa(state.Round) } / 3</div>
+				<div class="grid grid-cols-2 gap-16">
+					<div class="flex flex-col items-center">
+						if state.VotedForPlayerNickname != "" {
+							{ i18n.T(ctx, "reveal.voted_for") }
+							{ state.VotedForPlayerNickname }
+							<div class="w-20 h-20 rounded-full border-2 border-white bg-overlay0">
+								<img src={ state.VotedForPlayerAvatar } alt="avatar" class="w-full h-full rounded-full"/>
+							</div>
+							{ i18n.T(ctx, "reveal.they_were") } { toRoleI18N(ctx, state.VotedForPlayerRole) }
+						} else {
+							<div class="">
+								{ i18n.T(ctx, "reveal.you_failed") }
+							</div>
+						}
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+}
+
+// TODO: put this somewhere shared
+func toRoleI18N(ctx context.Context, role string) string {
+	if role == "fibber" {
+		return i18n.T(ctx, "common.fibber")
+	}
+	return i18n.T(ctx, "common.normal")
+}

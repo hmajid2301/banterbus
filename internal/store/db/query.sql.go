@@ -771,8 +771,9 @@ func (q *Queries) GetRoomByPlayerID(ctx context.Context, playerID uuid.UUID) (Ro
 }
 
 const getVotingState = `-- name: GetVotingState :many
-SELECT 
+SELECT
     fir.round AS round,
+    gs.id as game_state_id,
     q.question,
     gs.submit_deadline,
     p.id AS player_id,
@@ -780,7 +781,8 @@ SELECT
     p.avatar,
     COALESCE(COUNT(fv.id), 0) AS votes,
     fia.answer,
-    fv.is_ready
+    fv.is_ready,
+    fpr.player_role AS role
 FROM fibbing_it_rounds fir
 JOIN questions q ON fir.fibber_question_id = q.id
 JOIN game_state gs ON fir.game_state_id = gs.id
@@ -788,6 +790,7 @@ JOIN rooms_players rp ON rp.room_id = fir.room_id
 JOIN players p ON p.id = rp.player_id
 LEFT JOIN fibbing_it_answers fia ON fia.round_id = fir.id AND fia.player_id = p.id
 LEFT JOIN fibbing_it_votes fv ON fv.round_id = fir.id AND fv.voted_for_player_id = p.id
+LEFT JOIN fibbing_it_player_roles fpr ON p.id = fpr.player_id AND fir.id = fpr.round_id
 WHERE fir.id = $1
 GROUP BY
     fir.round,
@@ -797,12 +800,15 @@ GROUP BY
     p.nickname,
     p.avatar,
     fia.answer,
-    fv.is_ready
+    fv.is_ready,
+    fpr.player_role,
+    gs.id
 ORDER BY votes DESC, p.nickname
 `
 
 type GetVotingStateRow struct {
 	Round          int32
+	GameStateID    uuid.UUID
 	Question       string
 	SubmitDeadline pgtype.Timestamp
 	PlayerID       uuid.UUID
@@ -811,6 +817,7 @@ type GetVotingStateRow struct {
 	Votes          interface{}
 	Answer         pgtype.Text
 	IsReady        pgtype.Bool
+	Role           pgtype.Text
 }
 
 func (q *Queries) GetVotingState(ctx context.Context, id uuid.UUID) ([]GetVotingStateRow, error) {
@@ -824,6 +831,7 @@ func (q *Queries) GetVotingState(ctx context.Context, id uuid.UUID) ([]GetVoting
 		var i GetVotingStateRow
 		if err := rows.Scan(
 			&i.Round,
+			&i.GameStateID,
 			&i.Question,
 			&i.SubmitDeadline,
 			&i.PlayerID,
@@ -832,6 +840,7 @@ func (q *Queries) GetVotingState(ctx context.Context, id uuid.UUID) ([]GetVoting
 			&i.Votes,
 			&i.Answer,
 			&i.IsReady,
+			&i.Role,
 		); err != nil {
 			return nil, err
 		}

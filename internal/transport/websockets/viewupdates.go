@@ -85,3 +85,21 @@ func (s *Subscriber) updateClientsAboutVoting(ctx context.Context, votingState s
 
 	return nil
 }
+
+func (s *Subscriber) updateClientsAboutReveal(ctx context.Context, revealState service.RevealRoleState) error {
+	var buf bytes.Buffer
+	for _, id := range revealState.PlayerIDs {
+		component := sections.Reveal(revealState)
+		err := component.Render(ctx, &buf)
+		if err != nil {
+			return err
+		}
+
+		err = s.websocket.Publish(ctx, id, buf.Bytes())
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
