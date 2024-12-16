@@ -53,6 +53,7 @@ in
       export BANTERBUS_DB_NAME=postgres
       export BANTERBUS_REDIS_ADDRESS="localhost:6379"
       export BANTERBUS_PLAYWRIGHT_HEADLESS=false
+      export BANTERBUS_ENVIRONMENT=local
 
       ${pre-commit-check.shellHook}
       podman-compose up -d

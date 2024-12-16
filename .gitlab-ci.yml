@@ -238,7 +238,7 @@ deploy:prod:
     name: bitnami/kubectl:latest
     entrypoint: ['']
   rules:
-    - if: $CI_COMMIT_TAG
+    - if: $CI_COMMIT_TAG || $CI_COMMIT_BRANCH == "main"
   script:
     - kubectl config use-context hmajid2301/k3s-config:ms01
     - kubectl rollout status deployment/banterbus -n prod --timeout=300s

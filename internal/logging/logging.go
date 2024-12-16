@@ -13,18 +13,18 @@ import (
 func New(logLevel slog.Level, defaultAttrs []slog.Attr) *slog.Logger {
 	var handler slog.Handler
 
-	if os.Getenv("BANTERBUS_ENVIRONMENT") == "production" {
-		opts := slog.HandlerOptions{
-			AddSource: true,
-			Level:     logLevel,
-		}
-		handler = slog.NewJSONHandler(os.Stdout, &opts).WithAttrs(defaultAttrs)
-	} else {
+	if os.Getenv("BANTERBUS_ENVIRONMENT") == "local" {
 		handler = tint.NewHandler(os.Stdout, &tint.Options{
 			AddSource:  true,
 			Level:      logLevel,
 			TimeFormat: time.Kitchen,
 		})
+	} else {
+		opts := slog.HandlerOptions{
+			AddSource: true,
+			Level:     logLevel,
+		}
+		handler = slog.NewJSONHandler(os.Stdout, &opts).WithAttrs(defaultAttrs)
 	}
 
 	customHandler := slogctx.NewHandler(handler, nil)
