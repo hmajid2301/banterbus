@@ -34,10 +34,11 @@ type NewRoom struct {
 }
 
 type PlayerWithRole struct {
-	ID            uuid.UUID
-	Role          string
-	Question      string
-	IsAnswerReady bool
+	ID              uuid.UUID
+	Role            string
+	Question        string
+	IsAnswerReady   bool
+	PossibleAnswers []string
 }
 
 // TODO: could just be a single player

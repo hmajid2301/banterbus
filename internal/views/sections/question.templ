@@ -25,10 +25,19 @@ templ Question(gameState service.QuestionState, currentPlayer service.PlayerWith
 				</div>
 				<p class="text-6xl text-center">{ currentPlayer.Question }</p>
 				<form id="submit_answer_form" hx-vals='{"message_type": "submit_answer" }' ws-send>
-					@components.TextInput(components.TextInputProps{
-						InputName:   "answer",
-						Placeholder: i18n.T(ctx, "question.answer_placeholder"),
-					}, templ.Attributes{})
+					if len(currentPlayer.PossibleAnswers) > 0 {
+						for _, answer := range currentPlayer.PossibleAnswers {
+							<div class="flex justify-between items-center">
+								<p class="text-2xl">{ answer }</p>
+								<input type="radio" name="answer" value={ answer } class="w-6 h-6"/>
+							</div>
+						}
+					} else {
+						@components.TextInput(components.TextInputProps{
+							InputName:   "answer",
+							Placeholder: i18n.T(ctx, "question.answer_placeholder"),
+						}, templ.Attributes{})
+					}
 					@components.Button(components.ButtonProps{}) {
 						{ i18n.T(ctx, "question.submit_answer_button") }
 					}

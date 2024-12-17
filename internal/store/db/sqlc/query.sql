@@ -67,8 +67,8 @@ WHERE rp.room_id = (
     WHERE rp_inner.player_id = $1
 );
 
--- name: GetAllPlayerIDsByGameStateID :many
-SELECT p.id
+-- name: GetAllPlayersByGameStateID :many
+SELECT p.id, p.nickname
 FROM players p
 JOIN rooms_players rp ON p.id = rp.player_id
 JOIN game_state gs ON rp.room_id = gs.room_id

@@ -620,9 +620,10 @@ func TestPlayerServiceGetQuestionState(t *testing.T) {
 		expectedGameState := service.QuestionState{
 			Players: []service.PlayerWithRole{
 				{
-					ID:       playerID,
-					Role:     "fibber",
-					Question: "fibber question",
+					ID:              playerID,
+					Role:            "fibber",
+					Question:        "fibber question",
+					PossibleAnswers: []string{},
 				},
 			},
 			Round:     1,
@@ -660,13 +661,103 @@ func TestPlayerServiceGetQuestionState(t *testing.T) {
 		expectedGameState := service.QuestionState{
 			Players: []service.PlayerWithRole{
 				{
-					ID:       playerID,
-					Role:     "normal",
-					Question: "normal question",
+					ID:              playerID,
+					Role:            "normal",
+					Question:        "normal question",
+					PossibleAnswers: []string{},
 				},
 			},
 			Round:     1,
 			RoundType: "free_form",
+		}
+
+		diffOpts := cmpopts.IgnoreFields(questionState, "Deadline")
+		PartialEqual(t, expectedGameState, questionState, diffOpts)
+		assert.LessOrEqual(t, int(questionState.Deadline.Seconds()), 5)
+	})
+
+	t.Run("Should successfully get question state round type multiple_choice", func(t *testing.T) {
+		mockStore := mockService.NewMockStorer(t)
+		mockRandomizer := mockService.NewMockRandomizer(t)
+		srv := service.NewPlayerService(mockStore, mockRandomizer)
+
+		ctx := context.Background()
+
+		deadline := time.Now().Add(5 * time.Second)
+		mockStore.EXPECT().GetCurrentQuestionByPlayerID(ctx, playerID).Return(db.GetCurrentQuestionByPlayerIDRow{
+			PlayerID:       playerID,
+			Avatar:         []byte(""),
+			Nickname:       "nickname",
+			Role:           pgtype.Text{String: "fibber"},
+			Question:       "fibber question",
+			Round:          1,
+			RoundType:      "multiple_choice",
+			RoomCode:       "ABC12",
+			SubmitDeadline: pgtype.Timestamp{Time: deadline},
+		}, nil)
+		questionState, err := srv.GetQuestionState(ctx, playerID)
+
+		assert.NoError(t, err)
+		expectedGameState := service.QuestionState{
+			Players: []service.PlayerWithRole{
+				{
+					ID:              playerID,
+					Role:            "fibber",
+					Question:        "fibber question",
+					PossibleAnswers: []string{"Strongly Agree", "Agree", "Neutral", "Disagree", "Strongly Disagree"},
+				},
+			},
+			Round:     1,
+			RoundType: "multiple_choice",
+		}
+
+		diffOpts := cmpopts.IgnoreFields(questionState, "Deadline")
+		PartialEqual(t, expectedGameState, questionState, diffOpts)
+		assert.LessOrEqual(t, int(questionState.Deadline.Seconds()), 5)
+	})
+
+	t.Run("Should successfully get question state round type most_likely", func(t *testing.T) {
+		mockStore := mockService.NewMockStorer(t)
+		mockRandomizer := mockService.NewMockRandomizer(t)
+		srv := service.NewPlayerService(mockStore, mockRandomizer)
+
+		ctx := context.Background()
+
+		deadline := time.Now().Add(5 * time.Second)
+		mockStore.EXPECT().GetCurrentQuestionByPlayerID(ctx, playerID).Return(db.GetCurrentQuestionByPlayerIDRow{
+			PlayerID:       playerID,
+			Avatar:         []byte(""),
+			Nickname:       "nickname",
+			Role:           pgtype.Text{String: "fibber"},
+			Question:       "fibber question",
+			Round:          1,
+			RoundType:      "most_likely",
+			RoomCode:       "ABC12",
+			SubmitDeadline: pgtype.Timestamp{Time: deadline},
+		}, nil)
+		mockStore.EXPECT().GetAllPlayersInRoom(ctx, playerID).Return([]db.GetAllPlayersInRoomRow{
+			{
+				Nickname: "nickname",
+			},
+			{
+				Nickname: "other_nickname",
+			},
+		}, nil)
+
+		questionState, err := srv.GetQuestionState(ctx, playerID)
+
+		assert.NoError(t, err)
+		expectedGameState := service.QuestionState{
+			Players: []service.PlayerWithRole{
+				{
+					ID:              playerID,
+					Role:            "fibber",
+					Question:        "fibber question",
+					PossibleAnswers: []string{"nickname", "other_nickname"},
+				},
+			},
+			Round:     1,
+			RoundType: "most_likely",
 		}
 
 		diffOpts := cmpopts.IgnoreFields(questionState, "Deadline")

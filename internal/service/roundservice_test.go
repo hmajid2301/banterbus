@@ -1203,40 +1203,48 @@ func TestRoundServiceUpdateStateToQuestion(t *testing.T) {
 	groupID := uuid.MustParse("0193a629-1fcf-79dd-ac70-760bedbdffa9")
 
 	tests := []struct {
-		name           string
-		roundNumber    int32
-		roundType      string
-		expectedRound  int32
-		expectedType   string
-		normalQuestion string
-		fibberQuestion string
+		name                    string
+		roundNumber             int32
+		roundType               string
+		expectedRound           int32
+		expectedType            string
+		expectedAnswerPlayerOne []string
+		expectedAnswerPlayerTwo []string
+		normalQuestion          string
+		fibberQuestion          string
 	}{
 		{
-			name:           "Should update state to question state successfully with round 2 and free_form",
-			roundNumber:    1,
-			roundType:      "free_form",
-			expectedRound:  2,
-			expectedType:   "free_form",
-			normalQuestion: "What if your favourite city",
-			fibberQuestion: "What is your favourite hotel",
+			name:                    "Should update state to question state successfully with round 2 and free_form",
+			roundNumber:             1,
+			roundType:               "free_form",
+			expectedRound:           2,
+			expectedType:            "free_form",
+			expectedAnswerPlayerOne: []string{},
+			expectedAnswerPlayerTwo: []string{},
+			normalQuestion:          "What if your favourite city",
+			fibberQuestion:          "What is your favourite hotel",
 		},
 		{
-			name:           "Should update state to question state successfully with round 1 and multiple_choice",
-			roundNumber:    3,
-			roundType:      "free_form",
-			expectedRound:  1,
-			expectedType:   "multiple_choice",
-			normalQuestion: "I love pizza",
-			fibberQuestion: "I love burgers",
+			name:                    "Should update state to question state successfully with round 1 and multiple_choice",
+			roundNumber:             3,
+			roundType:               "free_form",
+			expectedRound:           1,
+			expectedType:            "multiple_choice",
+			expectedAnswerPlayerOne: []string{"Strongly Agree", "Agree", "Neutral", "Disagree", "Strongly Disagree"},
+			expectedAnswerPlayerTwo: []string{"Strongly Agree", "Agree", "Neutral", "Disagree", "Strongly Disagree"},
+			normalQuestion:          "I love pizza",
+			fibberQuestion:          "I love burgers",
 		},
 		{
-			name:           "Should update state to question state successfully with round 1 and most_likely",
-			roundNumber:    3,
-			roundType:      "multiple_choice",
-			expectedRound:  1,
-			expectedType:   "most_likely",
-			normalQuestion: "go to prison",
-			fibberQuestion: "go to a bank",
+			name:                    "Should update state to question state successfully with round 1 and most_likely",
+			roundNumber:             3,
+			roundType:               "multiple_choice",
+			expectedRound:           1,
+			expectedType:            "most_likely",
+			expectedAnswerPlayerOne: []string{"Player 2"},
+			expectedAnswerPlayerTwo: []string{"Player 1"},
+			normalQuestion:          "go to prison",
+			fibberQuestion:          "go to a bank",
 		},
 	}
 
@@ -1258,8 +1266,17 @@ func TestRoundServiceUpdateStateToQuestion(t *testing.T) {
 				SubmitDeadline: pgtype.Timestamp{Time: deadline, Valid: true},
 				State:          db.GAMESTATE_FIBBING_IT_QUESTION.String(),
 			}).Return(db.GameState{}, nil)
-			mockStore.EXPECT().GetAllPlayerIDsByGameStateID(ctx, gameStateID).Return(
-				[]uuid.UUID{defaultHostPlayerID, defaultOtherPlayerID},
+			mockStore.EXPECT().GetAllPlayersByGameStateID(ctx, gameStateID).Return(
+				[]db.GetAllPlayersByGameStateIDRow{
+					{
+						ID:       defaultHostPlayerID,
+						Nickname: "Player 1",
+					},
+					{
+						ID:       defaultOtherPlayerID,
+						Nickname: "Player 2",
+					},
+				},
 				nil,
 			)
 			mockStore.EXPECT().GetLatestRoundByGameStateID(ctx, gameStateID).Return(db.GetLatestRoundByGameStateIDRow{
@@ -1290,9 +1307,15 @@ func TestRoundServiceUpdateStateToQuestion(t *testing.T) {
 				FibberQuestionID:  uuid.MustParse("0193a629-a9ac-7fc4-828c-a1334c282e0f"),
 				Round:             tt.expectedRound,
 				RoundType:         tt.expectedType,
-				PlayerIDs: []uuid.UUID{
-					defaultHostPlayerID,
-					defaultOtherPlayerID,
+				Players: []db.GetAllPlayersByGameStateIDRow{
+					{
+						ID:       defaultHostPlayerID,
+						Nickname: "Player 1",
+					},
+					{
+						ID:       defaultOtherPlayerID,
+						Nickname: "Player 2",
+					},
 				},
 				FibberLoc: 1,
 			}).Return(nil)
@@ -1303,14 +1326,16 @@ func TestRoundServiceUpdateStateToQuestion(t *testing.T) {
 				GameStateID: gameStateID,
 				Players: []service.PlayerWithRole{
 					{
-						ID:       defaultHostPlayerID,
-						Role:     "normal",
-						Question: tt.normalQuestion,
+						ID:              defaultHostPlayerID,
+						Role:            "normal",
+						Question:        tt.normalQuestion,
+						PossibleAnswers: tt.expectedAnswerPlayerOne,
 					},
 					{
-						ID:       defaultOtherPlayerID,
-						Role:     "fibber",
-						Question: tt.fibberQuestion,
+						ID:              defaultOtherPlayerID,
+						Role:            "fibber",
+						Question:        tt.fibberQuestion,
+						PossibleAnswers: tt.expectedAnswerPlayerTwo,
 					},
 				},
 				Round:     int(tt.expectedRound),
@@ -1372,8 +1397,8 @@ func TestRoundServiceUpdateStateToQuestion(t *testing.T) {
 				SubmitDeadline: pgtype.Timestamp{Time: deadline, Valid: true},
 				State:          db.GAMESTATE_FIBBING_IT_QUESTION.String(),
 			}).Return(db.GameState{}, nil)
-			mockStore.EXPECT().GetAllPlayerIDsByGameStateID(ctx, gameStateID).Return(
-				[]uuid.UUID{defaultHostPlayerID, defaultOtherPlayerID},
+			mockStore.EXPECT().GetAllPlayersByGameStateID(ctx, gameStateID).Return(
+				nil,
 				fmt.Errorf("failed to get all player IDs by game state ID"),
 			)
 			_, err := srv.UpdateStateToQuestion(ctx, gameStateID, deadline)
@@ -1397,8 +1422,17 @@ func TestRoundServiceUpdateStateToQuestion(t *testing.T) {
 			SubmitDeadline: pgtype.Timestamp{Time: deadline, Valid: true},
 			State:          db.GAMESTATE_FIBBING_IT_QUESTION.String(),
 		}).Return(db.GameState{}, nil)
-		mockStore.EXPECT().GetAllPlayerIDsByGameStateID(ctx, gameStateID).Return(
-			[]uuid.UUID{defaultHostPlayerID, defaultOtherPlayerID},
+		mockStore.EXPECT().GetAllPlayersByGameStateID(ctx, gameStateID).Return(
+			[]db.GetAllPlayersByGameStateIDRow{
+				{
+					ID:       defaultHostPlayerID,
+					Nickname: "Player 1",
+				},
+				{
+					ID:       defaultOtherPlayerID,
+					Nickname: "Player 2",
+				},
+			},
 			nil,
 		)
 		mockStore.EXPECT().
@@ -1428,8 +1462,17 @@ func TestRoundServiceUpdateStateToQuestion(t *testing.T) {
 				SubmitDeadline: pgtype.Timestamp{Time: deadline, Valid: true},
 				State:          db.GAMESTATE_FIBBING_IT_QUESTION.String(),
 			}).Return(db.GameState{}, nil)
-			mockStore.EXPECT().GetAllPlayerIDsByGameStateID(ctx, gameStateID).Return(
-				[]uuid.UUID{defaultHostPlayerID, defaultOtherPlayerID},
+			mockStore.EXPECT().GetAllPlayersByGameStateID(ctx, gameStateID).Return(
+				[]db.GetAllPlayersByGameStateIDRow{
+					{
+						ID:       defaultHostPlayerID,
+						Nickname: "Player 1",
+					},
+					{
+						ID:       defaultOtherPlayerID,
+						Nickname: "Player 2",
+					},
+				},
 				nil,
 			)
 			mockStore.EXPECT().GetLatestRoundByGameStateID(ctx, gameStateID).Return(db.GetLatestRoundByGameStateIDRow{
@@ -1464,8 +1507,17 @@ func TestRoundServiceUpdateStateToQuestion(t *testing.T) {
 			SubmitDeadline: pgtype.Timestamp{Time: deadline, Valid: true},
 			State:          db.GAMESTATE_FIBBING_IT_QUESTION.String(),
 		}).Return(db.GameState{}, nil)
-		mockStore.EXPECT().GetAllPlayerIDsByGameStateID(ctx, gameStateID).Return(
-			[]uuid.UUID{defaultHostPlayerID, defaultOtherPlayerID},
+		mockStore.EXPECT().GetAllPlayersByGameStateID(ctx, gameStateID).Return(
+			[]db.GetAllPlayersByGameStateIDRow{
+				{
+					ID:       defaultHostPlayerID,
+					Nickname: "Player 1",
+				},
+				{
+					ID:       defaultOtherPlayerID,
+					Nickname: "Player 2",
+				},
+			},
 			nil,
 		)
 		mockStore.EXPECT().GetLatestRoundByGameStateID(ctx, gameStateID).Return(db.GetLatestRoundByGameStateIDRow{
@@ -1506,8 +1558,17 @@ func TestRoundServiceUpdateStateToQuestion(t *testing.T) {
 			SubmitDeadline: pgtype.Timestamp{Time: deadline, Valid: true},
 			State:          db.GAMESTATE_FIBBING_IT_QUESTION.String(),
 		}).Return(db.GameState{}, nil)
-		mockStore.EXPECT().GetAllPlayerIDsByGameStateID(ctx, gameStateID).Return(
-			[]uuid.UUID{defaultHostPlayerID, defaultOtherPlayerID},
+		mockStore.EXPECT().GetAllPlayersByGameStateID(ctx, gameStateID).Return(
+			[]db.GetAllPlayersByGameStateIDRow{
+				{
+					ID:       defaultHostPlayerID,
+					Nickname: "Player 1",
+				},
+				{
+					ID:       defaultOtherPlayerID,
+					Nickname: "Player 2",
+				},
+			},
 			nil,
 		)
 		mockStore.EXPECT().GetLatestRoundByGameStateID(ctx, gameStateID).Return(db.GetLatestRoundByGameStateIDRow{
@@ -1537,9 +1598,15 @@ func TestRoundServiceUpdateStateToQuestion(t *testing.T) {
 			FibberQuestionID:  uuid.MustParse("0193a629-a9ac-7fc4-828c-a1334c282e0f"),
 			Round:             2,
 			RoundType:         "free_form",
-			PlayerIDs: []uuid.UUID{
-				defaultHostPlayerID,
-				defaultOtherPlayerID,
+			Players: []db.GetAllPlayersByGameStateIDRow{
+				{
+					ID:       defaultHostPlayerID,
+					Nickname: "Player 1",
+				},
+				{
+					ID:       defaultOtherPlayerID,
+					Nickname: "Player 2",
+				},
 			},
 			FibberLoc: 1,
 		}).Return(fmt.Errorf("failed to add a new round"))

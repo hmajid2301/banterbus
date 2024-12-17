@@ -748,24 +748,24 @@ func (_c *MockStorer_GetAllPlayerByRoomCode_Call) RunAndReturn(run func(context.
 	return _c
 }
 
-// GetAllPlayerIDsByGameStateID provides a mock function with given fields: ctx, id
-func (_m *MockStorer) GetAllPlayerIDsByGameStateID(ctx context.Context, id uuid.UUID) ([]uuid.UUID, error) {
+// GetAllPlayersByGameStateID provides a mock function with given fields: ctx, id
+func (_m *MockStorer) GetAllPlayersByGameStateID(ctx context.Context, id uuid.UUID) ([]db.GetAllPlayersByGameStateIDRow, error) {
 	ret := _m.Called(ctx, id)
 
 	if len(ret) == 0 {
-		panic("no return value specified for GetAllPlayerIDsByGameStateID")
+		panic("no return value specified for GetAllPlayersByGameStateID")
 	}
 
-	var r0 []uuid.UUID
+	var r0 []db.GetAllPlayersByGameStateIDRow
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) ([]uuid.UUID, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) ([]db.GetAllPlayersByGameStateIDRow, error)); ok {
 		return rf(ctx, id)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) []uuid.UUID); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) []db.GetAllPlayersByGameStateIDRow); ok {
 		r0 = rf(ctx, id)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]uuid.UUID)
+			r0 = ret.Get(0).([]db.GetAllPlayersByGameStateIDRow)
 		}
 	}
 
@@ -778,31 +778,31 @@ func (_m *MockStorer) GetAllPlayerIDsByGameStateID(ctx context.Context, id uuid.
 	return r0, r1
 }
 
-// MockStorer_GetAllPlayerIDsByGameStateID_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetAllPlayerIDsByGameStateID'
-type MockStorer_GetAllPlayerIDsByGameStateID_Call struct {
+// MockStorer_GetAllPlayersByGameStateID_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetAllPlayersByGameStateID'
+type MockStorer_GetAllPlayersByGameStateID_Call struct {
 	*mock.Call
 }
 
-// GetAllPlayerIDsByGameStateID is a helper method to define mock.On call
+// GetAllPlayersByGameStateID is a helper method to define mock.On call
 //   - ctx context.Context
 //   - id uuid.UUID
-func (_e *MockStorer_Expecter) GetAllPlayerIDsByGameStateID(ctx interface{}, id interface{}) *MockStorer_GetAllPlayerIDsByGameStateID_Call {
-	return &MockStorer_GetAllPlayerIDsByGameStateID_Call{Call: _e.mock.On("GetAllPlayerIDsByGameStateID", ctx, id)}
+func (_e *MockStorer_Expecter) GetAllPlayersByGameStateID(ctx interface{}, id interface{}) *MockStorer_GetAllPlayersByGameStateID_Call {
+	return &MockStorer_GetAllPlayersByGameStateID_Call{Call: _e.mock.On("GetAllPlayersByGameStateID", ctx, id)}
 }
 
-func (_c *MockStorer_GetAllPlayerIDsByGameStateID_Call) Run(run func(ctx context.Context, id uuid.UUID)) *MockStorer_GetAllPlayerIDsByGameStateID_Call {
+func (_c *MockStorer_GetAllPlayersByGameStateID_Call) Run(run func(ctx context.Context, id uuid.UUID)) *MockStorer_GetAllPlayersByGameStateID_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		run(args[0].(context.Context), args[1].(uuid.UUID))
 	})
 	return _c
 }
 
-func (_c *MockStorer_GetAllPlayerIDsByGameStateID_Call) Return(_a0 []uuid.UUID, _a1 error) *MockStorer_GetAllPlayerIDsByGameStateID_Call {
+func (_c *MockStorer_GetAllPlayersByGameStateID_Call) Return(_a0 []db.GetAllPlayersByGameStateIDRow, _a1 error) *MockStorer_GetAllPlayersByGameStateID_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *MockStorer_GetAllPlayerIDsByGameStateID_Call) RunAndReturn(run func(context.Context, uuid.UUID) ([]uuid.UUID, error)) *MockStorer_GetAllPlayerIDsByGameStateID_Call {
+func (_c *MockStorer_GetAllPlayersByGameStateID_Call) RunAndReturn(run func(context.Context, uuid.UUID) ([]db.GetAllPlayersByGameStateIDRow, error)) *MockStorer_GetAllPlayersByGameStateID_Call {
 	_c.Call.Return(run)
 	return _c
 }

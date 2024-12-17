@@ -363,27 +363,32 @@ func (q *Queries) GetAllPlayerByRoomCode(ctx context.Context, roomCode string) (
 	return items, nil
 }
 
-const getAllPlayerIDsByGameStateID = `-- name: GetAllPlayerIDsByGameStateID :many
-SELECT p.id
+const getAllPlayersByGameStateID = `-- name: GetAllPlayersByGameStateID :many
+SELECT p.id, p.nickname
 FROM players p
 JOIN rooms_players rp ON p.id = rp.player_id
 JOIN game_state gs ON rp.room_id = gs.room_id
 WHERE gs.id = $1
 `
 
-func (q *Queries) GetAllPlayerIDsByGameStateID(ctx context.Context, id uuid.UUID) ([]uuid.UUID, error) {
-	rows, err := q.db.Query(ctx, getAllPlayerIDsByGameStateID, id)
+type GetAllPlayersByGameStateIDRow struct {
+	ID       uuid.UUID
+	Nickname string
+}
+
+func (q *Queries) GetAllPlayersByGameStateID(ctx context.Context, id uuid.UUID) ([]GetAllPlayersByGameStateIDRow, error) {
+	rows, err := q.db.Query(ctx, getAllPlayersByGameStateID, id)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []uuid.UUID
+	var items []GetAllPlayersByGameStateIDRow
 	for rows.Next() {
-		var id uuid.UUID
-		if err := rows.Scan(&id); err != nil {
+		var i GetAllPlayersByGameStateIDRow
+		if err := rows.Scan(&i.ID, &i.Nickname); err != nil {
 			return nil, err
 		}
-		items = append(items, id)
+		items = append(items, i)
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err

@@ -140,7 +140,7 @@ type NewRoundArgs struct {
 	FibberQuestionID  uuid.UUID
 	RoundType         string
 	Round             int32
-	PlayerIDs         []uuid.UUID
+	Players           []GetAllPlayersByGameStateIDRow
 	FibberLoc         int
 }
 
@@ -164,7 +164,7 @@ func (s DB) NewRound(ctx context.Context, arg NewRoundArgs) error {
 		return err
 	}
 
-	for i, id := range arg.PlayerIDs {
+	for i, player := range arg.Players {
 		role := "normal"
 		if i == arg.FibberLoc {
 			role = "fibber"
@@ -173,7 +173,7 @@ func (s DB) NewRound(ctx context.Context, arg NewRoundArgs) error {
 		_, err = s.AddFibbingItRole(ctx, AddFibbingItRoleParams{
 			ID:         uuid.Must(uuid.NewV7()),
 			RoundID:    newRound.ID,
-			PlayerID:   id,
+			PlayerID:   player.ID,
 			PlayerRole: role,
 		})
 		if err != nil {

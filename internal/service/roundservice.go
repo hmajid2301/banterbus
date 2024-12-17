@@ -372,7 +372,7 @@ func (r *RoundService) UpdateStateToQuestion(
 		return QuestionState{}, err
 	}
 
-	playerIDs, err := r.store.GetAllPlayerIDsByGameStateID(ctx, gameStateID)
+	players, err := r.store.GetAllPlayersByGameStateID(ctx, gameStateID)
 	if err != nil {
 		return QuestionState{}, err
 	}
@@ -409,14 +409,14 @@ func (r *RoundService) UpdateStateToQuestion(
 		return QuestionState{}, err
 	}
 
-	randomFibberLoc := r.randomizer.GetFibberIndex(len(playerIDs))
+	randomFibberLoc := r.randomizer.GetFibberIndex(len(players))
 	newRound := db.NewRoundArgs{
 		GameStateID:       gameStateID,
 		NormalsQuestionID: normalsQuestion.ID,
 		FibberQuestionID:  fibberQuestion.ID,
 		RoundType:         roundType,
 		Round:             roundNumber,
-		PlayerIDs:         playerIDs,
+		Players:           players,
 		FibberLoc:         randomFibberLoc,
 	}
 
@@ -425,8 +425,8 @@ func (r *RoundService) UpdateStateToQuestion(
 		return QuestionState{}, err
 	}
 
-	players := []PlayerWithRole{}
-	for i, player := range playerIDs {
+	playersWithRole := []PlayerWithRole{}
+	for i, player := range players {
 		role := "normal"
 		question := normalsQuestion.Question
 
@@ -435,11 +435,24 @@ func (r *RoundService) UpdateStateToQuestion(
 			question = fibberQuestion.Question
 		}
 
-		players = append(players, PlayerWithRole{
-			ID:            player,
-			Role:          role,
-			Question:      question,
-			IsAnswerReady: false,
+		answers := []string{}
+		if roundType == "multiple_choice" {
+			// TODO: localise use player locale?
+			answers = []string{"Strongly Agree", "Agree", "Neutral", "Disagree", "Strongly Disagree"}
+		} else if roundType == "most_likely" {
+			for _, p := range players {
+				if p.ID != player.ID {
+					answers = append(answers, p.Nickname)
+				}
+			}
+		}
+
+		playersWithRole = append(playersWithRole, PlayerWithRole{
+			ID:              player.ID,
+			Role:            role,
+			Question:        question,
+			IsAnswerReady:   false,
+			PossibleAnswers: answers,
 		})
 	}
 
@@ -447,7 +460,7 @@ func (r *RoundService) UpdateStateToQuestion(
 
 	questionState := QuestionState{
 		GameStateID: gameStateID,
-		Players:     players,
+		Players:     playersWithRole,
 		Round:       int(roundNumber),
 		RoundType:   roundType,
 		Deadline:    timeLeft,

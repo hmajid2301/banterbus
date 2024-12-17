@@ -146,12 +146,28 @@ func (p *PlayerService) GetQuestionState(ctx context.Context, playerID uuid.UUID
 		return QuestionState{}, err
 	}
 
+	answers := []string{}
+	if g.RoundType == "multiple_choice" {
+		answers = []string{"Strongly Agree", "Agree", "Neutral", "Disagree", "Strongly Disagree"}
+	} else if g.RoundType == "most_likely" {
+		players, err := p.store.GetAllPlayersInRoom(ctx, playerID)
+		if err != nil {
+			return QuestionState{}, err
+		}
+		for _, player := range players {
+			if player.ID != playerID {
+				answers = append(answers, player.Nickname)
+			}
+		}
+	}
+
 	players := []PlayerWithRole{
 		{
-			ID:            g.PlayerID,
-			Role:          g.Role.String,
-			Question:      g.Question,
-			IsAnswerReady: g.IsAnswerReady,
+			ID:              g.PlayerID,
+			Role:            g.Role.String,
+			Question:        g.Question,
+			IsAnswerReady:   g.IsAnswerReady,
+			PossibleAnswers: answers,
 		},
 	}
 
