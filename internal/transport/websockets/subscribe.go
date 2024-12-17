@@ -268,10 +268,10 @@ func (s *Subscriber) handleMessage(ctx context.Context, client *client) error {
 
 	err = telemetry.IncrementMessageReceived(ctx, message.MessageType)
 	if err != nil {
-		s.logger.Warn("failed to increment message type metric", slog.Any("error", err))
+		s.logger.WarnContext(ctx, "failed to increment message type metric", slog.Any("error", err))
 	}
 
-	s.logger.DebugContext(ctx, fmt.Sprintf("handle `%s`", message.MessageType))
+	s.logger.DebugContext(ctx, "handling message", slog.String("message_type", message.MessageType))
 	handler, ok := s.handlers[message.MessageType]
 	if !ok {
 		return fmt.Errorf("handler not found for message type: %s", message.MessageType)

@@ -88,7 +88,7 @@ func (s *SubmitVote) Handle(ctx context.Context, client *client, sub *Subscriber
 
 	err = sub.updateClientsAboutVoting(ctx, votingState)
 	if err != nil {
-		sub.logger.Error("failed to update clients", slog.Any("error", err))
+		sub.logger.ErrorContext(ctx, "failed to update clients", slog.Any("error", err))
 	}
 
 	return nil

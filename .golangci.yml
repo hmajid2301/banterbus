@@ -28,7 +28,7 @@ linters:
     - noctx
     - nolintlint
     - revive
-    # - sloglint
+    - sloglint
     - staticcheck
     - stylecheck
     - typecheck
@@ -52,10 +52,10 @@ linters-settings:
 
   sloglint:
     no-mixed-args: false
-    kv-only: true
+    attr-only: true
     context: "all"
     static-msg: true
-    no-raw-keys: true
+    no-raw-keys: false
     key-naming-case: snake
     args-on-sep-lines: true
 

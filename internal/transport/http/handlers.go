@@ -64,8 +64,8 @@ func NewServer(websocketer websocketer, logger *slog.Logger, staticFS http.FileS
 	return s
 }
 
-func (s *Server) Serve() error {
-	s.Logger.Info("starting server")
+func (s *Server) Serve(ctx context.Context) error {
+	s.Logger.InfoContext(ctx, "starting server")
 	err := s.Server.ListenAndServe()
 	if err != nil {
 		return err
@@ -75,16 +75,17 @@ func (s *Server) Serve() error {
 }
 
 func (s *Server) Shutdown(ctx context.Context) error {
-	s.Logger.Info("shutting down server")
+	s.Logger.InfoContext(ctx, "shutting down server")
 	err := s.Server.Shutdown(ctx)
 	return err
 }
 
 func (s *Server) subscribeHandler(w http.ResponseWriter, r *http.Request) {
-	s.Logger.Debug("subscribe handler called")
+	ctx := r.Context()
+	s.Logger.DebugContext(ctx, "subscribe handler called")
 	err := s.Websocket.Subscribe(r, w)
 	if err != nil {
-		s.Logger.Error("subscribe failed", slog.Any("error", err))
+		s.Logger.ErrorContext(ctx, "subscribe failed", slog.Any("error", err))
 		return
 	}
 }
@@ -109,12 +110,13 @@ func (s *Server) readinessHandler(w http.ResponseWriter, _ *http.Request) {
 }
 
 func (s *Server) joinHandler(w http.ResponseWriter, r *http.Request) {
-	s.Logger.Debug("join handler called")
+	ctx := r.Context()
+	s.Logger.DebugContext(ctx, "join handler called")
 	roomCode := r.PathValue("room_code")
 
 	languages, err := views.ListLanguages()
 	if err != nil {
-		s.Logger.ErrorContext(r.Context(), "failed to list supported languages", slog.Any("error", err))
+		s.Logger.ErrorContext(ctx, "failed to list supported languages", slog.Any("error", err))
 		http.Error(w, "internal server error", http.StatusInternalServerError)
 		return
 	}
@@ -135,7 +137,12 @@ func (s *Server) LocaleMiddleware(next http.Handler) http.Handler {
 			locale = s.Config.DefaultLocale.String()
 			ctx, err = ctxi18n.WithLocale(r.Context(), locale)
 			if err != nil {
-				s.Logger.Error("error setting locale", slog.Any("error", err), slog.String("locale", locale))
+				s.Logger.ErrorContext(
+					ctx,
+					"error setting locale",
+					slog.Any("error", err),
+					slog.String("locale", locale),
+				)
 				http.Error(w, "error setting locale", http.StatusBadRequest)
 				return
 			}

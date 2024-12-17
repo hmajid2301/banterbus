@@ -38,7 +38,8 @@ func (v *VotingState) Start(ctx context.Context) {
 	deadline := time.Now().UTC().Add(config.ShowVotingScreenFor)
 	votingState, err := v.subscriber.roundService.UpdateStateToVoting(ctx, v.gameStateID, deadline)
 	if err != nil {
-		v.subscriber.logger.Error(
+		v.subscriber.logger.ErrorContext(
+			ctx,
 			"failed to update game state to voting",
 			slog.Any("error", err),
 			slog.String("game_state_id", v.gameStateID.String()),
@@ -48,7 +49,8 @@ func (v *VotingState) Start(ctx context.Context) {
 
 	err = v.subscriber.updateClientsAboutVoting(ctx, votingState)
 	if err != nil {
-		v.subscriber.logger.Error(
+		v.subscriber.logger.ErrorContext(
+			ctx,
 			"failed to update clients to voting screen",
 			slog.Any("error", err),
 			slog.String("game_state_id", v.gameStateID.String()),
@@ -70,7 +72,8 @@ func (r *RevealState) Start(ctx context.Context) {
 	deadline := time.Now().UTC().Add(config.ShowRevealScreenFor)
 	revealState, err := r.subscriber.roundService.UpdateStateToReveal(ctx, r.gameStateID, deadline)
 	if err != nil {
-		r.subscriber.logger.Error(
+		r.subscriber.logger.ErrorContext(
+			ctx,
 			"failed to update game state to reveal",
 			slog.Any("error", err),
 			slog.String("game_state_id", r.gameStateID.String()),
@@ -80,7 +83,8 @@ func (r *RevealState) Start(ctx context.Context) {
 
 	err = r.subscriber.updateClientsAboutReveal(ctx, revealState)
 	if err != nil {
-		r.subscriber.logger.Error(
+		r.subscriber.logger.ErrorContext(
+			ctx,
 			"failed to update clients to reveal screen",
 			slog.Any("error", err),
 			slog.String("game_state_id", r.gameStateID.String()),

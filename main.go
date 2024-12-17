@@ -46,7 +46,7 @@ func main() {
 	err := mainLogic()
 	if err != nil {
 		logger := logging.New(slog.LevelInfo, []slog.Attr{})
-		logger.Error("failed to start app", slog.Any("error", err))
+		logger.ErrorContext(context.Background(), "failed to start app", slog.Any("error", err))
 		exitCode = 1
 	}
 	defer func() { os.Exit(exitCode) }()
@@ -97,7 +97,7 @@ func mainLogic() error {
 		err = errors.Join(err, otelShutdown(context.Background()))
 	}()
 
-	logger.Info("applying migrations")
+	logger.InfoContext(ctx, "applying migrations")
 	err = runDBMigrations(pool)
 	if err != nil {
 		return fmt.Errorf("failed to run migrations: %w", err)
@@ -135,8 +135,8 @@ func mainLogic() error {
 	server := transporthttp.NewServer(subscriber, logger, http.FS(fsys), serverConfig)
 
 	timeoutSeconds := 15
-	go terminateHandler(logger, server, timeoutSeconds)
-	err = server.Serve()
+	go terminateHandler(ctx, logger, server, timeoutSeconds)
+	err = server.Serve(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to start server: %w", err)
 	}
@@ -149,16 +149,16 @@ func mainLogic() error {
 // kill (no param) default send syscall.SIGTERM
 // kill -2 is syscall.SIGINT
 // kill -9 is syscall.SIGKILL but can't be catch, so don't need add it
-func terminateHandler(logger *slog.Logger, srv *transporthttp.Server, timeout int) {
+func terminateHandler(ctx context.Context, logger *slog.Logger, srv *transporthttp.Server, timeout int) {
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
-	logger.Info("shutting down server")
+	logger.InfoContext(ctx, "shutting down server")
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(timeout)*time.Second)
 	defer cancel()
 	if err := srv.Shutdown(ctx); err != nil {
-		logger.Error("unexpected error while shutting down server", slog.Any("error", err))
+		logger.ErrorContext(ctx, "unexpected error while shutting down server", slog.Any("error", err))
 	}
 }
 
