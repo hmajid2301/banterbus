@@ -344,3 +344,122 @@ func (r *RoundService) UpdateStateToReveal(
 	reveal.PlayerIDs = playerIDs
 	return reveal, nil
 }
+
+// TODO: see if we can use this in start game lobbyservice
+func (r *RoundService) UpdateStateToQuestion(
+	ctx context.Context,
+	gameStateID uuid.UUID,
+	deadline time.Time,
+) (QuestionState, error) {
+	game, err := r.store.GetGameState(ctx, gameStateID)
+	if err != nil {
+		return QuestionState{}, err
+	}
+
+	gameState, err := db.GameStateFromString(game.State)
+	if err != nil {
+		return QuestionState{}, err
+	} else if gameState != db.GAMESTATE_FIBBING_IT_REVEAL_ROLE && gameState != db.GAMESTATE_FIBBING_IT_SCORING {
+		return QuestionState{}, fmt.Errorf("game state is not in FIBBING_IT_REVEAL_ROLE state or FIBBING_IT_SCORING state")
+	}
+
+	_, err = r.store.UpdateGameState(ctx, db.UpdateGameStateParams{
+		ID:             gameStateID,
+		SubmitDeadline: pgtype.Timestamp{Time: deadline, Valid: true},
+		State:          db.GAMESTATE_FIBBING_IT_QUESTION.String(),
+	})
+	if err != nil {
+		return QuestionState{}, err
+	}
+
+	playerIDs, err := r.store.GetAllPlayerIDsByGameStateID(ctx, gameStateID)
+	if err != nil {
+		return QuestionState{}, err
+	}
+
+	round, err := r.store.GetLatestRoundByGameStateID(ctx, gameStateID)
+	if err != nil {
+		return QuestionState{}, err
+	}
+
+	roundType := round.RoundType
+	roundNumber := round.Round + 1
+	// TODO: move to config
+	var maxRounds int32 = 3
+	if roundNumber == maxRounds+1 {
+		roundType = getNextRoundType(roundType)
+		roundNumber = 1
+	}
+
+	// TODO: fetch for all locale? update query?
+	normalsQuestion, err := r.store.GetRandomQuestionByRound(ctx, db.GetRandomQuestionByRoundParams{
+		GameName:     "fibbing_it",
+		LanguageCode: "en-GB",
+		Round:        roundType,
+	})
+	if err != nil {
+		return QuestionState{}, err
+	}
+
+	fibberQuestion, err := r.store.GetRandomQuestionInGroup(ctx, db.GetRandomQuestionInGroupParams{
+		GroupID: normalsQuestion.GroupID,
+		ID:      normalsQuestion.ID,
+	})
+	if err != nil {
+		return QuestionState{}, err
+	}
+
+	randomFibberLoc := r.randomizer.GetFibberIndex(len(playerIDs))
+	newRound := db.NewRoundArgs{
+		GameStateID:       gameStateID,
+		NormalsQuestionID: normalsQuestion.ID,
+		FibberQuestionID:  fibberQuestion.ID,
+		RoundType:         roundType,
+		Round:             roundNumber,
+		PlayerIDs:         playerIDs,
+		FibberLoc:         randomFibberLoc,
+	}
+
+	err = r.store.NewRound(ctx, newRound)
+	if err != nil {
+		return QuestionState{}, err
+	}
+
+	players := []PlayerWithRole{}
+	for i, player := range playerIDs {
+		role := "normal"
+		question := normalsQuestion.Question
+
+		if i == randomFibberLoc {
+			role = "fibber"
+			question = fibberQuestion.Question
+		}
+
+		players = append(players, PlayerWithRole{
+			ID:            player,
+			Role:          role,
+			Question:      question,
+			IsAnswerReady: false,
+		})
+	}
+
+	timeLeft := time.Until(deadline)
+
+	questionState := QuestionState{
+		GameStateID: gameStateID,
+		Players:     players,
+		Round:       int(roundNumber),
+		RoundType:   roundType,
+		Deadline:    timeLeft,
+	}
+	return questionState, nil
+}
+
+func getNextRoundType(roundType string) string {
+	nextRoundMap := map[string]string{
+		"free_form":       "multiple_choice",
+		"multiple_choice": "most_likely",
+	}
+
+	return nextRoundMap[roundType]
+}

@@ -26,7 +26,7 @@ UPDATE players SET avatar = $1 WHERE id = $2 RETURNING *;
 UPDATE players SET is_ready = NOT is_ready WHERE id = $1 RETURNING *;
 
 -- name: AddFibbingItRound :one
-INSERT INTO fibbing_it_rounds (id, round_type, round, fibber_question_id, normal_question_id, room_id, game_state_id) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *;
+INSERT INTO fibbing_it_rounds (id, round_type, round, fibber_question_id, normal_question_id, game_state_id) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *;
 
 -- name: AddGameState :one
 INSERT INTO game_state (id, room_id, submit_deadline, state) VALUES ($1, $2, $3, $4) RETURNING *;
@@ -66,6 +66,13 @@ WHERE rp.room_id = (
     FROM rooms_players rp_inner
     WHERE rp_inner.player_id = $1
 );
+
+-- name: GetAllPlayerIDsByGameStateID :many
+SELECT p.id
+FROM players p
+JOIN rooms_players rp ON p.id = rp.player_id
+JOIN game_state gs ON rp.room_id = gs.room_id
+WHERE gs.id = $1;
 
 -- name: GetAllPlayerByRoomCode :many
 SELECT p.id, p.created_at, p.updated_at, p.avatar, p.nickname, p.is_ready, r.room_code, r.host_player
@@ -125,8 +132,8 @@ LIMIT 1;
 -- name: GetLatestRoundByPlayerID :one
 SELECT fir.*, gs.submit_deadline
 FROM fibbing_it_rounds fir
-JOIN rooms_players rp ON fir.room_id = rp.room_id
-JOIN game_state gs ON fir.room_id = gs.room_id
+JOIN game_state gs ON fir.game_state_id = gs.id
+JOIN rooms_players rp ON gs.room_id = rp.room_id
 WHERE rp.player_id = $1
 ORDER BY fir.created_at DESC
 LIMIT 1;
@@ -134,7 +141,7 @@ LIMIT 1;
 -- name: GetLatestRoundByGameStateID :one
 SELECT fir.*, gs.submit_deadline
 FROM fibbing_it_rounds fir
-JOIN game_state gs ON fir.room_id = gs.room_id
+JOIN game_state gs ON fir.game_state_id = gs.id
 WHERE gs.id = $1
 ORDER BY fir.created_at DESC
 LIMIT 1;
@@ -155,8 +162,8 @@ SELECT
 FROM players p
 JOIN rooms_players rp ON p.id = rp.player_id
 JOIN rooms r ON rp.room_id = r.id
-JOIN fibbing_it_rounds fr ON r.id = fr.room_id
-JOIN game_state gs ON fr.game_state_id = gs.id
+JOIN game_state gs ON gs.room_id = r.id
+JOIN fibbing_it_rounds fr ON fr.game_state_id = gs.id
 LEFT JOIN questions fq1 ON fr.fibber_question_id = fq1.id
 LEFT JOIN questions fq2 ON fr.normal_question_id = fq2.id
 LEFT JOIN fibbing_it_player_roles fpr ON p.id = fpr.player_id AND fr.id = fpr.round_id
@@ -181,7 +188,7 @@ SELECT
 FROM fibbing_it_rounds fir
 JOIN questions q ON fir.fibber_question_id = q.id
 JOIN game_state gs ON fir.game_state_id = gs.id
-JOIN rooms_players rp ON rp.room_id = fir.room_id
+JOIN rooms_players rp ON rp.room_id = gs.room_id
 JOIN players p ON p.id = rp.player_id
 LEFT JOIN fibbing_it_answers fia ON fia.round_id = fir.id AND fia.player_id = p.id
 LEFT JOIN fibbing_it_votes fv ON fv.round_id = fir.id AND fv.voted_for_player_id = p.id
@@ -210,10 +217,17 @@ FROM rooms_players rp
 LEFT JOIN fibbing_it_answers fa ON fa.player_id = rp.player_id AND fa.round_id = (
     SELECT fir.id
     FROM fibbing_it_rounds fir
-    WHERE fir.room_id = rp.room_id
+    WHERE fir.game_state_id = (
+        SELECT gs.id
+        FROM game_state gs
+        WHERE gs.room_id = rp.room_id
+        ORDER BY gs.created_at DESC
+        LIMIT 1
+    )
     ORDER BY fir.created_at DESC
     LIMIT 1
 )
+JOIN game_state gs ON gs.room_id = rp.room_id
 WHERE rp.room_id = (
     SELECT room_id
     FROM rooms_players rp
@@ -231,10 +245,12 @@ FROM rooms_players rp
 LEFT JOIN fibbing_it_votes fa ON fa.player_id = rp.player_id AND fa.round_id = (
     SELECT fir.id
     FROM fibbing_it_rounds fir
-    WHERE fir.room_id = rp.room_id
+    JOIN game_state gs ON fir.game_state_id = gs.id
+    WHERE gs.room_id = rp.room_id
     ORDER BY fir.created_at DESC
     LIMIT 1
 )
+JOIN game_state gs ON gs.room_id = rp.room_id
 WHERE rp.room_id = (
     SELECT room_id
     FROM rooms_players rp

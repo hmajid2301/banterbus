@@ -9,13 +9,13 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-type CreateRoomParams struct {
+type CreateRoomArgs struct {
 	Player     AddPlayerParams
 	Room       AddRoomParams
 	RoomPlayer AddRoomPlayerParams
 }
 
-func (s DB) CreateRoom(ctx context.Context, arg CreateRoomParams) error {
+func (s DB) CreateRoom(ctx context.Context, arg CreateRoomArgs) error {
 	tx, err := s.pool.BeginTx(ctx, pgx.TxOptions{})
 	if err != nil {
 		return err
@@ -108,7 +108,6 @@ func (s DB) StartGame(ctx context.Context, arg StartGameArgs) error {
 		Round:            1,
 		FibberQuestionID: arg.FibberQuestionID,
 		NormalQuestionID: arg.NormalsQuestionID,
-		RoomID:           arg.RoomID,
 		GameStateID:      arg.GameStateID,
 	})
 	if err != nil {
@@ -125,6 +124,56 @@ func (s DB) StartGame(ctx context.Context, arg StartGameArgs) error {
 			ID:         uuid.Must(uuid.NewV7()),
 			RoundID:    round.ID,
 			PlayerID:   player.ID,
+			PlayerRole: role,
+		})
+		if err != nil {
+			return err
+		}
+	}
+
+	return tx.Commit(ctx)
+}
+
+type NewRoundArgs struct {
+	GameStateID       uuid.UUID
+	NormalsQuestionID uuid.UUID
+	FibberQuestionID  uuid.UUID
+	RoundType         string
+	Round             int32
+	PlayerIDs         []uuid.UUID
+	FibberLoc         int
+}
+
+func (s DB) NewRound(ctx context.Context, arg NewRoundArgs) error {
+	tx, err := s.pool.BeginTx(ctx, pgx.TxOptions{})
+	if err != nil {
+		return err
+	}
+
+	defer tx.Rollback(ctx)
+
+	newRound, err := s.AddFibbingItRound(ctx, AddFibbingItRoundParams{
+		ID:               uuid.Must(uuid.NewV7()),
+		RoundType:        arg.RoundType,
+		Round:            int32(arg.Round),
+		FibberQuestionID: arg.FibberQuestionID,
+		NormalQuestionID: arg.NormalsQuestionID,
+		GameStateID:      arg.GameStateID,
+	})
+	if err != nil {
+		return err
+	}
+
+	for i, id := range arg.PlayerIDs {
+		role := "normal"
+		if i == arg.FibberLoc {
+			role = "fibber"
+		}
+
+		_, err = s.AddFibbingItRole(ctx, AddFibbingItRoleParams{
+			ID:         uuid.Must(uuid.NewV7()),
+			RoundID:    newRound.ID,
+			PlayerID:   id,
 			PlayerRole: role,
 		})
 		if err != nil {

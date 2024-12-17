@@ -22,6 +22,7 @@ type Querier interface {
 	AddRoomPlayer(ctx context.Context, arg AddRoomPlayerParams) (RoomsPlayer, error)
 	GetAllPlayerAnswerIsReady(ctx context.Context, playerID uuid.UUID) (bool, error)
 	GetAllPlayerByRoomCode(ctx context.Context, roomCode string) ([]GetAllPlayerByRoomCodeRow, error)
+	GetAllPlayerIDsByGameStateID(ctx context.Context, id uuid.UUID) ([]uuid.UUID, error)
 	GetAllPlayersInRoom(ctx context.Context, playerID uuid.UUID) ([]GetAllPlayersInRoomRow, error)
 	GetAllPlayersVotingIsReady(ctx context.Context, playerID uuid.UUID) (bool, error)
 	GetCurrentQuestionByPlayerID(ctx context.Context, id uuid.UUID) (GetCurrentQuestionByPlayerIDRow, error)

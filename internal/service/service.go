@@ -8,9 +8,10 @@ import (
 
 type Storer interface {
 	db.Querier
-	CreateRoom(ctx context.Context, arg db.CreateRoomParams) error
+	CreateRoom(ctx context.Context, arg db.CreateRoomArgs) error
 	AddPlayerToRoom(ctx context.Context, arg db.AddPlayerToRoomArgs) error
 	StartGame(ctx context.Context, arg db.StartGameArgs) error
+	NewRound(ctx context.Context, arg db.NewRoundArgs) error
 }
 
 func getLobbyPlayers(playerRows []db.GetAllPlayersInRoomRow, roomCode string) Lobby {

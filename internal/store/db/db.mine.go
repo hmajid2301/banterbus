@@ -56,6 +56,7 @@ const (
 	GAMESTATE_FIBBING_IT_QUESTION GameStateEnum = iota
 	GAMESTATE_FIBBING_IT_VOTING
 	GAMESTATE_FIBBING_IT_REVEAL_ROLE
+	GAMESTATE_FIBBING_IT_SCORING
 )
 
 func GameStateFromString(s string) (GameStateEnum, error) {
@@ -63,6 +64,7 @@ func GameStateFromString(s string) (GameStateEnum, error) {
 		"FIBBING_IT_QUESTION":    GAMESTATE_FIBBING_IT_QUESTION,
 		"FIBBING_IT_VOTING":      GAMESTATE_FIBBING_IT_VOTING,
 		"FIBBING_IT_REVEAL_ROLE": GAMESTATE_FIBBING_IT_REVEAL_ROLE,
+		"FIBBING_IT_SCORING":     GAMESTATE_FIBBING_IT_SCORING,
 	}
 
 	if rs, ok := stringToGameState[s]; ok {
@@ -72,5 +74,5 @@ func GameStateFromString(s string) (GameStateEnum, error) {
 }
 
 func (gs GameStateEnum) String() string {
-	return [...]string{"FIBBING_IT_QUESTION", "FIBBING_IT_VOTING", "FIBBING_IT_REVEAL_ROLE"}[gs]
+	return [...]string{"FIBBING_IT_QUESTION", "FIBBING_IT_VOTING", "FIBBING_IT_REVEAL_ROLE", "FIBBING_IT_SCORING"}[gs]
 }

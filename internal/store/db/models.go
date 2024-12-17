@@ -36,7 +36,6 @@ type FibbingItRound struct {
 	Round            int32
 	FibberQuestionID uuid.UUID
 	NormalQuestionID uuid.UUID
-	RoomID           uuid.UUID
 	GameStateID      uuid.UUID
 }
 

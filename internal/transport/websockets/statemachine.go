@@ -2,13 +2,13 @@ package websockets
 
 import (
 	"context"
-	"fmt"
 	"log/slog"
 	"time"
 
 	"github.com/google/uuid"
 
 	"gitlab.com/hmajid2301/banterbus/internal/config"
+	"gitlab.com/hmajid2301/banterbus/internal/store/db"
 )
 
 type State interface {
@@ -23,11 +23,8 @@ type QuestionState struct {
 
 func (q *QuestionState) Start(ctx context.Context) {
 	deadline := time.Now().UTC().Add(config.ShowQuestionScreenFor)
-	time.Sleep(time.Until(deadline))
-	q.Update(ctx)
-}
 
-func (q *QuestionState) Update(ctx context.Context) {
+	time.Sleep(time.Until(deadline))
 	v := &VotingState{gameStateID: q.gameStateID, subscriber: q.subscriber}
 	go v.Start(ctx)
 }
@@ -35,7 +32,6 @@ func (q *QuestionState) Update(ctx context.Context) {
 type VotingState struct {
 	subscriber  Subscriber
 	gameStateID uuid.UUID
-	deadline    time.Time
 }
 
 func (v *VotingState) Start(ctx context.Context) {
@@ -61,10 +57,6 @@ func (v *VotingState) Start(ctx context.Context) {
 	}
 
 	time.Sleep(time.Until(deadline))
-	v.Update(ctx)
-}
-
-func (v *VotingState) Update(ctx context.Context) {
 	r := &RevealState{gameStateID: v.gameStateID, subscriber: v.subscriber}
 	go r.Start(ctx)
 }
@@ -72,40 +64,57 @@ func (v *VotingState) Update(ctx context.Context) {
 type RevealState struct {
 	subscriber  Subscriber
 	gameStateID uuid.UUID
-	deadline    time.Time
 }
 
-func (v *RevealState) Start(ctx context.Context) {
+func (r *RevealState) Start(ctx context.Context) {
 	deadline := time.Now().UTC().Add(config.ShowRevealScreenFor)
-	votingState, err := v.subscriber.roundService.UpdateStateToReveal(ctx, v.gameStateID, deadline)
+	revealState, err := r.subscriber.roundService.UpdateStateToReveal(ctx, r.gameStateID, deadline)
 	if err != nil {
-		v.subscriber.logger.Error(
+		r.subscriber.logger.Error(
 			"failed to update game state to reveal",
 			slog.Any("error", err),
-			slog.String("game_state_id", v.gameStateID.String()),
+			slog.String("game_state_id", r.gameStateID.String()),
 		)
 		return
 	}
 
-	err = v.subscriber.updateClientsAboutReveal(ctx, votingState)
+	err = r.subscriber.updateClientsAboutReveal(ctx, revealState)
 	if err != nil {
-		v.subscriber.logger.Error(
+		r.subscriber.logger.Error(
 			"failed to update clients to reveal screen",
 			slog.Any("error", err),
-			slog.String("game_state_id", v.gameStateID.String()),
+			slog.String("game_state_id", r.gameStateID.String()),
 		)
 		return
+	}
+
+	maxRounds := 3
+	finalRound := revealState.Round == maxRounds
+	fibberFound := revealState.ShouldReveal && revealState.VotedForPlayerRole == "fibber"
+	nextState := db.GAMESTATE_FIBBING_IT_QUESTION
+
+	if finalRound || fibberFound {
+		nextState = db.GAMESTATE_FIBBING_IT_SCORING
 	}
 
 	time.Sleep(time.Until(deadline))
-
-	v.Update(ctx)
-}
-
-func (v *RevealState) Update(ctx context.Context) {
-	fmt.Println("VotingState.Update", ctx)
+	if nextState == db.GAMESTATE_FIBBING_IT_SCORING {
+		s := &ScoringState{gameStateID: r.gameStateID, subscriber: r.subscriber}
+		go s.Start(ctx)
+	} else {
+		q := &QuestionState{gameStateID: r.gameStateID, subscriber: r.subscriber}
+		go q.Start(ctx)
+	}
 }
 
 type ScoringState struct {
-	Deadline time.Time
+	subscriber  Subscriber
+	gameStateID uuid.UUID
+}
+
+func (r *ScoringState) Start(ctx context.Context) {
+	deadline := time.Now().UTC().Add(config.ShowRevealScreenFor)
+	time.Sleep(time.Until(deadline))
+	q := &QuestionState{gameStateID: r.gameStateID, subscriber: r.subscriber}
+	go q.Start(ctx)
 }

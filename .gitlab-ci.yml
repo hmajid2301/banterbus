@@ -155,8 +155,6 @@ test:e2e:
   variables:
     BANTERBUS_REDIS_ADDRESS: redis:6379
     BANTERBUS_DB_URI: postgresql://banterbus:banterbus@postgres:5432
-  retry:
-    max: 2
   script:
     - task tests:e2e -- ${GOTEST_EXTRA_ARGS}
   artifacts:

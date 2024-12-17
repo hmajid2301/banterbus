@@ -74,7 +74,7 @@ func (q *Queries) AddFibbingItRole(ctx context.Context, arg AddFibbingItRolePara
 }
 
 const addFibbingItRound = `-- name: AddFibbingItRound :one
-INSERT INTO fibbing_it_rounds (id, round_type, round, fibber_question_id, normal_question_id, room_id, game_state_id) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id, created_at, updated_at, round_type, round, fibber_question_id, normal_question_id, room_id, game_state_id
+INSERT INTO fibbing_it_rounds (id, round_type, round, fibber_question_id, normal_question_id, game_state_id) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id, created_at, updated_at, round_type, round, fibber_question_id, normal_question_id, game_state_id
 `
 
 type AddFibbingItRoundParams struct {
@@ -83,7 +83,6 @@ type AddFibbingItRoundParams struct {
 	Round            int32
 	FibberQuestionID uuid.UUID
 	NormalQuestionID uuid.UUID
-	RoomID           uuid.UUID
 	GameStateID      uuid.UUID
 }
 
@@ -94,7 +93,6 @@ func (q *Queries) AddFibbingItRound(ctx context.Context, arg AddFibbingItRoundPa
 		arg.Round,
 		arg.FibberQuestionID,
 		arg.NormalQuestionID,
-		arg.RoomID,
 		arg.GameStateID,
 	)
 	var i FibbingItRound
@@ -106,7 +104,6 @@ func (q *Queries) AddFibbingItRound(ctx context.Context, arg AddFibbingItRoundPa
 		&i.Round,
 		&i.FibberQuestionID,
 		&i.NormalQuestionID,
-		&i.RoomID,
 		&i.GameStateID,
 	)
 	return i, err
@@ -287,10 +284,17 @@ FROM rooms_players rp
 LEFT JOIN fibbing_it_answers fa ON fa.player_id = rp.player_id AND fa.round_id = (
     SELECT fir.id
     FROM fibbing_it_rounds fir
-    WHERE fir.room_id = rp.room_id
+    WHERE fir.game_state_id = (
+        SELECT gs.id
+        FROM game_state gs
+        WHERE gs.room_id = rp.room_id
+        ORDER BY gs.created_at DESC
+        LIMIT 1
+    )
     ORDER BY fir.created_at DESC
     LIMIT 1
 )
+JOIN game_state gs ON gs.room_id = rp.room_id
 WHERE rp.room_id = (
     SELECT room_id
     FROM rooms_players rp
@@ -359,6 +363,34 @@ func (q *Queries) GetAllPlayerByRoomCode(ctx context.Context, roomCode string) (
 	return items, nil
 }
 
+const getAllPlayerIDsByGameStateID = `-- name: GetAllPlayerIDsByGameStateID :many
+SELECT p.id
+FROM players p
+JOIN rooms_players rp ON p.id = rp.player_id
+JOIN game_state gs ON rp.room_id = gs.room_id
+WHERE gs.id = $1
+`
+
+func (q *Queries) GetAllPlayerIDsByGameStateID(ctx context.Context, id uuid.UUID) ([]uuid.UUID, error) {
+	rows, err := q.db.Query(ctx, getAllPlayerIDsByGameStateID, id)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []uuid.UUID
+	for rows.Next() {
+		var id uuid.UUID
+		if err := rows.Scan(&id); err != nil {
+			return nil, err
+		}
+		items = append(items, id)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getAllPlayersInRoom = `-- name: GetAllPlayersInRoom :many
 SELECT p.id, p.created_at, p.updated_at, p.avatar, p.nickname, p.is_ready, r.room_code, r.host_player
 FROM players p
@@ -418,10 +450,12 @@ FROM rooms_players rp
 LEFT JOIN fibbing_it_votes fa ON fa.player_id = rp.player_id AND fa.round_id = (
     SELECT fir.id
     FROM fibbing_it_rounds fir
-    WHERE fir.room_id = rp.room_id
+    JOIN game_state gs ON fir.game_state_id = gs.id
+    WHERE gs.room_id = rp.room_id
     ORDER BY fir.created_at DESC
     LIMIT 1
 )
+JOIN game_state gs ON gs.room_id = rp.room_id
 WHERE rp.room_id = (
     SELECT room_id
     FROM rooms_players rp
@@ -453,8 +487,8 @@ SELECT
 FROM players p
 JOIN rooms_players rp ON p.id = rp.player_id
 JOIN rooms r ON rp.room_id = r.id
-JOIN fibbing_it_rounds fr ON r.id = fr.room_id
-JOIN game_state gs ON fr.game_state_id = gs.id
+JOIN game_state gs ON gs.room_id = r.id
+JOIN fibbing_it_rounds fr ON fr.game_state_id = gs.id
 LEFT JOIN questions fq1 ON fr.fibber_question_id = fq1.id
 LEFT JOIN questions fq2 ON fr.normal_question_id = fq2.id
 LEFT JOIN fibbing_it_player_roles fpr ON p.id = fpr.player_id AND fr.id = fpr.round_id
@@ -551,9 +585,9 @@ func (q *Queries) GetGameStateByPlayerID(ctx context.Context, playerID uuid.UUID
 }
 
 const getLatestRoundByGameStateID = `-- name: GetLatestRoundByGameStateID :one
-SELECT fir.id, fir.created_at, fir.updated_at, fir.round_type, fir.round, fir.fibber_question_id, fir.normal_question_id, fir.room_id, fir.game_state_id, gs.submit_deadline
+SELECT fir.id, fir.created_at, fir.updated_at, fir.round_type, fir.round, fir.fibber_question_id, fir.normal_question_id, fir.game_state_id, gs.submit_deadline
 FROM fibbing_it_rounds fir
-JOIN game_state gs ON fir.room_id = gs.room_id
+JOIN game_state gs ON fir.game_state_id = gs.id
 WHERE gs.id = $1
 ORDER BY fir.created_at DESC
 LIMIT 1
@@ -567,7 +601,6 @@ type GetLatestRoundByGameStateIDRow struct {
 	Round            int32
 	FibberQuestionID uuid.UUID
 	NormalQuestionID uuid.UUID
-	RoomID           uuid.UUID
 	GameStateID      uuid.UUID
 	SubmitDeadline   pgtype.Timestamp
 }
@@ -583,7 +616,6 @@ func (q *Queries) GetLatestRoundByGameStateID(ctx context.Context, id uuid.UUID)
 		&i.Round,
 		&i.FibberQuestionID,
 		&i.NormalQuestionID,
-		&i.RoomID,
 		&i.GameStateID,
 		&i.SubmitDeadline,
 	)
@@ -591,10 +623,10 @@ func (q *Queries) GetLatestRoundByGameStateID(ctx context.Context, id uuid.UUID)
 }
 
 const getLatestRoundByPlayerID = `-- name: GetLatestRoundByPlayerID :one
-SELECT fir.id, fir.created_at, fir.updated_at, fir.round_type, fir.round, fir.fibber_question_id, fir.normal_question_id, fir.room_id, fir.game_state_id, gs.submit_deadline
+SELECT fir.id, fir.created_at, fir.updated_at, fir.round_type, fir.round, fir.fibber_question_id, fir.normal_question_id, fir.game_state_id, gs.submit_deadline
 FROM fibbing_it_rounds fir
-JOIN rooms_players rp ON fir.room_id = rp.room_id
-JOIN game_state gs ON fir.room_id = gs.room_id
+JOIN game_state gs ON fir.game_state_id = gs.id
+JOIN rooms_players rp ON gs.room_id = rp.room_id
 WHERE rp.player_id = $1
 ORDER BY fir.created_at DESC
 LIMIT 1
@@ -608,7 +640,6 @@ type GetLatestRoundByPlayerIDRow struct {
 	Round            int32
 	FibberQuestionID uuid.UUID
 	NormalQuestionID uuid.UUID
-	RoomID           uuid.UUID
 	GameStateID      uuid.UUID
 	SubmitDeadline   pgtype.Timestamp
 }
@@ -624,7 +655,6 @@ func (q *Queries) GetLatestRoundByPlayerID(ctx context.Context, playerID uuid.UU
 		&i.Round,
 		&i.FibberQuestionID,
 		&i.NormalQuestionID,
-		&i.RoomID,
 		&i.GameStateID,
 		&i.SubmitDeadline,
 	)
@@ -786,7 +816,7 @@ SELECT
 FROM fibbing_it_rounds fir
 JOIN questions q ON fir.fibber_question_id = q.id
 JOIN game_state gs ON fir.game_state_id = gs.id
-JOIN rooms_players rp ON rp.room_id = fir.room_id
+JOIN rooms_players rp ON rp.room_id = gs.room_id
 JOIN players p ON p.id = rp.player_id
 LEFT JOIN fibbing_it_answers fia ON fia.round_id = fir.id AND fia.player_id = p.id
 LEFT JOIN fibbing_it_votes fv ON fv.round_id = fir.id AND fv.voted_for_player_id = p.id

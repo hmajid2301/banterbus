@@ -9,7 +9,6 @@ import (
 
 	"github.com/google/uuid"
 
-	"gitlab.com/hmajid2301/banterbus/internal/config"
 	"gitlab.com/hmajid2301/banterbus/internal/service"
 )
 
@@ -71,7 +70,6 @@ func (t *ToggleAnswerIsReady) Handle(ctx context.Context, client *client, sub *S
 	if allReady {
 		votingState := VotingState{
 			gameStateID: questionState.GameStateID,
-			deadline:    time.Now().UTC().Add(config.AllReadyToNextScreenFor),
 			subscriber:  *sub,
 		}
 		go votingState.Start(ctx)
@@ -119,7 +117,6 @@ func (t *ToggleVotingIsReady) Handle(ctx context.Context, client *client, sub *S
 	if allReady {
 		revealState := RevealState{
 			gameStateID: votingState.GameStateID,
-			deadline:    time.Now().UTC().Add(config.AllReadyToNextScreenFor),
 			subscriber:  *sub,
 		}
 		go revealState.Start(ctx)

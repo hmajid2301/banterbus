@@ -621,15 +621,12 @@ func TestPlayerServiceGetQuestionState(t *testing.T) {
 			Players: []service.PlayerWithRole{
 				{
 					ID:       playerID,
-					Nickname: "nickname",
 					Role:     "fibber",
-					Avatar:   []byte(""),
 					Question: "fibber question",
 				},
 			},
 			Round:     1,
 			RoundType: "free_form",
-			RoomCode:  "ABC12",
 		}
 
 		diffOpts := cmpopts.IgnoreFields(questionState, "Deadline")
@@ -664,15 +661,12 @@ func TestPlayerServiceGetQuestionState(t *testing.T) {
 			Players: []service.PlayerWithRole{
 				{
 					ID:       playerID,
-					Nickname: "nickname",
 					Role:     "normal",
-					Avatar:   []byte(""),
 					Question: "normal question",
 				},
 			},
 			Round:     1,
 			RoundType: "free_form",
-			RoomCode:  "ABC12",
 		}
 
 		diffOpts := cmpopts.IgnoreFields(questionState, "Deadline")

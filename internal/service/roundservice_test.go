@@ -1197,3 +1197,354 @@ func TestRoundServiceUpdateStateToReveal(t *testing.T) {
 		},
 	)
 }
+
+func TestRoundServiceUpdateStateToQuestion(t *testing.T) {
+	gameStateID := uuid.MustParse("fbb75599-9f7a-4392-b523-fd433b3208ea")
+	groupID := uuid.MustParse("0193a629-1fcf-79dd-ac70-760bedbdffa9")
+
+	tests := []struct {
+		name           string
+		roundNumber    int32
+		roundType      string
+		expectedRound  int32
+		expectedType   string
+		normalQuestion string
+		fibberQuestion string
+	}{
+		{
+			name:           "Should update state to question state successfully with round 2 and free_form",
+			roundNumber:    1,
+			roundType:      "free_form",
+			expectedRound:  2,
+			expectedType:   "free_form",
+			normalQuestion: "What if your favourite city",
+			fibberQuestion: "What is your favourite hotel",
+		},
+		{
+			name:           "Should update state to question state successfully with round 1 and multiple_choice",
+			roundNumber:    3,
+			roundType:      "free_form",
+			expectedRound:  1,
+			expectedType:   "multiple_choice",
+			normalQuestion: "I love pizza",
+			fibberQuestion: "I love burgers",
+		},
+		{
+			name:           "Should update state to question state successfully with round 1 and most_likely",
+			roundNumber:    3,
+			roundType:      "multiple_choice",
+			expectedRound:  1,
+			expectedType:   "most_likely",
+			normalQuestion: "go to prison",
+			fibberQuestion: "go to a bank",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockStore := mockService.NewMockStorer(t)
+			mockRandom := mockService.NewMockRandomizer(t)
+			srv := service.NewRoundService(mockStore, mockRandom)
+
+			ctx := context.Background()
+			gameName := gameName
+			deadline := time.Now().Add(5 * time.Second).UTC()
+
+			mockStore.EXPECT().GetGameState(ctx, gameStateID).Return(db.GameState{
+				State: db.GAMESTATE_FIBBING_IT_REVEAL_ROLE.String(),
+			}, nil)
+			mockStore.EXPECT().UpdateGameState(ctx, db.UpdateGameStateParams{
+				ID:             gameStateID,
+				SubmitDeadline: pgtype.Timestamp{Time: deadline, Valid: true},
+				State:          db.GAMESTATE_FIBBING_IT_QUESTION.String(),
+			}).Return(db.GameState{}, nil)
+			mockStore.EXPECT().GetAllPlayerIDsByGameStateID(ctx, gameStateID).Return(
+				[]uuid.UUID{defaultHostPlayerID, defaultOtherPlayerID},
+				nil,
+			)
+			mockStore.EXPECT().GetLatestRoundByGameStateID(ctx, gameStateID).Return(db.GetLatestRoundByGameStateIDRow{
+				RoundType: tt.roundType,
+				Round:     tt.roundNumber,
+			}, nil)
+			mockStore.EXPECT().GetRandomQuestionByRound(ctx, db.GetRandomQuestionByRoundParams{
+				GameName:     gameName,
+				LanguageCode: "en-GB",
+				Round:        tt.expectedType,
+			}).Return(db.Question{
+				ID:       uuid.MustParse("0193a629-7dcc-78ad-822f-fd5d83c89ae7"),
+				Question: tt.normalQuestion,
+				GroupID:  groupID,
+			}, nil)
+			mockStore.EXPECT().GetRandomQuestionInGroup(ctx, db.GetRandomQuestionInGroupParams{
+				GroupID: groupID,
+				ID:      uuid.MustParse("0193a629-7dcc-78ad-822f-fd5d83c89ae7"),
+			}).Return(db.GetRandomQuestionInGroupRow{
+				ID:       uuid.MustParse("0193a629-a9ac-7fc4-828c-a1334c282e0f"),
+				Question: tt.fibberQuestion,
+			}, nil)
+
+			mockRandom.EXPECT().GetFibberIndex(2).Return(1)
+			mockStore.EXPECT().NewRound(ctx, db.NewRoundArgs{
+				GameStateID:       gameStateID,
+				NormalsQuestionID: uuid.MustParse("0193a629-7dcc-78ad-822f-fd5d83c89ae7"),
+				FibberQuestionID:  uuid.MustParse("0193a629-a9ac-7fc4-828c-a1334c282e0f"),
+				Round:             tt.expectedRound,
+				RoundType:         tt.expectedType,
+				PlayerIDs: []uuid.UUID{
+					defaultHostPlayerID,
+					defaultOtherPlayerID,
+				},
+				FibberLoc: 1,
+			}).Return(nil)
+
+			gameState, err := srv.UpdateStateToQuestion(ctx, gameStateID, deadline)
+			expectedGameState := service.QuestionState{
+				Deadline:    time.Until(deadline),
+				GameStateID: gameStateID,
+				Players: []service.PlayerWithRole{
+					{
+						ID:       defaultHostPlayerID,
+						Role:     "normal",
+						Question: tt.normalQuestion,
+					},
+					{
+						ID:       defaultOtherPlayerID,
+						Role:     "fibber",
+						Question: tt.fibberQuestion,
+					},
+				},
+				Round:     int(tt.expectedRound),
+				RoundType: tt.expectedType,
+			}
+
+			assert.NoError(t, err)
+
+			diffOpts := cmpopts.IgnoreFields(gameState, "Deadline")
+			PartialEqual(t, expectedGameState, gameState, diffOpts)
+			assert.LessOrEqual(t, int(gameState.Deadline.Seconds()), 5)
+		})
+	}
+
+	t.Run("Should fail to update state to question because we fail to get game state", func(t *testing.T) {
+		mockStore := mockService.NewMockStorer(t)
+		mockRandom := mockService.NewMockRandomizer(t)
+		srv := service.NewRoundService(mockStore, mockRandom)
+
+		ctx := context.Background()
+		deadline := time.Now().Add(5 * time.Second).UTC()
+
+		mockStore.EXPECT().GetGameState(ctx, gameStateID).Return(db.GameState{}, fmt.Errorf("failed to get game state"))
+		_, err := srv.UpdateStateToQuestion(ctx, gameStateID, deadline)
+		assert.Error(t, err)
+	})
+
+	t.Run("Should fail to update state to question because we are in incorrect game state", func(t *testing.T) {
+		mockStore := mockService.NewMockStorer(t)
+		mockRandom := mockService.NewMockRandomizer(t)
+		srv := service.NewRoundService(mockStore, mockRandom)
+
+		ctx := context.Background()
+		deadline := time.Now().Add(5 * time.Second).UTC()
+
+		mockStore.EXPECT().GetGameState(ctx, gameStateID).Return(db.GameState{
+			State: db.GAMESTATE_FIBBING_IT_QUESTION.String(),
+		}, nil)
+
+		_, err := srv.UpdateStateToQuestion(ctx, gameStateID, deadline)
+		assert.ErrorContains(t, err, "game state is not in FIBBING_IT_REVEAL_ROLE state or FIBBING_IT_SCORING state")
+	})
+
+	t.Run(
+		"Should fail to update state to question because we fail to get all players via game state",
+		func(t *testing.T) {
+			mockStore := mockService.NewMockStorer(t)
+			mockRandom := mockService.NewMockRandomizer(t)
+			srv := service.NewRoundService(mockStore, mockRandom)
+
+			ctx := context.Background()
+			deadline := time.Now().Add(5 * time.Second).UTC()
+
+			mockStore.EXPECT().GetGameState(ctx, gameStateID).Return(db.GameState{
+				State: db.GAMESTATE_FIBBING_IT_REVEAL_ROLE.String(),
+			}, nil)
+			mockStore.EXPECT().UpdateGameState(ctx, db.UpdateGameStateParams{
+				ID:             gameStateID,
+				SubmitDeadline: pgtype.Timestamp{Time: deadline, Valid: true},
+				State:          db.GAMESTATE_FIBBING_IT_QUESTION.String(),
+			}).Return(db.GameState{}, nil)
+			mockStore.EXPECT().GetAllPlayerIDsByGameStateID(ctx, gameStateID).Return(
+				[]uuid.UUID{defaultHostPlayerID, defaultOtherPlayerID},
+				fmt.Errorf("failed to get all player IDs by game state ID"),
+			)
+			_, err := srv.UpdateStateToQuestion(ctx, gameStateID, deadline)
+			assert.Error(t, err)
+		},
+	)
+
+	t.Run("Should fail to update state to question because we fail to get latest round", func(t *testing.T) {
+		mockStore := mockService.NewMockStorer(t)
+		mockRandom := mockService.NewMockRandomizer(t)
+		srv := service.NewRoundService(mockStore, mockRandom)
+
+		ctx := context.Background()
+		deadline := time.Now().Add(5 * time.Second).UTC()
+
+		mockStore.EXPECT().GetGameState(ctx, gameStateID).Return(db.GameState{
+			State: db.GAMESTATE_FIBBING_IT_REVEAL_ROLE.String(),
+		}, nil)
+		mockStore.EXPECT().UpdateGameState(ctx, db.UpdateGameStateParams{
+			ID:             gameStateID,
+			SubmitDeadline: pgtype.Timestamp{Time: deadline, Valid: true},
+			State:          db.GAMESTATE_FIBBING_IT_QUESTION.String(),
+		}).Return(db.GameState{}, nil)
+		mockStore.EXPECT().GetAllPlayerIDsByGameStateID(ctx, gameStateID).Return(
+			[]uuid.UUID{defaultHostPlayerID, defaultOtherPlayerID},
+			nil,
+		)
+		mockStore.EXPECT().
+			GetLatestRoundByGameStateID(ctx, gameStateID).
+			Return(db.GetLatestRoundByGameStateIDRow{}, fmt.Errorf("failed to get latest round by game state ID"))
+
+		_, err := srv.UpdateStateToQuestion(ctx, gameStateID, deadline)
+		assert.Error(t, err)
+	})
+
+	t.Run(
+		"Should fail to update state to question because we fail to get random question by round",
+		func(t *testing.T) {
+			mockStore := mockService.NewMockStorer(t)
+			mockRandom := mockService.NewMockRandomizer(t)
+			srv := service.NewRoundService(mockStore, mockRandom)
+
+			ctx := context.Background()
+			gameName := gameName
+			deadline := time.Now().Add(5 * time.Second).UTC()
+
+			mockStore.EXPECT().GetGameState(ctx, gameStateID).Return(db.GameState{
+				State: db.GAMESTATE_FIBBING_IT_REVEAL_ROLE.String(),
+			}, nil)
+			mockStore.EXPECT().UpdateGameState(ctx, db.UpdateGameStateParams{
+				ID:             gameStateID,
+				SubmitDeadline: pgtype.Timestamp{Time: deadline, Valid: true},
+				State:          db.GAMESTATE_FIBBING_IT_QUESTION.String(),
+			}).Return(db.GameState{}, nil)
+			mockStore.EXPECT().GetAllPlayerIDsByGameStateID(ctx, gameStateID).Return(
+				[]uuid.UUID{defaultHostPlayerID, defaultOtherPlayerID},
+				nil,
+			)
+			mockStore.EXPECT().GetLatestRoundByGameStateID(ctx, gameStateID).Return(db.GetLatestRoundByGameStateIDRow{
+				RoundType: "free_form",
+				Round:     1,
+			}, nil)
+			mockStore.EXPECT().GetRandomQuestionByRound(ctx, db.GetRandomQuestionByRoundParams{
+				GameName:     gameName,
+				LanguageCode: "en-GB",
+				Round:        "free_form",
+			}).Return(db.Question{}, fmt.Errorf("failed to get random question by round"))
+
+			_, err := srv.UpdateStateToQuestion(ctx, gameStateID, deadline)
+			assert.Error(t, err)
+		},
+	)
+
+	t.Run("Should fail to update to question because we fail to get random question in group", func(t *testing.T) {
+		mockStore := mockService.NewMockStorer(t)
+		mockRandom := mockService.NewMockRandomizer(t)
+		srv := service.NewRoundService(mockStore, mockRandom)
+
+		ctx := context.Background()
+		gameName := gameName
+		deadline := time.Now().Add(5 * time.Second).UTC()
+
+		mockStore.EXPECT().GetGameState(ctx, gameStateID).Return(db.GameState{
+			State: db.GAMESTATE_FIBBING_IT_REVEAL_ROLE.String(),
+		}, nil)
+		mockStore.EXPECT().UpdateGameState(ctx, db.UpdateGameStateParams{
+			ID:             gameStateID,
+			SubmitDeadline: pgtype.Timestamp{Time: deadline, Valid: true},
+			State:          db.GAMESTATE_FIBBING_IT_QUESTION.String(),
+		}).Return(db.GameState{}, nil)
+		mockStore.EXPECT().GetAllPlayerIDsByGameStateID(ctx, gameStateID).Return(
+			[]uuid.UUID{defaultHostPlayerID, defaultOtherPlayerID},
+			nil,
+		)
+		mockStore.EXPECT().GetLatestRoundByGameStateID(ctx, gameStateID).Return(db.GetLatestRoundByGameStateIDRow{
+			RoundType: "free_form",
+			Round:     1,
+		}, nil)
+		mockStore.EXPECT().GetRandomQuestionByRound(ctx, db.GetRandomQuestionByRoundParams{
+			GameName:     gameName,
+			LanguageCode: "en-GB",
+			Round:        "free_form",
+		}).Return(db.Question{
+			ID:       uuid.MustParse("0193a629-7dcc-78ad-822f-fd5d83c89ae7"),
+			Question: "I love cats",
+			GroupID:  groupID,
+		}, nil)
+		mockStore.EXPECT().GetRandomQuestionInGroup(ctx, db.GetRandomQuestionInGroupParams{
+			GroupID: groupID,
+			ID:      uuid.MustParse("0193a629-7dcc-78ad-822f-fd5d83c89ae7"),
+		}).Return(db.GetRandomQuestionInGroupRow{}, fmt.Errorf("failed to get random question in group"))
+
+		_, err := srv.UpdateStateToQuestion(ctx, gameStateID, deadline)
+		assert.Error(t, err)
+	})
+
+	t.Run("Should fail to update to question because we fail to add a new round", func(t *testing.T) {
+		mockStore := mockService.NewMockStorer(t)
+		mockRandom := mockService.NewMockRandomizer(t)
+		srv := service.NewRoundService(mockStore, mockRandom)
+
+		ctx := context.Background()
+		deadline := time.Now().Add(5 * time.Second).UTC()
+
+		mockStore.EXPECT().GetGameState(ctx, gameStateID).Return(db.GameState{
+			State: db.GAMESTATE_FIBBING_IT_REVEAL_ROLE.String(),
+		}, nil)
+		mockStore.EXPECT().UpdateGameState(ctx, db.UpdateGameStateParams{
+			ID:             gameStateID,
+			SubmitDeadline: pgtype.Timestamp{Time: deadline, Valid: true},
+			State:          db.GAMESTATE_FIBBING_IT_QUESTION.String(),
+		}).Return(db.GameState{}, nil)
+		mockStore.EXPECT().GetAllPlayerIDsByGameStateID(ctx, gameStateID).Return(
+			[]uuid.UUID{defaultHostPlayerID, defaultOtherPlayerID},
+			nil,
+		)
+		mockStore.EXPECT().GetLatestRoundByGameStateID(ctx, gameStateID).Return(db.GetLatestRoundByGameStateIDRow{
+			RoundType: "free_form",
+			Round:     1,
+		}, nil)
+		mockStore.EXPECT().GetRandomQuestionByRound(ctx, db.GetRandomQuestionByRoundParams{
+			GameName:     gameName,
+			LanguageCode: "en-GB",
+			Round:        "free_form",
+		}).Return(db.Question{
+			ID:       uuid.MustParse("0193a629-7dcc-78ad-822f-fd5d83c89ae7"),
+			Question: "I love cats",
+			GroupID:  groupID,
+		}, nil)
+		mockStore.EXPECT().GetRandomQuestionInGroup(ctx, db.GetRandomQuestionInGroupParams{
+			GroupID: groupID,
+			ID:      uuid.MustParse("0193a629-7dcc-78ad-822f-fd5d83c89ae7"),
+		}).Return(db.GetRandomQuestionInGroupRow{
+			ID:       uuid.MustParse("0193a629-a9ac-7fc4-828c-a1334c282e0f"),
+			Question: "I love dogs",
+		}, nil)
+		mockRandom.EXPECT().GetFibberIndex(2).Return(1)
+		mockStore.EXPECT().NewRound(ctx, db.NewRoundArgs{
+			GameStateID:       gameStateID,
+			NormalsQuestionID: uuid.MustParse("0193a629-7dcc-78ad-822f-fd5d83c89ae7"),
+			FibberQuestionID:  uuid.MustParse("0193a629-a9ac-7fc4-828c-a1334c282e0f"),
+			Round:             2,
+			RoundType:         "free_form",
+			PlayerIDs: []uuid.UUID{
+				defaultHostPlayerID,
+				defaultOtherPlayerID,
+			},
+			FibberLoc: 1,
+		}).Return(fmt.Errorf("failed to add a new round"))
+
+		_, err := srv.UpdateStateToQuestion(ctx, gameStateID, deadline)
+		assert.Error(t, err)
+	})
+}

@@ -586,7 +586,7 @@ func (_c *MockStorer_AddRoomPlayer_Call) RunAndReturn(run func(context.Context, 
 }
 
 // CreateRoom provides a mock function with given fields: ctx, arg
-func (_m *MockStorer) CreateRoom(ctx context.Context, arg db.CreateRoomParams) error {
+func (_m *MockStorer) CreateRoom(ctx context.Context, arg db.CreateRoomArgs) error {
 	ret := _m.Called(ctx, arg)
 
 	if len(ret) == 0 {
@@ -594,7 +594,7 @@ func (_m *MockStorer) CreateRoom(ctx context.Context, arg db.CreateRoomParams) e
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, db.CreateRoomParams) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, db.CreateRoomArgs) error); ok {
 		r0 = rf(ctx, arg)
 	} else {
 		r0 = ret.Error(0)
@@ -610,14 +610,14 @@ type MockStorer_CreateRoom_Call struct {
 
 // CreateRoom is a helper method to define mock.On call
 //   - ctx context.Context
-//   - arg db.CreateRoomParams
+//   - arg db.CreateRoomArgs
 func (_e *MockStorer_Expecter) CreateRoom(ctx interface{}, arg interface{}) *MockStorer_CreateRoom_Call {
 	return &MockStorer_CreateRoom_Call{Call: _e.mock.On("CreateRoom", ctx, arg)}
 }
 
-func (_c *MockStorer_CreateRoom_Call) Run(run func(ctx context.Context, arg db.CreateRoomParams)) *MockStorer_CreateRoom_Call {
+func (_c *MockStorer_CreateRoom_Call) Run(run func(ctx context.Context, arg db.CreateRoomArgs)) *MockStorer_CreateRoom_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(db.CreateRoomParams))
+		run(args[0].(context.Context), args[1].(db.CreateRoomArgs))
 	})
 	return _c
 }
@@ -627,7 +627,7 @@ func (_c *MockStorer_CreateRoom_Call) Return(_a0 error) *MockStorer_CreateRoom_C
 	return _c
 }
 
-func (_c *MockStorer_CreateRoom_Call) RunAndReturn(run func(context.Context, db.CreateRoomParams) error) *MockStorer_CreateRoom_Call {
+func (_c *MockStorer_CreateRoom_Call) RunAndReturn(run func(context.Context, db.CreateRoomArgs) error) *MockStorer_CreateRoom_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -744,6 +744,65 @@ func (_c *MockStorer_GetAllPlayerByRoomCode_Call) Return(_a0 []db.GetAllPlayerBy
 }
 
 func (_c *MockStorer_GetAllPlayerByRoomCode_Call) RunAndReturn(run func(context.Context, string) ([]db.GetAllPlayerByRoomCodeRow, error)) *MockStorer_GetAllPlayerByRoomCode_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetAllPlayerIDsByGameStateID provides a mock function with given fields: ctx, id
+func (_m *MockStorer) GetAllPlayerIDsByGameStateID(ctx context.Context, id uuid.UUID) ([]uuid.UUID, error) {
+	ret := _m.Called(ctx, id)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetAllPlayerIDsByGameStateID")
+	}
+
+	var r0 []uuid.UUID
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) ([]uuid.UUID, error)); ok {
+		return rf(ctx, id)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) []uuid.UUID); ok {
+		r0 = rf(ctx, id)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]uuid.UUID)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, uuid.UUID) error); ok {
+		r1 = rf(ctx, id)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockStorer_GetAllPlayerIDsByGameStateID_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetAllPlayerIDsByGameStateID'
+type MockStorer_GetAllPlayerIDsByGameStateID_Call struct {
+	*mock.Call
+}
+
+// GetAllPlayerIDsByGameStateID is a helper method to define mock.On call
+//   - ctx context.Context
+//   - id uuid.UUID
+func (_e *MockStorer_Expecter) GetAllPlayerIDsByGameStateID(ctx interface{}, id interface{}) *MockStorer_GetAllPlayerIDsByGameStateID_Call {
+	return &MockStorer_GetAllPlayerIDsByGameStateID_Call{Call: _e.mock.On("GetAllPlayerIDsByGameStateID", ctx, id)}
+}
+
+func (_c *MockStorer_GetAllPlayerIDsByGameStateID_Call) Run(run func(ctx context.Context, id uuid.UUID)) *MockStorer_GetAllPlayerIDsByGameStateID_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(uuid.UUID))
+	})
+	return _c
+}
+
+func (_c *MockStorer_GetAllPlayerIDsByGameStateID_Call) Return(_a0 []uuid.UUID, _a1 error) *MockStorer_GetAllPlayerIDsByGameStateID_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockStorer_GetAllPlayerIDsByGameStateID_Call) RunAndReturn(run func(context.Context, uuid.UUID) ([]uuid.UUID, error)) *MockStorer_GetAllPlayerIDsByGameStateID_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -1489,6 +1548,53 @@ func (_c *MockStorer_GetVotingState_Call) Return(_a0 []db.GetVotingStateRow, _a1
 }
 
 func (_c *MockStorer_GetVotingState_Call) RunAndReturn(run func(context.Context, uuid.UUID) ([]db.GetVotingStateRow, error)) *MockStorer_GetVotingState_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// NewRound provides a mock function with given fields: ctx, arg
+func (_m *MockStorer) NewRound(ctx context.Context, arg db.NewRoundArgs) error {
+	ret := _m.Called(ctx, arg)
+
+	if len(ret) == 0 {
+		panic("no return value specified for NewRound")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, db.NewRoundArgs) error); ok {
+		r0 = rf(ctx, arg)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// MockStorer_NewRound_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'NewRound'
+type MockStorer_NewRound_Call struct {
+	*mock.Call
+}
+
+// NewRound is a helper method to define mock.On call
+//   - ctx context.Context
+//   - arg db.NewRoundArgs
+func (_e *MockStorer_Expecter) NewRound(ctx interface{}, arg interface{}) *MockStorer_NewRound_Call {
+	return &MockStorer_NewRound_Call{Call: _e.mock.On("NewRound", ctx, arg)}
+}
+
+func (_c *MockStorer_NewRound_Call) Run(run func(ctx context.Context, arg db.NewRoundArgs)) *MockStorer_NewRound_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(db.NewRoundArgs))
+	})
+	return _c
+}
+
+func (_c *MockStorer_NewRound_Call) Return(_a0 error) *MockStorer_NewRound_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *MockStorer_NewRound_Call) RunAndReturn(run func(context.Context, db.NewRoundArgs) error) *MockStorer_NewRound_Call {
 	_c.Call.Return(run)
 	return _c
 }

@@ -71,7 +71,7 @@ func (r *LobbyService) Create(ctx context.Context, gameName string, newHostPlaye
 		PlayerID: player.ID,
 	}
 
-	createRoom := db.CreateRoomParams{
+	createRoom := db.CreateRoomArgs{
 		Room:       addRoom,
 		Player:     addPlayer,
 		RoomPlayer: addRoomPlayer,
@@ -279,8 +279,6 @@ func (r *LobbyService) Start(
 
 		players = append(players, PlayerWithRole{
 			ID:            player.ID,
-			Nickname:      player.Nickname,
-			Avatar:        player.Avatar,
 			Role:          role,
 			Question:      question,
 			IsAnswerReady: false,
@@ -294,7 +292,6 @@ func (r *LobbyService) Start(
 		Players:     players,
 		Round:       1,
 		RoundType:   "free_form",
-		RoomCode:    roomCode,
 		Deadline:    timeLeft,
 	}
 	return gameState, nil

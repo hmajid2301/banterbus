@@ -37,12 +37,19 @@ linters:
     - unused
     - whitespace
 
+
 linters-settings:
+  govet:
+    disable:
+      - fieldalignment
+
   goimports:
     local-prefixes: gitlab.com/hmajid2301/banterbus
+
   gosec:
     excludes:
       - G404
+
   sloglint:
     no-mixed-args: false
     kv-only: true

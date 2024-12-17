@@ -1,6 +1,5 @@
 -- +goose Up
 -- +goose StatementBegin
-
 CREATE TABLE IF NOT EXISTS players (
     id UUID PRIMARY KEY,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -70,11 +69,9 @@ CREATE TABLE fibbing_it_rounds (
     round INT NOT NULL,
     fibber_question_id UUID NOT NULL,
     normal_question_id UUID NOT NULL,
-    room_id UUID NOT NULL,
     game_state_id UUID NOT NULL,
     FOREIGN KEY (fibber_question_id) REFERENCES questions (id),
     FOREIGN KEY (normal_question_id) REFERENCES questions (id),
-    FOREIGN KEY (room_id) REFERENCES rooms (id),
     FOREIGN KEY (game_state_id) REFERENCES game_state (id)
 );
 

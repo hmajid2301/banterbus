@@ -18,6 +18,7 @@ import (
 )
 
 const roomCode = "ABC12"
+const gameName = "fibbing_it"
 
 // TODO: move to generic
 var roomID = uuid.MustParse("0193a627-db9b-7af3-88d8-6b3164d4b969")
@@ -48,7 +49,7 @@ func TestLobbyServiceCreate(t *testing.T) {
 
 		createRoom := getCreateRoomParams(defaultNewPlayer, defaultNewHostPlayer)
 		mockStore.EXPECT().CreateRoom(ctx, createRoom).Return(nil)
-		lobby, err := srv.Create(ctx, "fibbing_it", defaultNewHostPlayer)
+		lobby, err := srv.Create(ctx, gameName, defaultNewHostPlayer)
 
 		expectedLobby := service.Lobby{
 			Code: roomCode,
@@ -91,7 +92,7 @@ func TestLobbyServiceCreate(t *testing.T) {
 
 		createRoom := getCreateRoomParams(newPlayer, newHostPlayer)
 		mockStore.EXPECT().CreateRoom(ctx, createRoom).Return(nil)
-		lobby, err := srv.Create(ctx, "fibbing_it", newHostPlayer)
+		lobby, err := srv.Create(ctx, gameName, newHostPlayer)
 
 		expectedLobby := service.Lobby{
 			Code: roomCode,
@@ -131,7 +132,7 @@ func TestLobbyServiceCreate(t *testing.T) {
 
 		createRoom := getCreateRoomParams(defaultNewPlayer, defaultNewHostPlayer)
 		mockStore.EXPECT().CreateRoom(ctx, createRoom).Return(nil)
-		lobby, err := srv.Create(ctx, "fibbing_it", defaultNewHostPlayer)
+		lobby, err := srv.Create(ctx, gameName, defaultNewHostPlayer)
 
 		expectedLobby := service.Lobby{
 			Code: roomCode,
@@ -163,7 +164,7 @@ func TestLobbyServiceCreate(t *testing.T) {
 			GetRoomByCode(ctx, roomCode).
 			Return(db.Room{}, fmt.Errorf("failed to get room code")).
 			Times(1)
-		_, err := srv.Create(ctx, "fibbing_it", defaultNewHostPlayer)
+		_, err := srv.Create(ctx, gameName, defaultNewHostPlayer)
 		assert.Error(t, err)
 	})
 
@@ -181,12 +182,12 @@ func TestLobbyServiceCreate(t *testing.T) {
 
 		createRoom := getCreateRoomParams(defaultNewPlayer, defaultNewHostPlayer)
 		mockStore.EXPECT().CreateRoom(ctx, createRoom).Return(fmt.Errorf("failed to create room"))
-		_, err := srv.Create(ctx, "fibbing_it", defaultNewHostPlayer)
+		_, err := srv.Create(ctx, gameName, defaultNewHostPlayer)
 		assert.Error(t, err)
 	})
 }
 
-func getCreateRoomParams(newCreatedPlayer service.NewPlayer, newPlayer service.NewHostPlayer) db.CreateRoomParams {
+func getCreateRoomParams(newCreatedPlayer service.NewPlayer, newPlayer service.NewHostPlayer) db.CreateRoomArgs {
 	addPlayer := db.AddPlayerParams{
 		ID:       newCreatedPlayer.ID,
 		Avatar:   newCreatedPlayer.Avatar,
@@ -194,7 +195,7 @@ func getCreateRoomParams(newCreatedPlayer service.NewPlayer, newPlayer service.N
 	}
 	addRoom := db.AddRoomParams{
 		ID:         roomID,
-		GameName:   "fibbing_it",
+		GameName:   gameName,
 		RoomCode:   roomCode,
 		RoomState:  db.ROOMSTATE_CREATED.String(),
 		HostPlayer: newPlayer.ID,
@@ -205,7 +206,7 @@ func getCreateRoomParams(newCreatedPlayer service.NewPlayer, newPlayer service.N
 		PlayerID: newPlayer.ID,
 	}
 
-	createRoom := db.CreateRoomParams{
+	createRoom := db.CreateRoomArgs{
 		Room:       addRoom,
 		Player:     addPlayer,
 		RoomPlayer: addRoomPlayer,
@@ -638,7 +639,6 @@ func TestLobbyServiceKickPlayer(t *testing.T) {
 }
 
 func TestLobbyServiceStart(t *testing.T) {
-	gameName := "fibbing_it"
 	groupID := uuid.MustParse("0193a629-1fcf-79dd-ac70-760bedbdffa9")
 	gameStateID := uuid.MustParse("0193a629-373b-7a3e-b6c2-0e7d2f95ce43")
 
@@ -730,20 +730,17 @@ func TestLobbyServiceStart(t *testing.T) {
 			Players: []service.PlayerWithRole{
 				{
 					ID:       defaultNewPlayer.ID,
-					Nickname: "Hello",
 					Role:     "normal",
 					Question: "What is the capital of France?",
 				},
 				{
 					ID:       hostPlayerID,
-					Nickname: "EmotionalTiger",
 					Role:     "fibber",
 					Question: "What is the capital of Germany?",
 				},
 			},
 			Round:     1,
 			RoundType: "free_form",
-			RoomCode:  roomCode,
 		}
 
 		assert.NoError(t, err)

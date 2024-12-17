@@ -149,9 +149,7 @@ func (p *PlayerService) GetQuestionState(ctx context.Context, playerID uuid.UUID
 	players := []PlayerWithRole{
 		{
 			ID:            g.PlayerID,
-			Nickname:      g.Nickname,
 			Role:          g.Role.String,
-			Avatar:        g.Avatar,
 			Question:      g.Question,
 			IsAnswerReady: g.IsAnswerReady,
 		},
@@ -162,7 +160,6 @@ func (p *PlayerService) GetQuestionState(ctx context.Context, playerID uuid.UUID
 		Players:     players,
 		Round:       int(g.Round),
 		RoundType:   g.RoundType,
-		RoomCode:    g.RoomCode,
 		Deadline:    time.Until(g.SubmitDeadline.Time),
 	}
 

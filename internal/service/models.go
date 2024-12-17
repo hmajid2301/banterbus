@@ -35,10 +35,8 @@ type NewRoom struct {
 
 type PlayerWithRole struct {
 	ID            uuid.UUID
-	Nickname      string
 	Role          string
 	Question      string
-	Avatar        []byte
 	IsAnswerReady bool
 }
 
@@ -48,7 +46,6 @@ type QuestionState struct {
 	Players     []PlayerWithRole
 	Round       int
 	RoundType   string
-	RoomCode    string
 	Deadline    time.Duration
 }
 

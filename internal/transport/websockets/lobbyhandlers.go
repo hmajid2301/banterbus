@@ -70,11 +70,16 @@ func (s *StartGame) Handle(ctx context.Context, client *client, sub *Subscriber)
 		return err
 	}
 
-	questionSM := QuestionState{
-		gameStateID: questionState.GameStateID,
-		subscriber:  *sub,
-	}
-	go questionSM.Start(ctx)
+	go func() {
+		v := VotingState{
+			gameStateID: questionState.GameStateID,
+			subscriber:  *sub,
+		}
+		deadline := time.Now().UTC().Add(config.ShowQuestionScreenFor)
+		time.Sleep(time.Until(deadline))
+		go v.Start(ctx)
+	}()
+
 	return nil
 }
 
