@@ -59,8 +59,8 @@ schema = 3
     version = "v1.6.0"
     hash = "sha256-VWl9sqUzdOuhW0KzQlv0gwwUQClYkmZwSydHG2sALYw="
   [mod."github.com/invopop/ctxi18n"]
-    version = "v0.8.1"
-    hash = "sha256-XaTk4STxasKhe6XzD0mY8SAwvtAJDtZNJMpizo4jy9Y="
+    version = "v0.9.0"
+    hash = "sha256-Qhyim2NQC/ofcpxN+cIookNwQahclhNld86VN/uDemw="
   [mod."github.com/invopop/yaml"]
     version = "v0.3.1"
     hash = "sha256-7x9sX9nc0ZL1+Fqh6hX+9ALNPXlIeCCkhGnwHR1VW0c="
@@ -95,8 +95,8 @@ schema = 3
     version = "v1.0.0"
     hash = "sha256-/FtmHnaGjdvEIKAJtrUfEhV7EVo5A/eYrtdnUkuxLDA="
   [mod."github.com/pressly/goose/v3"]
-    version = "v3.22.1"
-    hash = "sha256-ibCYmKkhW1sEagYunBwSqQG9i1ZonkkGSPWRz7okfks="
+    version = "v3.23.0"
+    hash = "sha256-DKjiXQcUQ1ZNAwsqo3xfwMOk2Ah4fPXMjFiGKgRRx04="
   [mod."github.com/prometheus/client_golang"]
     version = "v1.20.5"
     hash = "sha256-RbDZTBH+j2ZNLbHSMFxW0j8UStvkwc4IHTz3My9w4qo="
@@ -125,8 +125,8 @@ schema = 3
     version = "v0.5.2"
     hash = "sha256-VKYxrrFb1nkX6Wu3tE5DoP9+fCttwSl9pgLN6567nck="
   [mod."github.com/stretchr/testify"]
-    version = "v1.9.0"
-    hash = "sha256-uUp/On+1nK+lARkTVtb5RxlW15zxtw2kaAFuIASA+J0="
+    version = "v1.10.0"
+    hash = "sha256-fJ4gnPr0vnrOhjQYQwJ3ARDKPsOtA7d4olQmQWR+wpI="
   [mod."github.com/veqryn/slog-context"]
     version = "v0.7.0"
     hash = "sha256-eCdqk/nS9o/Zsgi2q9425dRyrXCWKHNS8VG1hI352mU="

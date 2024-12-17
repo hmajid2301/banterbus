@@ -138,8 +138,8 @@ tests:integration:
   extends:
     - .test
   services:
-    - redis:7.2.6
-    - postgres:16.4
+    - redis:7.4.1
+    - postgres:16.6
   variables:
     BANTERBUS_REDIS_ADDRESS: redis:6379
     BANTERBUS_DB_URI: postgresql://banterbus:banterbus@postgres:5432
@@ -150,8 +150,8 @@ test:e2e:
   extends:
     - .test
   services:
-    - redis:7.2.6
-    - postgres:16.4
+    - redis:7.4.1
+    - postgres:16.6
   variables:
     BANTERBUS_REDIS_ADDRESS: redis:6379
     BANTERBUS_DB_URI: postgresql://banterbus:banterbus@postgres:5432
