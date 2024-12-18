@@ -17,6 +17,7 @@ import (
 )
 
 var playerID = uuid.MustParse("0193a625-dad1-7095-9abb-bebdad739381")
+var avatarURL = "https://api.dicebear.com/9.x/bottts-neutral/svg?radius=20&seed=randomSeed"
 
 func TestPlayerServiceUpdateNickname(t *testing.T) {
 	t.Run("Should successfully update nickname", func(t *testing.T) {
@@ -186,15 +187,15 @@ func TestPlayerServiceGenerateAvatar(t *testing.T) {
 			ID:        roomID,
 			RoomState: db.ROOMSTATE_CREATED.String(),
 		}, nil)
-		mockRandomizer.EXPECT().GetAvatar().Return([]byte("avatar1"))
+		mockRandomizer.EXPECT().GetAvatar("").Return(avatarURL)
 		mockStore.EXPECT().UpdateAvatar(ctx, db.UpdateAvatarParams{
-			Avatar: []byte("avatar1"),
+			Avatar: avatarURL,
 			ID:     playerID,
 		}).Return(db.Player{}, nil)
 		mockStore.EXPECT().GetAllPlayersInRoom(ctx, playerID).Return([]db.GetAllPlayersInRoomRow{
 			{
 				ID:         playerID,
-				Avatar:     []byte("avatar1"),
+				Avatar:     avatarURL,
 				RoomCode:   roomCode,
 				HostPlayer: hostPlayerID,
 				Nickname:   "nickname",
@@ -211,7 +212,7 @@ func TestPlayerServiceGenerateAvatar(t *testing.T) {
 				{
 					ID:       playerID,
 					Nickname: "nickname",
-					Avatar:   "avatar1",
+					Avatar:   "https://api.dicebear.com/9.x/bottts-neutral/svg?radius=20&seed=randomSeed",
 					IsReady:  false,
 					IsHost:   false,
 				},
@@ -262,9 +263,9 @@ func TestPlayerServiceGenerateAvatar(t *testing.T) {
 			ID:        roomID,
 			RoomState: db.ROOMSTATE_CREATED.String(),
 		}, nil)
-		mockRandomizer.EXPECT().GetAvatar().Return([]byte("avatar1"))
+		mockRandomizer.EXPECT().GetAvatar("").Return(avatarURL)
 		mockStore.EXPECT().UpdateAvatar(ctx, db.UpdateAvatarParams{
-			Avatar: []byte("avatar1"),
+			Avatar: avatarURL,
 			ID:     playerID,
 		}).Return(db.Player{}, fmt.Errorf("failed to update avatar"))
 
@@ -283,9 +284,9 @@ func TestPlayerServiceGenerateAvatar(t *testing.T) {
 			ID:        roomID,
 			RoomState: db.ROOMSTATE_CREATED.String(),
 		}, nil)
-		mockRandomizer.EXPECT().GetAvatar().Return([]byte("avatar1"))
+		mockRandomizer.EXPECT().GetAvatar("").Return(avatarURL)
 		mockStore.EXPECT().UpdateAvatar(ctx, db.UpdateAvatarParams{
-			Avatar: []byte("avatar1"),
+			Avatar: avatarURL,
 			ID:     playerID,
 		}).Return(db.Player{}, nil)
 		mockStore.EXPECT().GetAllPlayersInRoom(ctx, playerID).Return(
@@ -331,7 +332,7 @@ func TestPlayerServiceTogglePlayerIsReady(t *testing.T) {
 			mockStore.EXPECT().GetAllPlayersInRoom(ctx, playerID).Return([]db.GetAllPlayersInRoomRow{
 				{
 					ID:         playerID,
-					Avatar:     []byte("avatar1"),
+					Avatar:     avatarURL,
 					RoomCode:   roomCode,
 					HostPlayer: hostPlayerID,
 					Nickname:   "nickname",
@@ -348,7 +349,7 @@ func TestPlayerServiceTogglePlayerIsReady(t *testing.T) {
 					{
 						ID:       playerID,
 						Nickname: "nickname",
-						Avatar:   "avatar1",
+						Avatar:   "https://api.dicebear.com/9.x/bottts-neutral/svg?radius=20&seed=randomSeed",
 						IsReady:  tt.expectedIsReady,
 						IsHost:   false,
 					},
@@ -604,7 +605,7 @@ func TestPlayerServiceGetQuestionState(t *testing.T) {
 		deadline := time.Now().Add(5 * time.Second)
 		mockStore.EXPECT().GetCurrentQuestionByPlayerID(ctx, playerID).Return(db.GetCurrentQuestionByPlayerIDRow{
 			PlayerID:       playerID,
-			Avatar:         []byte(""),
+			Avatar:         "https://api.dicebear.com/9.x/bottts-neutral/svg?radius=20&seed=nickname",
 			Nickname:       "nickname",
 			Role:           pgtype.Text{String: "fibber"},
 			Question:       "fibber question",
@@ -645,7 +646,7 @@ func TestPlayerServiceGetQuestionState(t *testing.T) {
 		deadline := time.Now().Add(5 * time.Second)
 		mockStore.EXPECT().GetCurrentQuestionByPlayerID(ctx, playerID).Return(db.GetCurrentQuestionByPlayerIDRow{
 			PlayerID:       playerID,
-			Avatar:         []byte(""),
+			Avatar:         "https://api.dicebear.com/9.x/bottts-neutral/svg?radius=20&seed=nickname",
 			Nickname:       "nickname",
 			Role:           pgtype.Text{String: "normal"},
 			Question:       "normal question",
@@ -686,7 +687,7 @@ func TestPlayerServiceGetQuestionState(t *testing.T) {
 		deadline := time.Now().Add(5 * time.Second)
 		mockStore.EXPECT().GetCurrentQuestionByPlayerID(ctx, playerID).Return(db.GetCurrentQuestionByPlayerIDRow{
 			PlayerID:       playerID,
-			Avatar:         []byte(""),
+			Avatar:         "https://api.dicebear.com/9.x/bottts-neutral/svg?radius=20&seed=nickname",
 			Nickname:       "nickname",
 			Role:           pgtype.Text{String: "fibber"},
 			Question:       "fibber question",
@@ -726,7 +727,7 @@ func TestPlayerServiceGetQuestionState(t *testing.T) {
 		deadline := time.Now().Add(5 * time.Second)
 		mockStore.EXPECT().GetCurrentQuestionByPlayerID(ctx, playerID).Return(db.GetCurrentQuestionByPlayerIDRow{
 			PlayerID:       playerID,
-			Avatar:         []byte(""),
+			Avatar:         "https://api.dicebear.com/9.x/bottts-neutral/svg?radius=20&seed=nickname",
 			Nickname:       "nickname",
 			Role:           pgtype.Text{String: "fibber"},
 			Question:       "fibber question",

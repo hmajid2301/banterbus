@@ -26,7 +26,7 @@ type NewHostPlayer struct {
 type NewPlayer struct {
 	ID       uuid.UUID
 	Nickname string
-	Avatar   []byte
+	Avatar   string
 }
 
 type NewRoom struct {

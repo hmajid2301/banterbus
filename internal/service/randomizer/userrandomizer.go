@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"math/rand/v2"
 
-	"github.com/gomig/avatar"
 	"github.com/google/uuid"
 )
 
@@ -84,23 +83,12 @@ func (UserRandomizer) GetNickname() string {
 	return fmt.Sprintf("%s%s%s", color, adjective, animal)
 }
 
-func (UserRandomizer) GetAvatar() []byte {
-	booleanRandNum := 2
-	isMale := rand.IntN(booleanRandNum)
-	avatar := avatar.NewPersonAvatar(isMale == 1)
+func (u UserRandomizer) GetAvatar(nickname string) string {
+	if nickname == "" {
+		nickname = u.GetNickname()
+	}
 
-	avatar.RandomizeHair()
-	avatar.RandomizeSticker()
-	avatar.RandomizeDress()
-	avatar.RandomizePalette()
-	avatar.RandomizeEye()
-	avatar.RandomizeHairColor()
-	avatar.RandomizeSkinColor()
-	avatar.RandomizeFacialHair()
-	avatar.RandomizeMouth()
-
-	encodedAvatar := avatar.Base64()
-	return []byte(encodedAvatar)
+	return fmt.Sprintf("https://api.dicebear.com/9.x/bottts-neutral/svg?radius=20&seed=%s", nickname)
 }
 
 func (UserRandomizer) GetRoomCode() string {

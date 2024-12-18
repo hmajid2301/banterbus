@@ -32,7 +32,7 @@ func TestLobbyServiceCreate(t *testing.T) {
 	defaultNewPlayer := service.NewPlayer{
 		ID:       defaultNewHostPlayer.ID,
 		Nickname: "Majiy00",
-		Avatar:   []byte(""),
+		Avatar:   "https://api.dicebear.com/9.x/bottts-neutral/svg?radius=20&seed=Majiy00",
 	}
 
 	t.Run("Should create room successfully", func(t *testing.T) {
@@ -42,7 +42,7 @@ func TestLobbyServiceCreate(t *testing.T) {
 
 		ctx := context.Background()
 		mockRandom.EXPECT().GetNickname().Return(defaultNewPlayer.Nickname)
-		mockRandom.EXPECT().GetAvatar().Return(defaultNewPlayer.Avatar)
+		mockRandom.EXPECT().GetAvatar(defaultNewPlayer.Nickname).Return(defaultNewPlayer.Avatar)
 		mockRandom.EXPECT().GetRoomCode().Return(roomCode)
 		mockStore.EXPECT().GetRoomByCode(ctx, roomCode).Return(db.Room{}, sql.ErrNoRows)
 		mockRandom.EXPECT().GetID().Return(roomID)
@@ -57,7 +57,7 @@ func TestLobbyServiceCreate(t *testing.T) {
 				{
 					ID:       defaultNewPlayer.ID,
 					Nickname: defaultNewPlayer.Nickname,
-					Avatar:   string(defaultNewPlayer.Avatar),
+					Avatar:   defaultNewPlayer.Avatar,
 					IsHost:   true,
 					IsReady:  false,
 				},
@@ -81,11 +81,11 @@ func TestLobbyServiceCreate(t *testing.T) {
 		newPlayer := service.NewPlayer{
 			ID:       newHostPlayer.ID,
 			Nickname: newHostPlayer.Nickname,
-			Avatar:   []byte(""),
+			Avatar:   "https://api.dicebear.com/9.x/bottts-neutral/svg?radius=20&seed=MyNickname",
 		}
 
 		ctx := context.Background()
-		mockRandom.EXPECT().GetAvatar().Return(newPlayer.Avatar)
+		mockRandom.EXPECT().GetAvatar(newHostPlayer.Nickname).Return(newPlayer.Avatar)
 		mockRandom.EXPECT().GetRoomCode().Return(roomCode)
 		mockStore.EXPECT().GetRoomByCode(ctx, roomCode).Return(db.Room{}, sql.ErrNoRows)
 		mockRandom.EXPECT().GetID().Return(roomID)
@@ -100,7 +100,7 @@ func TestLobbyServiceCreate(t *testing.T) {
 				{
 					ID:       newPlayer.ID,
 					Nickname: newPlayer.Nickname,
-					Avatar:   string(newPlayer.Avatar),
+					Avatar:   newPlayer.Avatar,
 					IsHost:   true,
 					IsReady:  false,
 				},
@@ -118,7 +118,7 @@ func TestLobbyServiceCreate(t *testing.T) {
 
 		ctx := context.Background()
 		mockRandom.EXPECT().GetNickname().Return(defaultNewPlayer.Nickname)
-		mockRandom.EXPECT().GetAvatar().Return(defaultNewPlayer.Avatar)
+		mockRandom.EXPECT().GetAvatar(defaultNewPlayer.Nickname).Return(defaultNewPlayer.Avatar)
 		mockRandom.EXPECT().GetRoomCode().Return(roomCode)
 		mockStore.EXPECT().
 			GetRoomByCode(ctx, roomCode).
@@ -140,7 +140,7 @@ func TestLobbyServiceCreate(t *testing.T) {
 				{
 					ID:       defaultNewPlayer.ID,
 					Nickname: defaultNewPlayer.Nickname,
-					Avatar:   string(defaultNewPlayer.Avatar),
+					Avatar:   defaultNewPlayer.Avatar,
 					IsHost:   true,
 					IsReady:  false,
 				},
@@ -158,7 +158,7 @@ func TestLobbyServiceCreate(t *testing.T) {
 
 		ctx := context.Background()
 		mockRandom.EXPECT().GetNickname().Return(defaultNewPlayer.Nickname)
-		mockRandom.EXPECT().GetAvatar().Return(defaultNewPlayer.Avatar)
+		mockRandom.EXPECT().GetAvatar(defaultNewPlayer.Nickname).Return(defaultNewPlayer.Avatar)
 		mockRandom.EXPECT().GetRoomCode().Return(roomCode)
 		mockStore.EXPECT().
 			GetRoomByCode(ctx, roomCode).
@@ -175,7 +175,7 @@ func TestLobbyServiceCreate(t *testing.T) {
 
 		ctx := context.Background()
 		mockRandom.EXPECT().GetNickname().Return(defaultNewPlayer.Nickname)
-		mockRandom.EXPECT().GetAvatar().Return(defaultNewPlayer.Avatar)
+		mockRandom.EXPECT().GetAvatar(defaultNewPlayer.Nickname).Return(defaultNewPlayer.Avatar)
 		mockRandom.EXPECT().GetRoomCode().Return(roomCode)
 		mockStore.EXPECT().GetRoomByCode(ctx, roomCode).Return(db.Room{}, sql.ErrNoRows).Times(1)
 		mockRandom.EXPECT().GetID().Return(roomID)
@@ -218,7 +218,7 @@ func TestLobbyServiceJoin(t *testing.T) {
 	defaultNewPlayer := service.NewPlayer{
 		ID:       uuid.MustParse("0193a626-2586-7784-9b5b-104d927d64ca"),
 		Nickname: "",
-		Avatar:   []byte(""),
+		Avatar:   "https://api.dicebear.com/9.x/bottts-neutral/svg?radius=20&seed=",
 	}
 
 	t.Run("Should allow player to join room successfully", func(t *testing.T) {
@@ -228,7 +228,7 @@ func TestLobbyServiceJoin(t *testing.T) {
 
 		ctx := context.Background()
 		mockRandom.EXPECT().GetNickname().Return(defaultNewPlayer.Nickname)
-		mockRandom.EXPECT().GetAvatar().Return(defaultNewPlayer.Avatar)
+		mockRandom.EXPECT().GetAvatar(defaultNewPlayer.Nickname).Return(defaultNewPlayer.Avatar)
 		mockStore.EXPECT().
 			GetRoomByCode(ctx, roomCode).
 			Return(db.Room{ID: roomID, RoomState: db.ROOMSTATE_CREATED.String()}, nil)
@@ -258,14 +258,14 @@ func TestLobbyServiceJoin(t *testing.T) {
 			{
 				ID:         uuid.MustParse("0193a628-51bc-7a60-9204-a8667771f278"),
 				Nickname:   "EmotionalTiger",
-				Avatar:     []byte(""),
+				Avatar:     "https://api.dicebear.com/9.x/bottts-neutral/svg?radius=20&seed=EmotionalTiger",
 				IsReady:    pgtype.Bool{Bool: false, Valid: true},
 				HostPlayer: uuid.MustParse("0193a628-8b7b-7ad9-aefe-031ec85289fa"),
 			},
 			{
 				ID:         uuid.MustParse("0193a628-8b7b-7ad9-aefe-031ec85289fa"),
 				Nickname:   "Hello",
-				Avatar:     []byte(""),
+				Avatar:     "https://api.dicebear.com/9.x/bottts-neutral/svg?radius=20&seed=Hello",
 				IsReady:    pgtype.Bool{Bool: false, Valid: true},
 				HostPlayer: uuid.MustParse("0193a628-8b7b-7ad9-aefe-031ec85289fa"),
 			},
@@ -277,14 +277,14 @@ func TestLobbyServiceJoin(t *testing.T) {
 				{
 					ID:       uuid.MustParse("0193a628-51bc-7a60-9204-a8667771f278"),
 					Nickname: "EmotionalTiger",
-					Avatar:   "",
+					Avatar:   "https://api.dicebear.com/9.x/bottts-neutral/svg?radius=20&seed=EmotionalTiger",
 					IsReady:  false,
 					IsHost:   false,
 				},
 				{
 					ID:       uuid.MustParse("0193a628-8b7b-7ad9-aefe-031ec85289fa"),
 					Nickname: "Hello",
-					Avatar:   "",
+					Avatar:   "https://api.dicebear.com/9.x/bottts-neutral/svg?radius=20&seed=Hello",
 					IsReady:  false,
 					IsHost:   true,
 				},
@@ -302,7 +302,9 @@ func TestLobbyServiceJoin(t *testing.T) {
 		srv := service.NewLobbyService(mockStore, mockRandom)
 
 		ctx := context.Background()
-		mockRandom.EXPECT().GetAvatar().Return(defaultNewPlayer.Avatar)
+		mockRandom.EXPECT().
+			GetAvatar(nickname).
+			Return("https://api.dicebear.com/9.x/bottts-neutral/svg?radius=20&seed=MyNickname")
 		mockStore.EXPECT().
 			GetRoomByCode(ctx, roomCode).
 			Return(db.Room{ID: roomID, RoomState: db.ROOMSTATE_CREATED.String()}, nil)
@@ -314,7 +316,7 @@ func TestLobbyServiceJoin(t *testing.T) {
 
 		addPlayer := db.AddPlayerParams{
 			ID:       defaultNewPlayer.ID,
-			Avatar:   defaultNewPlayer.Avatar,
+			Avatar:   "https://api.dicebear.com/9.x/bottts-neutral/svg?radius=20&seed=MyNickname",
 			Nickname: nickname,
 		}
 
@@ -332,14 +334,14 @@ func TestLobbyServiceJoin(t *testing.T) {
 			{
 				ID:         uuid.MustParse("0193a628-51bc-7a60-9204-a8667771f278"),
 				Nickname:   nickname,
-				Avatar:     []byte(""),
+				Avatar:     "https://api.dicebear.com/9.x/bottts-neutral/svg?radius=20&seed=MyNickname",
 				IsReady:    pgtype.Bool{Bool: false, Valid: true},
 				HostPlayer: uuid.MustParse("0193a628-8b7b-7ad9-aefe-031ec85289fa"),
 			},
 			{
 				ID:         uuid.MustParse("0193a628-8b7b-7ad9-aefe-031ec85289fa"),
 				Nickname:   "Hello",
-				Avatar:     []byte(""),
+				Avatar:     "https://api.dicebear.com/9.x/bottts-neutral/svg?radius=20&seed=Hello",
 				IsReady:    pgtype.Bool{Bool: false, Valid: true},
 				HostPlayer: uuid.MustParse("0193a628-8b7b-7ad9-aefe-031ec85289fa"),
 			},
@@ -351,14 +353,14 @@ func TestLobbyServiceJoin(t *testing.T) {
 				{
 					ID:       uuid.MustParse("0193a628-51bc-7a60-9204-a8667771f278"),
 					Nickname: nickname,
-					Avatar:   "",
+					Avatar:   "https://api.dicebear.com/9.x/bottts-neutral/svg?radius=20&seed=MyNickname",
 					IsReady:  false,
 					IsHost:   false,
 				},
 				{
 					ID:       uuid.MustParse("0193a628-8b7b-7ad9-aefe-031ec85289fa"),
 					Nickname: "Hello",
-					Avatar:   "",
+					Avatar:   "https://api.dicebear.com/9.x/bottts-neutral/svg?radius=20&seed=Hello",
 					IsReady:  false,
 					IsHost:   true,
 				},
@@ -375,7 +377,7 @@ func TestLobbyServiceJoin(t *testing.T) {
 
 		ctx := context.Background()
 		mockRandom.EXPECT().GetNickname().Return(defaultNewPlayer.Nickname)
-		mockRandom.EXPECT().GetAvatar().Return(defaultNewPlayer.Avatar)
+		mockRandom.EXPECT().GetAvatar(defaultNewPlayer.Nickname).Return(defaultNewPlayer.Avatar)
 		mockStore.EXPECT().
 			GetRoomByCode(ctx, roomCode).
 			Return(db.Room{ID: roomID, RoomState: db.ROOMSTATE_PLAYING.String()}, nil)
@@ -392,7 +394,7 @@ func TestLobbyServiceJoin(t *testing.T) {
 		srv := service.NewLobbyService(mockStore, mockRandom)
 
 		ctx := context.Background()
-		mockRandom.EXPECT().GetAvatar().Return(defaultNewPlayer.Avatar)
+		mockRandom.EXPECT().GetAvatar(nickname).Return(defaultNewPlayer.Avatar)
 		mockStore.EXPECT().
 			GetRoomByCode(ctx, roomCode).
 			Return(db.Room{ID: roomID, RoomState: db.ROOMSTATE_CREATED.String()}, nil)
@@ -413,7 +415,7 @@ func TestLobbyServiceJoin(t *testing.T) {
 
 		ctx := context.Background()
 		mockRandom.EXPECT().GetNickname().Return(defaultNewPlayer.Nickname)
-		mockRandom.EXPECT().GetAvatar().Return(defaultNewPlayer.Avatar)
+		mockRandom.EXPECT().GetAvatar(defaultNewPlayer.Nickname).Return(defaultNewPlayer.Avatar)
 		mockStore.EXPECT().
 			GetRoomByCode(ctx, roomCode).
 			Return(db.Room{ID: roomID, RoomState: db.ROOMSTATE_CREATED.String()}, nil)
@@ -451,7 +453,7 @@ func TestLobbyServiceJoin(t *testing.T) {
 
 		ctx := context.Background()
 		mockRandom.EXPECT().GetNickname().Return(defaultNewPlayer.Nickname)
-		mockRandom.EXPECT().GetAvatar().Return(defaultNewPlayer.Avatar)
+		mockRandom.EXPECT().GetAvatar(defaultNewPlayer.Nickname).Return(defaultNewPlayer.Avatar)
 		mockStore.EXPECT().
 			GetRoomByCode(ctx, roomCode).
 			Return(db.Room{ID: roomID, RoomState: db.ROOMSTATE_CREATED.String()}, nil)
@@ -489,7 +491,7 @@ func TestLobbyServiceKickPlayer(t *testing.T) {
 	defaultNewPlayer := service.NewPlayer{
 		ID:       uuid.MustParse("0193a626-2586-7784-9b5b-104d927d64ca"),
 		Nickname: "Hello",
-		Avatar:   []byte(""),
+		Avatar:   "https://api.dicebear.com/9.x/bottts-neutral/svg?radius=20&seed=Hello",
 	}
 
 	t.Run("Should kick player from lobby successfully", func(t *testing.T) {
@@ -645,7 +647,7 @@ func TestLobbyServiceStart(t *testing.T) {
 	defaultNewPlayer := service.NewPlayer{
 		ID:       uuid.MustParse("0193a626-2586-7784-9b5b-104d927d64ca"),
 		Nickname: "Hello",
-		Avatar:   []byte(""),
+		Avatar:   "https://api.dicebear.com/9.x/bottts-neutral/svg?radius=20&seed=Hello",
 	}
 
 	t.Run("Should start game successfully", func(t *testing.T) {

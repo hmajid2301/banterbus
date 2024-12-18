@@ -21,21 +21,19 @@ func (_m *MockRandomizer) EXPECT() *MockRandomizer_Expecter {
 	return &MockRandomizer_Expecter{mock: &_m.Mock}
 }
 
-// GetAvatar provides a mock function with given fields:
-func (_m *MockRandomizer) GetAvatar() []byte {
-	ret := _m.Called()
+// GetAvatar provides a mock function with given fields: nickname
+func (_m *MockRandomizer) GetAvatar(nickname string) string {
+	ret := _m.Called(nickname)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetAvatar")
 	}
 
-	var r0 []byte
-	if rf, ok := ret.Get(0).(func() []byte); ok {
-		r0 = rf()
+	var r0 string
+	if rf, ok := ret.Get(0).(func(string) string); ok {
+		r0 = rf(nickname)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]byte)
-		}
+		r0 = ret.Get(0).(string)
 	}
 
 	return r0
@@ -47,23 +45,24 @@ type MockRandomizer_GetAvatar_Call struct {
 }
 
 // GetAvatar is a helper method to define mock.On call
-func (_e *MockRandomizer_Expecter) GetAvatar() *MockRandomizer_GetAvatar_Call {
-	return &MockRandomizer_GetAvatar_Call{Call: _e.mock.On("GetAvatar")}
+//   - nickname string
+func (_e *MockRandomizer_Expecter) GetAvatar(nickname interface{}) *MockRandomizer_GetAvatar_Call {
+	return &MockRandomizer_GetAvatar_Call{Call: _e.mock.On("GetAvatar", nickname)}
 }
 
-func (_c *MockRandomizer_GetAvatar_Call) Run(run func()) *MockRandomizer_GetAvatar_Call {
+func (_c *MockRandomizer_GetAvatar_Call) Run(run func(nickname string)) *MockRandomizer_GetAvatar_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run()
+		run(args[0].(string))
 	})
 	return _c
 }
 
-func (_c *MockRandomizer_GetAvatar_Call) Return(_a0 []byte) *MockRandomizer_GetAvatar_Call {
+func (_c *MockRandomizer_GetAvatar_Call) Return(_a0 string) *MockRandomizer_GetAvatar_Call {
 	_c.Call.Return(_a0)
 	return _c
 }
 
-func (_c *MockRandomizer_GetAvatar_Call) RunAndReturn(run func() []byte) *MockRandomizer_GetAvatar_Call {
+func (_c *MockRandomizer_GetAvatar_Call) RunAndReturn(run func(string) string) *MockRandomizer_GetAvatar_Call {
 	_c.Call.Return(run)
 	return _c
 }

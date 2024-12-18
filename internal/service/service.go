@@ -3,6 +3,8 @@ package service
 import (
 	"context"
 
+	"github.com/google/uuid"
+
 	"gitlab.com/hmajid2301/banterbus/internal/store/db"
 )
 
@@ -12,6 +14,14 @@ type Storer interface {
 	AddPlayerToRoom(ctx context.Context, arg db.AddPlayerToRoomArgs) error
 	StartGame(ctx context.Context, arg db.StartGameArgs) error
 	NewRound(ctx context.Context, arg db.NewRoundArgs) error
+}
+
+type Randomizer interface {
+	GetNickname() string
+	GetAvatar(nickname string) string
+	GetRoomCode() string
+	GetID() uuid.UUID
+	GetFibberIndex(playersLen int) int
 }
 
 func getLobbyPlayers(playerRows []db.GetAllPlayersInRoomRow, roomCode string) Lobby {
@@ -25,7 +35,7 @@ func getLobbyPlayers(playerRows []db.GetAllPlayersInRoomRow, roomCode string) Lo
 		p := LobbyPlayer{
 			ID:       player.ID,
 			Nickname: player.Nickname,
-			Avatar:   string(player.Avatar),
+			Avatar:   player.Avatar,
 			IsReady:  player.IsReady.Bool,
 			IsHost:   isHost,
 		}

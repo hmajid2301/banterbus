@@ -145,7 +145,7 @@ INSERT INTO players (id, avatar, nickname) VALUES ($1, $2, $3) RETURNING id, cre
 
 type AddPlayerParams struct {
 	ID       uuid.UUID
-	Avatar   []byte
+	Avatar   string
 	Nickname string
 }
 
@@ -327,7 +327,7 @@ type GetAllPlayerByRoomCodeRow struct {
 	ID         uuid.UUID
 	CreatedAt  pgtype.Timestamp
 	UpdatedAt  pgtype.Timestamp
-	Avatar     []byte
+	Avatar     string
 	Nickname   string
 	IsReady    pgtype.Bool
 	RoomCode   string
@@ -412,7 +412,7 @@ type GetAllPlayersInRoomRow struct {
 	ID         uuid.UUID
 	CreatedAt  pgtype.Timestamp
 	UpdatedAt  pgtype.Timestamp
-	Avatar     []byte
+	Avatar     string
 	Nickname   string
 	IsReady    pgtype.Bool
 	RoomCode   string
@@ -513,7 +513,7 @@ type GetCurrentQuestionByPlayerIDRow struct {
 	Nickname       string
 	Role           pgtype.Text
 	Question       string
-	Avatar         []byte
+	Avatar         string
 	IsAnswerReady  bool
 }
 
@@ -848,7 +848,7 @@ type GetVotingStateRow struct {
 	SubmitDeadline pgtype.Timestamp
 	PlayerID       uuid.UUID
 	Nickname       string
-	Avatar         []byte
+	Avatar         string
 	Votes          interface{}
 	Answer         pgtype.Text
 	IsReady        pgtype.Bool
@@ -964,7 +964,7 @@ UPDATE players SET avatar = $1 WHERE id = $2 RETURNING id, created_at, updated_a
 `
 
 type UpdateAvatarParams struct {
-	Avatar []byte
+	Avatar string
 	ID     uuid.UUID
 }
 

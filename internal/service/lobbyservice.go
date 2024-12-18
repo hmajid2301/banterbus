@@ -17,14 +17,6 @@ type LobbyService struct {
 	randomizer Randomizer
 }
 
-type Randomizer interface {
-	GetNickname() string
-	GetAvatar() []byte
-	GetRoomCode() string
-	GetID() uuid.UUID
-	GetFibberIndex(playersLen int) int
-}
-
 var ErrNicknameExists = errors.New("nickname already exists in room")
 
 func NewLobbyService(store Storer, randomizer Randomizer) *LobbyService {
@@ -88,7 +80,7 @@ func (r *LobbyService) Create(ctx context.Context, gameName string, newHostPlaye
 			{
 				ID:       player.ID,
 				Nickname: player.Nickname,
-				Avatar:   string(player.Avatar),
+				Avatar:   player.Avatar,
 				IsReady:  false,
 				IsHost:   true,
 			},
@@ -303,7 +295,7 @@ func (r *LobbyService) getNewPlayer(playerNickname string, playerID uuid.UUID) N
 		nickname = r.randomizer.GetNickname()
 	}
 
-	avatar := r.randomizer.GetAvatar()
+	avatar := r.randomizer.GetAvatar(nickname)
 	newPlayer := NewPlayer{
 		ID:       playerID,
 		Nickname: nickname,

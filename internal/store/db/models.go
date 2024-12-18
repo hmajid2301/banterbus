@@ -62,7 +62,7 @@ type Player struct {
 	ID        uuid.UUID
 	CreatedAt pgtype.Timestamp
 	UpdatedAt pgtype.Timestamp
-	Avatar    []byte
+	Avatar    string
 	Nickname  string
 	IsReady   pgtype.Bool
 }

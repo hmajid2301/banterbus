@@ -194,7 +194,7 @@ func (r *RoundService) SubmitVote(
 		votingPlayers = append(votingPlayers, PlayerWithVoting{
 			ID:       p.PlayerID,
 			Nickname: p.Nickname,
-			Avatar:   string(p.Avatar),
+			Avatar:   p.Avatar,
 			Votes:    voteCount,
 			Answer:   p.Answer.String,
 		})
@@ -240,7 +240,7 @@ func (r *RoundService) getVotingState(ctx context.Context, roundID uuid.UUID, ro
 		votingPlayers = append(votingPlayers, PlayerWithVoting{
 			ID:       p.PlayerID,
 			Nickname: p.Nickname,
-			Avatar:   string(p.Avatar),
+			Avatar:   p.Avatar,
 			Votes:    voteCount,
 			Answer:   p.Answer.String,
 			IsReady:  p.IsReady.Bool,

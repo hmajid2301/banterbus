@@ -67,7 +67,9 @@ func (p *PlayerService) GenerateNewAvatar(ctx context.Context, playerID uuid.UUI
 		return Lobby{}, fmt.Errorf("room is not in CREATED state")
 	}
 
-	avatar := p.randomizer.GetAvatar()
+	// INFO: Using an empty name, generates a completely random avatar (random seed vs using the nickname as a seed)
+	emptyName := ""
+	avatar := p.randomizer.GetAvatar(emptyName)
 
 	_, err = p.store.UpdateAvatar(ctx, db.UpdateAvatarParams{
 		Avatar: avatar,
