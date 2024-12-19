@@ -21,6 +21,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"gitlab.com/hmajid2301/banterbus/internal/banterbustest"
+	"gitlab.com/hmajid2301/banterbus/internal/config"
 	"gitlab.com/hmajid2301/banterbus/internal/service"
 	"gitlab.com/hmajid2301/banterbus/internal/service/randomizer"
 	"gitlab.com/hmajid2301/banterbus/internal/store/db"
@@ -54,8 +55,11 @@ func TestIntegrationSubscribe(t *testing.T) {
 		redisAddr = "localhost:6379"
 	}
 
+	conf, err := config.LoadConfig(ctx)
+	assert.NoError(t, err)
+
 	redisClient := pubsub.NewRedisClient(redisAddr)
-	subscriber := websockets.NewSubscriber(lobbyService, playerService, roundService, logger, redisClient)
+	subscriber := websockets.NewSubscriber(lobbyService, playerService, roundService, logger, redisClient, conf)
 
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		playerID := uuid.Must(uuid.NewV7()).String()

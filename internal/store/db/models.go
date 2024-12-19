@@ -39,6 +39,15 @@ type FibbingItRound struct {
 	GameStateID      uuid.UUID
 }
 
+type FibbingItScore struct {
+	ID        uuid.UUID
+	CreatedAt pgtype.Timestamp
+	UpdatedAt pgtype.Timestamp
+	PlayerID  uuid.UUID
+	Score     int32
+	RoundID   uuid.UUID
+}
+
 type FibbingItVote struct {
 	ID               uuid.UUID
 	CreatedAt        pgtype.Timestamp

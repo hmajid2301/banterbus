@@ -5,6 +5,7 @@ import (
 	"log/slog"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 
@@ -29,6 +30,17 @@ func TestLoadConfig(t *testing.T) {
 			},
 			DB: config.Database{
 				URI: "postgresql://:@:5432/banterbus",
+			},
+			Timings: config.Timings{
+				ShowQuestionScreenFor:   time.Second * 61,
+				ShowVotingScreenFor:     time.Second * 31,
+				AllReadyToNextScreenFor: time.Second * 2,
+				ShowRevealScreenFor:     time.Second * 16,
+				ShowScoreScreenFor:      time.Second * 15,
+			},
+			Scoring: config.Scoring{
+				GuessFibber:        100,
+				FibberEvadeCapture: 150,
 			},
 		}
 

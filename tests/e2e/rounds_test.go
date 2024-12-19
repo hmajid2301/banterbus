@@ -29,7 +29,7 @@ func TestE2ERounds(t *testing.T) {
 		require.NoError(t, err)
 	})
 
-	t.Run("Should successfully submit vote for another player", func(t *testing.T) {
+	t.Run("Should successfully complete an entire round type", func(t *testing.T) {
 		t.Cleanup(ResetBrowserContexts)
 		hostPlayerPage := pages[0]
 		otherPlayerPage := pages[1]
@@ -86,5 +86,8 @@ func TestE2ERounds(t *testing.T) {
 
 		votedFor := hostPlayerPage.GetByText("You all voted for")
 		expect.Locator(votedFor).ToBeVisible()
+
+		scoring := hostPlayerPage.GetByText("100")
+		expect.Locator(scoring).ToBeVisible()
 	})
 }

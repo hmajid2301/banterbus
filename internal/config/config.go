@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net"
+	"time"
 
 	"github.com/invopop/ctxi18n/i18n"
 	"github.com/sethvargo/go-envconfig"
@@ -12,10 +13,12 @@ import (
 
 // INFO: we need another struct for actual config values once we've passed the input ones
 type Config struct {
-	DB     Database
-	Server Server
-	Redis  Redis
-	App    App
+	DB      Database
+	Server  Server
+	Redis   Redis
+	App     App
+	Timings Timings
+	Scoring Scoring
 }
 
 type Database struct {
@@ -37,18 +40,41 @@ type App struct {
 	DefaultLocale i18n.Code
 }
 
+type Timings struct {
+	ShowQuestionScreenFor   time.Duration
+	ShowVotingScreenFor     time.Duration
+	AllReadyToNextScreenFor time.Duration
+	ShowRevealScreenFor     time.Duration
+	ShowScoreScreenFor      time.Duration
+}
+
+type Scoring struct {
+	GuessFibber        int
+	FibberEvadeCapture int
+}
+
 type In struct {
-	DBUsername    string `env:"BANTERBUS_DB_USERNAME"`
-	DBPassword    string `env:"BANTERBUS_DB_PASSWORD"`
-	DBHost        string `env:"BANTERBUS_DB_HOST"`
-	DBPort        string `env:"BANTERBUS_DB_PORT, default=5432"`
-	DBName        string `env:"BANTERBUS_DB_NAME, default=banterbus"`
+	DBUsername   string `env:"BANTERBUS_DB_USERNAME"`
+	DBPassword   string `env:"BANTERBUS_DB_PASSWORD"`
+	DBHost       string `env:"BANTERBUS_DB_HOST"`
+	DBPort       string `env:"BANTERBUS_DB_PORT, default=5432"`
+	DBName       string `env:"BANTERBUS_DB_NAME, default=banterbus"`
+	RedisAddress string `env:"BANTERBUS_REDIS_ADDRESS"`
+
 	Environment   string `env:"BANTERBUS_ENVIRONMENT, default=production"`
 	LogLevel      string `env:"BANTERBUS_LOG_LEVEL, default=info"`
 	Host          string `env:"BANTERBUS_WEBSERVER_HOST, default=0.0.0.0"`
 	Port          int    `env:"BANTERBUS_WEBSERVER_PORT, default=8080"`
 	DefaultLocale string `env:"BANTERBUS_DEFAULT_LOCALE, default=en-GB"`
-	RedisAddress  string `env:"BANTERBUS_REDIS_ADDRESS"`
+
+	ShowQuestionScreenFor   time.Duration `env:"SHOW_QUESTION_SCREEN_FOR, default=61s"`
+	ShowVotingScreenFor     time.Duration `env:"SHOW_VOTING_SCREEN_FOR, default=31s"`
+	AllReadyToNextScreenFor time.Duration `env:"ALL_READY_TO_NEXT_SCREEN_FOR, default=2s"`
+	ShowRevealScreenFor     time.Duration `env:"SHOW_REVEAL_SCREEN_FOR, default=16s"`
+	ShowScoreScreenFor      time.Duration `env:"SHOW_SCORE_SCREEN_FOR, default=15s"`
+
+	GuessFibber        int `env:"GUESS_FIBBER, default=100"`
+	FibberEvadeCapture int `env:"FIBBER_EVADE_CAPTURE, default=150"`
 }
 
 func LoadConfig(ctx context.Context) (Config, error) {
@@ -86,6 +112,17 @@ func LoadConfig(ctx context.Context) (Config, error) {
 			Environment:   input.Environment,
 			LogLevel:      parseLogLevel(input.LogLevel),
 			DefaultLocale: i18n.Code(input.DefaultLocale),
+		},
+		Timings: Timings{
+			ShowQuestionScreenFor:   input.ShowQuestionScreenFor,
+			ShowVotingScreenFor:     input.ShowVotingScreenFor,
+			AllReadyToNextScreenFor: input.AllReadyToNextScreenFor,
+			ShowRevealScreenFor:     input.ShowRevealScreenFor,
+			ShowScoreScreenFor:      input.ShowScoreScreenFor,
+		},
+		Scoring: Scoring{
+			GuessFibber:        input.GuessFibber,
+			FibberEvadeCapture: input.FibberEvadeCapture,
 		},
 	}
 

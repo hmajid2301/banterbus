@@ -124,8 +124,7 @@ func mainLogic() error {
 	}
 
 	redisClient := pubsub.NewRedisClient(conf.Redis.Address)
-
-	subscriber := websockets.NewSubscriber(lobbyService, playerService, roundService, logger, redisClient)
+	subscriber := websockets.NewSubscriber(lobbyService, playerService, roundService, logger, redisClient, conf)
 
 	serverConfig := transporthttp.ServerConfig{
 		Host:          conf.Server.Host,

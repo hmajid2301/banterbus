@@ -109,6 +109,36 @@ func (q *Queries) AddFibbingItRound(ctx context.Context, arg AddFibbingItRoundPa
 	return i, err
 }
 
+const addFibbingItScore = `-- name: AddFibbingItScore :one
+INSERT INTO fibbing_it_scores (id, player_id, score, round_id) VALUES ($1, $2, $3, $4) RETURNING id, created_at, updated_at, player_id, score, round_id
+`
+
+type AddFibbingItScoreParams struct {
+	ID       uuid.UUID
+	PlayerID uuid.UUID
+	Score    int32
+	RoundID  uuid.UUID
+}
+
+func (q *Queries) AddFibbingItScore(ctx context.Context, arg AddFibbingItScoreParams) (FibbingItScore, error) {
+	row := q.db.QueryRow(ctx, addFibbingItScore,
+		arg.ID,
+		arg.PlayerID,
+		arg.Score,
+		arg.RoundID,
+	)
+	var i FibbingItScore
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.PlayerID,
+		&i.Score,
+		&i.RoundID,
+	)
+	return i, err
+}
+
 const addGameState = `-- name: AddGameState :one
 INSERT INTO game_state (id, room_id, submit_deadline, state) VALUES ($1, $2, $3, $4) RETURNING id, created_at, updated_at, room_id, submit_deadline, state
 `
@@ -364,7 +394,7 @@ func (q *Queries) GetAllPlayerByRoomCode(ctx context.Context, roomCode string) (
 }
 
 const getAllPlayersByGameStateID = `-- name: GetAllPlayersByGameStateID :many
-SELECT p.id, p.nickname
+SELECT p.id, p.nickname, p.avatar
 FROM players p
 JOIN rooms_players rp ON p.id = rp.player_id
 JOIN game_state gs ON rp.room_id = gs.room_id
@@ -374,6 +404,7 @@ WHERE gs.id = $1
 type GetAllPlayersByGameStateIDRow struct {
 	ID       uuid.UUID
 	Nickname string
+	Avatar   string
 }
 
 func (q *Queries) GetAllPlayersByGameStateID(ctx context.Context, id uuid.UUID) ([]GetAllPlayersByGameStateIDRow, error) {
@@ -385,7 +416,7 @@ func (q *Queries) GetAllPlayersByGameStateID(ctx context.Context, id uuid.UUID) 
 	var items []GetAllPlayersByGameStateIDRow
 	for rows.Next() {
 		var i GetAllPlayersByGameStateIDRow
-		if err := rows.Scan(&i.ID, &i.Nickname); err != nil {
+		if err := rows.Scan(&i.ID, &i.Nickname, &i.Avatar); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
@@ -474,6 +505,74 @@ func (q *Queries) GetAllPlayersVotingIsReady(ctx context.Context, playerID uuid.
 	var all_players_ready bool
 	err := row.Scan(&all_players_ready)
 	return all_players_ready, err
+}
+
+const getAllVotesForRoundByGameStateID = `-- name: GetAllVotesForRoundByGameStateID :many
+SELECT
+    v.player_id AS voter_id,
+    p1.nickname AS voter_nickname,
+    p1.avatar AS voter_avatar,
+    v.voted_for_player_id AS voted_for_id,
+    p2.nickname AS voted_for_nickname,
+    r.player_id AS fibber_id,
+    p3.nickname AS fibber_nickname,
+    v.round_id
+FROM fibbing_it_votes v
+JOIN players p1 ON v.player_id = p1.id
+JOIN players p2 ON v.voted_for_player_id = p2.id
+JOIN fibbing_it_rounds fr ON v.round_id = fr.id
+JOIN fibbing_it_player_roles r ON fr.id = r.round_id AND r.player_role = 'fibber'
+JOIN players p3 ON r.player_id = p3.id
+WHERE
+    fr.game_state_id = $1
+    AND fr.round_type = (
+        SELECT round_type
+        FROM fibbing_it_rounds
+        WHERE game_state_id = $1
+        ORDER BY round DESC
+        LIMIT 1
+    )
+ORDER BY v.round_id DESC
+`
+
+type GetAllVotesForRoundByGameStateIDRow struct {
+	VoterID          uuid.UUID
+	VoterNickname    string
+	VoterAvatar      string
+	VotedForID       uuid.UUID
+	VotedForNickname string
+	FibberID         uuid.UUID
+	FibberNickname   string
+	RoundID          uuid.UUID
+}
+
+func (q *Queries) GetAllVotesForRoundByGameStateID(ctx context.Context, gameStateID uuid.UUID) ([]GetAllVotesForRoundByGameStateIDRow, error) {
+	rows, err := q.db.Query(ctx, getAllVotesForRoundByGameStateID, gameStateID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetAllVotesForRoundByGameStateIDRow
+	for rows.Next() {
+		var i GetAllVotesForRoundByGameStateIDRow
+		if err := rows.Scan(
+			&i.VoterID,
+			&i.VoterNickname,
+			&i.VoterAvatar,
+			&i.VotedForID,
+			&i.VotedForNickname,
+			&i.FibberID,
+			&i.FibberNickname,
+			&i.RoundID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const getCurrentQuestionByPlayerID = `-- name: GetCurrentQuestionByPlayerID :one

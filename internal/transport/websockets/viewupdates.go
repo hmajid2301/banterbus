@@ -103,3 +103,21 @@ func (s *Subscriber) updateClientsAboutReveal(ctx context.Context, revealState s
 
 	return nil
 }
+
+func (s *Subscriber) updateClientsAboutScore(ctx context.Context, scoreState service.ScoreState) error {
+	var buf bytes.Buffer
+	for _, player := range scoreState.Players {
+		component := sections.Score(scoreState, player)
+		err := component.Render(ctx, &buf)
+		if err != nil {
+			return err
+		}
+
+		err = s.websocket.Publish(ctx, player.ID, buf.Bytes())
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}

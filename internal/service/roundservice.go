@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"sort"
 	"time"
 
 	"github.com/google/uuid"
@@ -466,6 +467,141 @@ func (r *RoundService) UpdateStateToQuestion(
 		Deadline:    timeLeft,
 	}
 	return questionState, nil
+}
+
+func (r *RoundService) UpdateStateToScore(
+	ctx context.Context,
+	gameStateID uuid.UUID,
+	deadline time.Time,
+	scoring Scoring,
+) (ScoreState, error) {
+	game, err := r.store.GetGameState(ctx, gameStateID)
+	if err != nil {
+		return ScoreState{}, err
+	}
+
+	gameState, err := db.GameStateFromString(game.State)
+	if err != nil {
+		return ScoreState{}, err
+	} else if gameState != db.GAMESTATE_FIBBING_IT_REVEAL_ROLE {
+		return ScoreState{}, fmt.Errorf("game state is not in FIBBING_IT_REVEAL_ROLE state")
+	}
+
+	_, err = r.store.UpdateGameState(ctx, db.UpdateGameStateParams{
+		ID:             gameStateID,
+		SubmitDeadline: pgtype.Timestamp{Time: deadline, Valid: true},
+		State:          db.GAMESTATE_FIBBING_IT_SCORING.String(),
+	})
+	if err != nil {
+		return ScoreState{}, err
+	}
+
+	playerScoreMap := map[uuid.UUID]PlayerWithScoring{}
+	allVotesInRoundType, err := r.store.GetAllVotesForRoundByGameStateID(ctx, gameStateID)
+	if err != nil {
+		return ScoreState{}, err
+	}
+
+	allPlayers, err := r.store.GetAllPlayersByGameStateID(ctx, gameStateID)
+	if err != nil {
+		return ScoreState{}, err
+	}
+	round, err := r.store.GetLatestRoundByGameStateID(ctx, gameStateID)
+	if err != nil {
+		return ScoreState{}, err
+	}
+
+	// INFO: This shouldn't happen.
+	if len(allVotesInRoundType) == 0 {
+		return ScoreState{}, fmt.Errorf("no players in game")
+	}
+
+	fibberVotesThisRound := 0
+	fibberCaught := false
+
+	// TODO: add score to previous rounds
+	fibberID := allVotesInRoundType[0].FibberID
+	for _, p := range allVotesInRoundType {
+		player, ok := playerScoreMap[p.VoterID]
+		if !ok {
+			player = PlayerWithScoring{
+				ID:       p.VoterID,
+				Avatar:   p.VoterAvatar,
+				Nickname: p.VoterNickname,
+				Score:    0,
+			}
+		}
+
+		playerScoreMap[p.VoterID] = player
+		if p.VotedForID == fibberID {
+			player.Score += scoring.GuessedFibber
+
+			if p.RoundID == round.ID {
+				fibberVotesThisRound++
+			}
+		} else if p.VoterID != fibberID {
+			player.Score += scoring.FibberEvadeCapture
+		}
+
+		playerScoreMap[p.VoterID] = player
+	}
+
+	if len(allVotesInRoundType) == fibberVotesThisRound {
+		fibberCaught = true
+	}
+
+	// INFO: Some players may not have voted, so we want to give them a score of 0. Unless they are fibber,
+	// then they get a score for every round they evaded capture.
+	playersScore := []PlayerWithScoring{}
+	dbPlayerScores := []db.AddFibbingItScoreParams{}
+	for _, p := range allPlayers {
+		if player, ok := playerScoreMap[p.ID]; ok {
+			playersScore = append(playersScore, player)
+		} else {
+			score := PlayerWithScoring{
+				ID:       p.ID,
+				Avatar:   p.Avatar,
+				Nickname: p.Nickname,
+				Score:    0,
+			}
+
+			if p.ID == fibberID {
+				// INFO: Fibber got caught this round
+				roundNumber := round.Round
+				if fibberCaught {
+					roundNumber--
+				}
+
+				score.Score = scoring.FibberEvadeCapture * int(roundNumber)
+			}
+			playersScore = append(playersScore, score)
+		}
+
+		dbPlayerScores = append(dbPlayerScores, db.AddFibbingItScoreParams{
+			RoundID:  round.ID,
+			PlayerID: p.ID,
+			//nolint:gosec // disable G115
+			Score: int32(playerScoreMap[p.ID].Score),
+		})
+	}
+
+	err = r.store.NewScores(ctx, db.NewScoresArgs{Players: dbPlayerScores})
+	if err != nil {
+		return ScoreState{}, err
+	}
+
+	sort.Slice(playersScore, func(i, j int) bool {
+		return playersScore[i].Score > playersScore[j].Score
+	})
+
+	timeLeft := time.Until(deadline)
+	scoringState := ScoreState{
+		Players:     playersScore,
+		Deadline:    timeLeft,
+		RoundType:   round.RoundType,
+		RoundNumber: int(round.Round),
+	}
+	return scoringState, nil
 }
 
 func getNextRoundType(roundType string) string {

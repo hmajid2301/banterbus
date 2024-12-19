@@ -8,7 +8,6 @@ import (
 
 	"github.com/google/uuid"
 
-	"gitlab.com/hmajid2301/banterbus/internal/config"
 	"gitlab.com/hmajid2301/banterbus/internal/service"
 )
 
@@ -56,7 +55,7 @@ func (j *JoinLobby) Handle(ctx context.Context, client *client, sub *Subscriber)
 }
 
 func (s *StartGame) Handle(ctx context.Context, client *client, sub *Subscriber) error {
-	deadline := time.Now().UTC().Add(config.ShowQuestionScreenFor)
+	deadline := time.Now().UTC().Add(sub.config.Timings.ShowQuestionScreenFor)
 	questionState, err := sub.lobbyService.Start(ctx, s.RoomCode, client.playerID, deadline)
 	if err != nil {
 		errStr := "failed to start game"
@@ -75,7 +74,8 @@ func (s *StartGame) Handle(ctx context.Context, client *client, sub *Subscriber)
 			gameStateID: questionState.GameStateID,
 			subscriber:  *sub,
 		}
-		deadline := time.Now().UTC().Add(config.ShowQuestionScreenFor)
+
+		deadline := time.Now().UTC().Add(sub.config.Timings.ShowQuestionScreenFor)
 		time.Sleep(time.Until(deadline))
 		go v.Start(ctx)
 	}()

@@ -11,12 +11,14 @@ import (
 	"os"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/invopop/ctxi18n"
 	"github.com/invopop/ctxi18n/i18n"
 	"github.com/playwright-community/playwright-go"
 
 	"gitlab.com/hmajid2301/banterbus/internal/banterbustest"
+	"gitlab.com/hmajid2301/banterbus/internal/config"
 	"gitlab.com/hmajid2301/banterbus/internal/service"
 	"gitlab.com/hmajid2301/banterbus/internal/service/randomizer"
 	"gitlab.com/hmajid2301/banterbus/internal/store/db"
@@ -127,7 +129,14 @@ func newTestServer() (*httptest.Server, error) {
 	}
 
 	redisClient := pubsub.NewRedisClient(redisAddr)
-	subscriber := websockets.NewSubscriber(lobbyServicer, playerServicer, roundServicer, logger, redisClient)
+	conf, err := config.LoadConfig(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	conf.Timings.ShowScoreScreenFor = time.Second * 2
+
+	subscriber := websockets.NewSubscriber(lobbyServicer, playerServicer, roundServicer, logger, redisClient, conf)
 	err = ctxi18n.LoadWithDefault(views.Locales, "en-GB")
 	if err != nil {
 		return nil, fmt.Errorf("error loading locales: %w", err)

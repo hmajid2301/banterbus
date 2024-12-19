@@ -1,5 +1,6 @@
 -- +goose Up
 -- +goose StatementBegin
+
 CREATE TABLE IF NOT EXISTS players (
     id UUID PRIMARY KEY,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -112,6 +113,18 @@ CREATE TABLE fibbing_it_votes (
     UNIQUE (player_id, round_id)
 );
 
+CREATE TABLE fibbing_it_scores (
+    id UUID PRIMARY KEY,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    player_id UUID NOT NULL,
+    score INT NOT NULL,
+    round_id UUID NOT NULL,
+    FOREIGN KEY (player_id) REFERENCES players (id),
+    FOREIGN KEY (round_id) REFERENCES fibbing_it_rounds (id),
+    UNIQUE (player_id, round_id)
+);
+
 -- +goose StatementEnd
 
 -- +goose Down
@@ -120,6 +133,7 @@ CREATE TABLE fibbing_it_votes (
 DROP TABLE IF EXISTS fibbing_it_votes;
 DROP TABLE IF EXISTS fibbing_it_player_roles;
 DROP TABLE IF EXISTS fibbing_it_answers;
+DROP TABLE IF EXISTS fibbing_it_scoring;
 DROP TABLE IF EXISTS fibbing_it_rounds;
 DROP TABLE IF EXISTS questions;
 DROP TABLE IF EXISTS questions_groups;

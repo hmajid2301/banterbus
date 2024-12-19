@@ -84,3 +84,22 @@ type RevealRoleState struct {
 	Round                  int
 	PlayerIDs              []uuid.UUID
 }
+
+type ScoreState struct {
+	Players     []PlayerWithScoring
+	Deadline    time.Duration
+	RoundType   string
+	RoundNumber int
+}
+
+type PlayerWithScoring struct {
+	ID       uuid.UUID
+	Nickname string
+	Avatar   string
+	Score    int
+}
+
+type Scoring struct {
+	GuessedFibber      int
+	FibberEvadeCapture int
+}

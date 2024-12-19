@@ -14,6 +14,7 @@ type Storer interface {
 	AddPlayerToRoom(ctx context.Context, arg db.AddPlayerToRoomArgs) error
 	StartGame(ctx context.Context, arg db.StartGameArgs) error
 	NewRound(ctx context.Context, arg db.NewRoundArgs) error
+	NewScores(ctx context.Context, arg db.NewScoresArgs) error
 }
 
 type Randomizer interface {

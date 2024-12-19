@@ -19,6 +19,7 @@ import (
 	"github.com/redis/go-redis/v9"
 	slogctx "github.com/veqryn/slog-context"
 
+	"gitlab.com/hmajid2301/banterbus/internal/config"
 	"gitlab.com/hmajid2301/banterbus/internal/logging"
 	"gitlab.com/hmajid2301/banterbus/internal/telemetry"
 )
@@ -31,6 +32,7 @@ type Subscriber struct {
 	logger        *slog.Logger
 	handlers      map[string]WSHandler
 	websocket     Websocketer
+	config        config.Config
 }
 
 type Websocketer interface {
@@ -56,6 +58,7 @@ func NewSubscriber(
 	roundService RoundServicer,
 	logger *slog.Logger,
 	websocket Websocketer,
+	config config.Config,
 ) *Subscriber {
 	s := &Subscriber{
 		lobbyService:  lobbyService,
@@ -63,6 +66,7 @@ func NewSubscriber(
 		roundService:  roundService,
 		logger:        logger,
 		websocket:     websocket,
+		config:        config,
 	}
 
 	s.handlers = map[string]WSHandler{

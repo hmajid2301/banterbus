@@ -1615,3 +1615,351 @@ func TestRoundServiceUpdateStateToQuestion(t *testing.T) {
 		assert.Error(t, err)
 	})
 }
+
+func TestRoundServiceUpdateStateToScore(t *testing.T) {
+	gameStateID := uuid.MustParse("fbb75599-9f7a-4392-b523-fd433b3208ea")
+	scoring := service.Scoring{
+		GuessedFibber:      100,
+		FibberEvadeCapture: 150,
+	}
+
+	// TODO: add more test cases here maybe table tests
+	t.Run("Should successfully update score state, fibber caught in one round of voting", func(t *testing.T) {
+		mockStore := mockService.NewMockStorer(t)
+		mockRandomizer := mockService.NewMockRandomizer(t)
+		srv := service.NewRoundService(mockStore, mockRandomizer)
+
+		ctx := context.Background()
+		now := time.Now().Add(15 * time.Second)
+
+		mockStore.EXPECT().
+			GetGameState(ctx, gameStateID).
+			Return(db.GameState{State: db.GAMESTATE_FIBBING_IT_REVEAL_ROLE.String()}, nil)
+		mockStore.EXPECT().
+			UpdateGameState(ctx, db.UpdateGameStateParams{
+				ID:             gameStateID,
+				SubmitDeadline: pgtype.Timestamp{Time: now, Valid: true},
+				State:          db.GAMESTATE_FIBBING_IT_SCORING.String(),
+			}).
+			Return(db.GameState{}, nil)
+		mockStore.EXPECT().
+			GetAllVotesForRoundByGameStateID(ctx, gameStateID).
+			Return([]db.GetAllVotesForRoundByGameStateIDRow{
+				{
+					VoterID:       defaultHostPlayerID,
+					VotedForID:    defaultOtherPlayerID,
+					VoterAvatar:   "https://api.dicebear.com/9.x/bottts-neutral/svg?radius=20&seed=Player+1",
+					VoterNickname: "Player 1",
+					FibberID:      defaultOtherPlayerID,
+					RoundID:       uuid.MustParse("0193a62a-364e-751a-9088-cf3b9711153e"),
+				},
+			}, nil)
+		mockStore.EXPECT().
+			GetAllPlayersByGameStateID(ctx, gameStateID).
+			Return([]db.GetAllPlayersByGameStateIDRow{
+				{
+					ID:       defaultHostPlayerID,
+					Nickname: "Player 1",
+					Avatar:   "https://api.dicebear.com/9.x/bottts-neutral/svg?radius=20&seed=Player+1",
+				},
+				{
+					ID:       defaultOtherPlayerID,
+					Nickname: "Player 2",
+					Avatar:   "https://api.dicebear.com/9.x/bottts-neutral/svg?radius=20&seed=Player+2",
+				},
+			}, nil)
+		mockStore.EXPECT().
+			GetLatestRoundByGameStateID(ctx, gameStateID).
+			Return(db.GetLatestRoundByGameStateIDRow{
+				ID:        uuid.MustParse("0193a62a-364e-751a-9088-cf3b9711153e"),
+				Round:     1,
+				RoundType: "free_form",
+			}, nil)
+		mockStore.EXPECT().
+			NewScores(ctx, db.NewScoresArgs{
+				Players: []db.AddFibbingItScoreParams{
+					{
+						PlayerID: defaultHostPlayerID,
+						RoundID:  uuid.MustParse("0193a62a-364e-751a-9088-cf3b9711153e"),
+						Score:    100,
+					},
+					{
+						PlayerID: defaultOtherPlayerID,
+						RoundID:  uuid.MustParse("0193a62a-364e-751a-9088-cf3b9711153e"),
+						Score:    0,
+					},
+				},
+			}).Return(nil)
+
+		scoreState, err := srv.UpdateStateToScore(ctx, gameStateID, now, scoring)
+		assert.NoError(t, err)
+
+		expectedScoreState := service.ScoreState{
+			RoundNumber: 1,
+			RoundType:   "free_form",
+			Deadline:    time.Until(now),
+			Players: []service.PlayerWithScoring{
+				{
+					ID:       defaultHostPlayerID,
+					Avatar:   "https://api.dicebear.com/9.x/bottts-neutral/svg?radius=20&seed=Player+1",
+					Nickname: "Player 1",
+					Score:    100,
+				},
+				{
+					ID:       defaultOtherPlayerID,
+					Avatar:   "https://api.dicebear.com/9.x/bottts-neutral/svg?radius=20&seed=Player+2",
+					Nickname: "Player 2",
+					Score:    0,
+				},
+			},
+		}
+
+		diffOpts := cmpopts.IgnoreFields(scoreState, "Deadline")
+		PartialEqual(t, expectedScoreState, scoreState, diffOpts)
+		assert.LessOrEqual(t, int(scoreState.Deadline.Seconds()), 15)
+	})
+
+	t.Run("Should fail to update score state, fail to get game state", func(t *testing.T) {
+		mockStore := mockService.NewMockStorer(t)
+		mockRandomizer := mockService.NewMockRandomizer(t)
+		srv := service.NewRoundService(mockStore, mockRandomizer)
+
+		ctx := context.Background()
+		now := time.Now().Add(15 * time.Second)
+
+		mockStore.EXPECT().
+			GetGameState(ctx, gameStateID).
+			Return(db.GameState{}, fmt.Errorf("failed to get game state"))
+
+		_, err := srv.UpdateStateToScore(ctx, gameStateID, now, scoring)
+		assert.Error(t, err)
+	})
+
+	t.Run("Should fail to update score state, game in wrong state", func(t *testing.T) {
+		mockStore := mockService.NewMockStorer(t)
+		mockRandomizer := mockService.NewMockRandomizer(t)
+		srv := service.NewRoundService(mockStore, mockRandomizer)
+
+		ctx := context.Background()
+		now := time.Now().Add(15 * time.Second)
+
+		mockStore.EXPECT().
+			GetGameState(ctx, gameStateID).
+			Return(db.GameState{State: db.GAMESTATE_FIBBING_IT_VOTING.String()}, nil)
+
+		_, err := srv.UpdateStateToScore(ctx, gameStateID, now, scoring)
+		assert.ErrorContains(t, err, "game state is not in FIBBING_IT_REVEAL_ROLE state")
+	})
+
+	t.Run("Should fail to update score state, fail to update game state", func(t *testing.T) {
+		mockStore := mockService.NewMockStorer(t)
+		mockRandomizer := mockService.NewMockRandomizer(t)
+		srv := service.NewRoundService(mockStore, mockRandomizer)
+
+		ctx := context.Background()
+		now := time.Now().Add(15 * time.Second)
+
+		mockStore.EXPECT().
+			GetGameState(ctx, gameStateID).
+			Return(db.GameState{State: db.GAMESTATE_FIBBING_IT_REVEAL_ROLE.String()}, nil)
+		mockStore.EXPECT().
+			UpdateGameState(ctx, db.UpdateGameStateParams{
+				ID:             gameStateID,
+				SubmitDeadline: pgtype.Timestamp{Time: now, Valid: true},
+				State:          db.GAMESTATE_FIBBING_IT_SCORING.String(),
+			}).
+			Return(db.GameState{}, fmt.Errorf("failed to update game state"))
+
+		_, err := srv.UpdateStateToScore(ctx, gameStateID, now, scoring)
+		assert.Error(t, err)
+	})
+
+	t.Run("Should fail to update score state, fail to get all votes this round type", func(t *testing.T) {
+		mockStore := mockService.NewMockStorer(t)
+		mockRandomizer := mockService.NewMockRandomizer(t)
+		srv := service.NewRoundService(mockStore, mockRandomizer)
+
+		ctx := context.Background()
+		now := time.Now().Add(15 * time.Second)
+
+		mockStore.EXPECT().
+			GetGameState(ctx, gameStateID).
+			Return(db.GameState{State: db.GAMESTATE_FIBBING_IT_REVEAL_ROLE.String()}, nil)
+		mockStore.EXPECT().
+			UpdateGameState(ctx, db.UpdateGameStateParams{
+				ID:             gameStateID,
+				SubmitDeadline: pgtype.Timestamp{Time: now, Valid: true},
+				State:          db.GAMESTATE_FIBBING_IT_SCORING.String(),
+			}).
+			Return(db.GameState{}, nil)
+		mockStore.EXPECT().
+			GetAllVotesForRoundByGameStateID(ctx, gameStateID).
+			Return(
+				[]db.GetAllVotesForRoundByGameStateIDRow{},
+				fmt.Errorf("failed to get all votes for round by game state ID"),
+			)
+
+		_, err := srv.UpdateStateToScore(ctx, gameStateID, now, scoring)
+		assert.Error(t, err)
+	})
+
+	t.Run("Should fail to update score state, fail to get all players in the room", func(t *testing.T) {
+		mockStore := mockService.NewMockStorer(t)
+		mockRandomizer := mockService.NewMockRandomizer(t)
+		srv := service.NewRoundService(mockStore, mockRandomizer)
+
+		ctx := context.Background()
+		now := time.Now().Add(15 * time.Second)
+
+		mockStore.EXPECT().
+			GetGameState(ctx, gameStateID).
+			Return(db.GameState{State: db.GAMESTATE_FIBBING_IT_REVEAL_ROLE.String()}, nil)
+		mockStore.EXPECT().
+			UpdateGameState(ctx, db.UpdateGameStateParams{
+				ID:             gameStateID,
+				SubmitDeadline: pgtype.Timestamp{Time: now, Valid: true},
+				State:          db.GAMESTATE_FIBBING_IT_SCORING.String(),
+			}).
+			Return(db.GameState{}, nil)
+		mockStore.EXPECT().
+			GetAllVotesForRoundByGameStateID(ctx, gameStateID).
+			Return([]db.GetAllVotesForRoundByGameStateIDRow{
+				{
+					VoterID:       defaultHostPlayerID,
+					VotedForID:    defaultOtherPlayerID,
+					VoterAvatar:   "https://api.dicebear.com/9.x/bottts-neutral/svg?radius=20&seed=Player+1",
+					VoterNickname: "Player 1",
+					FibberID:      defaultOtherPlayerID,
+					RoundID:       uuid.MustParse("0193a62a-364e-751a-9088-cf3b9711153e"),
+				},
+			}, nil)
+		mockStore.EXPECT().
+			GetAllPlayersByGameStateID(ctx, gameStateID).
+			Return([]db.GetAllPlayersByGameStateIDRow{}, fmt.Errorf("failed to get all players by game state ID"))
+
+		_, err := srv.UpdateStateToScore(ctx, gameStateID, now, scoring)
+		assert.Error(t, err)
+	})
+
+	t.Run("Should fail to update score state, fail to get latest round", func(t *testing.T) {
+		mockStore := mockService.NewMockStorer(t)
+		mockRandomizer := mockService.NewMockRandomizer(t)
+		srv := service.NewRoundService(mockStore, mockRandomizer)
+
+		ctx := context.Background()
+		now := time.Now().Add(15 * time.Second)
+
+		mockStore.EXPECT().
+			GetGameState(ctx, gameStateID).
+			Return(db.GameState{State: db.GAMESTATE_FIBBING_IT_REVEAL_ROLE.String()}, nil)
+		mockStore.EXPECT().
+			UpdateGameState(ctx, db.UpdateGameStateParams{
+				ID:             gameStateID,
+				SubmitDeadline: pgtype.Timestamp{Time: now, Valid: true},
+				State:          db.GAMESTATE_FIBBING_IT_SCORING.String(),
+			}).
+			Return(db.GameState{}, nil)
+		mockStore.EXPECT().
+			GetAllVotesForRoundByGameStateID(ctx, gameStateID).
+			Return([]db.GetAllVotesForRoundByGameStateIDRow{
+				{
+					VoterID:       defaultHostPlayerID,
+					VotedForID:    defaultOtherPlayerID,
+					VoterAvatar:   "https://api.dicebear.com/9.x/bottts-neutral/svg?radius=20&seed=Player+1",
+					VoterNickname: "Player 1",
+					FibberID:      defaultOtherPlayerID,
+					RoundID:       uuid.MustParse("0193a62a-364e-751a-9088-cf3b9711153e"),
+				},
+			}, nil)
+		mockStore.EXPECT().
+			GetAllPlayersByGameStateID(ctx, gameStateID).
+			Return([]db.GetAllPlayersByGameStateIDRow{
+				{
+					ID:       defaultHostPlayerID,
+					Nickname: "Player 1",
+					Avatar:   "https://api.dicebear.com/9.x/bottts-neutral/svg?radius=20&seed=Player+1",
+				},
+				{
+					ID:       defaultOtherPlayerID,
+					Nickname: "Player 2",
+					Avatar:   "https://api.dicebear.com/9.x/bottts-neutral/svg?radius=20&seed=Player+2",
+				},
+			}, nil)
+		mockStore.EXPECT().
+			GetLatestRoundByGameStateID(ctx, gameStateID).
+			Return(db.GetLatestRoundByGameStateIDRow{}, fmt.Errorf("failed to get latest round by game state ID"))
+
+		_, err := srv.UpdateStateToScore(ctx, gameStateID, now, scoring)
+		assert.Error(t, err)
+	})
+
+	t.Run("Should fail to update score state, fail to add new scores", func(t *testing.T) {
+		mockStore := mockService.NewMockStorer(t)
+		mockRandomizer := mockService.NewMockRandomizer(t)
+		srv := service.NewRoundService(mockStore, mockRandomizer)
+
+		ctx := context.Background()
+		now := time.Now().Add(15 * time.Second)
+
+		mockStore.EXPECT().
+			GetGameState(ctx, gameStateID).
+			Return(db.GameState{State: db.GAMESTATE_FIBBING_IT_REVEAL_ROLE.String()}, nil)
+		mockStore.EXPECT().
+			UpdateGameState(ctx, db.UpdateGameStateParams{
+				ID:             gameStateID,
+				SubmitDeadline: pgtype.Timestamp{Time: now, Valid: true},
+				State:          db.GAMESTATE_FIBBING_IT_SCORING.String(),
+			}).
+			Return(db.GameState{}, nil)
+		mockStore.EXPECT().
+			GetAllVotesForRoundByGameStateID(ctx, gameStateID).
+			Return([]db.GetAllVotesForRoundByGameStateIDRow{
+				{
+					VoterID:       defaultHostPlayerID,
+					VotedForID:    defaultOtherPlayerID,
+					VoterAvatar:   "https://api.dicebear.com/9.x/bottts-neutral/svg?radius=20&seed=Player+1",
+					VoterNickname: "Player 1",
+					FibberID:      defaultOtherPlayerID,
+					RoundID:       uuid.MustParse("0193a62a-364e-751a-9088-cf3b9711153e"),
+				},
+			}, nil)
+		mockStore.EXPECT().
+			GetAllPlayersByGameStateID(ctx, gameStateID).
+			Return([]db.GetAllPlayersByGameStateIDRow{
+				{
+					ID:       defaultHostPlayerID,
+					Nickname: "Player 1",
+					Avatar:   "https://api.dicebear.com/9.x/bottts-neutral/svg?radius=20&seed=Player+1",
+				},
+				{
+					ID:       defaultOtherPlayerID,
+					Nickname: "Player 2",
+					Avatar:   "https://api.dicebear.com/9.x/bottts-neutral/svg?radius=20&seed=Player+2",
+				},
+			}, nil)
+		mockStore.EXPECT().
+			GetLatestRoundByGameStateID(ctx, gameStateID).
+			Return(db.GetLatestRoundByGameStateIDRow{
+				ID:    uuid.MustParse("0193a62a-364e-751a-9088-cf3b9711153e"),
+				Round: 1,
+			}, nil)
+		mockStore.EXPECT().
+			NewScores(ctx, db.NewScoresArgs{
+				Players: []db.AddFibbingItScoreParams{
+					{
+						PlayerID: defaultHostPlayerID,
+						RoundID:  uuid.MustParse("0193a62a-364e-751a-9088-cf3b9711153e"),
+						Score:    100,
+					},
+					{
+						PlayerID: defaultOtherPlayerID,
+						RoundID:  uuid.MustParse("0193a62a-364e-751a-9088-cf3b9711153e"),
+						Score:    0,
+					},
+				},
+			}).Return(fmt.Errorf("failed to add new scores"))
+
+		_, err := srv.UpdateStateToScore(ctx, gameStateID, now, scoring)
+		assert.Error(t, err)
+	})
+}

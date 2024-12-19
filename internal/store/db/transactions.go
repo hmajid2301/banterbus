@@ -152,10 +152,10 @@ func (s DB) NewRound(ctx context.Context, arg NewRoundArgs) error {
 
 	defer tx.Rollback(ctx)
 
-	newRound, err := s.AddFibbingItRound(ctx, AddFibbingItRoundParams{
+	newRound, err := s.WithTx(tx).AddFibbingItRound(ctx, AddFibbingItRoundParams{
 		ID:               uuid.Must(uuid.NewV7()),
 		RoundType:        arg.RoundType,
-		Round:            int32(arg.Round),
+		Round:            arg.Round,
 		FibberQuestionID: arg.FibberQuestionID,
 		NormalQuestionID: arg.NormalsQuestionID,
 		GameStateID:      arg.GameStateID,
@@ -170,11 +170,38 @@ func (s DB) NewRound(ctx context.Context, arg NewRoundArgs) error {
 			role = "fibber"
 		}
 
-		_, err = s.AddFibbingItRole(ctx, AddFibbingItRoleParams{
+		_, err = s.WithTx(tx).AddFibbingItRole(ctx, AddFibbingItRoleParams{
 			ID:         uuid.Must(uuid.NewV7()),
 			RoundID:    newRound.ID,
 			PlayerID:   player.ID,
 			PlayerRole: role,
+		})
+		if err != nil {
+			return err
+		}
+	}
+
+	return tx.Commit(ctx)
+}
+
+type NewScoresArgs struct {
+	Players []AddFibbingItScoreParams
+}
+
+func (s DB) NewScores(ctx context.Context, arg NewScoresArgs) error {
+	tx, err := s.pool.BeginTx(ctx, pgx.TxOptions{})
+	if err != nil {
+		return err
+	}
+
+	defer tx.Rollback(ctx)
+
+	for _, player := range arg.Players {
+		_, err := s.WithTx(tx).AddFibbingItScore(ctx, AddFibbingItScoreParams{
+			ID:       uuid.Must(uuid.NewV7()),
+			PlayerID: player.PlayerID,
+			RoundID:  player.RoundID,
+			Score:    player.Score,
 		})
 		if err != nil {
 			return err

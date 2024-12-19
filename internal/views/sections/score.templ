@@ -1,0 +1,25 @@
+package sections
+
+import (
+	"gitlab.com/hmajid2301/banterbus/internal/service"
+	"strconv"
+)
+
+templ Score(state service.ScoreState, player service.PlayerWithScoring) {
+	<div hx-swap-oob="innerHTML:#page">
+		<div x-data={ toJSON(int(state.Deadline.Seconds())) } x-init="setInterval(() => { if (timer > 0) timer--; }, 1000)">
+			<div class="flex flex-col justify-center items-center space-y-4 text-text2">
+				<div>{ strconv.Itoa(state.RoundNumber) } / 3</div>
+				<div class="grid grid-cols-2 gap-16">
+					<div class="flex flex-col items-center">
+						for _, p := range state.Players {
+							<div>
+								{ p.Nickname } - { strconv.Itoa(p.Score) }
+							</div>
+						}
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+}

@@ -68,7 +68,7 @@ WHERE rp.room_id = (
 );
 
 -- name: GetAllPlayersByGameStateID :many
-SELECT p.id, p.nickname
+SELECT p.id, p.nickname, p.avatar
 FROM players p
 JOIN rooms_players rp ON p.id = rp.player_id
 JOIN game_state gs ON rp.room_id = gs.room_id
@@ -258,3 +258,34 @@ WHERE rp.room_id = (
     LIMIT 1
 );
 
+
+-- name: AddFibbingItScore :one
+INSERT INTO fibbing_it_scores (id, player_id, score, round_id) VALUES ($1, $2, $3, $4) RETURNING *;
+
+
+-- name: GetAllVotesForRoundByGameStateID :many
+SELECT
+    v.player_id AS voter_id,
+    p1.nickname AS voter_nickname,
+    p1.avatar AS voter_avatar,
+    v.voted_for_player_id AS voted_for_id,
+    p2.nickname AS voted_for_nickname,
+    r.player_id AS fibber_id,
+    p3.nickname AS fibber_nickname,
+    v.round_id
+FROM fibbing_it_votes v
+JOIN players p1 ON v.player_id = p1.id
+JOIN players p2 ON v.voted_for_player_id = p2.id
+JOIN fibbing_it_rounds fr ON v.round_id = fr.id
+JOIN fibbing_it_player_roles r ON fr.id = r.round_id AND r.player_role = 'fibber'
+JOIN players p3 ON r.player_id = p3.id
+WHERE
+    fr.game_state_id = $1
+    AND fr.round_type = (
+        SELECT round_type
+        FROM fibbing_it_rounds
+        WHERE game_state_id = $1
+        ORDER BY round DESC
+        LIMIT 1
+    )
+ORDER BY v.round_id DESC;

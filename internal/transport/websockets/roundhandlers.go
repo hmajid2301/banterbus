@@ -25,6 +25,12 @@ type RoundServicer interface {
 	GetVotingState(ctx context.Context, playerID uuid.UUID) (service.VotingState, error)
 	ToggleVotingIsReady(ctx context.Context, playerID uuid.UUID, submittedAt time.Time) (bool, error)
 	UpdateStateToReveal(ctx context.Context, gameStateID uuid.UUID, deadline time.Time) (service.RevealRoleState, error)
+	UpdateStateToScore(
+		ctx context.Context,
+		gameStateID uuid.UUID,
+		deadline time.Time,
+		scoring service.Scoring,
+	) (service.ScoreState, error)
 }
 
 func (s *SubmitAnswer) Handle(ctx context.Context, client *client, sub *Subscriber) error {

@@ -2,12 +2,13 @@ package websockets
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 	"time"
 
 	"github.com/google/uuid"
 
-	"gitlab.com/hmajid2301/banterbus/internal/config"
+	"gitlab.com/hmajid2301/banterbus/internal/service"
 	"gitlab.com/hmajid2301/banterbus/internal/store/db"
 )
 
@@ -22,7 +23,7 @@ type QuestionState struct {
 }
 
 func (q *QuestionState) Start(ctx context.Context) {
-	deadline := time.Now().UTC().Add(config.ShowQuestionScreenFor)
+	deadline := time.Now().UTC().Add(q.subscriber.config.Timings.ShowQuestionScreenFor)
 
 	time.Sleep(time.Until(deadline))
 	v := &VotingState{gameStateID: q.gameStateID, subscriber: q.subscriber}
@@ -35,7 +36,7 @@ type VotingState struct {
 }
 
 func (v *VotingState) Start(ctx context.Context) {
-	deadline := time.Now().UTC().Add(config.ShowVotingScreenFor)
+	deadline := time.Now().UTC().Add(v.subscriber.config.Timings.ShowVotingScreenFor)
 	votingState, err := v.subscriber.roundService.UpdateStateToVoting(ctx, v.gameStateID, deadline)
 	if err != nil {
 		v.subscriber.logger.ErrorContext(
@@ -69,7 +70,7 @@ type RevealState struct {
 }
 
 func (r *RevealState) Start(ctx context.Context) {
-	deadline := time.Now().UTC().Add(config.ShowRevealScreenFor)
+	deadline := time.Now().UTC().Add(r.subscriber.config.Timings.ShowRevealScreenFor)
 	revealState, err := r.subscriber.roundService.UpdateStateToReveal(ctx, r.gameStateID, deadline)
 	if err != nil {
 		r.subscriber.logger.ErrorContext(
@@ -117,8 +118,50 @@ type ScoringState struct {
 }
 
 func (r *ScoringState) Start(ctx context.Context) {
-	deadline := time.Now().UTC().Add(config.ShowRevealScreenFor)
-	time.Sleep(time.Until(deadline))
-	q := &QuestionState{gameStateID: r.gameStateID, subscriber: r.subscriber}
-	go q.Start(ctx)
+	deadline := time.Now().UTC().Add(r.subscriber.config.Timings.ShowScoreScreenFor)
+	scoring := service.Scoring{
+		GuessedFibber:      r.subscriber.config.Scoring.GuessFibber,
+		FibberEvadeCapture: r.subscriber.config.Scoring.FibberEvadeCapture,
+	}
+
+	scoringState, err := r.subscriber.roundService.UpdateStateToScore(ctx, r.gameStateID, deadline, scoring)
+	if err != nil {
+		r.subscriber.logger.ErrorContext(
+			ctx,
+			"failed to update game state to scoring",
+			slog.Any("error", err),
+			slog.String("game_state_id", r.gameStateID.String()),
+		)
+		return
+	}
+
+	err = r.subscriber.updateClientsAboutScore(ctx, scoringState)
+	if err != nil {
+		r.subscriber.logger.ErrorContext(
+			ctx,
+			"failed to update clients to scoring screen",
+			slog.Any("error", err),
+			slog.String("game_state_id", r.gameStateID.String()),
+		)
+		return
+	}
+
+	if scoringState.RoundType == "most_likely" && scoringState.RoundNumber == 3 {
+		time.Sleep(time.Until(deadline))
+		q := &FinalState{gameStateID: r.gameStateID, subscriber: r.subscriber}
+		go q.Start(ctx)
+	} else {
+		time.Sleep(time.Until(deadline))
+		q := &QuestionState{gameStateID: r.gameStateID, subscriber: r.subscriber}
+		go q.Start(ctx)
+	}
+}
+
+type FinalState struct {
+	subscriber  Subscriber
+	gameStateID uuid.UUID
+}
+
+func (r *FinalState) Start(ctx context.Context) {
+	fmt.Println("Game Over", ctx)
 }
