@@ -7,17 +7,12 @@ import (
 	"github.com/google/uuid"
 
 	"gitlab.com/hmajid2301/banterbus/internal/service"
-	"gitlab.com/hmajid2301/banterbus/internal/store/db"
 )
 
 type PlayerServicer interface {
 	UpdateNickname(ctx context.Context, nickname string, playerID uuid.UUID) (service.Lobby, error)
 	GenerateNewAvatar(ctx context.Context, playerID uuid.UUID) (service.Lobby, error)
 	TogglePlayerIsReady(ctx context.Context, playerID uuid.UUID) (service.Lobby, error)
-	GetRoomState(ctx context.Context, playerID uuid.UUID) (db.RoomState, error)
-	GetLobby(ctx context.Context, playerID uuid.UUID) (service.Lobby, error)
-	GetGameState(ctx context.Context, playerID uuid.UUID) (db.GameStateEnum, error)
-	GetQuestionState(ctx context.Context, playerID uuid.UUID) (service.QuestionState, error)
 }
 
 func (u *UpdateNickname) Handle(ctx context.Context, client *client, sub *Subscriber) error {

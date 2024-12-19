@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"gitlab.com/hmajid2301/banterbus/internal/service"
 	"gitlab.com/hmajid2301/banterbus/internal/service/randomizer"
@@ -432,5 +433,87 @@ func TestIntegrationLobbyStart(t *testing.T) {
 		deadline := time.Now().Add(5 * time.Second)
 		_, err = srv.Start(ctx, lobby.Code, defaultHostPlayerID, deadline)
 		assert.ErrorContains(t, err, "not all players are ready")
+	})
+}
+
+func TestIntegrationLobbyGetRoomState(t *testing.T) {
+	t.Run("Should successfully get room state", func(t *testing.T) {
+		pool, teardown := setupSubtest(t)
+		defer teardown()
+
+		str, err := db.NewDB(pool)
+		assert.NoError(t, err)
+		randomizer := randomizer.NewUserRandomizer()
+
+		id := uuid.New()
+		newPlayer := service.NewHostPlayer{
+			ID: id,
+		}
+		ctx := context.Background()
+		srv := service.NewLobbyService(str, randomizer)
+		_, err = srv.Create(ctx, "fibbing_it", newPlayer)
+		require.NoError(t, err)
+
+		roomState, err := srv.GetRoomState(ctx, id)
+		assert.NoError(t, err)
+		assert.Equal(t, db.ROOMSTATE_CREATED, roomState)
+	})
+
+	t.Run("Should fail to get room state, player id not found", func(t *testing.T) {
+		pool, teardown := setupSubtest(t)
+		defer teardown()
+
+		str, err := db.NewDB(pool)
+		assert.NoError(t, err)
+		randomizer := randomizer.NewUserRandomizer()
+
+		id := uuid.New()
+		newPlayer := service.NewHostPlayer{
+			ID: id,
+		}
+		ctx := context.Background()
+		srv := service.NewLobbyService(str, randomizer)
+		_, err = srv.Create(ctx, "fibbing_it", newPlayer)
+		require.NoError(t, err)
+
+		_, err = srv.GetRoomState(ctx, uuid.New())
+		assert.ErrorContains(t, err, "no rows in result set")
+	})
+}
+
+func TestIntegrationLobbyGetLobby(t *testing.T) {
+	t.Run("Should successfully get lobby", func(t *testing.T) {
+		pool, teardown := setupSubtest(t)
+		defer teardown()
+
+		str, err := db.NewDB(pool)
+		assert.NoError(t, err)
+		randomizer := randomizer.NewUserRandomizer()
+
+		id := uuid.New()
+		newPlayer := service.NewHostPlayer{
+			ID: id,
+		}
+		ctx := context.Background()
+		lobbyService := service.NewLobbyService(str, randomizer)
+		createdLobby, err := lobbyService.Create(ctx, "fibbing_it", newPlayer)
+		require.NoError(t, err)
+
+		lobby, err := lobbyService.GetLobby(ctx, id)
+		assert.NoError(t, err)
+
+		expectedLobby := service.Lobby{
+			Code: createdLobby.Code,
+			Players: []service.LobbyPlayer{
+				{
+					ID:       id,
+					Nickname: createdLobby.Players[0].Nickname,
+					Avatar:   createdLobby.Players[0].Avatar,
+					IsHost:   true,
+					IsReady:  false,
+				},
+			},
+		}
+		assert.Equal(t, expectedLobby, lobby)
 	})
 }

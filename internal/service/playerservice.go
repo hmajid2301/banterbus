@@ -3,7 +3,6 @@ package service
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"github.com/google/uuid"
 
@@ -113,73 +112,3 @@ func (p *PlayerService) TogglePlayerIsReady(ctx context.Context, playerID uuid.U
 }
 
 // TODO: move these to their own service file don't really belong
-func (p *PlayerService) GetRoomState(ctx context.Context, playerID uuid.UUID) (db.RoomState, error) {
-	room, err := p.store.GetRoomByPlayerID(ctx, playerID)
-	if err != nil {
-		return db.ROOMSTATE_CREATED, err
-	}
-
-	roomState, err := db.RoomStateFromString(room.RoomState)
-	return roomState, err
-}
-
-func (p *PlayerService) GetLobby(ctx context.Context, playerID uuid.UUID) (Lobby, error) {
-	players, err := p.store.GetAllPlayersInRoom(ctx, playerID)
-	if err != nil {
-		return Lobby{}, err
-	}
-
-	room := getLobbyPlayers(players, players[0].RoomCode)
-	return room, err
-}
-func (p *PlayerService) GetGameState(ctx context.Context, playerID uuid.UUID) (db.GameStateEnum, error) {
-	game, err := p.store.GetGameStateByPlayerID(ctx, playerID)
-	if err != nil {
-		return db.GAMESTATE_FIBBING_IT_QUESTION, err
-	}
-
-	gameState, err := db.GameStateFromString(game.State)
-	return gameState, err
-}
-
-func (p *PlayerService) GetQuestionState(ctx context.Context, playerID uuid.UUID) (QuestionState, error) {
-	g, err := p.store.GetCurrentQuestionByPlayerID(ctx, playerID)
-	if err != nil {
-		return QuestionState{}, err
-	}
-
-	answers := []string{}
-	if g.RoundType == "multiple_choice" {
-		answers = []string{"Strongly Agree", "Agree", "Neutral", "Disagree", "Strongly Disagree"}
-	} else if g.RoundType == "most_likely" {
-		players, err := p.store.GetAllPlayersInRoom(ctx, playerID)
-		if err != nil {
-			return QuestionState{}, err
-		}
-		for _, player := range players {
-			if player.ID != playerID {
-				answers = append(answers, player.Nickname)
-			}
-		}
-	}
-
-	players := []PlayerWithRole{
-		{
-			ID:              g.PlayerID,
-			Role:            g.Role.String,
-			Question:        g.Question,
-			IsAnswerReady:   g.IsAnswerReady,
-			PossibleAnswers: answers,
-		},
-	}
-
-	gameState := QuestionState{
-		GameStateID: g.GameStateID,
-		Players:     players,
-		Round:       int(g.Round),
-		RoundType:   g.RoundType,
-		Deadline:    time.Until(g.SubmitDeadline.Time),
-	}
-
-	return gameState, nil
-}

@@ -289,6 +289,26 @@ func (r *LobbyService) Start(
 	return gameState, nil
 }
 
+func (r *LobbyService) GetRoomState(ctx context.Context, playerID uuid.UUID) (db.RoomState, error) {
+	room, err := r.store.GetRoomByPlayerID(ctx, playerID)
+	if err != nil {
+		return db.ROOMSTATE_CREATED, err
+	}
+
+	roomState, err := db.RoomStateFromString(room.RoomState)
+	return roomState, err
+}
+
+func (r *LobbyService) GetLobby(ctx context.Context, playerID uuid.UUID) (Lobby, error) {
+	players, err := r.store.GetAllPlayersInRoom(ctx, playerID)
+	if err != nil {
+		return Lobby{}, err
+	}
+
+	room := getLobbyPlayers(players, players[0].RoomCode)
+	return room, err
+}
+
 func (r *LobbyService) getNewPlayer(playerNickname string, playerID uuid.UUID) NewPlayer {
 	nickname := playerNickname
 	if playerNickname == "" {

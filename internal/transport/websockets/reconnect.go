@@ -20,7 +20,7 @@ const errStr = "failed to reconnect to game"
 func (s Subscriber) Reconnect(ctx context.Context, playerID uuid.UUID) (bytes.Buffer, error) {
 	s.logger.DebugContext(ctx, "attempting to reconnect player", slog.String("player_id", playerID.String()))
 	var buf bytes.Buffer
-	roomState, err := s.playerService.GetRoomState(ctx, playerID)
+	roomState, err := s.lobbyService.GetRoomState(ctx, playerID)
 	if err != nil {
 		return buf, err
 	}
@@ -28,7 +28,7 @@ func (s Subscriber) Reconnect(ctx context.Context, playerID uuid.UUID) (bytes.Bu
 	var component templ.Component
 	switch roomState {
 	case db.ROOMSTATE_CREATED:
-		lobby, err := s.playerService.GetLobby(ctx, playerID)
+		lobby, err := s.lobbyService.GetLobby(ctx, playerID)
 		if err != nil {
 			clientErr := s.updateClientAboutErr(ctx, playerID, errStr)
 			return buf, errors.Join(clientErr, err)
@@ -67,7 +67,7 @@ func (s Subscriber) Reconnect(ctx context.Context, playerID uuid.UUID) (bytes.Bu
 
 func (s Subscriber) reconnectToPlayingGame(ctx context.Context, playerID uuid.UUID) (templ.Component, error) {
 	var component templ.Component
-	gameState, err := s.playerService.GetGameState(ctx, playerID)
+	gameState, err := s.roundService.GetGameState(ctx, playerID)
 	if err != nil {
 		clientErr := s.updateClientAboutErr(ctx, playerID, errStr)
 		return component, errors.Join(clientErr, err)
@@ -75,7 +75,7 @@ func (s Subscriber) reconnectToPlayingGame(ctx context.Context, playerID uuid.UU
 
 	switch gameState {
 	case db.GAMESTATE_FIBBING_IT_QUESTION:
-		question, err := s.playerService.GetQuestionState(ctx, playerID)
+		question, err := s.roundService.GetQuestionState(ctx, playerID)
 		if err != nil {
 			clientErr := s.updateClientAboutErr(ctx, playerID, errStr)
 			return component, errors.Join(clientErr, err)

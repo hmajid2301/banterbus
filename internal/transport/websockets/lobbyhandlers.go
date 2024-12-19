@@ -9,6 +9,7 @@ import (
 	"github.com/google/uuid"
 
 	"gitlab.com/hmajid2301/banterbus/internal/service"
+	"gitlab.com/hmajid2301/banterbus/internal/store/db"
 )
 
 type LobbyServicer interface {
@@ -21,6 +22,8 @@ type LobbyServicer interface {
 		playerID uuid.UUID,
 		playerNicknameToKick string,
 	) (service.Lobby, uuid.UUID, error)
+	GetLobby(ctx context.Context, playerID uuid.UUID) (service.Lobby, error)
+	GetRoomState(ctx context.Context, playerID uuid.UUID) (db.RoomState, error)
 }
 
 func (c *CreateRoom) Handle(ctx context.Context, client *client, sub *Subscriber) error {

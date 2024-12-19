@@ -1,306 +1,247 @@
 package service_test
 
-// func TestIntegrationUpdateNickname(t *testing.T) {
-// 	t.Run("Should update player nickname in DB successfully", func(t *testing.T) {
-// 		db, teardown := setupSubtest(t)
-// 		defer teardown()
-//
-// 		myStore, err := store.NewStore(db)
-// 		require.NoError(t, err)
-//
-// 		ctx := context.Background()
-// 		newPlayer := NewPlayer{
-// 			ID:       "fbb75599-9f7a-4392-b523-fd433b3208ea",
-// 			Nickname: "Majiy00",
-// 			Avatar:   []byte(""),
-// 		}
-//
-// 		newRoom := NewRoom{
-// 			GameName: "fibbing_it",
-// 		}
-//
-// 		_, err = myStore.CreateRoom(ctx, newPlayer, newRoom)
-// 		require.NoError(t, err)
-//
-// 		players, err := myStore.UpdateNickname(ctx, "Majiy01", newPlayer.ID)
-// 		assert.Equal(t, "Majiy01", players[0].Nickname)
-// 		assert.NoError(t, err)
-// 	})
-//
-// 	t.Run("Should fail to update nickname, nickname already exists", func(t *testing.T) {
-// 		db, teardown := setupSubtest(t)
-// 		defer teardown()
-//
-// 		myStore, err := store.NewStore(db)
-// 		require.NoError(t, err)
-//
-// 		newPlayer := NewPlayer{
-// 			ID:       "fbb75599-9f7a-4392-b523-fd433b3208ea",
-// 			Nickname: "Majiy00",
-// 			Avatar:   []byte(""),
-// 		}
-//
-// 		newRoom := NewRoom{
-// 			GameName: "fibbing_it",
-// 		}
-//
-// 		ctx := context.Background()
-// 		_, err = myStore.CreateRoom(ctx, newPlayer, newRoom)
-// 		require.NoError(t, err)
-//
-// 		_, err = myStore.UpdateNickname(ctx, newPlayer.Nickname, newPlayer.ID)
-// 		assert.Error(t, err)
-// 	})
-//
-// 	t.Run("Should fail to update nickname not in CREATED state", func(t *testing.T) {
-// 		db, teardown := setupSubtest(t)
-// 		defer teardown()
-//
-// 		myStore, err := store.NewStore(db)
-// 		require.NoError(t, err)
-//
-// 		newPlayer := NewPlayer{
-// 			ID:       "fbb75599-9f7a-4392-b523-fd433b3208ea",
-// 			Nickname: "Majiy00",
-// 			Avatar:   []byte(""),
-// 		}
-//
-// 		newRoom := NewRoom{
-// 			GameName: "fibbing_it",
-// 		}
-//
-// 		ctx := context.Background()
-// 		roomCode, err := myStore.CreateRoom(ctx, newPlayer, newRoom)
-// 		require.NoError(t, err)
-//
-// 		_, err = db.ExecContext(
-// 			ctx,
-// 			"UPDATE rooms SET room_state = 'PLAYING' WHERE room_code = ?",
-// 			roomCode,
-// 		)
-// 		require.NoError(t, err)
-//
-// 		_, err = myStore.UpdateNickname(ctx, "Majiy01", newPlayer.ID)
-// 		assert.Error(t, err)
-// 	})
-// }
-//
-// func TestIntegrationUpdatePlayer(t *testing.T) {
-// 	t.Run("Should update player avatar in DB successfully", func(t *testing.T) {
-// 		db, teardown := setupSubtest(t)
-// 		defer teardown()
-//
-// 		myStore, err := store.NewStore(db)
-// 		require.NoError(t, err)
-//
-// 		ctx := context.Background()
-// 		newPlayer := NewPlayer{
-// 			ID:       "fbb75599-9f7a-4392-b523-fd433b3208ea",
-// 			Nickname: "Majiy00",
-// 			Avatar:   []byte("1234"),
-// 		}
-//
-// 		newRoom := NewRoom{
-// 			GameName: "fibbing_it",
-// 		}
-//
-// 		_, err = myStore.CreateRoom(ctx, newPlayer, newRoom)
-// 		require.NoError(t, err)
-//
-// 		players, err := myStore.UpdateAvatar(ctx, []byte("123456"), newPlayer.ID)
-// 		assert.Equal(t, []byte("123456"), players[0].Avatar)
-// 		assert.NoError(t, err)
-// 	})
-//
-// 	t.Run("Should fail to update avatar not in CREATED state", func(t *testing.T) {
-// 		db, teardown := setupSubtest(t)
-// 		defer teardown()
-//
-// 		myStore, err := store.NewStore(db)
-// 		require.NoError(t, err)
-//
-// 		newPlayer := NewPlayer{
-// 			ID:       "fbb75599-9f7a-4392-b523-fd433b3208ea",
-// 			Nickname: "Majiy00",
-// 			Avatar:   []byte(""),
-// 		}
-//
-// 		newRoom := NewRoom{
-// 			GameName: "fibbing_it",
-// 		}
-//
-// 		ctx := context.Background()
-// 		roomCode, err := myStore.CreateRoom(ctx, newPlayer, newRoom)
-// 		require.NoError(t, err)
-//
-// 		_, err = db.ExecContext(
-// 			ctx,
-// 			"UPDATE rooms SET room_state = 'PLAYING' WHERE room_code = ?",
-// 			roomCode,
-// 		)
-// 		require.NoError(t, err)
-//
-// 		_, err = myStore.UpdateAvatar(ctx, []byte("123456"), newPlayer.ID)
-// 		assert.Error(t, err)
-// 	})
-// }
-//
-// func TestIntegrationToggleIsReady(t *testing.T) {
-// 	t.Run("Should toggle player ready state in DB successfully", func(t *testing.T) {
-// 		db, teardown := setupSubtest(t)
-// 		defer teardown()
-//
-// 		myStore, err := store.NewStore(db)
-// 		require.NoError(t, err)
-//
-// 		ctx := context.Background()
-// 		newPlayer := NewPlayer{
-// 			ID:       "fbb75599-9f7a-4392-b523-fd433b3208ea",
-// 			Nickname: "Majiy00",
-// 			Avatar:   []byte("1234"),
-// 		}
-//
-// 		newRoom := NewRoom{
-// 			GameName: "fibbing_it",
-// 		}
-//
-// 		_, err = myStore.CreateRoom(ctx, newPlayer, newRoom)
-// 		require.NoError(t, err)
-//
-// 		players, err := myStore.ToggleIsReady(ctx, newPlayer.ID)
-// 		assert.NoError(t, err)
-// 		assert.True(t, players[0].IsReady.Bool)
-// 	})
-//
-// 	t.Run("Should fail to toggle is ready state not in CREATED state", func(t *testing.T) {
-// 		db, teardown := setupSubtest(t)
-// 		defer teardown()
-//
-// 		myStore, err := store.NewStore(db)
-// 		require.NoError(t, err)
-//
-// 		newPlayer := NewPlayer{
-// 			ID:       "fbb75599-9f7a-4392-b523-fd433b3208ea",
-// 			Nickname: "Majiy00",
-// 			Avatar:   []byte(""),
-// 		}
-//
-// 		newRoom := NewRoom{
-// 			GameName: "fibbing_it",
-// 		}
-//
-// 		ctx := context.Background()
-// 		roomCode, err := myStore.CreateRoom(ctx, newPlayer, newRoom)
-// 		require.NoError(t, err)
-//
-// 		_, err = db.ExecContext(
-// 			ctx,
-// 			"UPDATE rooms SET room_state = 'PLAYING' WHERE room_code = ?",
-// 			roomCode,
-// 		)
-// 		require.NoError(t, err)
-//
-// 		_, err = myStore.ToggleIsReady(ctx, newPlayer.ID)
-// 		assert.Error(t, err)
-// 	})
-// }
-// func TestIntegrationGetLobbyByPlayerID(t *testing.T) {
-// 	t.Run("Should get lobby successfully", func(t *testing.T) {
-// 		db, teardown := setupSubtest(t)
-// 		defer teardown()
-//
-// 		myStore, err := store.NewStore(db)
-// 		require.NoError(t, err)
-//
-// 		ctx := context.Background()
-// 		newPlayer := NewPlayer{
-// 			ID:       "fbb75599-9f7a-4392-b523-fd433b3208ea",
-// 			Nickname: "Majiy00",
-// 			Avatar:   []byte("1234"),
-// 		}
-//
-// 		newRoom := NewRoom{
-// 			GameName: "fibbing_it",
-// 		}
-//
-// 		_, err = myStore.CreateRoom(ctx, newPlayer, newRoom)
-// 		require.NoError(t, err)
-//
-// 		players, err := myStore.GetLobbyByPlayerID(ctx, newPlayer.ID)
-// 		assert.NoError(t, err)
-// 		// TODO: improve assert
-// 		assert.Equal(t, newPlayer.ID, players[0].HostPlayer)
-// 	})
-//
-// 	t.Run("Should fail to get lobby when player not in lobby", func(t *testing.T) {
-// 		db, teardown := setupSubtest(t)
-// 		defer teardown()
-//
-// 		myStore, err := store.NewStore(db)
-// 		require.NoError(t, err)
-//
-// 		ctx := context.Background()
-// 		_, err = myStore.GetLobbyByPlayerID(ctx, "wrongID")
-// 		assert.Error(t, err)
-// 	})
-// }
-//
-// func TestIntegrationGetGameStateByPlayerID(t *testing.T) {
-// 	t.Run("Should get game state successfully", func(t *testing.T) {
-// 		db, teardown := setupSubtest(t)
-// 		defer teardown()
-//
-// 		myStore, err := store.NewStore(db)
-// 		require.NoError(t, err)
-//
-// 		ctx := context.Background()
-// 		newPlayer := NewPlayer{
-// 			ID:       "fbb75599-9f7a-4392-b523-fd433b3208ea",
-// 			Nickname: "Majiy00",
-// 			Avatar:   []byte("1234"),
-// 		}
-//
-// 		newRoom := NewRoom{
-// 			GameName: "fibbing_it",
-// 		}
-//
-// 		roomCode, err := myStore.CreateRoom(ctx, newPlayer, newRoom)
-// 		require.NoError(t, err)
-//
-// 		otherPlayer := NewPlayer{
-// 			ID:       "123",
-// 			Nickname: "AnotherPlayer",
-// 			Avatar:   []byte(""),
-// 		}
-// 		_, err = myStore.AddPlayerToRoom(ctx, otherPlayer, roomCode)
-// 		require.NoError(t, err)
-//
-// 		players, err := myStore.GetLobbyByPlayerID(ctx, otherPlayer.ID)
-// 		require.NoError(t, err)
-//
-// 		for _, player := range players {
-// 			_, err = myStore.ToggleIsReady(ctx, player.ID)
-// 			require.NoError(t, err)
-// 		}
-//
-// 		_, err = myStore.StartGame(ctx, roomCode, newPlayer.ID)
-// 		require.NoError(t, err)
-//
-// 		gameState, err := myStore.GetGameStateByPlayerID(ctx, players[0].ID)
-// 		assert.NoError(t, err)
-// 		assert.Equal(t, 1, gameState.Round)
-// 		assert.Equal(t, "free_form", gameState.RoundType)
-// 	})
-//
-// 	t.Run("Should fail to get game state player not in game", func(t *testing.T) {
-// 		db, teardown := setupSubtest(t)
-// 		defer teardown()
-//
-// 		myStore, err := store.NewStore(db)
-// 		require.NoError(t, err)
-//
-// 		ctx := context.Background()
-// 		_, err = myStore.GetGameStateByPlayerID(ctx, "wrongID")
-// 		assert.Error(t, err)
-// 	})
-// }
+import (
+	"context"
+	"testing"
+
+	"github.com/google/uuid"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
+	"gitlab.com/hmajid2301/banterbus/internal/service"
+	"gitlab.com/hmajid2301/banterbus/internal/service/randomizer"
+	"gitlab.com/hmajid2301/banterbus/internal/store/db"
+)
+
+func TestIntegrationPlayerUpdateNickname(t *testing.T) {
+	t.Run("Should successfully update nickname", func(t *testing.T) {
+		pool, teardown := setupSubtest(t)
+		defer teardown()
+
+		str, err := db.NewDB(pool)
+		assert.NoError(t, err)
+		randomizer := randomizer.NewUserRandomizer()
+
+		id := uuid.New()
+		newPlayer := service.NewHostPlayer{
+			ID: id,
+		}
+		ctx := context.Background()
+		lobbyService := service.NewLobbyService(str, randomizer)
+		lobbyService.Create(ctx, "fibbing_it", newPlayer)
+
+		srv := service.NewPlayerService(str, randomizer)
+		lobby, err := srv.UpdateNickname(ctx, "majiy01", id)
+		assert.NoError(t, err)
+		assert.Equal(t, "majiy01", lobby.Players[0].Nickname)
+	})
+
+	t.Run("Should fail to update nickname, because room is not in CREATED state", func(t *testing.T) {
+		pool, teardown := setupSubtest(t)
+		defer teardown()
+
+		str, err := db.NewDB(pool)
+		assert.NoError(t, err)
+		randomizer := randomizer.NewUserRandomizer()
+
+		id := uuid.New()
+		newPlayer := service.NewHostPlayer{
+			ID:       id,
+			Nickname: "majiy01",
+		}
+		ctx := context.Background()
+		lobbyService := service.NewLobbyService(str, randomizer)
+		lobby, err := lobbyService.Create(ctx, "fibbing_it", newPlayer)
+		require.NoError(t, err)
+
+		_, err = pool.Exec(
+			ctx,
+			"UPDATE rooms SET room_state = 'PLAYING' WHERE room_code = $1",
+			lobby.Code,
+		)
+		require.NoError(t, err)
+
+		srv := service.NewPlayerService(str, randomizer)
+		_, err = srv.UpdateNickname(ctx, "majiy01", id)
+		assert.ErrorContains(t, err, "room is not in CREATED state")
+	})
+
+	t.Run("Should fail to update nickname, because nickname already exists", func(t *testing.T) {
+		pool, teardown := setupSubtest(t)
+		defer teardown()
+
+		str, err := db.NewDB(pool)
+		assert.NoError(t, err)
+		randomizer := randomizer.NewUserRandomizer()
+
+		id := uuid.New()
+		newPlayer := service.NewHostPlayer{
+			ID:       id,
+			Nickname: "majiy01",
+		}
+		ctx := context.Background()
+		lobbyService := service.NewLobbyService(str, randomizer)
+		lobbyService.Create(ctx, "fibbing_it", newPlayer)
+
+		srv := service.NewPlayerService(str, randomizer)
+		_, err = srv.UpdateNickname(ctx, "majiy01", id)
+		assert.ErrorContains(t, err, "nickname already exists")
+	})
+}
+
+func TestIntegrationPlayerGenerateNewAvatar(t *testing.T) {
+	t.Run("Should successfully update avatar", func(t *testing.T) {
+		pool, teardown := setupSubtest(t)
+		defer teardown()
+
+		str, err := db.NewDB(pool)
+		assert.NoError(t, err)
+		randomizer := randomizer.NewUserRandomizer()
+
+		id := uuid.New()
+		newPlayer := service.NewHostPlayer{
+			ID: id,
+		}
+		ctx := context.Background()
+		lobbyService := service.NewLobbyService(str, randomizer)
+		lobby, err := lobbyService.Create(ctx, "fibbing_it", newPlayer)
+		require.NoError(t, err)
+		oldAvatar := lobby.Players[0].Avatar
+
+		srv := service.NewPlayerService(str, randomizer)
+		lobby, err = srv.GenerateNewAvatar(ctx, id)
+		assert.NoError(t, err)
+		newAvatar := lobby.Players[0].Avatar
+		assert.NotEqual(t, oldAvatar, newAvatar)
+	})
+
+	t.Run("Should fail to update avatar, because room is not in CREATED state", func(t *testing.T) {
+		pool, teardown := setupSubtest(t)
+		defer teardown()
+
+		str, err := db.NewDB(pool)
+		assert.NoError(t, err)
+		randomizer := randomizer.NewUserRandomizer()
+
+		id := uuid.New()
+		newPlayer := service.NewHostPlayer{
+			ID: id,
+		}
+		ctx := context.Background()
+		lobbyService := service.NewLobbyService(str, randomizer)
+		lobby, err := lobbyService.Create(ctx, "fibbing_it", newPlayer)
+		require.NoError(t, err)
+
+		_, err = pool.Exec(
+			ctx,
+			"UPDATE rooms SET room_state = 'PLAYING' WHERE room_code = $1",
+			lobby.Code,
+		)
+		require.NoError(t, err)
+
+		srv := service.NewPlayerService(str, randomizer)
+		_, err = srv.GenerateNewAvatar(ctx, id)
+		assert.ErrorContains(t, err, "room is not in CREATED state")
+	})
+}
+
+func TestIntegrationToggleIsReady(t *testing.T) {
+	t.Run("Should successfully toggle not ready -> ready", func(t *testing.T) {
+		pool, teardown := setupSubtest(t)
+		defer teardown()
+
+		str, err := db.NewDB(pool)
+		assert.NoError(t, err)
+		randomizer := randomizer.NewUserRandomizer()
+
+		id := uuid.New()
+		newPlayer := service.NewHostPlayer{
+			ID: id,
+		}
+		ctx := context.Background()
+		lobbyService := service.NewLobbyService(str, randomizer)
+		_, err = lobbyService.Create(ctx, "fibbing_it", newPlayer)
+		require.NoError(t, err)
+
+		srv := service.NewPlayerService(str, randomizer)
+		lobby, err := srv.TogglePlayerIsReady(ctx, id)
+		assert.NoError(t, err)
+		assert.True(t, lobby.Players[0].IsReady)
+	})
+
+	t.Run("Should successfully toggle ready -> notready", func(t *testing.T) {
+		pool, teardown := setupSubtest(t)
+		defer teardown()
+
+		str, err := db.NewDB(pool)
+		assert.NoError(t, err)
+		randomizer := randomizer.NewUserRandomizer()
+
+		id := uuid.New()
+		newPlayer := service.NewHostPlayer{
+			ID: id,
+		}
+		ctx := context.Background()
+		lobbyService := service.NewLobbyService(str, randomizer)
+		_, err = lobbyService.Create(ctx, "fibbing_it", newPlayer)
+		require.NoError(t, err)
+
+		srv := service.NewPlayerService(str, randomizer)
+		_, err = srv.TogglePlayerIsReady(ctx, id)
+		assert.NoError(t, err)
+		lobby, err := srv.TogglePlayerIsReady(ctx, id)
+		assert.NoError(t, err)
+		assert.False(t, lobby.Players[0].IsReady)
+	})
+
+	t.Run("Should fail to update avatar, because player id doesn't exist", func(t *testing.T) {
+		pool, teardown := setupSubtest(t)
+		defer teardown()
+
+		str, err := db.NewDB(pool)
+		assert.NoError(t, err)
+		randomizer := randomizer.NewUserRandomizer()
+
+		id := uuid.New()
+		newPlayer := service.NewHostPlayer{
+			ID: id,
+		}
+		ctx := context.Background()
+		lobbyService := service.NewLobbyService(str, randomizer)
+		_, err = lobbyService.Create(ctx, "fibbing_it", newPlayer)
+		require.NoError(t, err)
+
+		srv := service.NewPlayerService(str, randomizer)
+		_, err = srv.TogglePlayerIsReady(ctx, uuid.New())
+		assert.ErrorContains(t, err, "no rows in result set")
+	})
+
+	t.Run("Should fail to update avatar, because room is not in CREATED state", func(t *testing.T) {
+		pool, teardown := setupSubtest(t)
+		defer teardown()
+
+		str, err := db.NewDB(pool)
+		assert.NoError(t, err)
+		randomizer := randomizer.NewUserRandomizer()
+
+		id := uuid.New()
+		newPlayer := service.NewHostPlayer{
+			ID: id,
+		}
+		ctx := context.Background()
+		lobbyService := service.NewLobbyService(str, randomizer)
+		lobby, err := lobbyService.Create(ctx, "fibbing_it", newPlayer)
+		require.NoError(t, err)
+
+		_, err = pool.Exec(
+			ctx,
+			"UPDATE rooms SET room_state = 'PLAYING' WHERE room_code = $1",
+			lobby.Code,
+		)
+		require.NoError(t, err)
+
+		srv := service.NewPlayerService(str, randomizer)
+		_, err = srv.TogglePlayerIsReady(ctx, id)
+		assert.ErrorContains(t, err, "room is not in CREATED state")
+	})
+}

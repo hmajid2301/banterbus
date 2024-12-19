@@ -1963,3 +1963,241 @@ func TestRoundServiceUpdateStateToScore(t *testing.T) {
 		assert.Error(t, err)
 	})
 }
+
+func TestRoundServiceGetGameState(t *testing.T) {
+	tests := []struct {
+		name          string
+		gameState     db.GameStateEnum
+		expectedState db.GameStateEnum
+	}{
+		{
+			name:          "Should successfully get game state QUESTION",
+			gameState:     db.GAMESTATE_FIBBING_IT_QUESTION,
+			expectedState: db.GAMESTATE_FIBBING_IT_QUESTION,
+		},
+		{
+			name:          "Should successfully get game state VOTING",
+			gameState:     db.GAMESTATE_FIBBING_IT_VOTING,
+			expectedState: db.GAMESTATE_FIBBING_IT_VOTING,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockStore := mockService.NewMockStorer(t)
+			mockRandomizer := mockService.NewMockRandomizer(t)
+			srv := service.NewRoundService(mockStore, mockRandomizer)
+
+			ctx := context.Background()
+			mockStore.EXPECT().GetGameStateByPlayerID(ctx, playerID).Return(db.GameState{
+				State: tt.gameState.String(),
+			}, nil)
+
+			gameState, err := srv.GetGameState(ctx, playerID)
+			assert.NoError(t, err)
+			assert.Equal(t, tt.expectedState, gameState)
+		})
+	}
+
+	t.Run("Should fail to get game state because we fail to get game details DB", func(t *testing.T) {
+		mockStore := mockService.NewMockStorer(t)
+		mockRandomizer := mockService.NewMockRandomizer(t)
+		srv := service.NewRoundService(mockStore, mockRandomizer)
+
+		ctx := context.Background()
+		mockStore.EXPECT().GetGameStateByPlayerID(ctx, playerID).Return(
+			db.GameState{}, fmt.Errorf("failed to get game state details"),
+		)
+
+		_, err := srv.GetGameState(ctx, playerID)
+		assert.Error(t, err)
+	})
+}
+
+func TestRoundServiceGetQuestionState(t *testing.T) {
+	t.Run("Should successfully get question state", func(t *testing.T) {
+		mockStore := mockService.NewMockStorer(t)
+		mockRandomizer := mockService.NewMockRandomizer(t)
+		srv := service.NewRoundService(mockStore, mockRandomizer)
+
+		ctx := context.Background()
+
+		deadline := time.Now().Add(5 * time.Second)
+		mockStore.EXPECT().GetCurrentQuestionByPlayerID(ctx, playerID).Return(db.GetCurrentQuestionByPlayerIDRow{
+			PlayerID:       playerID,
+			Avatar:         "https://api.dicebear.com/9.x/bottts-neutral/svg?radius=20&seed=nickname",
+			Nickname:       "nickname",
+			Role:           pgtype.Text{String: "fibber"},
+			Question:       "fibber question",
+			Round:          1,
+			RoundType:      "free_form",
+			RoomCode:       "ABC12",
+			SubmitDeadline: pgtype.Timestamp{Time: deadline},
+		}, nil)
+
+		questionState, err := srv.GetQuestionState(ctx, playerID)
+
+		assert.NoError(t, err)
+		expectedGameState := service.QuestionState{
+			Players: []service.PlayerWithRole{
+				{
+					ID:              playerID,
+					Role:            "fibber",
+					Question:        "fibber question",
+					PossibleAnswers: []string{},
+				},
+			},
+			Round:     1,
+			RoundType: "free_form",
+		}
+
+		diffOpts := cmpopts.IgnoreFields(questionState, "Deadline")
+		PartialEqual(t, expectedGameState, questionState, diffOpts)
+		assert.LessOrEqual(t, int(questionState.Deadline.Seconds()), 5)
+	})
+
+	t.Run("Should successfully get question state, as normal fibber", func(t *testing.T) {
+		mockStore := mockService.NewMockStorer(t)
+		mockRandomizer := mockService.NewMockRandomizer(t)
+		srv := service.NewRoundService(mockStore, mockRandomizer)
+
+		ctx := context.Background()
+
+		deadline := time.Now().Add(5 * time.Second)
+		mockStore.EXPECT().GetCurrentQuestionByPlayerID(ctx, playerID).Return(db.GetCurrentQuestionByPlayerIDRow{
+			PlayerID:       playerID,
+			Avatar:         "https://api.dicebear.com/9.x/bottts-neutral/svg?radius=20&seed=nickname",
+			Nickname:       "nickname",
+			Role:           pgtype.Text{String: "normal"},
+			Question:       "normal question",
+			Round:          1,
+			RoundType:      "free_form",
+			RoomCode:       "ABC12",
+			SubmitDeadline: pgtype.Timestamp{Time: deadline},
+		}, nil)
+
+		questionState, err := srv.GetQuestionState(ctx, playerID)
+
+		assert.NoError(t, err)
+		expectedGameState := service.QuestionState{
+			Players: []service.PlayerWithRole{
+				{
+					ID:              playerID,
+					Role:            "normal",
+					Question:        "normal question",
+					PossibleAnswers: []string{},
+				},
+			},
+			Round:     1,
+			RoundType: "free_form",
+		}
+
+		diffOpts := cmpopts.IgnoreFields(questionState, "Deadline")
+		PartialEqual(t, expectedGameState, questionState, diffOpts)
+		assert.LessOrEqual(t, int(questionState.Deadline.Seconds()), 5)
+	})
+
+	t.Run("Should successfully get question state round type multiple_choice", func(t *testing.T) {
+		mockStore := mockService.NewMockStorer(t)
+		mockRandomizer := mockService.NewMockRandomizer(t)
+		srv := service.NewRoundService(mockStore, mockRandomizer)
+
+		ctx := context.Background()
+
+		deadline := time.Now().Add(5 * time.Second)
+		mockStore.EXPECT().GetCurrentQuestionByPlayerID(ctx, playerID).Return(db.GetCurrentQuestionByPlayerIDRow{
+			PlayerID:       playerID,
+			Avatar:         "https://api.dicebear.com/9.x/bottts-neutral/svg?radius=20&seed=nickname",
+			Nickname:       "nickname",
+			Role:           pgtype.Text{String: "fibber"},
+			Question:       "fibber question",
+			Round:          1,
+			RoundType:      "multiple_choice",
+			RoomCode:       "ABC12",
+			SubmitDeadline: pgtype.Timestamp{Time: deadline},
+		}, nil)
+		questionState, err := srv.GetQuestionState(ctx, playerID)
+
+		assert.NoError(t, err)
+		expectedGameState := service.QuestionState{
+			Players: []service.PlayerWithRole{
+				{
+					ID:              playerID,
+					Role:            "fibber",
+					Question:        "fibber question",
+					PossibleAnswers: []string{"Strongly Agree", "Agree", "Neutral", "Disagree", "Strongly Disagree"},
+				},
+			},
+			Round:     1,
+			RoundType: "multiple_choice",
+		}
+
+		diffOpts := cmpopts.IgnoreFields(questionState, "Deadline")
+		PartialEqual(t, expectedGameState, questionState, diffOpts)
+		assert.LessOrEqual(t, int(questionState.Deadline.Seconds()), 5)
+	})
+
+	t.Run("Should successfully get question state round type most_likely", func(t *testing.T) {
+		mockStore := mockService.NewMockStorer(t)
+		mockRandomizer := mockService.NewMockRandomizer(t)
+		srv := service.NewRoundService(mockStore, mockRandomizer)
+
+		ctx := context.Background()
+
+		deadline := time.Now().Add(5 * time.Second)
+		mockStore.EXPECT().GetCurrentQuestionByPlayerID(ctx, playerID).Return(db.GetCurrentQuestionByPlayerIDRow{
+			PlayerID:       playerID,
+			Avatar:         "https://api.dicebear.com/9.x/bottts-neutral/svg?radius=20&seed=nickname",
+			Nickname:       "nickname",
+			Role:           pgtype.Text{String: "fibber"},
+			Question:       "fibber question",
+			Round:          1,
+			RoundType:      "most_likely",
+			RoomCode:       "ABC12",
+			SubmitDeadline: pgtype.Timestamp{Time: deadline},
+		}, nil)
+		mockStore.EXPECT().GetAllPlayersInRoom(ctx, playerID).Return([]db.GetAllPlayersInRoomRow{
+			{
+				Nickname: "nickname",
+			},
+			{
+				Nickname: "other_nickname",
+			},
+		}, nil)
+
+		questionState, err := srv.GetQuestionState(ctx, playerID)
+
+		assert.NoError(t, err)
+		expectedGameState := service.QuestionState{
+			Players: []service.PlayerWithRole{
+				{
+					ID:              playerID,
+					Role:            "fibber",
+					Question:        "fibber question",
+					PossibleAnswers: []string{"nickname", "other_nickname"},
+				},
+			},
+			Round:     1,
+			RoundType: "most_likely",
+		}
+
+		diffOpts := cmpopts.IgnoreFields(questionState, "Deadline")
+		PartialEqual(t, expectedGameState, questionState, diffOpts)
+		assert.LessOrEqual(t, int(questionState.Deadline.Seconds()), 5)
+	})
+
+	t.Run("Should fail to get question state because we cannot fetch from DB", func(t *testing.T) {
+		mockStore := mockService.NewMockStorer(t)
+		mockRandomizer := mockService.NewMockRandomizer(t)
+		srv := service.NewRoundService(mockStore, mockRandomizer)
+
+		ctx := context.Background()
+
+		mockStore.EXPECT().GetCurrentQuestionByPlayerID(ctx, playerID).Return(
+			db.GetCurrentQuestionByPlayerIDRow{}, fmt.Errorf("failed to get questions"),
+		)
+
+		_, err := srv.GetQuestionState(ctx, playerID)
+		assert.Error(t, err)
+	})
+}

@@ -1057,3 +1057,118 @@ func TestLobbyServiceStart(t *testing.T) {
 		assert.Error(t, err)
 	})
 }
+
+func TestLobbyServiceGetRoomState(t *testing.T) {
+	tests := []struct {
+		name          string
+		roomState     db.RoomState
+		expectedState db.RoomState
+	}{
+		{
+			name:          "Should successfully get room state CREATED",
+			roomState:     db.ROOMSTATE_CREATED,
+			expectedState: db.ROOMSTATE_CREATED,
+		},
+		{
+			name:          "Should successfully get room state PLAYING",
+			roomState:     db.ROOMSTATE_PLAYING,
+			expectedState: db.ROOMSTATE_PLAYING,
+		},
+		{
+			name:          "Should successfully get room state PAUSED",
+			roomState:     db.ROOMSTATE_PAUSED,
+			expectedState: db.ROOMSTATE_PAUSED,
+		},
+		{
+			name:          "Should successfully get room state FINISHED",
+			roomState:     db.ROOMSTATE_FINISHED,
+			expectedState: db.ROOMSTATE_FINISHED,
+		},
+		{
+			name:          "Should successfully get room state ABANDONED",
+			roomState:     db.ROOMSTATE_ABANDONED,
+			expectedState: db.ROOMSTATE_ABANDONED,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockStore := mockService.NewMockStorer(t)
+			mockRandomizer := mockService.NewMockRandomizer(t)
+			lobbyService := service.NewLobbyService(mockStore, mockRandomizer)
+
+			ctx := context.Background()
+			mockStore.EXPECT().GetRoomByPlayerID(ctx, playerID).Return(db.Room{
+				RoomState: tt.roomState.String(),
+			}, nil)
+
+			roomState, err := lobbyService.GetRoomState(ctx, playerID)
+			assert.NoError(t, err)
+			assert.Equal(t, tt.expectedState, roomState)
+		})
+	}
+
+	t.Run("Should fail to get room state because we fail to get room details DB", func(t *testing.T) {
+		mockStore := mockService.NewMockStorer(t)
+		mockRandomizer := mockService.NewMockRandomizer(t)
+		srv := service.NewLobbyService(mockStore, mockRandomizer)
+
+		ctx := context.Background()
+		mockStore.EXPECT().GetRoomByPlayerID(ctx, playerID).Return(
+			db.Room{}, fmt.Errorf("failed to get room details"),
+		)
+
+		_, err := srv.GetRoomState(ctx, playerID)
+		assert.Error(t, err)
+	})
+}
+
+func TestLobbyerviceGetLobby(t *testing.T) {
+	t.Run("Should successfully get lobby", func(t *testing.T) {
+		mockStore := mockService.NewMockStorer(t)
+		mockRandomizer := mockService.NewMockRandomizer(t)
+		srv := service.NewLobbyService(mockStore, mockRandomizer)
+
+		ctx := context.Background()
+
+		mockStore.EXPECT().GetAllPlayersInRoom(ctx, playerID).Return([]db.GetAllPlayersInRoomRow{
+			{
+				ID:         playerID,
+				RoomCode:   roomCode,
+				HostPlayer: hostPlayerID,
+				Nickname:   "nickname",
+				IsReady:    pgtype.Bool{Bool: false, Valid: true},
+			},
+		}, nil)
+		lobby, err := srv.GetLobby(ctx, playerID)
+
+		assert.NoError(t, err)
+		expectedLobby := service.Lobby{
+			Code: roomCode,
+			Players: []service.LobbyPlayer{
+				{
+					ID:       playerID,
+					Nickname: "nickname",
+					IsReady:  false,
+					IsHost:   false,
+				},
+			},
+		}
+		assert.Equal(t, expectedLobby, lobby)
+	})
+
+	t.Run("Should fail to get lobby because cannot get details from DB", func(t *testing.T) {
+		mockStore := mockService.NewMockStorer(t)
+		mockRandomizer := mockService.NewMockRandomizer(t)
+		srv := service.NewLobbyService(mockStore, mockRandomizer)
+
+		ctx := context.Background()
+
+		mockStore.EXPECT().GetAllPlayersInRoom(ctx, playerID).Return(
+			[]db.GetAllPlayersInRoomRow{}, fmt.Errorf("failed to get players in room"),
+		)
+
+		_, err := srv.GetLobby(ctx, playerID)
+		assert.Error(t, err)
+	})
+}

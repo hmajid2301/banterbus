@@ -10,6 +10,7 @@ import (
 	"github.com/google/uuid"
 
 	"gitlab.com/hmajid2301/banterbus/internal/service"
+	"gitlab.com/hmajid2301/banterbus/internal/store/db"
 )
 
 type RoundServicer interface {
@@ -31,6 +32,8 @@ type RoundServicer interface {
 		deadline time.Time,
 		scoring service.Scoring,
 	) (service.ScoreState, error)
+	GetGameState(ctx context.Context, playerID uuid.UUID) (db.GameStateEnum, error)
+	GetQuestionState(ctx context.Context, playerID uuid.UUID) (service.QuestionState, error)
 }
 
 func (s *SubmitAnswer) Handle(ctx context.Context, client *client, sub *Subscriber) error {
@@ -59,7 +62,7 @@ func (t *ToggleAnswerIsReady) Handle(ctx context.Context, client *client, sub *S
 		return errors.Join(clientErr, err)
 	}
 
-	questionState, err := sub.playerService.GetQuestionState(ctx, client.playerID)
+	questionState, err := sub.roundService.GetQuestionState(ctx, client.playerID)
 	if err != nil {
 		errStr := "failed to toggle you are ready, try again"
 		clientErr := sub.updateClientAboutErr(ctx, client.playerID, errStr)

@@ -604,6 +604,58 @@ func (r *RoundService) UpdateStateToScore(
 	return scoringState, nil
 }
 
+func (r *RoundService) GetGameState(ctx context.Context, playerID uuid.UUID) (db.GameStateEnum, error) {
+	game, err := r.store.GetGameStateByPlayerID(ctx, playerID)
+	if err != nil {
+		return db.GAMESTATE_FIBBING_IT_QUESTION, err
+	}
+
+	gameState, err := db.GameStateFromString(game.State)
+	return gameState, err
+}
+
+func (r *RoundService) GetQuestionState(ctx context.Context, playerID uuid.UUID) (QuestionState, error) {
+	g, err := r.store.GetCurrentQuestionByPlayerID(ctx, playerID)
+	if err != nil {
+		return QuestionState{}, err
+	}
+
+	answers := []string{}
+	if g.RoundType == "multiple_choice" {
+		answers = []string{"Strongly Agree", "Agree", "Neutral", "Disagree", "Strongly Disagree"}
+	} else if g.RoundType == "most_likely" {
+		players, err := r.store.GetAllPlayersInRoom(ctx, playerID)
+		if err != nil {
+			return QuestionState{}, err
+		}
+		for _, player := range players {
+			if player.ID != playerID {
+				answers = append(answers, player.Nickname)
+			}
+		}
+	}
+
+	players := []PlayerWithRole{
+		{
+			ID:              g.PlayerID,
+			Role:            g.Role.String,
+			Question:        g.Question,
+			IsAnswerReady:   g.IsAnswerReady,
+			PossibleAnswers: answers,
+		},
+	}
+
+	gameState := QuestionState{
+		GameStateID: g.GameStateID,
+		Players:     players,
+		Round:       int(g.Round),
+		RoundType:   g.RoundType,
+		Deadline:    time.Until(g.SubmitDeadline.Time),
+	}
+
+	return gameState, nil
+}
+
 func getNextRoundType(roundType string) string {
 	nextRoundMap := map[string]string{
 		"free_form":       "multiple_choice",
