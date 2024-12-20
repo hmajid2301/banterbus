@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -25,6 +26,7 @@ func setupSubtest(t *testing.T) (*pgxpool.Pool, func()) {
 	}
 }
 
+// TODO: use this function
 func createRoom(ctx context.Context, srv *service.LobbyService) (service.Lobby, error) {
 	newPlayer := service.NewHostPlayer{
 		ID: defaultHostPlayerID,
@@ -47,37 +49,122 @@ func lobbyWithTwoPlayers(ctx context.Context, srv *service.LobbyService) (servic
 	return lobby, err
 }
 
-// func startGame(
-// 	ctx context.Context,
-// 	lobbySrv *service.LobbyService,
-// 	playerSrv *service.PlayerService,
-// ) (service.Lobby, error) {
-// 	newPlayer := service.NewHostPlayer{
-// 		ID:       defaultHostPlayerID,
-// 		Nickname: defaultHostNickname,
-// 	}
-// 	lobby, err := lobbySrv.Create(ctx, "fibbing_it", newPlayer)
-// 	if err != nil {
-// 		return lobby, err
-// 	}
-//
-// 	lobby, err = lobbySrv.Join(ctx, lobby.Code, defaultOtherPlayerID, defaultOtherPlayerNickname)
-// 	if err != nil {
-// 		return lobby, err
-// 	}
-//
-// 	_, err = playerSrv.TogglePlayerIsReady(ctx, defaultHostPlayerID)
-// 	if err != nil {
-// 		return lobby, err
-// 	}
-//
-// 	_, err = playerSrv.TogglePlayerIsReady(ctx, defaultOtherPlayerID)
-// 	if err != nil {
-// 		return lobby, err
-// 	}
-//
-// 	return lobby, err
-// }
+func startGame(
+	ctx context.Context,
+	lobbySrv *service.LobbyService,
+	playerSrv *service.PlayerService,
+) (service.QuestionState, error) {
+	newPlayer := service.NewHostPlayer{
+		ID:       defaultHostPlayerID,
+		Nickname: defaultHostNickname,
+	}
+	lobby, err := lobbySrv.Create(ctx, "fibbing_it", newPlayer)
+	if err != nil {
+		return service.QuestionState{}, err
+	}
+
+	lobby, err = lobbySrv.Join(ctx, lobby.Code, defaultOtherPlayerID, defaultOtherPlayerNickname)
+	if err != nil {
+		return service.QuestionState{}, err
+	}
+
+	_, err = playerSrv.TogglePlayerIsReady(ctx, defaultHostPlayerID)
+	if err != nil {
+		return service.QuestionState{}, err
+	}
+
+	_, err = playerSrv.TogglePlayerIsReady(ctx, defaultOtherPlayerID)
+	if err != nil {
+		return service.QuestionState{}, err
+	}
+
+	questionState, err := lobbySrv.Start(ctx, lobby.Code, newPlayer.ID, time.Now().UTC().Add(10*time.Second))
+	return questionState, err
+}
+
+func votingState(ctx context.Context,
+	lobbyService *service.LobbyService,
+	playerService *service.PlayerService,
+	roundService *service.RoundService,
+) (service.VotingState, error) {
+	questionState, err := startGame(ctx, lobbyService, playerService)
+	if err != nil {
+		return service.VotingState{}, err
+	}
+
+	err = roundService.SubmitAnswer(ctx, questionState.Players[0].ID, "This is my answer", time.Now())
+	if err != nil {
+		return service.VotingState{}, err
+	}
+
+	err = roundService.SubmitAnswer(
+		ctx,
+		questionState.Players[1].ID,
+		"This is the other players answer",
+		time.Now(),
+	)
+	if err != nil {
+		return service.VotingState{}, err
+	}
+
+	votingState, err := roundService.UpdateStateToVoting(
+		ctx,
+		questionState.GameStateID,
+		time.Now().Add(120*time.Second),
+	)
+	return votingState, err
+}
+
+func revealState(ctx context.Context,
+	lobbyService *service.LobbyService,
+	playerService *service.PlayerService,
+	roundService *service.RoundService,
+) (service.RevealRoleState, error) {
+	questionState, err := startGame(ctx, lobbyService, playerService)
+	if err != nil {
+		return service.RevealRoleState{}, err
+	}
+
+	err = roundService.SubmitAnswer(ctx, questionState.Players[0].ID, "This is my answer", time.Now())
+	if err != nil {
+		return service.RevealRoleState{}, err
+	}
+
+	err = roundService.SubmitAnswer(
+		ctx,
+		questionState.Players[1].ID,
+		"This is the other players answer",
+		time.Now(),
+	)
+	if err != nil {
+		return service.RevealRoleState{}, err
+	}
+
+	votingState, err := roundService.UpdateStateToVoting(
+		ctx,
+		questionState.GameStateID,
+		time.Now().Add(120*time.Second),
+	)
+	if err != nil {
+		return service.RevealRoleState{}, err
+	}
+
+	_, err = roundService.SubmitVote(
+		ctx,
+		votingState.Players[0].ID,
+		votingState.Players[1].Nickname,
+		time.Now(),
+	)
+	if err != nil {
+		return service.RevealRoleState{}, err
+	}
+	revealState, err := roundService.UpdateStateToReveal(
+		ctx,
+		votingState.GameStateID,
+		time.Now().Add(120*time.Second),
+	)
+	return revealState, err
+}
 
 // Taken from: https://gist.github.com/StevenACoffman/74347e58e5e0dc4bdf0a79240557c406
 func PartialEqual(t require.TestingT, expected, actual any, diffOpts cmp.Option, msgAndArgs ...any) {

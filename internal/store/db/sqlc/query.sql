@@ -156,7 +156,7 @@ SELECT
     p.id AS player_id,
     p.nickname,
     fpr.player_role AS role,
-    COALESCE(fq1.question, fq2.question) AS question,
+    fq2.question AS question,
     p.avatar,
     COALESCE(fia.is_ready, FALSE) AS is_answer_ready
 FROM players p
@@ -164,12 +164,11 @@ JOIN rooms_players rp ON p.id = rp.player_id
 JOIN rooms r ON rp.room_id = r.id
 JOIN game_state gs ON gs.room_id = r.id
 JOIN fibbing_it_rounds fr ON fr.game_state_id = gs.id
-LEFT JOIN questions fq1 ON fr.fibber_question_id = fq1.id
 LEFT JOIN questions fq2 ON fr.normal_question_id = fq2.id
 LEFT JOIN fibbing_it_player_roles fpr ON p.id = fpr.player_id AND fr.id = fpr.round_id
 LEFT JOIN fibbing_it_answers fia ON p.id = fia.player_id AND fr.id = fia.round_id
 WHERE p.id = $1
-ORDER BY p.created_at
+ORDER BY fr.created_at DESC
 LIMIT 1;
 
 -- name: GetVotingState :many
@@ -186,7 +185,7 @@ SELECT
     fv.is_ready,
     fpr.player_role AS role
 FROM fibbing_it_rounds fir
-JOIN questions q ON fir.fibber_question_id = q.id
+JOIN questions q ON fir.normal_question_id = q.id
 JOIN game_state gs ON fir.game_state_id = gs.id
 JOIN rooms_players rp ON rp.room_id = gs.room_id
 JOIN players p ON p.id = rp.player_id

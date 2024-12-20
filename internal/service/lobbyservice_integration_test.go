@@ -489,13 +489,13 @@ func TestIntegrationLobbyGetLobby(t *testing.T) {
 		str, err := db.NewDB(pool)
 		assert.NoError(t, err)
 		randomizer := randomizer.NewUserRandomizer()
+		lobbyService := service.NewLobbyService(str, randomizer)
 
 		id := uuid.New()
 		newPlayer := service.NewHostPlayer{
 			ID: id,
 		}
 		ctx := context.Background()
-		lobbyService := service.NewLobbyService(str, randomizer)
 		createdLobby, err := lobbyService.Create(ctx, "fibbing_it", newPlayer)
 		require.NoError(t, err)
 

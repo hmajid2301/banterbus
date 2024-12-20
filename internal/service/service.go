@@ -50,3 +50,6 @@ func getLobbyPlayers(playerRows []db.GetAllPlayersInRoomRow, roomCode string) Lo
 	}
 	return room
 }
+
+const FibberRole = "fibber"
+const NormalRole = "normal"

@@ -269,11 +269,11 @@ func (r *LobbyService) Start(
 	}
 
 	for i, player := range playersInRoom {
-		role := "normal"
+		role := NormalRole
 		question := normalsQuestion.Question
 
 		if i == randomFibberLoc {
-			role = "fibber"
+			role = FibberRole
 			question = fibberQuestion.Question
 		}
 
