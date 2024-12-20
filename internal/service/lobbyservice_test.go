@@ -227,6 +227,9 @@ func TestLobbyServiceJoin(t *testing.T) {
 		srv := service.NewLobbyService(mockStore, mockRandom)
 
 		ctx := context.Background()
+		mockStore.EXPECT().
+			GetRoomByPlayerID(ctx, defaultNewPlayer.ID).
+			Return(db.Room{}, fmt.Errorf("failed to get room by player ID"))
 		mockRandom.EXPECT().GetNickname().Return(defaultNewPlayer.Nickname)
 		mockRandom.EXPECT().GetAvatar(defaultNewPlayer.Nickname).Return(defaultNewPlayer.Avatar)
 		mockStore.EXPECT().
@@ -302,6 +305,9 @@ func TestLobbyServiceJoin(t *testing.T) {
 		srv := service.NewLobbyService(mockStore, mockRandom)
 
 		ctx := context.Background()
+		mockStore.EXPECT().
+			GetRoomByPlayerID(ctx, defaultNewPlayer.ID).
+			Return(db.Room{}, fmt.Errorf("failed to get room by player ID"))
 		mockRandom.EXPECT().
 			GetAvatar(nickname).
 			Return("https://api.dicebear.com/9.x/bottts-neutral/svg?radius=20&seed=MyNickname")
@@ -376,6 +382,9 @@ func TestLobbyServiceJoin(t *testing.T) {
 		srv := service.NewLobbyService(mockStore, mockRandom)
 
 		ctx := context.Background()
+		mockStore.EXPECT().
+			GetRoomByPlayerID(ctx, defaultNewPlayer.ID).
+			Return(db.Room{}, fmt.Errorf("failed to get room by player ID"))
 		mockRandom.EXPECT().GetNickname().Return(defaultNewPlayer.Nickname)
 		mockRandom.EXPECT().GetAvatar(defaultNewPlayer.Nickname).Return(defaultNewPlayer.Avatar)
 		mockStore.EXPECT().
@@ -386,6 +395,18 @@ func TestLobbyServiceJoin(t *testing.T) {
 		assert.ErrorContains(t, err, "room is not in CREATED state")
 	})
 
+	t.Run("Should fail to join room, player id alredy in room", func(t *testing.T) {
+		mockStore := mockService.NewMockStorer(t)
+		mockRandom := mockService.NewMockRandomizer(t)
+		srv := service.NewLobbyService(mockStore, mockRandom)
+
+		ctx := context.Background()
+		mockStore.EXPECT().GetRoomByPlayerID(ctx, defaultNewPlayer.ID).Return(db.Room{RoomCode: roomCode}, nil)
+
+		_, err := srv.Join(ctx, roomCode, defaultNewPlayer.ID, defaultNewPlayer.Nickname)
+		assert.ErrorIs(t, err, service.ErrPlayerAlreadyInRoom)
+	})
+
 	t.Run("Should fail to join room, nickname already exists", func(t *testing.T) {
 		nickname := "Hello"
 
@@ -394,6 +415,9 @@ func TestLobbyServiceJoin(t *testing.T) {
 		srv := service.NewLobbyService(mockStore, mockRandom)
 
 		ctx := context.Background()
+		mockStore.EXPECT().
+			GetRoomByPlayerID(ctx, defaultNewPlayer.ID).
+			Return(db.Room{}, fmt.Errorf("failed to get room by player ID"))
 		mockRandom.EXPECT().GetAvatar(nickname).Return(defaultNewPlayer.Avatar)
 		mockStore.EXPECT().
 			GetRoomByCode(ctx, roomCode).
@@ -414,6 +438,9 @@ func TestLobbyServiceJoin(t *testing.T) {
 		srv := service.NewLobbyService(mockStore, mockRandom)
 
 		ctx := context.Background()
+		mockStore.EXPECT().
+			GetRoomByPlayerID(ctx, defaultNewPlayer.ID).
+			Return(db.Room{}, fmt.Errorf("failed to get room by player ID"))
 		mockRandom.EXPECT().GetNickname().Return(defaultNewPlayer.Nickname)
 		mockRandom.EXPECT().GetAvatar(defaultNewPlayer.Nickname).Return(defaultNewPlayer.Avatar)
 		mockStore.EXPECT().
@@ -452,6 +479,9 @@ func TestLobbyServiceJoin(t *testing.T) {
 		srv := service.NewLobbyService(mockStore, mockRandom)
 
 		ctx := context.Background()
+		mockStore.EXPECT().
+			GetRoomByPlayerID(ctx, defaultNewPlayer.ID).
+			Return(db.Room{}, fmt.Errorf("failed to get room by player ID"))
 		mockRandom.EXPECT().GetNickname().Return(defaultNewPlayer.Nickname)
 		mockRandom.EXPECT().GetAvatar(defaultNewPlayer.Nickname).Return(defaultNewPlayer.Avatar)
 		mockStore.EXPECT().

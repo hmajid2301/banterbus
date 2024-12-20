@@ -38,6 +38,7 @@ type App struct {
 	Environment   string
 	LogLevel      slog.Level
 	DefaultLocale i18n.Code
+	AutoReconnect bool
 }
 
 type Timings struct {
@@ -66,6 +67,7 @@ type In struct {
 	Host          string `env:"BANTERBUS_WEBSERVER_HOST, default=0.0.0.0"`
 	Port          int    `env:"BANTERBUS_WEBSERVER_PORT, default=8080"`
 	DefaultLocale string `env:"BANTERBUS_DEFAULT_LOCALE, default=en-GB"`
+	AutoReconnect bool   `env:"BANTERBUS_AUTO_RECONNECT, default=false"`
 
 	ShowQuestionScreenFor   time.Duration `env:"SHOW_QUESTION_SCREEN_FOR, default=61s"`
 	ShowVotingScreenFor     time.Duration `env:"SHOW_VOTING_SCREEN_FOR, default=31s"`
@@ -112,6 +114,7 @@ func LoadConfig(ctx context.Context) (Config, error) {
 			Environment:   input.Environment,
 			LogLevel:      parseLogLevel(input.LogLevel),
 			DefaultLocale: i18n.Code(input.DefaultLocale),
+			AutoReconnect: input.AutoReconnect,
 		},
 		Timings: Timings{
 			ShowQuestionScreenFor:   input.ShowQuestionScreenFor,

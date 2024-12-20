@@ -45,6 +45,14 @@ func (c *CreateRoom) Handle(ctx context.Context, client *client, sub *Subscriber
 func (j *JoinLobby) Handle(ctx context.Context, client *client, sub *Subscriber) error {
 	updatedRoom, err := sub.lobbyService.Join(ctx, j.RoomCode, client.playerID, j.PlayerNickname)
 	if err != nil {
+		if errors.Is(err, service.ErrPlayerAlreadyInRoom) {
+			component, err := sub.Reconnect(ctx, client.playerID)
+			// TODO: return error back to customer
+			if err == nil {
+				_ = sub.websocket.Publish(ctx, client.playerID, component.Bytes())
+			}
+		}
+
 		errStr := "failed to join room"
 		if err == service.ErrNicknameExists {
 			errStr = err.Error()

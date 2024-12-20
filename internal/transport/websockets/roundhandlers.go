@@ -26,12 +26,14 @@ type RoundServicer interface {
 	GetVotingState(ctx context.Context, playerID uuid.UUID) (service.VotingState, error)
 	ToggleVotingIsReady(ctx context.Context, playerID uuid.UUID, submittedAt time.Time) (bool, error)
 	UpdateStateToReveal(ctx context.Context, gameStateID uuid.UUID, deadline time.Time) (service.RevealRoleState, error)
+	GetRevealState(ctx context.Context, playerID uuid.UUID) (service.RevealRoleState, error)
 	UpdateStateToScore(
 		ctx context.Context,
 		gameStateID uuid.UUID,
 		deadline time.Time,
 		scoring service.Scoring,
 	) (service.ScoreState, error)
+	GetScoreState(ctx context.Context, scoring service.Scoring, playerID uuid.UUID) (service.ScoreState, error)
 	GetGameState(ctx context.Context, playerID uuid.UUID) (db.GameStateEnum, error)
 	GetQuestionState(ctx context.Context, playerID uuid.UUID) (service.QuestionState, error)
 }

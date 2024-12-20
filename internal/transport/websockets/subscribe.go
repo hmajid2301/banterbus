@@ -131,11 +131,13 @@ func (s *Subscriber) Subscribe(r *http.Request, w http.ResponseWriter) (err erro
 			return err
 		}
 
-		component, err = s.Reconnect(ctx, playerID)
-		if err != nil {
-			s.logger.WarnContext(ctx, "failed to reconnect", slog.Any("error", err))
-			cookie = setPlayerIDCookie()
-			http.SetCookie(w, cookie)
+		if s.config.App.AutoReconnect {
+			component, err = s.Reconnect(ctx, playerID)
+			if err != nil {
+				s.logger.WarnContext(ctx, "failed to reconnect", slog.Any("error", err))
+				cookie = setPlayerIDCookie()
+				http.SetCookie(w, cookie)
+			}
 		}
 	}
 

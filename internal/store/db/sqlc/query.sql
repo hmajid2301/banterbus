@@ -258,10 +258,8 @@ WHERE rp.room_id = (
     LIMIT 1
 );
 
-
 -- name: AddFibbingItScore :one
 INSERT INTO fibbing_it_scores (id, player_id, score, round_id) VALUES ($1, $2, $3, $4) RETURNING *;
-
 
 -- name: GetAllVotesForRoundByGameStateID :many
 SELECT

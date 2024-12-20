@@ -13,6 +13,8 @@ en-GB:
     roomcode_placeholder: "ABC12"
     start_button_label: "Start"
     join_button_label: "Join"
+    reconnect: "Reconnect"
+    ignore: "Ignore"
   lobby:
     start_game_button: "Start Game"
   role:

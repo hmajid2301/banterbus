@@ -20,33 +20,20 @@ func TestE2EReconnect(t *testing.T) {
 			Locator(`input[name="player_nickname"]`).InputValue()
 		require.NoError(t, err)
 
+		code, err := hostPlayerPage.Locator("input[name='room_code']").InputValue()
+		require.NoError(t, err)
+
 		_, err = hostPlayerPage.Reload()
 		require.NoError(t, err)
 
-		b, err := hostPlayerPage.GetByText("Not Ready").IsVisible()
+		err = hostPlayerPage.GetByPlaceholder("ABC12").Fill(code)
+		require.NoError(t, err)
+		err = hostPlayerPage.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Join"}).Click()
+		require.NoError(t, err)
+
+		notReady := hostPlayerPage.GetByText("Not Ready")
+		err = expect.Locator(notReady).ToBeVisible()
 		assert.NoError(t, err)
-		assert.True(t, b)
-
-		refreshNickname, err := hostPlayerPage.Locator("#update_nickname_form").
-			Locator(`input[name="player_nickname"]`).InputValue()
-		require.NoError(t, err)
-		assert.Equal(t, nickname, refreshNickname)
-	})
-
-	t.Run("Should be able to reconnect to room with multiple players", func(t *testing.T) {
-		t.Cleanup(ResetBrowserContexts)
-		hostPlayerPage := pages[0]
-		otherPlayerPage := pages[1]
-
-		err := joinRoom(hostPlayerPage, otherPlayerPage)
-		require.NoError(t, err)
-
-		nickname, err := hostPlayerPage.Locator("#update_nickname_form").
-			Locator(`input[name="player_nickname"]`).InputValue()
-		require.NoError(t, err)
-
-		_, err = hostPlayerPage.Reload()
-		require.NoError(t, err)
 
 		refreshNickname, err := hostPlayerPage.Locator("#update_nickname_form").
 			Locator(`input[name="player_nickname"]`).InputValue()
@@ -62,6 +49,9 @@ func TestE2EReconnect(t *testing.T) {
 		err := joinRoom(hostPlayerPage, otherPlayerPage)
 		require.NoError(t, err)
 
+		code, err := hostPlayerPage.Locator("input[name='room_code']").InputValue()
+		require.NoError(t, err)
+
 		err = otherPlayerPage.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Ready"}).Click()
 		require.NoError(t, err)
 		err = hostPlayerPage.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Ready"}).Click()
@@ -72,8 +62,17 @@ func TestE2EReconnect(t *testing.T) {
 		_, err = hostPlayerPage.Reload()
 		require.NoError(t, err)
 
-		roundNum := otherPlayerPage.GetByText("Round 1 / 3")
+		// TODO: maybe refactor this connect code
+		err = hostPlayerPage.GetByPlaceholder("ABC12").Fill(code)
+		require.NoError(t, err)
+		err = hostPlayerPage.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Join"}).Click()
+		require.NoError(t, err)
+
+		roundNum := hostPlayerPage.GetByText("Round 1 / 3")
 		err = expect.Locator(roundNum).ToBeVisible()
 		require.NoError(t, err)
 	})
+	// TODO: voting
+	// TODO: reveal
+	// TODO: scoring
 }

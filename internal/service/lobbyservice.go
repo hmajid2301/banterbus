@@ -18,6 +18,7 @@ type LobbyService struct {
 }
 
 var ErrNicknameExists = errors.New("nickname already exists in room")
+var ErrPlayerAlreadyInRoom = errors.New("player is already in the room")
 
 func NewLobbyService(store Storer, randomizer Randomizer) *LobbyService {
 	return &LobbyService{store: store, randomizer: randomizer}
@@ -90,8 +91,15 @@ func (r *LobbyService) Create(ctx context.Context, gameName string, newHostPlaye
 }
 
 func (r *LobbyService) Join(ctx context.Context, roomCode string, playerID uuid.UUID, nickname string) (Lobby, error) {
+	room, err := r.store.GetRoomByPlayerID(ctx, playerID)
+	if err == nil {
+		if room.RoomCode == roomCode {
+			return Lobby{}, ErrPlayerAlreadyInRoom
+		}
+	}
+
 	newPlayer := r.getNewPlayer(nickname, playerID)
-	room, err := r.store.GetRoomByCode(ctx, roomCode)
+	room, err = r.store.GetRoomByCode(ctx, roomCode)
 	if err != nil {
 		return Lobby{}, err
 	}

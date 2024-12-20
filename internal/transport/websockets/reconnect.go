@@ -25,7 +25,23 @@ func (s Subscriber) Reconnect(ctx context.Context, playerID uuid.UUID) (bytes.Bu
 		return buf, err
 	}
 
+	buf, err = s.reconnectOnRoomState(ctx, roomState, playerID)
+	if err != nil {
+		return buf, err
+	}
+
+	return buf, err
+}
+
+func (s Subscriber) reconnectOnRoomState(
+	ctx context.Context,
+	roomState db.RoomState,
+	playerID uuid.UUID,
+) (bytes.Buffer, error) {
+	var buf bytes.Buffer
 	var component templ.Component
+	var err error
+
 	switch roomState {
 	case db.ROOMSTATE_CREATED:
 		lobby, err := s.lobbyService.GetLobby(ctx, playerID)
@@ -61,8 +77,7 @@ func (s Subscriber) Reconnect(ctx context.Context, playerID uuid.UUID) (bytes.Bu
 	if err != nil {
 		return buf, err
 	}
-
-	return buf, err
+	return buf, nil
 }
 
 func (s Subscriber) reconnectToPlayingGame(ctx context.Context, playerID uuid.UUID) (templ.Component, error) {
@@ -90,6 +105,25 @@ func (s Subscriber) reconnectToPlayingGame(ctx context.Context, playerID uuid.UU
 			return component, errors.Join(clientErr, err)
 		}
 		component = sections.Voting(voting, voting.Players[0])
+	case db.GAMESTATE_FIBBING_IT_REVEAL_ROLE:
+		reveal, err := s.roundService.GetRevealState(ctx, playerID)
+		if err != nil {
+			clientErr := s.updateClientAboutErr(ctx, playerID, errStr)
+			return component, errors.Join(clientErr, err)
+		}
+		component = sections.Reveal(reveal)
+	case db.GAMESTATE_FIBBING_IT_SCORING:
+		scoring := service.Scoring{
+			GuessedFibber:      s.config.Scoring.GuessFibber,
+			FibberEvadeCapture: s.config.Scoring.FibberEvadeCapture,
+		}
+
+		score, err := s.roundService.GetScoreState(ctx, scoring, playerID)
+		if err != nil {
+			clientErr := s.updateClientAboutErr(ctx, playerID, errStr)
+			return component, errors.Join(clientErr, err)
+		}
+		component = sections.Score(score, score.Players[0])
 	default:
 		return component, fmt.Errorf("unknown game state: %s", gameState)
 	}

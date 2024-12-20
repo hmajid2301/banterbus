@@ -135,6 +135,7 @@ func newTestServer() (*httptest.Server, error) {
 	}
 
 	conf.Timings.ShowScoreScreenFor = time.Second * 2
+	conf.App.AutoReconnect = false
 
 	subscriber := websockets.NewSubscriber(lobbyServicer, playerServicer, roundServicer, logger, redisClient, conf)
 	err = ctxi18n.LoadWithDefault(views.Locales, "en-GB")
