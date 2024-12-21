@@ -147,6 +147,17 @@ func (s *Subscriber) Subscribe(r *http.Request, w http.ResponseWriter) (err erro
 		return err
 	}
 
+	err = s.playerService.UpdateLocale(ctx, playerID, locale)
+	if err != nil {
+		s.logger.WarnContext(
+			ctx,
+			"failed to update player locale",
+			slog.Any("error", err),
+			slog.String("locale", locale),
+			slog.String("player_id", playerID.String()),
+		)
+	}
+
 	h := ws.HTTPUpgrader{
 		Header: w.Header(),
 	}

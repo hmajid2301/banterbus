@@ -118,9 +118,9 @@ func newTestServer() (*httptest.Server, error) {
 	}
 
 	userRandomizer := randomizer.NewUserRandomizer()
-	lobbyServicer := service.NewLobbyService(myStore, userRandomizer)
+	lobbyServicer := service.NewLobbyService(myStore, userRandomizer, "en-GB")
 	playerServicer := service.NewPlayerService(myStore, userRandomizer)
-	roundServicer := service.NewRoundService(myStore, userRandomizer)
+	roundServicer := service.NewRoundService(myStore, userRandomizer, "en-GB")
 	logger := setupLogger()
 
 	redisAddr := os.Getenv("BANTERBUS_REDIS_ADDRESS")

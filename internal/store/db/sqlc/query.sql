@@ -2,7 +2,7 @@
 INSERT INTO rooms (id, game_name, host_player, room_code, room_state) VALUES ($1, $2, $3, $4, $5) RETURNING *;
 
 -- name: AddPlayer :one
-INSERT INTO players (id, avatar, nickname) VALUES ($1, $2, $3) RETURNING *;
+INSERT INTO players (id, avatar, nickname, locale) VALUES ($1, $2, $3, $4) RETURNING *;
 
 -- name: AddRoomPlayer :one
 INSERT INTO rooms_players (room_id, player_id) VALUES ($1, $2) RETURNING *;
@@ -21,6 +21,9 @@ UPDATE players SET nickname = $1 WHERE id = $2 RETURNING *;
 
 -- name: UpdateAvatar :one
 UPDATE players SET avatar = $1 WHERE id = $2 RETURNING *;
+
+-- name: UpdateLocale :one
+UPDATE players SET locale = $1 WHERE id = $2 RETURNING *;
 
 -- name: TogglePlayerIsReady :one
 UPDATE players SET is_ready = NOT is_ready WHERE id = $1 RETURNING *;
@@ -51,13 +54,16 @@ ON CONFLICT(player_id, round_id) DO UPDATE SET
 RETURNING *;
 
 -- name: AddQuestion :one
-INSERT INTO questions (id, game_name, round, question, language_code, group_id) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *;
+INSERT INTO questions (id, game_name, group_id, round_type) VALUES ($1, $2, $3, $4) RETURNING *;
+
+-- name: AddQuestionTranslation :one
+INSERT INTO questions_i18n (id,  question, locale, question_id) VALUES ($1, $2, $3, $4) RETURNING *;
 
 -- name: AddQuestionsGroup :one
 INSERT INTO questions_groups (id, group_name, group_type) VALUES ($1, $2, $3) RETURNING *;
 
 -- name: GetAllPlayersInRoom :many
-SELECT p.id, p.created_at, p.updated_at, p.avatar, p.nickname, p.is_ready, r.room_code, r.host_player
+SELECT p.id, p.created_at, p.updated_at, p.avatar, p.nickname, p.is_ready, p.locale, r.room_code, r.host_player
 FROM players p
 JOIN rooms_players rp ON p.id = rp.player_id
 JOIN rooms r ON rp.room_id = r.id
@@ -68,7 +74,7 @@ WHERE rp.room_id = (
 );
 
 -- name: GetAllPlayersByGameStateID :many
-SELECT p.id, p.nickname, p.avatar
+SELECT p.id, p.nickname, p.avatar, p.locale
 FROM players p
 JOIN rooms_players rp ON p.id = rp.player_id
 JOIN game_state gs ON rp.room_id = gs.room_id
@@ -115,19 +121,38 @@ SELECT r.* FROM rooms r JOIN rooms_players rp ON r.id = rp.room_id WHERE rp.play
 -- name: GetRoomByCode :one
 SELECT * FROM rooms WHERE room_code = $1;
 
--- name: GetRandomQuestionByRound :one
-SELECT * FROM questions WHERE game_name = $1 AND round = $2 AND language_code = $3 AND enabled = TRUE ORDER BY RANDOM() LIMIT 1;
+-- name: GetRandomQuestionByRound :many
+SELECT
+    qi.*,
+    random_question.group_id,
+    random_question.id
+FROM questions_i18n qi
+JOIN (
+    SELECT q.id, q.group_id
+    FROM questions q
+    WHERE q.game_name = $1
+      AND q.round_type = $2
+      AND q.enabled = TRUE
+    ORDER BY RANDOM()
+    LIMIT 1
+) random_question ON qi.question_id = random_question.id;
 
--- name: GetRandomQuestionInGroup :one
-SELECT *
-FROM questions q
-JOIN questions_groups qg ON q.group_id = qg.id
-WHERE qg.group_type = 'questions'
-  AND q.group_id = $1
-  AND q.enabled = TRUE
-  AND q.id != $2
-ORDER BY RANDOM()
-LIMIT 1;
+-- name: GetRandomQuestionInGroup :many
+SELECT
+    qi.*,
+    random_question.id
+FROM questions_i18n qi
+JOIN (
+    SELECT q.id
+    FROM questions q
+    JOIN questions_groups qg ON q.group_id = qg.id
+    WHERE qg.group_type = 'questions'
+      AND q.group_id = $1
+      AND q.enabled = TRUE
+      AND q.id != $2
+    ORDER BY RANDOM()
+    LIMIT 1
+) random_question ON qi.question_id = random_question.id;
 
 -- name: GetLatestRoundByPlayerID :one
 SELECT fir.*, gs.submit_deadline
@@ -156,7 +181,7 @@ SELECT
     p.id AS player_id,
     p.nickname,
     fpr.player_role AS role,
-    fq2.question AS question,
+    qi.question AS question,
     p.avatar,
     COALESCE(fia.is_ready, FALSE) AS is_answer_ready
 FROM players p
@@ -164,18 +189,19 @@ JOIN rooms_players rp ON p.id = rp.player_id
 JOIN rooms r ON rp.room_id = r.id
 JOIN game_state gs ON gs.room_id = r.id
 JOIN fibbing_it_rounds fr ON fr.game_state_id = gs.id
-LEFT JOIN questions fq2 ON fr.normal_question_id = fq2.id
+LEFT JOIN questions q ON fr.normal_question_id = q.id
+LEFT JOIN questions_i18n qi ON q.id = qi.question_id AND qi.locale = 'en-GB'
 LEFT JOIN fibbing_it_player_roles fpr ON p.id = fpr.player_id AND fr.id = fpr.round_id
 LEFT JOIN fibbing_it_answers fia ON p.id = fia.player_id AND fr.id = fia.round_id
 WHERE p.id = $1
-ORDER BY fr.created_at DESC
+ORDER BY fr.round DESC
 LIMIT 1;
 
 -- name: GetVotingState :many
 SELECT
     fir.round AS round,
-    gs.id as game_state_id,
-    q.question,
+    gs.id AS game_state_id,
+    qi.question,
     gs.submit_deadline,
     p.id AS player_id,
     p.nickname,
@@ -186,6 +212,7 @@ SELECT
     fpr.player_role AS role
 FROM fibbing_it_rounds fir
 JOIN questions q ON fir.normal_question_id = q.id
+JOIN questions_i18n qi ON q.id = qi.question_id AND qi.locale = 'en-GB'
 JOIN game_state gs ON fir.game_state_id = gs.id
 JOIN rooms_players rp ON rp.room_id = gs.room_id
 JOIN players p ON p.id = rp.player_id
@@ -195,7 +222,7 @@ LEFT JOIN fibbing_it_player_roles fpr ON p.id = fpr.player_id AND fir.id = fpr.r
 WHERE fir.id = $1
 GROUP BY
     fir.round,
-    q.question,
+    qi.question,
     gs.submit_deadline,
     p.id,
     p.nickname,

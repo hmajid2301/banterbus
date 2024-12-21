@@ -15,12 +15,13 @@ import (
 )
 
 type RoundService struct {
-	store      Storer
-	randomizer Randomizer
+	store         Storer
+	randomizer    Randomizer
+	defaultLocale string
 }
 
-func NewRoundService(store Storer, randomizer Randomizer) *RoundService {
-	return &RoundService{store: store, randomizer: randomizer}
+func NewRoundService(store Storer, randomizer Randomizer, defaultLocale string) *RoundService {
+	return &RoundService{store: store, randomizer: randomizer, defaultLocale: defaultLocale}
 }
 
 var ErrMustSubmitAnswer = fmt.Errorf("must submit answer first")
@@ -420,19 +421,17 @@ func (r *RoundService) UpdateStateToQuestion(
 		roundNumber = 1
 	}
 
-	// TODO: fetch for all locale? update query?
-	normalsQuestion, err := r.store.GetRandomQuestionByRound(ctx, db.GetRandomQuestionByRoundParams{
-		GameName:     "fibbing_it",
-		LanguageCode: "en-GB",
-		Round:        roundType,
+	normalsQuestions, err := r.store.GetRandomQuestionByRound(ctx, db.GetRandomQuestionByRoundParams{
+		GameName:  "fibbing_it",
+		RoundType: roundType,
 	})
 	if err != nil {
 		return QuestionState{}, err
 	}
 
-	fibberQuestion, err := r.store.GetRandomQuestionInGroup(ctx, db.GetRandomQuestionInGroupParams{
-		GroupID: normalsQuestion.GroupID,
-		ID:      normalsQuestion.ID,
+	fibberQuestions, err := r.store.GetRandomQuestionInGroup(ctx, db.GetRandomQuestionInGroupParams{
+		GroupID: normalsQuestions[0].GroupID,
+		ID:      normalsQuestions[0].ID,
 	})
 	if err != nil {
 		return QuestionState{}, err
@@ -441,8 +440,8 @@ func (r *RoundService) UpdateStateToQuestion(
 	randomFibberLoc := r.randomizer.GetFibberIndex(len(players))
 	newRound := db.NewRoundArgs{
 		GameStateID:       gameStateID,
-		NormalsQuestionID: normalsQuestion.ID,
-		FibberQuestionID:  fibberQuestion.ID,
+		NormalsQuestionID: normalsQuestions[0].QuestionID,
+		FibberQuestionID:  fibberQuestions[0].QuestionID,
 		RoundType:         roundType,
 		Round:             roundNumber,
 		Players:           players,
@@ -457,13 +456,27 @@ func (r *RoundService) UpdateStateToQuestion(
 	playersWithRole := []PlayerWithRole{}
 	for i, player := range players {
 		role := NormalRole
-		question := normalsQuestion.Question
+
+		var question string
+		for _, localeQuestion := range normalsQuestions {
+			if localeQuestion.Locale == player.Locale.String {
+				question = localeQuestion.Question
+			} else if question == "" && localeQuestion.Locale == r.defaultLocale {
+				question = localeQuestion.Question
+			}
+		}
 
 		if i == randomFibberLoc {
 			role = FibberRole
-			question = fibberQuestion.Question
+			question = ""
+			for _, localeQuestion := range fibberQuestions {
+				if localeQuestion.Locale == player.Locale.String {
+					question = localeQuestion.Question
+				} else if question == "" && localeQuestion.Locale == r.defaultLocale {
+					question = localeQuestion.Question
+				}
+			}
 		}
-
 		answers := []string{}
 		if roundType == "multiple_choice" {
 			// TODO: localise use player locale?

@@ -164,20 +164,22 @@ func FillWithDummyData(ctx context.Context, pool *pgxpool.Pool) error {
 	}
 
 	questions := []struct {
-		GameName  string
-		Round     string
-		Enabled   bool
-		Question  string
-		Language  string
-		GroupName string
-		GroupType string
+		GameName   string
+		QuestionID uuid.UUID
+		Round      string
+		Enabled    bool
+		Question   string
+		Locale     string
+		GroupName  string
+		GroupType  string
 	}{
-		{"fibbing_it", "likely", false, "to get arrested", "en-GB", "all", "questions"},
-		{"fibbing_it", "likely", true, "to eat ice-cream from the tub", "en-GB", "all", "questions"},
-		{"fibbing_it", "likely", true, "to fight a police person", "en-GB", "all", "questions"},
-		{"fibbing_it", "likely", true, "to fight a horse", "en-GB", "all", "questions"},
+		{"fibbing_it", uuid.New(), "most_likely", false, "to get arrested", "en-GB", "all", "questions"},
+		{"fibbing_it", uuid.New(), "most_likely", true, "to eat ice-cream from the tub", "en-GB", "all", "questions"},
+		{"fibbing_it", uuid.New(), "most_likely", true, "to fight a police person", "en-GB", "all", "questions"},
+		{"fibbing_it", uuid.New(), "most_likely", true, "to fight a horse", "en-GB", "all", "questions"},
 		{
 			"fibbing_it",
+			uuid.New(),
 			"free_form",
 			true,
 			"What do you think about programmers?",
@@ -187,6 +189,7 @@ func FillWithDummyData(ctx context.Context, pool *pgxpool.Pool) error {
 		},
 		{
 			"fibbing_it",
+			uuid.New(),
 			"free_form",
 			true,
 			"What don't you like about programmers?",
@@ -196,6 +199,7 @@ func FillWithDummyData(ctx context.Context, pool *pgxpool.Pool) error {
 		},
 		{
 			"fibbing_it",
+			uuid.New(),
 			"free_form",
 			true,
 			"what don't you think about programmers?",
@@ -203,39 +207,129 @@ func FillWithDummyData(ctx context.Context, pool *pgxpool.Pool) error {
 			"programming_group",
 			"questions",
 		},
-		{"fibbing_it", "free_form", true, "what dont you think about cats", "en-GB", "cat_group", "questions"},
-		{"fibbing_it", "free_form", true, "what don't you like about cats?", "en-GB", "cat_group", "questions"},
-		{"fibbing_it", "free_form", false, "what do you like about cats?", "en-GB", "cat_group", "questions"},
-		{"fibbing_it", "free_form", true, "what do you think about cats", "en-GB", "cat_group", "questions"},
-		{"fibbing_it", "free_form", true, "A funny question?", "en-GB", "bike_group", "questions"},
-		{"fibbing_it", "free_form", true, "Favourite bike colour?", "en-GB", "bike_group", "questions"},
-		{"fibbing_it", "opinion", true, "lame", "en-GB", "horse_group", "answers"},
-		{"fibbing_it", "opinion", true, "tasty", "en-GB", "horse_group", "answers"},
-		{"fibbing_it", "opinion", true, "cool", "en-GB", "horse_group", "answers"},
-		{"fibbing_it", "opinion", true, "What do you think about camels?", "en-GB", "horse_group", "questions"},
-		{"fibbing_it", "opinion", true, "What do you think about horses?", "en-GB", "horse_group", "questions"},
-		{"fibbing_it", "opinion", true, "purple", "en-GB", "colour_group", "answers"},
-		{"fibbing_it", "opinion", true, "blue", "en-GB", "colour_group", "answers"},
-		{"fibbing_it", "opinion", true, "red", "en-GB", "colour_group", "answers"},
-		{"fibbing_it", "opinion", true, "What is your favourite colour?", "en-GB", "colour_group", "questions"},
-		{"fibbing_it", "opinion", true, "What is your least favourite colour?", "en-GB", "colour_group", "questions"},
-		{"fibbing_it", "opinion", true, "Strongly Agree", "en-GB", "animal_group", "answers"},
-		{"fibbing_it", "opinion", true, "Agree", "en-GB", "animal_group", "answers"},
-		{"fibbing_it", "opinion", true, "Disagree", "en-GB", "animal_group", "answers"},
-		{"fibbing_it", "opinion", true, "Are cats cute?", "en-GB", "animal_group", "questions"},
-		{"fibbing_it", "opinion", true, "Dogs are cuter than cats?", "en-GB", "animal_group", "questions"},
+		{
+			"fibbing_it",
+			uuid.New(),
+			"free_form",
+			true,
+			"what dont you think about cats",
+			"en-GB",
+			"cat_group",
+			"questions",
+		},
+		{
+			"fibbing_it",
+			uuid.New(),
+			"free_form",
+			true,
+			"what don't you like about cats?",
+			"en-GB",
+			"cat_group",
+			"questions",
+		},
+		{
+			"fibbing_it",
+			uuid.New(),
+			"free_form",
+			false,
+			"what do you like about cats?",
+			"en-GB",
+			"cat_group",
+			"questions",
+		},
+		{
+			"fibbing_it",
+			uuid.New(),
+			"free_form",
+			true,
+			"what do you think about cats",
+			"en-GB",
+			"cat_group",
+			"questions",
+		},
+		{"fibbing_it", uuid.New(), "free_form", true, "A funny question?", "en-GB", "bike_group", "questions"},
+		{"fibbing_it", uuid.New(), "free_form", true, "Favourite bike colour?", "en-GB", "bike_group", "questions"},
+		{"fibbing_it", uuid.New(), "multiple_choice", true, "lame", "en-GB", "horse_group", "answers"},
+		{"fibbing_it", uuid.New(), "multiple_choice", true, "tasty", "en-GB", "horse_group", "answers"},
+		{"fibbing_it", uuid.New(), "multiple_choice", true, "cool", "en-GB", "horse_group", "answers"},
+		{
+			"fibbing_it",
+			uuid.New(),
+			"multiple_choice",
+			true,
+			"What do you think about camels?",
+			"en-GB",
+			"horse_group",
+			"questions",
+		},
+		{
+			"fibbing_it",
+			uuid.New(),
+			"multiple_choice",
+			true,
+			"What do you think about horses?",
+			"en-GB",
+			"horse_group",
+			"questions",
+		},
+		{"fibbing_it", uuid.New(), "multiple_choice", true, "purple", "en-GB", "colour_group", "answers"},
+		{"fibbing_it", uuid.New(), "multiple_choice", true, "blue", "en-GB", "colour_group", "answers"},
+		{"fibbing_it", uuid.New(), "multiple_choice", true, "red", "en-GB", "colour_group", "answers"},
+		{
+			"fibbing_it",
+			uuid.New(),
+			"multiple_choice",
+			true,
+			"What is your favourite colour?",
+			"en-GB",
+			"colour_group",
+			"questions",
+		},
+		{
+			"fibbing_it",
+			uuid.New(),
+			"multiple_choice",
+			true,
+			"What is your least favourite colour?",
+			"en-GB",
+			"colour_group",
+			"questions",
+		},
+		{"fibbing_it", uuid.New(), "multiple_choice", true, "Strongly Agree", "en-GB", "animal_group", "answers"},
+		{"fibbing_it", uuid.New(), "multiple_choice", true, "Agree", "en-GB", "animal_group", "answers"},
+		{"fibbing_it", uuid.New(), "multiple_choice", true, "Disagree", "en-GB", "animal_group", "answers"},
+		{"fibbing_it", uuid.New(), "multiple_choice", true, "Are cats cute?", "en-GB", "animal_group", "questions"},
+		{
+			"fibbing_it",
+			uuid.New(),
+			"multiple_choice",
+			true,
+			"Dogs are cuter than cats?",
+			"en-GB",
+			"animal_group",
+			"questions",
+		},
 	}
 
 	for _, q := range questions {
 		groupID := groupNameToID[q.GroupName][q.GroupType]
 
 		_, err := queries.WithTx(tx).AddQuestion(ctx, db.AddQuestionParams{
-			ID:           uuid.Must(uuid.NewV7()),
-			GameName:     q.GameName,
-			Round:        q.Round,
-			Question:     q.Question,
-			LanguageCode: q.Language,
-			GroupID:      groupID,
+			ID:        q.QuestionID,
+			GameName:  q.GameName,
+			RoundType: q.Round,
+			GroupID:   groupID,
+		})
+		if err != nil {
+			return err
+		}
+
+		// TODO: handle translations at the moment this code works because everythign is in en-GB.
+		_, err = queries.WithTx(tx).AddQuestionTranslation(ctx, db.AddQuestionTranslationParams{
+			ID:         uuid.Must(uuid.NewV7()),
+			Question:   q.Question,
+			Locale:     q.Locale,
+			QuestionID: q.QuestionID,
 		})
 		if err != nil {
 			return err

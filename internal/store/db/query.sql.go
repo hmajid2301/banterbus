@@ -170,17 +170,23 @@ func (q *Queries) AddGameState(ctx context.Context, arg AddGameStateParams) (Gam
 }
 
 const addPlayer = `-- name: AddPlayer :one
-INSERT INTO players (id, avatar, nickname) VALUES ($1, $2, $3) RETURNING id, created_at, updated_at, avatar, nickname, is_ready
+INSERT INTO players (id, avatar, nickname, locale) VALUES ($1, $2, $3, $4) RETURNING id, created_at, updated_at, avatar, nickname, is_ready, locale
 `
 
 type AddPlayerParams struct {
 	ID       uuid.UUID
 	Avatar   string
 	Nickname string
+	Locale   pgtype.Text
 }
 
 func (q *Queries) AddPlayer(ctx context.Context, arg AddPlayerParams) (Player, error) {
-	row := q.db.QueryRow(ctx, addPlayer, arg.ID, arg.Avatar, arg.Nickname)
+	row := q.db.QueryRow(ctx, addPlayer,
+		arg.ID,
+		arg.Avatar,
+		arg.Nickname,
+		arg.Locale,
+	)
 	var i Player
 	err := row.Scan(
 		&i.ID,
@@ -189,31 +195,28 @@ func (q *Queries) AddPlayer(ctx context.Context, arg AddPlayerParams) (Player, e
 		&i.Avatar,
 		&i.Nickname,
 		&i.IsReady,
+		&i.Locale,
 	)
 	return i, err
 }
 
 const addQuestion = `-- name: AddQuestion :one
-INSERT INTO questions (id, game_name, round, question, language_code, group_id) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id, created_at, updated_at, game_name, round, enabled, question, language_code, group_id
+INSERT INTO questions (id, game_name, group_id, round_type) VALUES ($1, $2, $3, $4) RETURNING id, created_at, updated_at, game_name, round_type, enabled, group_id
 `
 
 type AddQuestionParams struct {
-	ID           uuid.UUID
-	GameName     string
-	Round        string
-	Question     string
-	LanguageCode string
-	GroupID      uuid.UUID
+	ID        uuid.UUID
+	GameName  string
+	GroupID   uuid.UUID
+	RoundType string
 }
 
 func (q *Queries) AddQuestion(ctx context.Context, arg AddQuestionParams) (Question, error) {
 	row := q.db.QueryRow(ctx, addQuestion,
 		arg.ID,
 		arg.GameName,
-		arg.Round,
-		arg.Question,
-		arg.LanguageCode,
 		arg.GroupID,
+		arg.RoundType,
 	)
 	var i Question
 	err := row.Scan(
@@ -221,11 +224,39 @@ func (q *Queries) AddQuestion(ctx context.Context, arg AddQuestionParams) (Quest
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.GameName,
-		&i.Round,
+		&i.RoundType,
 		&i.Enabled,
-		&i.Question,
-		&i.LanguageCode,
 		&i.GroupID,
+	)
+	return i, err
+}
+
+const addQuestionTranslation = `-- name: AddQuestionTranslation :one
+INSERT INTO questions_i18n (id,  question, locale, question_id) VALUES ($1, $2, $3, $4) RETURNING id, created_at, updated_at, question, locale, question_id
+`
+
+type AddQuestionTranslationParams struct {
+	ID         uuid.UUID
+	Question   string
+	Locale     string
+	QuestionID uuid.UUID
+}
+
+func (q *Queries) AddQuestionTranslation(ctx context.Context, arg AddQuestionTranslationParams) (QuestionsI18n, error) {
+	row := q.db.QueryRow(ctx, addQuestionTranslation,
+		arg.ID,
+		arg.Question,
+		arg.Locale,
+		arg.QuestionID,
+	)
+	var i QuestionsI18n
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.Question,
+		&i.Locale,
+		&i.QuestionID,
 	)
 	return i, err
 }
@@ -394,7 +425,7 @@ func (q *Queries) GetAllPlayerByRoomCode(ctx context.Context, roomCode string) (
 }
 
 const getAllPlayersByGameStateID = `-- name: GetAllPlayersByGameStateID :many
-SELECT p.id, p.nickname, p.avatar
+SELECT p.id, p.nickname, p.avatar, p.locale
 FROM players p
 JOIN rooms_players rp ON p.id = rp.player_id
 JOIN game_state gs ON rp.room_id = gs.room_id
@@ -405,6 +436,7 @@ type GetAllPlayersByGameStateIDRow struct {
 	ID       uuid.UUID
 	Nickname string
 	Avatar   string
+	Locale   pgtype.Text
 }
 
 func (q *Queries) GetAllPlayersByGameStateID(ctx context.Context, id uuid.UUID) ([]GetAllPlayersByGameStateIDRow, error) {
@@ -416,7 +448,12 @@ func (q *Queries) GetAllPlayersByGameStateID(ctx context.Context, id uuid.UUID) 
 	var items []GetAllPlayersByGameStateIDRow
 	for rows.Next() {
 		var i GetAllPlayersByGameStateIDRow
-		if err := rows.Scan(&i.ID, &i.Nickname, &i.Avatar); err != nil {
+		if err := rows.Scan(
+			&i.ID,
+			&i.Nickname,
+			&i.Avatar,
+			&i.Locale,
+		); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
@@ -428,7 +465,7 @@ func (q *Queries) GetAllPlayersByGameStateID(ctx context.Context, id uuid.UUID) 
 }
 
 const getAllPlayersInRoom = `-- name: GetAllPlayersInRoom :many
-SELECT p.id, p.created_at, p.updated_at, p.avatar, p.nickname, p.is_ready, r.room_code, r.host_player
+SELECT p.id, p.created_at, p.updated_at, p.avatar, p.nickname, p.is_ready, p.locale, r.room_code, r.host_player
 FROM players p
 JOIN rooms_players rp ON p.id = rp.player_id
 JOIN rooms r ON rp.room_id = r.id
@@ -446,6 +483,7 @@ type GetAllPlayersInRoomRow struct {
 	Avatar     string
 	Nickname   string
 	IsReady    pgtype.Bool
+	Locale     pgtype.Text
 	RoomCode   string
 	HostPlayer uuid.UUID
 }
@@ -466,6 +504,7 @@ func (q *Queries) GetAllPlayersInRoom(ctx context.Context, playerID uuid.UUID) (
 			&i.Avatar,
 			&i.Nickname,
 			&i.IsReady,
+			&i.Locale,
 			&i.RoomCode,
 			&i.HostPlayer,
 		); err != nil {
@@ -585,7 +624,7 @@ SELECT
     p.id AS player_id,
     p.nickname,
     fpr.player_role AS role,
-    fq2.question AS question,
+    qi.question AS question,
     p.avatar,
     COALESCE(fia.is_ready, FALSE) AS is_answer_ready
 FROM players p
@@ -593,11 +632,12 @@ JOIN rooms_players rp ON p.id = rp.player_id
 JOIN rooms r ON rp.room_id = r.id
 JOIN game_state gs ON gs.room_id = r.id
 JOIN fibbing_it_rounds fr ON fr.game_state_id = gs.id
-LEFT JOIN questions fq2 ON fr.normal_question_id = fq2.id
+LEFT JOIN questions q ON fr.normal_question_id = q.id
+LEFT JOIN questions_i18n qi ON q.id = qi.question_id AND qi.locale = 'en-GB'
 LEFT JOIN fibbing_it_player_roles fpr ON p.id = fpr.player_id AND fr.id = fpr.round_id
 LEFT JOIN fibbing_it_answers fia ON p.id = fia.player_id AND fr.id = fia.round_id
 WHERE p.id = $1
-ORDER BY fr.created_at DESC
+ORDER BY fr.round DESC
 LIMIT 1
 `
 
@@ -765,7 +805,7 @@ func (q *Queries) GetLatestRoundByPlayerID(ctx context.Context, playerID uuid.UU
 }
 
 const getPlayerByID = `-- name: GetPlayerByID :one
-SELECT id, created_at, updated_at, avatar, nickname, is_ready FROM players WHERE id = $1
+SELECT id, created_at, updated_at, avatar, nickname, is_ready, locale FROM players WHERE id = $1
 `
 
 func (q *Queries) GetPlayerByID(ctx context.Context, id uuid.UUID) (Player, error) {
@@ -778,47 +818,89 @@ func (q *Queries) GetPlayerByID(ctx context.Context, id uuid.UUID) (Player, erro
 		&i.Avatar,
 		&i.Nickname,
 		&i.IsReady,
+		&i.Locale,
 	)
 	return i, err
 }
 
-const getRandomQuestionByRound = `-- name: GetRandomQuestionByRound :one
-SELECT id, created_at, updated_at, game_name, round, enabled, question, language_code, group_id FROM questions WHERE game_name = $1 AND round = $2 AND language_code = $3 AND enabled = TRUE ORDER BY RANDOM() LIMIT 1
+const getRandomQuestionByRound = `-- name: GetRandomQuestionByRound :many
+SELECT
+    qi.id, qi.created_at, qi.updated_at, qi.question, qi.locale, qi.question_id,
+    random_question.group_id,
+    random_question.id
+FROM questions_i18n qi
+JOIN (
+    SELECT q.id, q.group_id
+    FROM questions q
+    WHERE q.game_name = $1
+      AND q.round_type = $2
+      AND q.enabled = TRUE
+    ORDER BY RANDOM()
+    LIMIT 1
+) random_question ON qi.question_id = random_question.id
 `
 
 type GetRandomQuestionByRoundParams struct {
-	GameName     string
-	Round        string
-	LanguageCode string
+	GameName  string
+	RoundType string
 }
 
-func (q *Queries) GetRandomQuestionByRound(ctx context.Context, arg GetRandomQuestionByRoundParams) (Question, error) {
-	row := q.db.QueryRow(ctx, getRandomQuestionByRound, arg.GameName, arg.Round, arg.LanguageCode)
-	var i Question
-	err := row.Scan(
-		&i.ID,
-		&i.CreatedAt,
-		&i.UpdatedAt,
-		&i.GameName,
-		&i.Round,
-		&i.Enabled,
-		&i.Question,
-		&i.LanguageCode,
-		&i.GroupID,
-	)
-	return i, err
+type GetRandomQuestionByRoundRow struct {
+	ID         uuid.UUID
+	CreatedAt  pgtype.Timestamp
+	UpdatedAt  pgtype.Timestamp
+	Question   string
+	Locale     string
+	QuestionID uuid.UUID
+	GroupID    uuid.UUID
+	ID_2       uuid.UUID
 }
 
-const getRandomQuestionInGroup = `-- name: GetRandomQuestionInGroup :one
-SELECT q.id, q.created_at, q.updated_at, game_name, round, enabled, question, language_code, group_id, qg.id, qg.created_at, qg.updated_at, group_name, group_type
-FROM questions q
-JOIN questions_groups qg ON q.group_id = qg.id
-WHERE qg.group_type = 'questions'
-  AND q.group_id = $1
-  AND q.enabled = TRUE
-  AND q.id != $2
-ORDER BY RANDOM()
-LIMIT 1
+func (q *Queries) GetRandomQuestionByRound(ctx context.Context, arg GetRandomQuestionByRoundParams) ([]GetRandomQuestionByRoundRow, error) {
+	rows, err := q.db.Query(ctx, getRandomQuestionByRound, arg.GameName, arg.RoundType)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetRandomQuestionByRoundRow
+	for rows.Next() {
+		var i GetRandomQuestionByRoundRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.Question,
+			&i.Locale,
+			&i.QuestionID,
+			&i.GroupID,
+			&i.ID_2,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getRandomQuestionInGroup = `-- name: GetRandomQuestionInGroup :many
+SELECT
+    qi.id, qi.created_at, qi.updated_at, qi.question, qi.locale, qi.question_id,
+    random_question.id
+FROM questions_i18n qi
+JOIN (
+    SELECT q.id
+    FROM questions q
+    JOIN questions_groups qg ON q.group_id = qg.id
+    WHERE qg.group_type = 'questions'
+      AND q.group_id = $1
+      AND q.enabled = TRUE
+      AND q.id != $2
+    ORDER BY RANDOM()
+    LIMIT 1
+) random_question ON qi.question_id = random_question.id
 `
 
 type GetRandomQuestionInGroupParams struct {
@@ -827,42 +909,41 @@ type GetRandomQuestionInGroupParams struct {
 }
 
 type GetRandomQuestionInGroupRow struct {
-	ID           uuid.UUID
-	CreatedAt    pgtype.Timestamp
-	UpdatedAt    pgtype.Timestamp
-	GameName     string
-	Round        string
-	Enabled      pgtype.Bool
-	Question     string
-	LanguageCode string
-	GroupID      uuid.UUID
-	ID_2         uuid.UUID
-	CreatedAt_2  pgtype.Timestamp
-	UpdatedAt_2  pgtype.Timestamp
-	GroupName    string
-	GroupType    string
+	ID         uuid.UUID
+	CreatedAt  pgtype.Timestamp
+	UpdatedAt  pgtype.Timestamp
+	Question   string
+	Locale     string
+	QuestionID uuid.UUID
+	ID_2       uuid.UUID
 }
 
-func (q *Queries) GetRandomQuestionInGroup(ctx context.Context, arg GetRandomQuestionInGroupParams) (GetRandomQuestionInGroupRow, error) {
-	row := q.db.QueryRow(ctx, getRandomQuestionInGroup, arg.GroupID, arg.ID)
-	var i GetRandomQuestionInGroupRow
-	err := row.Scan(
-		&i.ID,
-		&i.CreatedAt,
-		&i.UpdatedAt,
-		&i.GameName,
-		&i.Round,
-		&i.Enabled,
-		&i.Question,
-		&i.LanguageCode,
-		&i.GroupID,
-		&i.ID_2,
-		&i.CreatedAt_2,
-		&i.UpdatedAt_2,
-		&i.GroupName,
-		&i.GroupType,
-	)
-	return i, err
+func (q *Queries) GetRandomQuestionInGroup(ctx context.Context, arg GetRandomQuestionInGroupParams) ([]GetRandomQuestionInGroupRow, error) {
+	rows, err := q.db.Query(ctx, getRandomQuestionInGroup, arg.GroupID, arg.ID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetRandomQuestionInGroupRow
+	for rows.Next() {
+		var i GetRandomQuestionInGroupRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.Question,
+			&i.Locale,
+			&i.QuestionID,
+			&i.ID_2,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const getRoomByCode = `-- name: GetRoomByCode :one
@@ -906,8 +987,8 @@ func (q *Queries) GetRoomByPlayerID(ctx context.Context, playerID uuid.UUID) (Ro
 const getVotingState = `-- name: GetVotingState :many
 SELECT
     fir.round AS round,
-    gs.id as game_state_id,
-    q.question,
+    gs.id AS game_state_id,
+    qi.question,
     gs.submit_deadline,
     p.id AS player_id,
     p.nickname,
@@ -918,6 +999,7 @@ SELECT
     fpr.player_role AS role
 FROM fibbing_it_rounds fir
 JOIN questions q ON fir.normal_question_id = q.id
+JOIN questions_i18n qi ON q.id = qi.question_id AND qi.locale = 'en-GB'
 JOIN game_state gs ON fir.game_state_id = gs.id
 JOIN rooms_players rp ON rp.room_id = gs.room_id
 JOIN players p ON p.id = rp.player_id
@@ -927,7 +1009,7 @@ LEFT JOIN fibbing_it_player_roles fpr ON p.id = fpr.player_id AND fir.id = fpr.r
 WHERE fir.id = $1
 GROUP BY
     fir.round,
-    q.question,
+    qi.question,
     gs.submit_deadline,
     p.id,
     p.nickname,
@@ -1021,7 +1103,7 @@ func (q *Queries) ToggleAnswerIsReady(ctx context.Context, playerID uuid.UUID) (
 }
 
 const togglePlayerIsReady = `-- name: TogglePlayerIsReady :one
-UPDATE players SET is_ready = NOT is_ready WHERE id = $1 RETURNING id, created_at, updated_at, avatar, nickname, is_ready
+UPDATE players SET is_ready = NOT is_ready WHERE id = $1 RETURNING id, created_at, updated_at, avatar, nickname, is_ready, locale
 `
 
 func (q *Queries) TogglePlayerIsReady(ctx context.Context, id uuid.UUID) (Player, error) {
@@ -1034,6 +1116,7 @@ func (q *Queries) TogglePlayerIsReady(ctx context.Context, id uuid.UUID) (Player
 		&i.Avatar,
 		&i.Nickname,
 		&i.IsReady,
+		&i.Locale,
 	)
 	return i, err
 }
@@ -1058,7 +1141,7 @@ func (q *Queries) ToggleVotingIsReady(ctx context.Context, playerID uuid.UUID) (
 }
 
 const updateAvatar = `-- name: UpdateAvatar :one
-UPDATE players SET avatar = $1 WHERE id = $2 RETURNING id, created_at, updated_at, avatar, nickname, is_ready
+UPDATE players SET avatar = $1 WHERE id = $2 RETURNING id, created_at, updated_at, avatar, nickname, is_ready, locale
 `
 
 type UpdateAvatarParams struct {
@@ -1076,6 +1159,7 @@ func (q *Queries) UpdateAvatar(ctx context.Context, arg UpdateAvatarParams) (Pla
 		&i.Avatar,
 		&i.Nickname,
 		&i.IsReady,
+		&i.Locale,
 	)
 	return i, err
 }
@@ -1104,8 +1188,32 @@ func (q *Queries) UpdateGameState(ctx context.Context, arg UpdateGameStateParams
 	return i, err
 }
 
+const updateLocale = `-- name: UpdateLocale :one
+UPDATE players SET locale = $1 WHERE id = $2 RETURNING id, created_at, updated_at, avatar, nickname, is_ready, locale
+`
+
+type UpdateLocaleParams struct {
+	Locale pgtype.Text
+	ID     uuid.UUID
+}
+
+func (q *Queries) UpdateLocale(ctx context.Context, arg UpdateLocaleParams) (Player, error) {
+	row := q.db.QueryRow(ctx, updateLocale, arg.Locale, arg.ID)
+	var i Player
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.Avatar,
+		&i.Nickname,
+		&i.IsReady,
+		&i.Locale,
+	)
+	return i, err
+}
+
 const updateNickname = `-- name: UpdateNickname :one
-UPDATE players SET nickname = $1 WHERE id = $2 RETURNING id, created_at, updated_at, avatar, nickname, is_ready
+UPDATE players SET nickname = $1 WHERE id = $2 RETURNING id, created_at, updated_at, avatar, nickname, is_ready, locale
 `
 
 type UpdateNicknameParams struct {
@@ -1123,6 +1231,7 @@ func (q *Queries) UpdateNickname(ctx context.Context, arg UpdateNicknameParams) 
 		&i.Avatar,
 		&i.Nickname,
 		&i.IsReady,
+		&i.Locale,
 	)
 	return i, err
 }

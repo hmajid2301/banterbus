@@ -1,7 +1,6 @@
 package service_test
 
 import (
-	"context"
 	"testing"
 
 	"github.com/google/uuid"
@@ -26,8 +25,11 @@ func TestIntegrationPlayerUpdateNickname(t *testing.T) {
 		newPlayer := service.NewHostPlayer{
 			ID: id,
 		}
-		ctx := context.Background()
-		lobbyService := service.NewLobbyService(str, randomizer)
+
+		ctx, err := getI18nCtx()
+		require.NoError(t, err)
+
+		lobbyService := service.NewLobbyService(str, randomizer, "en-GB")
 		lobbyService.Create(ctx, "fibbing_it", newPlayer)
 
 		srv := service.NewPlayerService(str, randomizer)
@@ -49,8 +51,11 @@ func TestIntegrationPlayerUpdateNickname(t *testing.T) {
 			ID:       id,
 			Nickname: "majiy01",
 		}
-		ctx := context.Background()
-		lobbyService := service.NewLobbyService(str, randomizer)
+
+		ctx, err := getI18nCtx()
+		require.NoError(t, err)
+
+		lobbyService := service.NewLobbyService(str, randomizer, "en-GB")
 		lobby, err := lobbyService.Create(ctx, "fibbing_it", newPlayer)
 		require.NoError(t, err)
 
@@ -79,8 +84,11 @@ func TestIntegrationPlayerUpdateNickname(t *testing.T) {
 			ID:       id,
 			Nickname: "majiy01",
 		}
-		ctx := context.Background()
-		lobbyService := service.NewLobbyService(str, randomizer)
+
+		ctx, err := getI18nCtx()
+		require.NoError(t, err)
+
+		lobbyService := service.NewLobbyService(str, randomizer, "en-GB")
 		lobbyService.Create(ctx, "fibbing_it", newPlayer)
 
 		srv := service.NewPlayerService(str, randomizer)
@@ -102,8 +110,11 @@ func TestIntegrationPlayerGenerateNewAvatar(t *testing.T) {
 		newPlayer := service.NewHostPlayer{
 			ID: id,
 		}
-		ctx := context.Background()
-		lobbyService := service.NewLobbyService(str, randomizer)
+
+		ctx, err := getI18nCtx()
+		require.NoError(t, err)
+
+		lobbyService := service.NewLobbyService(str, randomizer, "en-GB")
 		lobby, err := lobbyService.Create(ctx, "fibbing_it", newPlayer)
 		require.NoError(t, err)
 		oldAvatar := lobby.Players[0].Avatar
@@ -127,8 +138,11 @@ func TestIntegrationPlayerGenerateNewAvatar(t *testing.T) {
 		newPlayer := service.NewHostPlayer{
 			ID: id,
 		}
-		ctx := context.Background()
-		lobbyService := service.NewLobbyService(str, randomizer)
+
+		ctx, err := getI18nCtx()
+		require.NoError(t, err)
+
+		lobbyService := service.NewLobbyService(str, randomizer, "en-GB")
 		lobby, err := lobbyService.Create(ctx, "fibbing_it", newPlayer)
 		require.NoError(t, err)
 
@@ -158,8 +172,11 @@ func TestIntegrationToggleIsReady(t *testing.T) {
 		newPlayer := service.NewHostPlayer{
 			ID: id,
 		}
-		ctx := context.Background()
-		lobbyService := service.NewLobbyService(str, randomizer)
+
+		ctx, err := getI18nCtx()
+		require.NoError(t, err)
+
+		lobbyService := service.NewLobbyService(str, randomizer, "en-GB")
 		_, err = lobbyService.Create(ctx, "fibbing_it", newPlayer)
 		require.NoError(t, err)
 
@@ -181,8 +198,11 @@ func TestIntegrationToggleIsReady(t *testing.T) {
 		newPlayer := service.NewHostPlayer{
 			ID: id,
 		}
-		ctx := context.Background()
-		lobbyService := service.NewLobbyService(str, randomizer)
+
+		ctx, err := getI18nCtx()
+		require.NoError(t, err)
+
+		lobbyService := service.NewLobbyService(str, randomizer, "en-GB")
 		_, err = lobbyService.Create(ctx, "fibbing_it", newPlayer)
 		require.NoError(t, err)
 
@@ -206,8 +226,11 @@ func TestIntegrationToggleIsReady(t *testing.T) {
 		newPlayer := service.NewHostPlayer{
 			ID: id,
 		}
-		ctx := context.Background()
-		lobbyService := service.NewLobbyService(str, randomizer)
+
+		ctx, err := getI18nCtx()
+		require.NoError(t, err)
+
+		lobbyService := service.NewLobbyService(str, randomizer, "en-GB")
 		_, err = lobbyService.Create(ctx, "fibbing_it", newPlayer)
 		require.NoError(t, err)
 
@@ -228,8 +251,11 @@ func TestIntegrationToggleIsReady(t *testing.T) {
 		newPlayer := service.NewHostPlayer{
 			ID: id,
 		}
-		ctx := context.Background()
-		lobbyService := service.NewLobbyService(str, randomizer)
+
+		ctx, err := getI18nCtx()
+		require.NoError(t, err)
+
+		lobbyService := service.NewLobbyService(str, randomizer, "en-GB")
 		lobby, err := lobbyService.Create(ctx, "fibbing_it", newPlayer)
 		require.NoError(t, err)
 

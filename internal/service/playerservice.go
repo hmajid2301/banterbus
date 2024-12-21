@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgtype"
 
 	"gitlab.com/hmajid2301/banterbus/internal/store/db"
 )
@@ -111,4 +112,10 @@ func (p *PlayerService) TogglePlayerIsReady(ctx context.Context, playerID uuid.U
 	return lobby, err
 }
 
-// TODO: move these to their own service file don't really belong
+func (p *PlayerService) UpdateLocale(ctx context.Context, playerID uuid.UUID, newLocale string) error {
+	_, err := p.store.UpdateLocale(ctx, db.UpdateLocaleParams{
+		ID:     playerID,
+		Locale: pgtype.Text{String: newLocale},
+	})
+	return err
+}

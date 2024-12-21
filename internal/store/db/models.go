@@ -74,18 +74,17 @@ type Player struct {
 	Avatar    string
 	Nickname  string
 	IsReady   pgtype.Bool
+	Locale    pgtype.Text
 }
 
 type Question struct {
-	ID           uuid.UUID
-	CreatedAt    pgtype.Timestamp
-	UpdatedAt    pgtype.Timestamp
-	GameName     string
-	Round        string
-	Enabled      pgtype.Bool
-	Question     string
-	LanguageCode string
-	GroupID      uuid.UUID
+	ID        uuid.UUID
+	CreatedAt pgtype.Timestamp
+	UpdatedAt pgtype.Timestamp
+	GameName  string
+	RoundType string
+	Enabled   pgtype.Bool
+	GroupID   uuid.UUID
 }
 
 type QuestionsGroup struct {
@@ -94,6 +93,15 @@ type QuestionsGroup struct {
 	UpdatedAt pgtype.Timestamp
 	GroupName string
 	GroupType string
+}
+
+type QuestionsI18n struct {
+	ID         uuid.UUID
+	CreatedAt  pgtype.Timestamp
+	UpdatedAt  pgtype.Timestamp
+	Question   string
+	Locale     string
+	QuestionID uuid.UUID
 }
 
 type Room struct {

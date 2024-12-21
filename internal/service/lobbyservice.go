@@ -8,20 +8,23 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/invopop/ctxi18n"
+	"github.com/jackc/pgx/v5/pgtype"
 
 	"gitlab.com/hmajid2301/banterbus/internal/store/db"
 )
 
 type LobbyService struct {
-	store      Storer
-	randomizer Randomizer
+	store         Storer
+	randomizer    Randomizer
+	defaultLocale string
 }
 
 var ErrNicknameExists = errors.New("nickname already exists in room")
 var ErrPlayerAlreadyInRoom = errors.New("player is already in the room")
 
-func NewLobbyService(store Storer, randomizer Randomizer) *LobbyService {
-	return &LobbyService{store: store, randomizer: randomizer}
+func NewLobbyService(store Storer, randomizer Randomizer, defaultLocale string) *LobbyService {
+	return &LobbyService{store: store, randomizer: randomizer, defaultLocale: defaultLocale}
 }
 
 func (r *LobbyService) Create(ctx context.Context, gameName string, newHostPlayer NewHostPlayer) (Lobby, error) {
@@ -44,10 +47,12 @@ func (r *LobbyService) Create(ctx context.Context, gameName string, newHostPlaye
 		}
 	}
 
+	locale := ctxi18n.Locale(ctx).Code().String()
 	addPlayer := db.AddPlayerParams{
 		ID:       player.ID,
 		Avatar:   player.Avatar,
 		Nickname: player.Nickname,
+		Locale:   pgtype.Text{String: locale},
 	}
 
 	roomID := r.randomizer.GetID()
@@ -119,10 +124,12 @@ func (r *LobbyService) Join(ctx context.Context, roomCode string, playerID uuid.
 		}
 	}
 
+	locale := ctxi18n.Locale(ctx).Code().String()
 	addPlayer := db.AddPlayerParams{
 		ID:       newPlayer.ID,
 		Avatar:   newPlayer.Avatar,
 		Nickname: newPlayer.Nickname,
+		Locale:   pgtype.Text{String: locale},
 	}
 
 	addRoomPlayer := db.AddRoomPlayerParams{
@@ -234,32 +241,30 @@ func (r *LobbyService) Start(
 		}
 	}
 
-	normalsQuestion, err := r.store.GetRandomQuestionByRound(ctx, db.GetRandomQuestionByRoundParams{
-		GameName:     room.GameName,
-		LanguageCode: "en-GB",
-		Round:        "free_form",
+	normalsQuestions, err := r.store.GetRandomQuestionByRound(ctx, db.GetRandomQuestionByRoundParams{
+		GameName:  room.GameName,
+		RoundType: "free_form",
 	})
 	if err != nil {
 		return QuestionState{}, err
 	}
 
-	fibberQuestion, err := r.store.GetRandomQuestionInGroup(ctx, db.GetRandomQuestionInGroupParams{
-		GroupID: normalsQuestion.GroupID,
-		ID:      normalsQuestion.ID,
+	fibberQuestions, err := r.store.GetRandomQuestionInGroup(ctx, db.GetRandomQuestionInGroupParams{
+		GroupID: normalsQuestions[0].GroupID,
+		ID:      normalsQuestions[0].QuestionID,
 	})
 	if err != nil {
 		return QuestionState{}, err
 	}
 
-	players := []PlayerWithRole{}
 	randomFibberLoc := r.randomizer.GetFibberIndex(len(playersInRoom))
 
 	gameStateID := r.randomizer.GetID()
 	err = r.store.StartGame(ctx, db.StartGameArgs{
 		GameStateID:       gameStateID,
 		RoomID:            room.ID,
-		NormalsQuestionID: normalsQuestion.ID,
-		FibberQuestionID:  fibberQuestion.ID,
+		NormalsQuestionID: normalsQuestions[0].QuestionID,
+		FibberQuestionID:  fibberQuestions[0].QuestionID,
 		Players:           playersInRoom,
 		FibberLoc:         randomFibberLoc,
 		Deadline:          deadline,
@@ -268,13 +273,29 @@ func (r *LobbyService) Start(
 		return QuestionState{}, err
 	}
 
+	players := []PlayerWithRole{}
 	for i, player := range playersInRoom {
 		role := NormalRole
-		question := normalsQuestion.Question
+
+		var question string
+		for _, localeQuestion := range normalsQuestions {
+			if localeQuestion.Locale == player.Locale.String {
+				question = localeQuestion.Question
+			} else if question == "" && localeQuestion.Locale == r.defaultLocale {
+				question = localeQuestion.Question
+			}
+		}
 
 		if i == randomFibberLoc {
+			question = ""
 			role = FibberRole
-			question = fibberQuestion.Question
+			for _, localeQuestion := range fibberQuestions {
+				if localeQuestion.Locale == player.Locale.String {
+					question = localeQuestion.Question
+				} else if question == "" && localeQuestion.Locale == r.defaultLocale {
+					question = localeQuestion.Question
+				}
+			}
 		}
 
 		players = append(players, PlayerWithRole{

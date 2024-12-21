@@ -7,7 +7,8 @@ CREATE TABLE IF NOT EXISTS players (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     avatar TEXT NOT NULL,
     nickname TEXT NOT NULL,
-    is_ready BOOLEAN DEFAULT FALSE
+    is_ready BOOLEAN DEFAULT FALSE,
+    locale TEXT DEFAULT 'en-GB'
 );
 
 CREATE TABLE IF NOT EXISTS rooms (
@@ -54,12 +55,20 @@ CREATE TABLE questions (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     game_name TEXT NOT NULL,
-    round TEXT NOT NULL,
+    round_type TEXT NOT NULL,
     enabled BOOLEAN DEFAULT TRUE,
-    question TEXT NOT NULL,
-    language_code TEXT NOT NULL,
     group_id UUID NOT NULL,
     FOREIGN KEY (group_id) REFERENCES questions_groups (id)
+);
+
+CREATE TABLE questions_i18n (
+    id UUID PRIMARY KEY,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    question TEXT NOT NULL,
+    locale TEXT NOT NULL,
+    question_id UUID NOT NULL,
+    FOREIGN KEY (question_id) REFERENCES questions (id)
 );
 
 CREATE TABLE fibbing_it_rounds (
@@ -135,6 +144,7 @@ DROP TABLE IF EXISTS fibbing_it_player_roles;
 DROP TABLE IF EXISTS fibbing_it_answers;
 DROP TABLE IF EXISTS fibbing_it_scoring;
 DROP TABLE IF EXISTS fibbing_it_rounds;
+DROP TABLE IF EXISTS questions_i18n;
 DROP TABLE IF EXISTS questions;
 DROP TABLE IF EXISTS questions_groups;
 DROP TABLE IF EXISTS game_state;

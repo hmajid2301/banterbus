@@ -1,7 +1,6 @@
 package service_test
 
 import (
-	"context"
 	"testing"
 	"time"
 
@@ -24,10 +23,12 @@ func TestIntegrationRoundServiceSubmitAnswer(t *testing.T) {
 		assert.NoError(t, err)
 		randomizer := randomizer.NewUserRandomizer()
 
-		ctx := context.Background()
-		lobbyService := service.NewLobbyService(str, randomizer)
+		ctx, err := getI18nCtx()
+		require.NoError(t, err)
+
+		lobbyService := service.NewLobbyService(str, randomizer, "en-GB")
 		playerService := service.NewPlayerService(str, randomizer)
-		roundService := service.NewRoundService(str, randomizer)
+		roundService := service.NewRoundService(str, randomizer, "en-GB")
 
 		questionState, err := startGame(ctx, lobbyService, playerService)
 		require.NoError(t, err)
@@ -52,10 +53,12 @@ func TestIntegrationRoundServiceSubmitAnswer(t *testing.T) {
 		assert.NoError(t, err)
 		randomizer := randomizer.NewUserRandomizer()
 
-		ctx := context.Background()
-		lobbyService := service.NewLobbyService(str, randomizer)
+		ctx, err := getI18nCtx()
+		require.NoError(t, err)
+
+		lobbyService := service.NewLobbyService(str, randomizer, "en-GB")
 		playerService := service.NewPlayerService(str, randomizer)
-		roundService := service.NewRoundService(str, randomizer)
+		roundService := service.NewRoundService(str, randomizer, "en-GB")
 
 		questionState, err := startGame(ctx, lobbyService, playerService)
 		require.NoError(t, err)
@@ -77,10 +80,12 @@ func TestIntegrationRoundServiceSubmitAnswer(t *testing.T) {
 		assert.NoError(t, err)
 		randomizer := randomizer.NewUserRandomizer()
 
-		ctx := context.Background()
-		lobbyService := service.NewLobbyService(str, randomizer)
+		ctx, err := getI18nCtx()
+		require.NoError(t, err)
+
+		lobbyService := service.NewLobbyService(str, randomizer, "en-GB")
 		playerService := service.NewPlayerService(str, randomizer)
-		roundService := service.NewRoundService(str, randomizer)
+		roundService := service.NewRoundService(str, randomizer, "en-GB")
 
 		_, err = startGame(ctx, lobbyService, playerService)
 		require.NoError(t, err)
@@ -99,10 +104,12 @@ func TestIntegrationRoundServiceToggleAnswerIsReady(t *testing.T) {
 		assert.NoError(t, err)
 		randomizer := randomizer.NewUserRandomizer()
 
-		ctx := context.Background()
-		lobbyService := service.NewLobbyService(str, randomizer)
+		ctx, err := getI18nCtx()
+		require.NoError(t, err)
+
+		lobbyService := service.NewLobbyService(str, randomizer, "en-GB")
 		playerService := service.NewPlayerService(str, randomizer)
-		roundService := service.NewRoundService(str, randomizer)
+		roundService := service.NewRoundService(str, randomizer, "en-GB")
 
 		questionState, err := startGame(ctx, lobbyService, playerService)
 		require.NoError(t, err)
@@ -135,10 +142,12 @@ func TestIntegrationRoundServiceToggleAnswerIsReady(t *testing.T) {
 		assert.NoError(t, err)
 		randomizer := randomizer.NewUserRandomizer()
 
-		ctx := context.Background()
-		lobbyService := service.NewLobbyService(str, randomizer)
+		ctx, err := getI18nCtx()
+		require.NoError(t, err)
+
+		lobbyService := service.NewLobbyService(str, randomizer, "en-GB")
 		playerService := service.NewPlayerService(str, randomizer)
-		roundService := service.NewRoundService(str, randomizer)
+		roundService := service.NewRoundService(str, randomizer, "en-GB")
 
 		questionState, err := startGame(ctx, lobbyService, playerService)
 		require.NoError(t, err)
@@ -168,10 +177,12 @@ func TestIntegrationRoundServiceUpdateStateToVoting(t *testing.T) {
 		assert.NoError(t, err)
 		randomizer := randomizer.NewUserRandomizer()
 
-		ctx := context.Background()
-		lobbyService := service.NewLobbyService(str, randomizer)
+		ctx, err := getI18nCtx()
+		require.NoError(t, err)
+
+		lobbyService := service.NewLobbyService(str, randomizer, "en-GB")
 		playerService := service.NewPlayerService(str, randomizer)
-		roundService := service.NewRoundService(str, randomizer)
+		roundService := service.NewRoundService(str, randomizer, "en-GB")
 
 		questionState, err := startGame(ctx, lobbyService, playerService)
 		require.NoError(t, err)
@@ -242,10 +253,12 @@ func TestIntegrationRoundServiceUpdateStateToVoting(t *testing.T) {
 		assert.NoError(t, err)
 		randomizer := randomizer.NewUserRandomizer()
 
-		ctx := context.Background()
-		lobbyService := service.NewLobbyService(str, randomizer)
+		ctx, err := getI18nCtx()
+		require.NoError(t, err)
+
+		lobbyService := service.NewLobbyService(str, randomizer, "en-GB")
 		playerService := service.NewPlayerService(str, randomizer)
-		roundService := service.NewRoundService(str, randomizer)
+		roundService := service.NewRoundService(str, randomizer, "en-GB")
 
 		questionState, err := startGame(ctx, lobbyService, playerService)
 		require.NoError(t, err)
@@ -279,10 +292,12 @@ func TestIntegrationRoundServiceSubmitVote(t *testing.T) {
 		assert.NoError(t, err)
 		randomizer := randomizer.NewUserRandomizer()
 
-		ctx := context.Background()
-		lobbyService := service.NewLobbyService(str, randomizer)
+		ctx, err := getI18nCtx()
+		require.NoError(t, err)
+
+		lobbyService := service.NewLobbyService(str, randomizer, "en-GB")
 		playerService := service.NewPlayerService(str, randomizer)
-		roundService := service.NewRoundService(str, randomizer)
+		roundService := service.NewRoundService(str, randomizer, "en-GB")
 
 		originalVotingState, err := votingState(ctx, lobbyService, playerService, roundService)
 		assert.NoError(t, err)
@@ -305,10 +320,12 @@ func TestIntegrationRoundServiceSubmitVote(t *testing.T) {
 		assert.NoError(t, err)
 		randomizer := randomizer.NewUserRandomizer()
 
-		ctx := context.Background()
-		lobbyService := service.NewLobbyService(str, randomizer)
+		ctx, err := getI18nCtx()
+		require.NoError(t, err)
+
+		lobbyService := service.NewLobbyService(str, randomizer, "en-GB")
 		playerService := service.NewPlayerService(str, randomizer)
-		roundService := service.NewRoundService(str, randomizer)
+		roundService := service.NewRoundService(str, randomizer, "en-GB")
 
 		originalVotingState, err := votingState(ctx, lobbyService, playerService, roundService)
 		assert.NoError(t, err)
@@ -330,10 +347,12 @@ func TestIntegrationRoundServiceSubmitVote(t *testing.T) {
 		assert.NoError(t, err)
 		randomizer := randomizer.NewUserRandomizer()
 
-		ctx := context.Background()
-		lobbyService := service.NewLobbyService(str, randomizer)
+		ctx, err := getI18nCtx()
+		require.NoError(t, err)
+
+		lobbyService := service.NewLobbyService(str, randomizer, "en-GB")
 		playerService := service.NewPlayerService(str, randomizer)
-		roundService := service.NewRoundService(str, randomizer)
+		roundService := service.NewRoundService(str, randomizer, "en-GB")
 
 		originalVotingState, err := votingState(ctx, lobbyService, playerService, roundService)
 		assert.NoError(t, err)
@@ -355,10 +374,12 @@ func TestIntegrationRoundServiceSubmitVote(t *testing.T) {
 		assert.NoError(t, err)
 		randomizer := randomizer.NewUserRandomizer()
 
-		ctx := context.Background()
-		lobbyService := service.NewLobbyService(str, randomizer)
+		ctx, err := getI18nCtx()
+		require.NoError(t, err)
+
+		lobbyService := service.NewLobbyService(str, randomizer, "en-GB")
 		playerService := service.NewPlayerService(str, randomizer)
-		roundService := service.NewRoundService(str, randomizer)
+		roundService := service.NewRoundService(str, randomizer, "en-GB")
 
 		originalVotingState, err := votingState(ctx, lobbyService, playerService, roundService)
 		assert.NoError(t, err)
@@ -380,10 +401,12 @@ func TestIntegrationRoundServiceSubmitVote(t *testing.T) {
 		assert.NoError(t, err)
 		randomizer := randomizer.NewUserRandomizer()
 
-		ctx := context.Background()
-		lobbyService := service.NewLobbyService(str, randomizer)
+		ctx, err := getI18nCtx()
+		require.NoError(t, err)
+
+		lobbyService := service.NewLobbyService(str, randomizer, "en-GB")
 		playerService := service.NewPlayerService(str, randomizer)
-		roundService := service.NewRoundService(str, randomizer)
+		roundService := service.NewRoundService(str, randomizer, "en-GB")
 
 		originalVotingState, err := votingState(ctx, lobbyService, playerService, roundService)
 		assert.NoError(t, err)
@@ -407,10 +430,12 @@ func TestIntegrationRoundServiceGetVotingState(t *testing.T) {
 		assert.NoError(t, err)
 		randomizer := randomizer.NewUserRandomizer()
 
-		ctx := context.Background()
-		lobbyService := service.NewLobbyService(str, randomizer)
+		ctx, err := getI18nCtx()
+		require.NoError(t, err)
+
+		lobbyService := service.NewLobbyService(str, randomizer, "en-GB")
 		playerService := service.NewPlayerService(str, randomizer)
-		roundService := service.NewRoundService(str, randomizer)
+		roundService := service.NewRoundService(str, randomizer, "en-GB")
 
 		originalVotingState, err := votingState(ctx, lobbyService, playerService, roundService)
 		assert.NoError(t, err)
@@ -431,10 +456,12 @@ func TestIntegrationRoundServiceGetVotingState(t *testing.T) {
 		assert.NoError(t, err)
 		randomizer := randomizer.NewUserRandomizer()
 
-		ctx := context.Background()
-		lobbyService := service.NewLobbyService(str, randomizer)
+		ctx, err := getI18nCtx()
+		require.NoError(t, err)
+
+		lobbyService := service.NewLobbyService(str, randomizer, "en-GB")
 		playerService := service.NewPlayerService(str, randomizer)
-		roundService := service.NewRoundService(str, randomizer)
+		roundService := service.NewRoundService(str, randomizer, "en-GB")
 
 		_, err = votingState(ctx, lobbyService, playerService, roundService)
 		assert.NoError(t, err)
@@ -453,10 +480,12 @@ func TestIntegrationRoundServiceToggleVotingIsReady(t *testing.T) {
 		assert.NoError(t, err)
 		randomizer := randomizer.NewUserRandomizer()
 
-		ctx := context.Background()
-		lobbyService := service.NewLobbyService(str, randomizer)
+		ctx, err := getI18nCtx()
+		require.NoError(t, err)
+
+		lobbyService := service.NewLobbyService(str, randomizer, "en-GB")
 		playerService := service.NewPlayerService(str, randomizer)
-		roundService := service.NewRoundService(str, randomizer)
+		roundService := service.NewRoundService(str, randomizer, "en-GB")
 
 		originalVotingState, err := votingState(ctx, lobbyService, playerService, roundService)
 		assert.NoError(t, err)
@@ -491,10 +520,12 @@ func TestIntegrationRoundServiceToggleVotingIsReady(t *testing.T) {
 		assert.NoError(t, err)
 		randomizer := randomizer.NewUserRandomizer()
 
-		ctx := context.Background()
-		lobbyService := service.NewLobbyService(str, randomizer)
+		ctx, err := getI18nCtx()
+		require.NoError(t, err)
+
+		lobbyService := service.NewLobbyService(str, randomizer, "en-GB")
 		playerService := service.NewPlayerService(str, randomizer)
-		roundService := service.NewRoundService(str, randomizer)
+		roundService := service.NewRoundService(str, randomizer, "en-GB")
 
 		originalVotingState, err := votingState(ctx, lobbyService, playerService, roundService)
 		assert.NoError(t, err)
@@ -511,10 +542,12 @@ func TestIntegrationRoundServiceToggleVotingIsReady(t *testing.T) {
 		assert.NoError(t, err)
 		randomizer := randomizer.NewUserRandomizer()
 
-		ctx := context.Background()
-		lobbyService := service.NewLobbyService(str, randomizer)
+		ctx, err := getI18nCtx()
+		require.NoError(t, err)
+
+		lobbyService := service.NewLobbyService(str, randomizer, "en-GB")
 		playerService := service.NewPlayerService(str, randomizer)
-		roundService := service.NewRoundService(str, randomizer)
+		roundService := service.NewRoundService(str, randomizer, "en-GB")
 
 		originalVotingState, err := votingState(ctx, lobbyService, playerService, roundService)
 		assert.NoError(t, err)
@@ -544,10 +577,12 @@ func TestIntegrationRoundServiceToggleVotingIsReady(t *testing.T) {
 		assert.NoError(t, err)
 		randomizer := randomizer.NewUserRandomizer()
 
-		ctx := context.Background()
-		lobbyService := service.NewLobbyService(str, randomizer)
+		ctx, err := getI18nCtx()
+		require.NoError(t, err)
+
+		lobbyService := service.NewLobbyService(str, randomizer, "en-GB")
 		playerService := service.NewPlayerService(str, randomizer)
-		roundService := service.NewRoundService(str, randomizer)
+		roundService := service.NewRoundService(str, randomizer, "en-GB")
 
 		originalVotingState, err := votingState(ctx, lobbyService, playerService, roundService)
 		assert.NoError(t, err)
@@ -583,10 +618,12 @@ func TestIntegrationRoundServiceUpdateStateToReveal(t *testing.T) {
 		assert.NoError(t, err)
 		randomizer := randomizer.NewUserRandomizer()
 
-		ctx := context.Background()
-		lobbyService := service.NewLobbyService(str, randomizer)
+		ctx, err := getI18nCtx()
+		require.NoError(t, err)
+
+		lobbyService := service.NewLobbyService(str, randomizer, "en-GB")
 		playerService := service.NewPlayerService(str, randomizer)
-		roundService := service.NewRoundService(str, randomizer)
+		roundService := service.NewRoundService(str, randomizer, "en-GB")
 
 		originalVotingState, err := votingState(ctx, lobbyService, playerService, roundService)
 		assert.NoError(t, err)
@@ -629,10 +666,12 @@ func TestIntegrationRoundServiceGetRevealState(t *testing.T) {
 		assert.NoError(t, err)
 		randomizer := randomizer.NewUserRandomizer()
 
-		ctx := context.Background()
-		lobbyService := service.NewLobbyService(str, randomizer)
+		ctx, err := getI18nCtx()
+		require.NoError(t, err)
+
+		lobbyService := service.NewLobbyService(str, randomizer, "en-GB")
 		playerService := service.NewPlayerService(str, randomizer)
-		roundService := service.NewRoundService(str, randomizer)
+		roundService := service.NewRoundService(str, randomizer, "en-GB")
 
 		originalVotingState, err := votingState(ctx, lobbyService, playerService, roundService)
 		assert.NoError(t, err)
@@ -671,10 +710,12 @@ func TestIntegrationRoundServiceUpdateStateToQuestion(t *testing.T) {
 		assert.NoError(t, err)
 		randomizer := randomizer.NewUserRandomizer()
 
-		ctx := context.Background()
-		lobbyService := service.NewLobbyService(str, randomizer)
+		ctx, err := getI18nCtx()
+		require.NoError(t, err)
+
+		lobbyService := service.NewLobbyService(str, randomizer, "en-GB")
 		playerService := service.NewPlayerService(str, randomizer)
-		roundService := service.NewRoundService(str, randomizer)
+		roundService := service.NewRoundService(str, randomizer, "en-GB")
 
 		revealState, err := revealState(ctx, lobbyService, playerService, roundService)
 		require.NoError(t, err)
@@ -711,10 +752,12 @@ func TestIntegrationRoundServiceGetQuestionState(t *testing.T) {
 		assert.NoError(t, err)
 		randomizer := randomizer.NewUserRandomizer()
 
-		ctx := context.Background()
-		lobbyService := service.NewLobbyService(str, randomizer)
+		ctx, err := getI18nCtx()
+		require.NoError(t, err)
+
+		lobbyService := service.NewLobbyService(str, randomizer, "en-GB")
 		playerService := service.NewPlayerService(str, randomizer)
-		roundService := service.NewRoundService(str, randomizer)
+		roundService := service.NewRoundService(str, randomizer, "en-GB")
 
 		revealState, err := revealState(ctx, lobbyService, playerService, roundService)
 		require.NoError(t, err)
@@ -750,10 +793,12 @@ func TestIntegrationRoundServiceGetGameState(t *testing.T) {
 		assert.NoError(t, err)
 		randomizer := randomizer.NewUserRandomizer()
 
-		ctx := context.Background()
-		lobbyService := service.NewLobbyService(str, randomizer)
+		ctx, err := getI18nCtx()
+		require.NoError(t, err)
+
+		lobbyService := service.NewLobbyService(str, randomizer, "en-GB")
 		playerService := service.NewPlayerService(str, randomizer)
-		roundService := service.NewRoundService(str, randomizer)
+		roundService := service.NewRoundService(str, randomizer, "en-GB")
 
 		votingState, err := votingState(ctx, lobbyService, playerService, roundService)
 		require.NoError(t, err)
@@ -771,10 +816,12 @@ func TestIntegrationRoundServiceGetGameState(t *testing.T) {
 		assert.NoError(t, err)
 		randomizer := randomizer.NewUserRandomizer()
 
-		ctx := context.Background()
-		lobbyService := service.NewLobbyService(str, randomizer)
+		ctx, err := getI18nCtx()
+		require.NoError(t, err)
+
+		lobbyService := service.NewLobbyService(str, randomizer, "en-GB")
 		playerService := service.NewPlayerService(str, randomizer)
-		roundService := service.NewRoundService(str, randomizer)
+		roundService := service.NewRoundService(str, randomizer, "en-GB")
 
 		revealState, err := revealState(ctx, lobbyService, playerService, roundService)
 		require.NoError(t, err)
@@ -794,10 +841,12 @@ func TestIntegrationRoundServiceUpdateStateToScoring(t *testing.T) {
 		assert.NoError(t, err)
 		randomizer := randomizer.NewUserRandomizer()
 
-		ctx := context.Background()
-		lobbyService := service.NewLobbyService(str, randomizer)
+		ctx, err := getI18nCtx()
+		require.NoError(t, err)
+
+		lobbyService := service.NewLobbyService(str, randomizer, "en-GB")
 		playerService := service.NewPlayerService(str, randomizer)
-		roundService := service.NewRoundService(str, randomizer)
+		roundService := service.NewRoundService(str, randomizer, "en-GB")
 
 		revealState, err := revealState(ctx, lobbyService, playerService, roundService)
 		require.NoError(t, err)
@@ -850,10 +899,12 @@ func TestIntegrationRoundServiceGetScoringState(t *testing.T) {
 		assert.NoError(t, err)
 		randomizer := randomizer.NewUserRandomizer()
 
-		ctx := context.Background()
-		lobbyService := service.NewLobbyService(str, randomizer)
+		ctx, err := getI18nCtx()
+		require.NoError(t, err)
+
+		lobbyService := service.NewLobbyService(str, randomizer, "en-GB")
 		playerService := service.NewPlayerService(str, randomizer)
-		roundService := service.NewRoundService(str, randomizer)
+		roundService := service.NewRoundService(str, randomizer, "en-GB")
 
 		revealState, err := revealState(ctx, lobbyService, playerService, roundService)
 		require.NoError(t, err)

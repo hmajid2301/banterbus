@@ -1,7 +1,6 @@
 package service_test
 
 import (
-	"context"
 	"testing"
 	"time"
 
@@ -33,9 +32,11 @@ func TestIntegrationLobbyCreate(t *testing.T) {
 		newPlayer := service.NewHostPlayer{
 			ID: id,
 		}
-		srv := service.NewLobbyService(str, randomizer)
 
-		ctx := context.Background()
+		ctx, err := getI18nCtx()
+		require.NoError(t, err)
+
+		srv := service.NewLobbyService(str, randomizer, "en-GB")
 		lobby, err := srv.Create(ctx, "fibbing_it", newPlayer)
 
 		assert.NoError(t, err)
@@ -60,9 +61,11 @@ func TestIntegrationLobbyCreate(t *testing.T) {
 			ID:       id,
 			Nickname: "Majiy00",
 		}
-		srv := service.NewLobbyService(str, randomizer)
 
-		ctx := context.Background()
+		ctx, err := getI18nCtx()
+		require.NoError(t, err)
+
+		srv := service.NewLobbyService(str, randomizer, "en-GB")
 		lobby, err := srv.Create(ctx, "fibbing_it", newPlayer)
 
 		assert.NoError(t, err)
@@ -80,9 +83,10 @@ func TestIntegrationLobbyJoin(t *testing.T) {
 		assert.NoError(t, err)
 		randomizer := randomizer.NewUserRandomizer()
 
-		srv := service.NewLobbyService(str, randomizer)
+		ctx, err := getI18nCtx()
+		require.NoError(t, err)
 
-		ctx := context.Background()
+		srv := service.NewLobbyService(str, randomizer, "en-GB")
 		lobby, err := createRoom(ctx, srv)
 		assert.NoError(t, err)
 
@@ -111,9 +115,10 @@ func TestIntegrationLobbyJoin(t *testing.T) {
 		assert.NoError(t, err)
 		randomizer := randomizer.NewUserRandomizer()
 
-		srv := service.NewLobbyService(str, randomizer)
+		ctx, err := getI18nCtx()
+		require.NoError(t, err)
 
-		ctx := context.Background()
+		srv := service.NewLobbyService(str, randomizer, "en-GB")
 		lobby, err := createRoom(ctx, srv)
 		assert.NoError(t, err)
 
@@ -133,9 +138,10 @@ func TestIntegrationLobbyJoin(t *testing.T) {
 		assert.NoError(t, err)
 		randomizer := randomizer.NewUserRandomizer()
 
-		srv := service.NewLobbyService(str, randomizer)
+		ctx, err := getI18nCtx()
+		require.NoError(t, err)
 
-		ctx := context.Background()
+		srv := service.NewLobbyService(str, randomizer, "en-GB")
 		_, err = createRoom(ctx, srv)
 		assert.NoError(t, err)
 
@@ -151,9 +157,10 @@ func TestIntegrationLobbyJoin(t *testing.T) {
 		assert.NoError(t, err)
 		randomizer := randomizer.NewUserRandomizer()
 
-		srv := service.NewLobbyService(str, randomizer)
+		ctx, err := getI18nCtx()
+		require.NoError(t, err)
 
-		ctx := context.Background()
+		srv := service.NewLobbyService(str, randomizer, "en-GB")
 		lobby, err := createRoom(ctx, srv)
 		assert.NoError(t, err)
 
@@ -178,8 +185,10 @@ func TestIntegrationLobbyKickPlayer(t *testing.T) {
 		assert.NoError(t, err)
 		randomizer := randomizer.NewUserRandomizer()
 
-		srv := service.NewLobbyService(str, randomizer)
-		ctx := context.Background()
+		ctx, err := getI18nCtx()
+		require.NoError(t, err)
+
+		srv := service.NewLobbyService(str, randomizer, "en-GB")
 		lobby, err := lobbyWithTwoPlayers(ctx, srv)
 		assert.NoError(t, err)
 
@@ -198,8 +207,10 @@ func TestIntegrationLobbyKickPlayer(t *testing.T) {
 		assert.NoError(t, err)
 		randomizer := randomizer.NewUserRandomizer()
 
-		srv := service.NewLobbyService(str, randomizer)
-		ctx := context.Background()
+		ctx, err := getI18nCtx()
+		require.NoError(t, err)
+
+		srv := service.NewLobbyService(str, randomizer, "en-GB")
 		_, err = lobbyWithTwoPlayers(ctx, srv)
 		assert.NoError(t, err)
 
@@ -215,8 +226,10 @@ func TestIntegrationLobbyKickPlayer(t *testing.T) {
 		assert.NoError(t, err)
 		randomizer := randomizer.NewUserRandomizer()
 
-		srv := service.NewLobbyService(str, randomizer)
-		ctx := context.Background()
+		ctx, err := getI18nCtx()
+		require.NoError(t, err)
+
+		srv := service.NewLobbyService(str, randomizer, "en-GB")
 		lobby, err := lobbyWithTwoPlayers(ctx, srv)
 		assert.NoError(t, err)
 
@@ -232,8 +245,10 @@ func TestIntegrationLobbyKickPlayer(t *testing.T) {
 		assert.NoError(t, err)
 		randomizer := randomizer.NewUserRandomizer()
 
-		srv := service.NewLobbyService(str, randomizer)
-		ctx := context.Background()
+		ctx, err := getI18nCtx()
+		require.NoError(t, err)
+
+		srv := service.NewLobbyService(str, randomizer, "en-GB")
 		lobby, err := lobbyWithTwoPlayers(ctx, srv)
 		assert.NoError(t, err)
 
@@ -256,8 +271,10 @@ func TestIntegrationLobbyKickPlayer(t *testing.T) {
 		assert.NoError(t, err)
 		randomizer := randomizer.NewUserRandomizer()
 
-		srv := service.NewLobbyService(str, randomizer)
-		ctx := context.Background()
+		ctx, err := getI18nCtx()
+		require.NoError(t, err)
+
+		srv := service.NewLobbyService(str, randomizer, "en-GB")
 		lobby, err := lobbyWithTwoPlayers(ctx, srv)
 		assert.NoError(t, err)
 
@@ -275,9 +292,11 @@ func TestIntegrationLobbyStart(t *testing.T) {
 		assert.NoError(t, err)
 		randomizer := randomizer.NewUserRandomizer()
 
-		srv := service.NewLobbyService(str, randomizer)
+		ctx, err := getI18nCtx()
+		require.NoError(t, err)
+
+		srv := service.NewLobbyService(str, randomizer, "en-GB")
 		plySrv := service.NewPlayerService(str, randomizer)
-		ctx := context.Background()
 		lobby, err := lobbyWithTwoPlayers(ctx, srv)
 		assert.NoError(t, err)
 
@@ -324,9 +343,11 @@ func TestIntegrationLobbyStart(t *testing.T) {
 		assert.NoError(t, err)
 		randomizer := randomizer.NewUserRandomizer()
 
-		srv := service.NewLobbyService(str, randomizer)
+		ctx, err := getI18nCtx()
+		require.NoError(t, err)
+
+		srv := service.NewLobbyService(str, randomizer, "en-GB")
 		plySrv := service.NewPlayerService(str, randomizer)
-		ctx := context.Background()
 		_, err = lobbyWithTwoPlayers(ctx, srv)
 		assert.NoError(t, err)
 
@@ -348,9 +369,11 @@ func TestIntegrationLobbyStart(t *testing.T) {
 		assert.NoError(t, err)
 		randomizer := randomizer.NewUserRandomizer()
 
-		srv := service.NewLobbyService(str, randomizer)
+		ctx, err := getI18nCtx()
+		require.NoError(t, err)
+
+		srv := service.NewLobbyService(str, randomizer, "en-GB")
 		plySrv := service.NewPlayerService(str, randomizer)
-		ctx := context.Background()
 		lobby, err := lobbyWithTwoPlayers(ctx, srv)
 		assert.NoError(t, err)
 
@@ -372,9 +395,11 @@ func TestIntegrationLobbyStart(t *testing.T) {
 		assert.NoError(t, err)
 		randomizer := randomizer.NewUserRandomizer()
 
-		srv := service.NewLobbyService(str, randomizer)
+		ctx, err := getI18nCtx()
+		require.NoError(t, err)
+
+		srv := service.NewLobbyService(str, randomizer, "en-GB")
 		plySrv := service.NewPlayerService(str, randomizer)
-		ctx := context.Background()
 		lobby, err := lobbyWithTwoPlayers(ctx, srv)
 		assert.NoError(t, err)
 
@@ -403,8 +428,10 @@ func TestIntegrationLobbyStart(t *testing.T) {
 		assert.NoError(t, err)
 		randomizer := randomizer.NewUserRandomizer()
 
-		srv := service.NewLobbyService(str, randomizer)
-		ctx := context.Background()
+		ctx, err := getI18nCtx()
+		require.NoError(t, err)
+
+		srv := service.NewLobbyService(str, randomizer, "en-GB")
 		lobby, err := createRoom(ctx, srv)
 		assert.NoError(t, err)
 
@@ -421,9 +448,11 @@ func TestIntegrationLobbyStart(t *testing.T) {
 		assert.NoError(t, err)
 		randomizer := randomizer.NewUserRandomizer()
 
-		srv := service.NewLobbyService(str, randomizer)
+		ctx, err := getI18nCtx()
+		require.NoError(t, err)
+
+		srv := service.NewLobbyService(str, randomizer, "en-GB")
 		plySrv := service.NewPlayerService(str, randomizer)
-		ctx := context.Background()
 		lobby, err := lobbyWithTwoPlayers(ctx, srv)
 		assert.NoError(t, err)
 
@@ -449,8 +478,11 @@ func TestIntegrationLobbyGetRoomState(t *testing.T) {
 		newPlayer := service.NewHostPlayer{
 			ID: id,
 		}
-		ctx := context.Background()
-		srv := service.NewLobbyService(str, randomizer)
+
+		ctx, err := getI18nCtx()
+		require.NoError(t, err)
+
+		srv := service.NewLobbyService(str, randomizer, "en-GB")
 		_, err = srv.Create(ctx, "fibbing_it", newPlayer)
 		require.NoError(t, err)
 
@@ -471,8 +503,11 @@ func TestIntegrationLobbyGetRoomState(t *testing.T) {
 		newPlayer := service.NewHostPlayer{
 			ID: id,
 		}
-		ctx := context.Background()
-		srv := service.NewLobbyService(str, randomizer)
+
+		ctx, err := getI18nCtx()
+		require.NoError(t, err)
+
+		srv := service.NewLobbyService(str, randomizer, "en-GB")
 		_, err = srv.Create(ctx, "fibbing_it", newPlayer)
 		require.NoError(t, err)
 
@@ -489,13 +524,16 @@ func TestIntegrationLobbyGetLobby(t *testing.T) {
 		str, err := db.NewDB(pool)
 		assert.NoError(t, err)
 		randomizer := randomizer.NewUserRandomizer()
-		lobbyService := service.NewLobbyService(str, randomizer)
+		lobbyService := service.NewLobbyService(str, randomizer, "en-GB")
 
 		id := uuid.New()
 		newPlayer := service.NewHostPlayer{
 			ID: id,
 		}
-		ctx := context.Background()
+
+		ctx, err := getI18nCtx()
+		require.NoError(t, err)
+
 		createdLobby, err := lobbyService.Create(ctx, "fibbing_it", newPlayer)
 		require.NoError(t, err)
 

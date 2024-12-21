@@ -22,8 +22,8 @@ func TestRoundServiceSubmitAnswer(t *testing.T) {
 
 	t.Run("Should successfully submit answer", func(t *testing.T) {
 		mockStore := mockService.NewMockStorer(t)
-		mockRandomizer := mockService.NewMockRandomizer(t)
-		srv := service.NewRoundService(mockStore, mockRandomizer)
+		mockRandom := mockService.NewMockRandomizer(t)
+		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
 		now := time.Now()
 		ctx := context.Background()
@@ -39,7 +39,7 @@ func TestRoundServiceSubmitAnswer(t *testing.T) {
 			}, nil)
 
 		u := uuid.Must(uuid.NewV7())
-		mockRandomizer.EXPECT().GetID().Return(u)
+		mockRandom.EXPECT().GetID().Return(u)
 		mockStore.EXPECT().AddFibbingItAnswer(ctx, db.AddFibbingItAnswerParams{
 			ID:       u,
 			RoundID:  roundID,
@@ -53,8 +53,8 @@ func TestRoundServiceSubmitAnswer(t *testing.T) {
 
 	t.Run("Should fail to submit answer because we fail to get room details", func(t *testing.T) {
 		mockStore := mockService.NewMockStorer(t)
-		mockRandomizer := mockService.NewMockRandomizer(t)
-		srv := service.NewRoundService(mockStore, mockRandomizer)
+		mockRandom := mockService.NewMockRandomizer(t)
+		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
 		now := time.Now()
 		ctx := context.Background()
@@ -68,8 +68,8 @@ func TestRoundServiceSubmitAnswer(t *testing.T) {
 
 	t.Run("Should fail to submit answer because room not in PLAYING state", func(t *testing.T) {
 		mockStore := mockService.NewMockStorer(t)
-		mockRandomizer := mockService.NewMockRandomizer(t)
-		srv := service.NewRoundService(mockStore, mockRandomizer)
+		mockRandom := mockService.NewMockRandomizer(t)
+		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
 		now := time.Now()
 		ctx := context.Background()
@@ -85,8 +85,8 @@ func TestRoundServiceSubmitAnswer(t *testing.T) {
 
 	t.Run("Should fail to submit answer because failed to get latest round", func(t *testing.T) {
 		mockStore := mockService.NewMockStorer(t)
-		mockRandomizer := mockService.NewMockRandomizer(t)
-		service := service.NewRoundService(mockStore, mockRandomizer)
+		mockRandom := mockService.NewMockRandomizer(t)
+		service := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
 		now := time.Now()
 		ctx := context.Background()
@@ -106,8 +106,8 @@ func TestRoundServiceSubmitAnswer(t *testing.T) {
 
 	t.Run("Should fail to submit answer because after submit time", func(t *testing.T) {
 		mockStore := mockService.NewMockStorer(t)
-		mockRandomizer := mockService.NewMockRandomizer(t)
-		srv := service.NewRoundService(mockStore, mockRandomizer)
+		mockRandom := mockService.NewMockRandomizer(t)
+		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
 		now := time.Now()
 		ctx := context.Background()
@@ -127,8 +127,8 @@ func TestRoundServiceSubmitAnswer(t *testing.T) {
 
 	t.Run("Should fail to submit answer because failed to add answer to DB", func(t *testing.T) {
 		mockStore := mockService.NewMockStorer(t)
-		mockRandomizer := mockService.NewMockRandomizer(t)
-		srv := service.NewRoundService(mockStore, mockRandomizer)
+		mockRandom := mockService.NewMockRandomizer(t)
+		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
 		now := time.Now()
 		ctx := context.Background()
@@ -143,7 +143,7 @@ func TestRoundServiceSubmitAnswer(t *testing.T) {
 				SubmitDeadline: pgtype.Timestamp{Time: now.Add(1 * time.Hour)},
 			}, nil)
 
-		mockRandomizer.EXPECT().GetID().Return(defaultHostPlayerID)
+		mockRandom.EXPECT().GetID().Return(defaultHostPlayerID)
 		mockStore.EXPECT().AddFibbingItAnswer(ctx, db.AddFibbingItAnswerParams{
 			ID:       defaultHostPlayerID,
 			RoundID:  roundID,
@@ -159,8 +159,8 @@ func TestRoundServiceSubmitAnswer(t *testing.T) {
 func TestRoundServiceToggleAnswerIsReady(t *testing.T) {
 	t.Run("Should successfully toggle answer ready state", func(t *testing.T) {
 		mockStore := mockService.NewMockStorer(t)
-		mockRandomizer := mockService.NewMockRandomizer(t)
-		srv := service.NewRoundService(mockStore, mockRandomizer)
+		mockRandom := mockService.NewMockRandomizer(t)
+		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
 		ctx := context.Background()
 
@@ -178,8 +178,8 @@ func TestRoundServiceToggleAnswerIsReady(t *testing.T) {
 
 	t.Run("Should successfully toggle answer ready state and return all players are ready", func(t *testing.T) {
 		mockStore := mockService.NewMockStorer(t)
-		mockRandomizer := mockService.NewMockRandomizer(t)
-		srv := service.NewRoundService(mockStore, mockRandomizer)
+		mockRandom := mockService.NewMockRandomizer(t)
+		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
 		ctx := context.Background()
 
@@ -197,8 +197,8 @@ func TestRoundServiceToggleAnswerIsReady(t *testing.T) {
 
 	t.Run("Should fail to toggle answer ready state, because we fail to get game state", func(t *testing.T) {
 		mockStore := mockService.NewMockStorer(t)
-		mockRandomizer := mockService.NewMockRandomizer(t)
-		srv := service.NewRoundService(mockStore, mockRandomizer)
+		mockRandom := mockService.NewMockRandomizer(t)
+		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
 		ctx := context.Background()
 
@@ -212,8 +212,8 @@ func TestRoundServiceToggleAnswerIsReady(t *testing.T) {
 
 	t.Run("Should fail to toggle answer ready state because game state not in show question", func(t *testing.T) {
 		mockStore := mockService.NewMockStorer(t)
-		mockRandomizer := mockService.NewMockRandomizer(t)
-		srv := service.NewRoundService(mockStore, mockRandomizer)
+		mockRandom := mockService.NewMockRandomizer(t)
+		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
 		ctx := context.Background()
 
@@ -230,8 +230,8 @@ func TestRoundServiceToggleAnswerIsReady(t *testing.T) {
 		"Should fail to toggle answer ready state, because we fail to toggle answer ready state in DB",
 		func(t *testing.T) {
 			mockStore := mockService.NewMockStorer(t)
-			mockRandomizer := mockService.NewMockRandomizer(t)
-			srv := service.NewRoundService(mockStore, mockRandomizer)
+			mockRandom := mockService.NewMockRandomizer(t)
+			srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
 			ctx := context.Background()
 
@@ -252,8 +252,8 @@ func TestRoundServiceToggleAnswerIsReady(t *testing.T) {
 		"Should fail to toggle toggle answer ready state because we fail to get all players ready status from DB",
 		func(t *testing.T) {
 			mockStore := mockService.NewMockStorer(t)
-			mockRandomizer := mockService.NewMockRandomizer(t)
-			srv := service.NewRoundService(mockStore, mockRandomizer)
+			mockRandom := mockService.NewMockRandomizer(t)
+			srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
 			ctx := context.Background()
 
@@ -275,8 +275,8 @@ func TestRoundServiceToggleAnswerIsReady(t *testing.T) {
 		"Should fail to toggle toggle answer ready state because after deadline",
 		func(t *testing.T) {
 			mockStore := mockService.NewMockStorer(t)
-			mockRandomizer := mockService.NewMockRandomizer(t)
-			srv := service.NewRoundService(mockStore, mockRandomizer)
+			mockRandom := mockService.NewMockRandomizer(t)
+			srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
 			ctx := context.Background()
 
@@ -297,8 +297,8 @@ func TestRoundServiceUpdateStateToVoting(t *testing.T) {
 
 	t.Run("Should successfully update state to voting", func(t *testing.T) {
 		mockStore := mockService.NewMockStorer(t)
-		mockRandomizer := mockService.NewMockRandomizer(t)
-		srv := service.NewRoundService(mockStore, mockRandomizer)
+		mockRandom := mockService.NewMockRandomizer(t)
+		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
 		ctx := context.Background()
 		now := time.Now().Add(30 * time.Second)
@@ -366,8 +366,8 @@ func TestRoundServiceUpdateStateToVoting(t *testing.T) {
 
 	t.Run("Should fail to get game state", func(t *testing.T) {
 		mockStore := mockService.NewMockStorer(t)
-		mockRandomizer := mockService.NewMockRandomizer(t)
-		srv := service.NewRoundService(mockStore, mockRandomizer)
+		mockRandom := mockService.NewMockRandomizer(t)
+		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
 		ctx := context.Background()
 		now := time.Now().Add(30 * time.Second)
@@ -381,8 +381,8 @@ func TestRoundServiceUpdateStateToVoting(t *testing.T) {
 
 	t.Run("Should fail because state FIBBING_IT_VOTING", func(t *testing.T) {
 		mockStore := mockService.NewMockStorer(t)
-		mockRandomizer := mockService.NewMockRandomizer(t)
-		srv := service.NewRoundService(mockStore, mockRandomizer)
+		mockRandom := mockService.NewMockRandomizer(t)
+		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
 		ctx := context.Background()
 		now := time.Now().Add(30 * time.Second)
@@ -397,8 +397,8 @@ func TestRoundServiceUpdateStateToVoting(t *testing.T) {
 
 	t.Run("Should fail because update game state", func(t *testing.T) {
 		mockStore := mockService.NewMockStorer(t)
-		mockRandomizer := mockService.NewMockRandomizer(t)
-		srv := service.NewRoundService(mockStore, mockRandomizer)
+		mockRandom := mockService.NewMockRandomizer(t)
+		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
 		ctx := context.Background()
 		now := time.Now().Add(30 * time.Second)
@@ -422,8 +422,8 @@ func TestRoundServiceSubmitVote(t *testing.T) {
 
 	t.Run("Should successfully submit vote", func(t *testing.T) {
 		mockStore := mockService.NewMockStorer(t)
-		mockRandomizer := mockService.NewMockRandomizer(t)
-		srv := service.NewRoundService(mockStore, mockRandomizer)
+		mockRandom := mockService.NewMockRandomizer(t)
+		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
 		ctx := context.Background()
 
@@ -447,7 +447,7 @@ func TestRoundServiceSubmitVote(t *testing.T) {
 		}, nil)
 
 		u := uuid.Must(uuid.NewV7())
-		mockRandomizer.EXPECT().GetID().Return(u)
+		mockRandom.EXPECT().GetID().Return(u)
 		mockStore.EXPECT().UpsertFibbingItVote(ctx, db.UpsertFibbingItVoteParams{
 			ID:               u,
 			RoundID:          roundID,
@@ -509,8 +509,8 @@ func TestRoundServiceSubmitVote(t *testing.T) {
 
 	t.Run("Should fail because we fail to get game state", func(t *testing.T) {
 		mockStore := mockService.NewMockStorer(t)
-		mockRandomizer := mockService.NewMockRandomizer(t)
-		srv := service.NewRoundService(mockStore, mockRandomizer)
+		mockRandom := mockService.NewMockRandomizer(t)
+		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
 		ctx := context.Background()
 		now := time.Now().Add(30 * time.Second)
@@ -525,8 +525,8 @@ func TestRoundServiceSubmitVote(t *testing.T) {
 
 	t.Run("Should fail because game state not in voting state", func(t *testing.T) {
 		mockStore := mockService.NewMockStorer(t)
-		mockRandomizer := mockService.NewMockRandomizer(t)
-		srv := service.NewRoundService(mockStore, mockRandomizer)
+		mockRandom := mockService.NewMockRandomizer(t)
+		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
 		ctx := context.Background()
 		now := time.Now().Add(30 * time.Second)
@@ -541,8 +541,8 @@ func TestRoundServiceSubmitVote(t *testing.T) {
 
 	t.Run("Should fail because we fail to get all players in room", func(t *testing.T) {
 		mockStore := mockService.NewMockStorer(t)
-		mockRandomizer := mockService.NewMockRandomizer(t)
-		srv := service.NewRoundService(mockStore, mockRandomizer)
+		mockRandom := mockService.NewMockRandomizer(t)
+		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
 		ctx := context.Background()
 		now := time.Now().Add(30 * time.Second)
@@ -560,8 +560,8 @@ func TestRoundServiceSubmitVote(t *testing.T) {
 
 	t.Run("Should fail because we voted for themselves", func(t *testing.T) {
 		mockStore := mockService.NewMockStorer(t)
-		mockRandomizer := mockService.NewMockRandomizer(t)
-		srv := service.NewRoundService(mockStore, mockRandomizer)
+		mockRandom := mockService.NewMockRandomizer(t)
+		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
 		ctx := context.Background()
 		now := time.Now().Add(30 * time.Second)
@@ -586,8 +586,8 @@ func TestRoundServiceSubmitVote(t *testing.T) {
 
 	t.Run("Should fail because nickname not found", func(t *testing.T) {
 		mockStore := mockService.NewMockStorer(t)
-		mockRandomizer := mockService.NewMockRandomizer(t)
-		srv := service.NewRoundService(mockStore, mockRandomizer)
+		mockRandom := mockService.NewMockRandomizer(t)
+		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
 		ctx := context.Background()
 		now := time.Now().Add(30 * time.Second)
@@ -612,8 +612,8 @@ func TestRoundServiceSubmitVote(t *testing.T) {
 
 	t.Run("Should fail because we failed to get round information", func(t *testing.T) {
 		mockStore := mockService.NewMockStorer(t)
-		mockRandomizer := mockService.NewMockRandomizer(t)
-		srv := service.NewRoundService(mockStore, mockRandomizer)
+		mockRandom := mockService.NewMockRandomizer(t)
+		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
 		ctx := context.Background()
 		now := time.Now().Add(30 * time.Second)
@@ -641,8 +641,8 @@ func TestRoundServiceSubmitVote(t *testing.T) {
 
 	t.Run("Should fail because we are passed the submit deadline", func(t *testing.T) {
 		mockStore := mockService.NewMockStorer(t)
-		mockRandomizer := mockService.NewMockRandomizer(t)
-		srv := service.NewRoundService(mockStore, mockRandomizer)
+		mockRandom := mockService.NewMockRandomizer(t)
+		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
 		ctx := context.Background()
 		now := time.Now().Add(30 * time.Second)
@@ -671,8 +671,8 @@ func TestRoundServiceSubmitVote(t *testing.T) {
 
 	t.Run("Should fail because we fail to upsert fibbing it vote", func(t *testing.T) {
 		mockStore := mockService.NewMockStorer(t)
-		mockRandomizer := mockService.NewMockRandomizer(t)
-		srv := service.NewRoundService(mockStore, mockRandomizer)
+		mockRandom := mockService.NewMockRandomizer(t)
+		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
 		ctx := context.Background()
 		now := time.Now().Add(30 * time.Second)
@@ -696,7 +696,7 @@ func TestRoundServiceSubmitVote(t *testing.T) {
 		}, nil)
 
 		u := uuid.Must(uuid.NewV7())
-		mockRandomizer.EXPECT().GetID().Return(u)
+		mockRandom.EXPECT().GetID().Return(u)
 		mockStore.EXPECT().UpsertFibbingItVote(ctx, db.UpsertFibbingItVoteParams{
 			ID:               u,
 			RoundID:          roundID,
@@ -710,8 +710,8 @@ func TestRoundServiceSubmitVote(t *testing.T) {
 
 	t.Run("Should fail because we fail to get vote count", func(t *testing.T) {
 		mockStore := mockService.NewMockStorer(t)
-		mockRandomizer := mockService.NewMockRandomizer(t)
-		srv := service.NewRoundService(mockStore, mockRandomizer)
+		mockRandom := mockService.NewMockRandomizer(t)
+		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
 		ctx := context.Background()
 		now := time.Now().Add(30 * time.Second)
@@ -734,7 +734,7 @@ func TestRoundServiceSubmitVote(t *testing.T) {
 			SubmitDeadline: pgtype.Timestamp{Time: now.Add(1 * time.Hour)},
 		}, nil)
 		u := uuid.Must(uuid.NewV7())
-		mockRandomizer.EXPECT().GetID().Return(u)
+		mockRandom.EXPECT().GetID().Return(u)
 		mockStore.EXPECT().UpsertFibbingItVote(ctx, db.UpsertFibbingItVoteParams{
 			ID:               u,
 			RoundID:          roundID,
@@ -756,8 +756,8 @@ func TestPlayerServiceGetVotingState(t *testing.T) {
 
 	t.Run("Should successfully get voting state", func(t *testing.T) {
 		mockStore := mockService.NewMockStorer(t)
-		mockRandomizer := mockService.NewMockRandomizer(t)
-		srv := service.NewRoundService(mockStore, mockRandomizer)
+		mockRandom := mockService.NewMockRandomizer(t)
+		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
 		ctx := context.Background()
 
@@ -808,8 +808,8 @@ func TestPlayerServiceGetVotingState(t *testing.T) {
 
 	t.Run("Should fail to get voting state because fail to get round info from DB", func(t *testing.T) {
 		mockStore := mockService.NewMockStorer(t)
-		mockRandomizer := mockService.NewMockRandomizer(t)
-		srv := service.NewRoundService(mockStore, mockRandomizer)
+		mockRandom := mockService.NewMockRandomizer(t)
+		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
 		ctx := context.Background()
 
@@ -822,8 +822,8 @@ func TestPlayerServiceGetVotingState(t *testing.T) {
 
 	t.Run("Should fail to get voting state because fail to get votes from DB", func(t *testing.T) {
 		mockStore := mockService.NewMockStorer(t)
-		mockRandomizer := mockService.NewMockRandomizer(t)
-		srv := service.NewRoundService(mockStore, mockRandomizer)
+		mockRandom := mockService.NewMockRandomizer(t)
+		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
 		ctx := context.Background()
 
@@ -844,8 +844,8 @@ func TestPlayerServiceGetVotingState(t *testing.T) {
 func TestRoundServiceToggleVotingIsReady(t *testing.T) {
 	t.Run("Should successfully toggle voting ready state", func(t *testing.T) {
 		mockStore := mockService.NewMockStorer(t)
-		mockRandomizer := mockService.NewMockRandomizer(t)
-		srv := service.NewRoundService(mockStore, mockRandomizer)
+		mockRandom := mockService.NewMockRandomizer(t)
+		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
 		ctx := context.Background()
 
@@ -863,8 +863,8 @@ func TestRoundServiceToggleVotingIsReady(t *testing.T) {
 
 	t.Run("Should successfully toggle answer ready state and return all players are ready", func(t *testing.T) {
 		mockStore := mockService.NewMockStorer(t)
-		mockRandomizer := mockService.NewMockRandomizer(t)
-		srv := service.NewRoundService(mockStore, mockRandomizer)
+		mockRandom := mockService.NewMockRandomizer(t)
+		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
 		ctx := context.Background()
 
@@ -882,8 +882,8 @@ func TestRoundServiceToggleVotingIsReady(t *testing.T) {
 
 	t.Run("Should fail to toggle voting ready state, because we fail to get game state", func(t *testing.T) {
 		mockStore := mockService.NewMockStorer(t)
-		mockRandomizer := mockService.NewMockRandomizer(t)
-		srv := service.NewRoundService(mockStore, mockRandomizer)
+		mockRandom := mockService.NewMockRandomizer(t)
+		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
 		ctx := context.Background()
 
@@ -899,8 +899,8 @@ func TestRoundServiceToggleVotingIsReady(t *testing.T) {
 		"Should fail to voting toggle ready state because after deadline",
 		func(t *testing.T) {
 			mockStore := mockService.NewMockStorer(t)
-			mockRandomizer := mockService.NewMockRandomizer(t)
-			srv := service.NewRoundService(mockStore, mockRandomizer)
+			mockRandom := mockService.NewMockRandomizer(t)
+			srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
 			ctx := context.Background()
 
@@ -916,8 +916,8 @@ func TestRoundServiceToggleVotingIsReady(t *testing.T) {
 
 	t.Run("Should fail to toggle voting ready state because game state not in voting state", func(t *testing.T) {
 		mockStore := mockService.NewMockStorer(t)
-		mockRandomizer := mockService.NewMockRandomizer(t)
-		srv := service.NewRoundService(mockStore, mockRandomizer)
+		mockRandom := mockService.NewMockRandomizer(t)
+		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
 		ctx := context.Background()
 
@@ -934,8 +934,8 @@ func TestRoundServiceToggleVotingIsReady(t *testing.T) {
 		"Should fail to toggle voting ready state, because we fail to toggle answer ready state in DB",
 		func(t *testing.T) {
 			mockStore := mockService.NewMockStorer(t)
-			mockRandomizer := mockService.NewMockRandomizer(t)
-			srv := service.NewRoundService(mockStore, mockRandomizer)
+			mockRandom := mockService.NewMockRandomizer(t)
+			srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
 			ctx := context.Background()
 
@@ -956,8 +956,8 @@ func TestRoundServiceToggleVotingIsReady(t *testing.T) {
 		"Should fail to toggle voting ready state because we fail to get all players ready status from DB",
 		func(t *testing.T) {
 			mockStore := mockService.NewMockStorer(t)
-			mockRandomizer := mockService.NewMockRandomizer(t)
-			srv := service.NewRoundService(mockStore, mockRandomizer)
+			mockRandom := mockService.NewMockRandomizer(t)
+			srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
 			ctx := context.Background()
 
@@ -1018,8 +1018,8 @@ func TestRoundServiceUpdateStateToReveal(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			mockStore := mockService.NewMockStorer(t)
-			mockRandomizer := mockService.NewMockRandomizer(t)
-			srv := service.NewRoundService(mockStore, mockRandomizer)
+			mockRandom := mockService.NewMockRandomizer(t)
+			srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
 			ctx := context.Background()
 			now := time.Now().Add(15 * time.Second)
@@ -1082,8 +1082,8 @@ func TestRoundServiceUpdateStateToReveal(t *testing.T) {
 		"Should fail to update state to reveal because we fail to get game state",
 		func(t *testing.T) {
 			mockStore := mockService.NewMockStorer(t)
-			mockRandomizer := mockService.NewMockRandomizer(t)
-			srv := service.NewRoundService(mockStore, mockRandomizer)
+			mockRandom := mockService.NewMockRandomizer(t)
+			srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
 			ctx := context.Background()
 			now := time.Now().Add(15 * time.Second)
@@ -1100,8 +1100,8 @@ func TestRoundServiceUpdateStateToReveal(t *testing.T) {
 		"Should fail to update state to reveal because we wrong game state",
 		func(t *testing.T) {
 			mockStore := mockService.NewMockStorer(t)
-			mockRandomizer := mockService.NewMockRandomizer(t)
-			srv := service.NewRoundService(mockStore, mockRandomizer)
+			mockRandom := mockService.NewMockRandomizer(t)
+			srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
 			ctx := context.Background()
 			now := time.Now().Add(15 * time.Second)
@@ -1119,8 +1119,8 @@ func TestRoundServiceUpdateStateToReveal(t *testing.T) {
 		"Should fail to update state to reveal because we fail to update game state",
 		func(t *testing.T) {
 			mockStore := mockService.NewMockStorer(t)
-			mockRandomizer := mockService.NewMockRandomizer(t)
-			srv := service.NewRoundService(mockStore, mockRandomizer)
+			mockRandom := mockService.NewMockRandomizer(t)
+			srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
 			ctx := context.Background()
 			now := time.Now().Add(15 * time.Second)
@@ -1143,8 +1143,8 @@ func TestRoundServiceUpdateStateToReveal(t *testing.T) {
 		"Should fail to update state to reveal because we get latest round by game state ID",
 		func(t *testing.T) {
 			mockStore := mockService.NewMockStorer(t)
-			mockRandomizer := mockService.NewMockRandomizer(t)
-			srv := service.NewRoundService(mockStore, mockRandomizer)
+			mockRandom := mockService.NewMockRandomizer(t)
+			srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
 			ctx := context.Background()
 			now := time.Now().Add(15 * time.Second)
@@ -1170,8 +1170,8 @@ func TestRoundServiceUpdateStateToReveal(t *testing.T) {
 		"Should fail to update state to reveal because we fail to get voting state",
 		func(t *testing.T) {
 			mockStore := mockService.NewMockStorer(t)
-			mockRandomizer := mockService.NewMockRandomizer(t)
-			srv := service.NewRoundService(mockStore, mockRandomizer)
+			mockRandom := mockService.NewMockRandomizer(t)
+			srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
 			ctx := context.Background()
 			now := time.Now().Add(15 * time.Second)
@@ -1252,7 +1252,7 @@ func TestRoundServiceUpdateStateToQuestion(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			mockStore := mockService.NewMockStorer(t)
 			mockRandom := mockService.NewMockRandomizer(t)
-			srv := service.NewRoundService(mockStore, mockRandom)
+			srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
 			ctx := context.Background()
 			gameName := gameName
@@ -1284,20 +1284,25 @@ func TestRoundServiceUpdateStateToQuestion(t *testing.T) {
 				Round:     tt.roundNumber,
 			}, nil)
 			mockStore.EXPECT().GetRandomQuestionByRound(ctx, db.GetRandomQuestionByRoundParams{
-				GameName:     gameName,
-				LanguageCode: "en-GB",
-				Round:        tt.expectedType,
-			}).Return(db.Question{
-				ID:       uuid.MustParse("0193a629-7dcc-78ad-822f-fd5d83c89ae7"),
-				Question: tt.normalQuestion,
-				GroupID:  groupID,
+				GameName:  gameName,
+				RoundType: tt.expectedType,
+			}).Return([]db.GetRandomQuestionByRoundRow{
+				{
+					ID:         uuid.MustParse("0193ea48-c27f-74bd-8a17-523f69350aca"),
+					QuestionID: uuid.MustParse("0193a629-7dcc-78ad-822f-fd5d83c89ae7"),
+					Question:   tt.normalQuestion,
+					Locale:     "en-GB",
+					GroupID:    groupID,
+				},
 			}, nil)
 			mockStore.EXPECT().GetRandomQuestionInGroup(ctx, db.GetRandomQuestionInGroupParams{
 				GroupID: groupID,
-				ID:      uuid.MustParse("0193a629-7dcc-78ad-822f-fd5d83c89ae7"),
-			}).Return(db.GetRandomQuestionInGroupRow{
-				ID:       uuid.MustParse("0193a629-a9ac-7fc4-828c-a1334c282e0f"),
-				Question: tt.fibberQuestion,
+				ID:      uuid.MustParse("0193ea48-c27f-74bd-8a17-523f69350aca"),
+			}).Return([]db.GetRandomQuestionInGroupRow{
+				{
+					QuestionID: uuid.MustParse("0193a629-a9ac-7fc4-828c-a1334c282e0f"),
+					Question:   tt.fibberQuestion,
+				},
 			}, nil)
 
 			mockRandom.EXPECT().GetFibberIndex(2).Return(1)
@@ -1353,7 +1358,7 @@ func TestRoundServiceUpdateStateToQuestion(t *testing.T) {
 	t.Run("Should fail to update state to question because we fail to get game state", func(t *testing.T) {
 		mockStore := mockService.NewMockStorer(t)
 		mockRandom := mockService.NewMockRandomizer(t)
-		srv := service.NewRoundService(mockStore, mockRandom)
+		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
 		ctx := context.Background()
 		deadline := time.Now().Add(5 * time.Second).UTC()
@@ -1366,7 +1371,7 @@ func TestRoundServiceUpdateStateToQuestion(t *testing.T) {
 	t.Run("Should fail to update state to question because we are in incorrect game state", func(t *testing.T) {
 		mockStore := mockService.NewMockStorer(t)
 		mockRandom := mockService.NewMockRandomizer(t)
-		srv := service.NewRoundService(mockStore, mockRandom)
+		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
 		ctx := context.Background()
 		deadline := time.Now().Add(5 * time.Second).UTC()
@@ -1384,7 +1389,7 @@ func TestRoundServiceUpdateStateToQuestion(t *testing.T) {
 		func(t *testing.T) {
 			mockStore := mockService.NewMockStorer(t)
 			mockRandom := mockService.NewMockRandomizer(t)
-			srv := service.NewRoundService(mockStore, mockRandom)
+			srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
 			ctx := context.Background()
 			deadline := time.Now().Add(5 * time.Second).UTC()
@@ -1409,7 +1414,7 @@ func TestRoundServiceUpdateStateToQuestion(t *testing.T) {
 	t.Run("Should fail to update state to question because we fail to get latest round", func(t *testing.T) {
 		mockStore := mockService.NewMockStorer(t)
 		mockRandom := mockService.NewMockRandomizer(t)
-		srv := service.NewRoundService(mockStore, mockRandom)
+		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
 		ctx := context.Background()
 		deadline := time.Now().Add(5 * time.Second).UTC()
@@ -1448,7 +1453,7 @@ func TestRoundServiceUpdateStateToQuestion(t *testing.T) {
 		func(t *testing.T) {
 			mockStore := mockService.NewMockStorer(t)
 			mockRandom := mockService.NewMockRandomizer(t)
-			srv := service.NewRoundService(mockStore, mockRandom)
+			srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
 			ctx := context.Background()
 			gameName := gameName
@@ -1480,10 +1485,9 @@ func TestRoundServiceUpdateStateToQuestion(t *testing.T) {
 				Round:     1,
 			}, nil)
 			mockStore.EXPECT().GetRandomQuestionByRound(ctx, db.GetRandomQuestionByRoundParams{
-				GameName:     gameName,
-				LanguageCode: "en-GB",
-				Round:        "free_form",
-			}).Return(db.Question{}, fmt.Errorf("failed to get random question by round"))
+				GameName:  gameName,
+				RoundType: "free_form",
+			}).Return([]db.GetRandomQuestionByRoundRow{}, fmt.Errorf("failed to get random question by round"))
 
 			_, err := srv.UpdateStateToQuestion(ctx, gameStateID, deadline)
 			assert.Error(t, err)
@@ -1493,7 +1497,7 @@ func TestRoundServiceUpdateStateToQuestion(t *testing.T) {
 	t.Run("Should fail to update to question because we fail to get random question in group", func(t *testing.T) {
 		mockStore := mockService.NewMockStorer(t)
 		mockRandom := mockService.NewMockRandomizer(t)
-		srv := service.NewRoundService(mockStore, mockRandom)
+		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
 		ctx := context.Background()
 		gameName := gameName
@@ -1525,18 +1529,22 @@ func TestRoundServiceUpdateStateToQuestion(t *testing.T) {
 			Round:     1,
 		}, nil)
 		mockStore.EXPECT().GetRandomQuestionByRound(ctx, db.GetRandomQuestionByRoundParams{
-			GameName:     gameName,
-			LanguageCode: "en-GB",
-			Round:        "free_form",
-		}).Return(db.Question{
-			ID:       uuid.MustParse("0193a629-7dcc-78ad-822f-fd5d83c89ae7"),
-			Question: "I love cats",
-			GroupID:  groupID,
+			GameName:  gameName,
+			RoundType: "free_form",
+		}).Return([]db.GetRandomQuestionByRoundRow{
+			{
+				ID:       uuid.MustParse("0193a629-7dcc-78ad-822f-fd5d83c89ae7"),
+				Question: "What is the capital of France?",
+				Locale:   "en-GB",
+				GroupID:  groupID,
+			},
 		}, nil)
 		mockStore.EXPECT().GetRandomQuestionInGroup(ctx, db.GetRandomQuestionInGroupParams{
 			GroupID: groupID,
 			ID:      uuid.MustParse("0193a629-7dcc-78ad-822f-fd5d83c89ae7"),
-		}).Return(db.GetRandomQuestionInGroupRow{}, fmt.Errorf("failed to get random question in group"))
+		}).Return([]db.GetRandomQuestionInGroupRow{
+			{},
+		}, fmt.Errorf("failed to get random question in group"))
 
 		_, err := srv.UpdateStateToQuestion(ctx, gameStateID, deadline)
 		assert.Error(t, err)
@@ -1545,7 +1553,7 @@ func TestRoundServiceUpdateStateToQuestion(t *testing.T) {
 	t.Run("Should fail to update to question because we fail to add a new round", func(t *testing.T) {
 		mockStore := mockService.NewMockStorer(t)
 		mockRandom := mockService.NewMockRandomizer(t)
-		srv := service.NewRoundService(mockStore, mockRandom)
+		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
 		ctx := context.Background()
 		deadline := time.Now().Add(5 * time.Second).UTC()
@@ -1576,20 +1584,25 @@ func TestRoundServiceUpdateStateToQuestion(t *testing.T) {
 			Round:     1,
 		}, nil)
 		mockStore.EXPECT().GetRandomQuestionByRound(ctx, db.GetRandomQuestionByRoundParams{
-			GameName:     gameName,
-			LanguageCode: "en-GB",
-			Round:        "free_form",
-		}).Return(db.Question{
-			ID:       uuid.MustParse("0193a629-7dcc-78ad-822f-fd5d83c89ae7"),
-			Question: "I love cats",
-			GroupID:  groupID,
+			GameName:  gameName,
+			RoundType: "free_form",
+		}).Return([]db.GetRandomQuestionByRoundRow{
+			{
+				ID:         uuid.MustParse("0193ea48-c27f-74bd-8a17-523f69350aca"),
+				QuestionID: uuid.MustParse("0193a629-7dcc-78ad-822f-fd5d83c89ae7"),
+				Question:   "I love cats",
+				Locale:     "en-GB",
+				GroupID:    groupID,
+			},
 		}, nil)
 		mockStore.EXPECT().GetRandomQuestionInGroup(ctx, db.GetRandomQuestionInGroupParams{
 			GroupID: groupID,
-			ID:      uuid.MustParse("0193a629-7dcc-78ad-822f-fd5d83c89ae7"),
-		}).Return(db.GetRandomQuestionInGroupRow{
-			ID:       uuid.MustParse("0193a629-a9ac-7fc4-828c-a1334c282e0f"),
-			Question: "I love dogs",
+			ID:      uuid.MustParse("0193ea48-c27f-74bd-8a17-523f69350aca"),
+		}).Return([]db.GetRandomQuestionInGroupRow{
+			{
+				QuestionID: uuid.MustParse("0193a629-a9ac-7fc4-828c-a1334c282e0f"),
+				Question:   "I love dogs",
+			},
 		}, nil)
 		mockRandom.EXPECT().GetFibberIndex(2).Return(1)
 		mockStore.EXPECT().NewRound(ctx, db.NewRoundArgs{
@@ -1626,8 +1639,8 @@ func TestRoundServiceUpdateStateToScore(t *testing.T) {
 	// TODO: add more test cases here maybe table tests
 	t.Run("Should successfully update score state, fibber caught in one round of voting", func(t *testing.T) {
 		mockStore := mockService.NewMockStorer(t)
-		mockRandomizer := mockService.NewMockRandomizer(t)
-		srv := service.NewRoundService(mockStore, mockRandomizer)
+		mockRandom := mockService.NewMockRandomizer(t)
+		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
 		ctx := context.Background()
 		now := time.Now().Add(15 * time.Second)
@@ -1721,8 +1734,8 @@ func TestRoundServiceUpdateStateToScore(t *testing.T) {
 
 	t.Run("Should fail to update score state, fail to get game state", func(t *testing.T) {
 		mockStore := mockService.NewMockStorer(t)
-		mockRandomizer := mockService.NewMockRandomizer(t)
-		srv := service.NewRoundService(mockStore, mockRandomizer)
+		mockRandom := mockService.NewMockRandomizer(t)
+		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
 		ctx := context.Background()
 		now := time.Now().Add(15 * time.Second)
@@ -1737,8 +1750,8 @@ func TestRoundServiceUpdateStateToScore(t *testing.T) {
 
 	t.Run("Should fail to update score state, game in wrong state", func(t *testing.T) {
 		mockStore := mockService.NewMockStorer(t)
-		mockRandomizer := mockService.NewMockRandomizer(t)
-		srv := service.NewRoundService(mockStore, mockRandomizer)
+		mockRandom := mockService.NewMockRandomizer(t)
+		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
 		ctx := context.Background()
 		now := time.Now().Add(15 * time.Second)
@@ -1753,8 +1766,8 @@ func TestRoundServiceUpdateStateToScore(t *testing.T) {
 
 	t.Run("Should fail to update score state, fail to update game state", func(t *testing.T) {
 		mockStore := mockService.NewMockStorer(t)
-		mockRandomizer := mockService.NewMockRandomizer(t)
-		srv := service.NewRoundService(mockStore, mockRandomizer)
+		mockRandom := mockService.NewMockRandomizer(t)
+		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
 		ctx := context.Background()
 		now := time.Now().Add(15 * time.Second)
@@ -1776,8 +1789,8 @@ func TestRoundServiceUpdateStateToScore(t *testing.T) {
 
 	t.Run("Should fail to update score state, fail to get all votes this round type", func(t *testing.T) {
 		mockStore := mockService.NewMockStorer(t)
-		mockRandomizer := mockService.NewMockRandomizer(t)
-		srv := service.NewRoundService(mockStore, mockRandomizer)
+		mockRandom := mockService.NewMockRandomizer(t)
+		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
 		ctx := context.Background()
 		now := time.Now().Add(15 * time.Second)
@@ -1805,8 +1818,8 @@ func TestRoundServiceUpdateStateToScore(t *testing.T) {
 
 	t.Run("Should fail to update score state, fail to get all players in the room", func(t *testing.T) {
 		mockStore := mockService.NewMockStorer(t)
-		mockRandomizer := mockService.NewMockRandomizer(t)
-		srv := service.NewRoundService(mockStore, mockRandomizer)
+		mockRandom := mockService.NewMockRandomizer(t)
+		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
 		ctx := context.Background()
 		now := time.Now().Add(15 * time.Second)
@@ -1843,8 +1856,8 @@ func TestRoundServiceUpdateStateToScore(t *testing.T) {
 
 	t.Run("Should fail to update score state, fail to get latest round", func(t *testing.T) {
 		mockStore := mockService.NewMockStorer(t)
-		mockRandomizer := mockService.NewMockRandomizer(t)
-		srv := service.NewRoundService(mockStore, mockRandomizer)
+		mockRandom := mockService.NewMockRandomizer(t)
+		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
 		ctx := context.Background()
 		now := time.Now().Add(15 * time.Second)
@@ -1895,8 +1908,8 @@ func TestRoundServiceUpdateStateToScore(t *testing.T) {
 
 	t.Run("Should fail to update score state, fail to add new scores", func(t *testing.T) {
 		mockStore := mockService.NewMockStorer(t)
-		mockRandomizer := mockService.NewMockRandomizer(t)
-		srv := service.NewRoundService(mockStore, mockRandomizer)
+		mockRandom := mockService.NewMockRandomizer(t)
+		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
 		ctx := context.Background()
 		now := time.Now().Add(15 * time.Second)
@@ -1985,8 +1998,8 @@ func TestRoundServiceGetGameState(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			mockStore := mockService.NewMockStorer(t)
-			mockRandomizer := mockService.NewMockRandomizer(t)
-			srv := service.NewRoundService(mockStore, mockRandomizer)
+			mockRandom := mockService.NewMockRandomizer(t)
+			srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
 			ctx := context.Background()
 			mockStore.EXPECT().GetGameStateByPlayerID(ctx, playerID).Return(db.GameState{
@@ -2001,8 +2014,8 @@ func TestRoundServiceGetGameState(t *testing.T) {
 
 	t.Run("Should fail to get game state because we fail to get game details DB", func(t *testing.T) {
 		mockStore := mockService.NewMockStorer(t)
-		mockRandomizer := mockService.NewMockRandomizer(t)
-		srv := service.NewRoundService(mockStore, mockRandomizer)
+		mockRandom := mockService.NewMockRandomizer(t)
+		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
 		ctx := context.Background()
 		mockStore.EXPECT().GetGameStateByPlayerID(ctx, playerID).Return(
@@ -2017,8 +2030,8 @@ func TestRoundServiceGetGameState(t *testing.T) {
 func TestRoundServiceGetQuestionState(t *testing.T) {
 	t.Run("Should successfully get question state", func(t *testing.T) {
 		mockStore := mockService.NewMockStorer(t)
-		mockRandomizer := mockService.NewMockRandomizer(t)
-		srv := service.NewRoundService(mockStore, mockRandomizer)
+		mockRandom := mockService.NewMockRandomizer(t)
+		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
 		ctx := context.Background()
 
@@ -2058,8 +2071,8 @@ func TestRoundServiceGetQuestionState(t *testing.T) {
 
 	t.Run("Should successfully get question state, as normal fibber", func(t *testing.T) {
 		mockStore := mockService.NewMockStorer(t)
-		mockRandomizer := mockService.NewMockRandomizer(t)
-		srv := service.NewRoundService(mockStore, mockRandomizer)
+		mockRandom := mockService.NewMockRandomizer(t)
+		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
 		ctx := context.Background()
 
@@ -2099,8 +2112,8 @@ func TestRoundServiceGetQuestionState(t *testing.T) {
 
 	t.Run("Should successfully get question state round type multiple_choice", func(t *testing.T) {
 		mockStore := mockService.NewMockStorer(t)
-		mockRandomizer := mockService.NewMockRandomizer(t)
-		srv := service.NewRoundService(mockStore, mockRandomizer)
+		mockRandom := mockService.NewMockRandomizer(t)
+		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
 		ctx := context.Background()
 
@@ -2139,8 +2152,8 @@ func TestRoundServiceGetQuestionState(t *testing.T) {
 
 	t.Run("Should successfully get question state round type most_likely", func(t *testing.T) {
 		mockStore := mockService.NewMockStorer(t)
-		mockRandomizer := mockService.NewMockRandomizer(t)
-		srv := service.NewRoundService(mockStore, mockRandomizer)
+		mockRandom := mockService.NewMockRandomizer(t)
+		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
 		ctx := context.Background()
 
@@ -2188,8 +2201,8 @@ func TestRoundServiceGetQuestionState(t *testing.T) {
 
 	t.Run("Should fail to get question state because we cannot fetch from DB", func(t *testing.T) {
 		mockStore := mockService.NewMockStorer(t)
-		mockRandomizer := mockService.NewMockRandomizer(t)
-		srv := service.NewRoundService(mockStore, mockRandomizer)
+		mockRandom := mockService.NewMockRandomizer(t)
+		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
 		ctx := context.Background()
 

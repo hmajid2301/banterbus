@@ -114,9 +114,9 @@ func mainLogic() error {
 	}
 
 	userRandomizer := randomizer.NewUserRandomizer()
-	lobbyService := service.NewLobbyService(str, userRandomizer)
+	lobbyService := service.NewLobbyService(str, userRandomizer, conf.App.DefaultLocale.String())
 	playerService := service.NewPlayerService(str, userRandomizer)
-	roundService := service.NewRoundService(str, userRandomizer)
+	roundService := service.NewRoundService(str, userRandomizer, conf.App.DefaultLocale.String())
 
 	fsys, err := fs.Sub(staticFiles, "static")
 	if err != nil {

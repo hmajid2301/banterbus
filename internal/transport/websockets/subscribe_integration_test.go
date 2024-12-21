@@ -39,9 +39,9 @@ func TestIntegrationSubscribe(t *testing.T) {
 	require.NoError(t, err)
 
 	userRandomizer := randomizer.NewUserRandomizer()
-	lobbyService := service.NewLobbyService(str, userRandomizer)
+	lobbyService := service.NewLobbyService(str, userRandomizer, "en-GB")
 	playerService := service.NewPlayerService(str, userRandomizer)
-	roundService := service.NewRoundService(str, userRandomizer)
+	roundService := service.NewRoundService(str, userRandomizer, "en-GB")
 	handler := slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug})
 	logger := slog.New(handler)
 

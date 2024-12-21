@@ -13,6 +13,7 @@ type PlayerServicer interface {
 	UpdateNickname(ctx context.Context, nickname string, playerID uuid.UUID) (service.Lobby, error)
 	GenerateNewAvatar(ctx context.Context, playerID uuid.UUID) (service.Lobby, error)
 	TogglePlayerIsReady(ctx context.Context, playerID uuid.UUID) (service.Lobby, error)
+	UpdateLocale(ctx context.Context, playerID uuid.UUID, locale string) error
 }
 
 func (u *UpdateNickname) Handle(ctx context.Context, client *client, sub *Subscriber) error {

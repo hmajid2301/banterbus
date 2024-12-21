@@ -471,6 +471,63 @@ func (_c *MockStorer_AddQuestion_Call) RunAndReturn(run func(context.Context, db
 	return _c
 }
 
+// AddQuestionTranslation provides a mock function with given fields: ctx, arg
+func (_m *MockStorer) AddQuestionTranslation(ctx context.Context, arg db.AddQuestionTranslationParams) (db.QuestionsI18n, error) {
+	ret := _m.Called(ctx, arg)
+
+	if len(ret) == 0 {
+		panic("no return value specified for AddQuestionTranslation")
+	}
+
+	var r0 db.QuestionsI18n
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, db.AddQuestionTranslationParams) (db.QuestionsI18n, error)); ok {
+		return rf(ctx, arg)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, db.AddQuestionTranslationParams) db.QuestionsI18n); ok {
+		r0 = rf(ctx, arg)
+	} else {
+		r0 = ret.Get(0).(db.QuestionsI18n)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, db.AddQuestionTranslationParams) error); ok {
+		r1 = rf(ctx, arg)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockStorer_AddQuestionTranslation_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'AddQuestionTranslation'
+type MockStorer_AddQuestionTranslation_Call struct {
+	*mock.Call
+}
+
+// AddQuestionTranslation is a helper method to define mock.On call
+//   - ctx context.Context
+//   - arg db.AddQuestionTranslationParams
+func (_e *MockStorer_Expecter) AddQuestionTranslation(ctx interface{}, arg interface{}) *MockStorer_AddQuestionTranslation_Call {
+	return &MockStorer_AddQuestionTranslation_Call{Call: _e.mock.On("AddQuestionTranslation", ctx, arg)}
+}
+
+func (_c *MockStorer_AddQuestionTranslation_Call) Run(run func(ctx context.Context, arg db.AddQuestionTranslationParams)) *MockStorer_AddQuestionTranslation_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(db.AddQuestionTranslationParams))
+	})
+	return _c
+}
+
+func (_c *MockStorer_AddQuestionTranslation_Call) Return(_a0 db.QuestionsI18n, _a1 error) *MockStorer_AddQuestionTranslation_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockStorer_AddQuestionTranslation_Call) RunAndReturn(run func(context.Context, db.AddQuestionTranslationParams) (db.QuestionsI18n, error)) *MockStorer_AddQuestionTranslation_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // AddQuestionsGroup provides a mock function with given fields: ctx, arg
 func (_m *MockStorer) AddQuestionsGroup(ctx context.Context, arg db.AddQuestionsGroupParams) (db.QuestionsGroup, error) {
 	ret := _m.Called(ctx, arg)
@@ -1382,22 +1439,24 @@ func (_c *MockStorer_GetPlayerByID_Call) RunAndReturn(run func(context.Context, 
 }
 
 // GetRandomQuestionByRound provides a mock function with given fields: ctx, arg
-func (_m *MockStorer) GetRandomQuestionByRound(ctx context.Context, arg db.GetRandomQuestionByRoundParams) (db.Question, error) {
+func (_m *MockStorer) GetRandomQuestionByRound(ctx context.Context, arg db.GetRandomQuestionByRoundParams) ([]db.GetRandomQuestionByRoundRow, error) {
 	ret := _m.Called(ctx, arg)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetRandomQuestionByRound")
 	}
 
-	var r0 db.Question
+	var r0 []db.GetRandomQuestionByRoundRow
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, db.GetRandomQuestionByRoundParams) (db.Question, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, db.GetRandomQuestionByRoundParams) ([]db.GetRandomQuestionByRoundRow, error)); ok {
 		return rf(ctx, arg)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, db.GetRandomQuestionByRoundParams) db.Question); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, db.GetRandomQuestionByRoundParams) []db.GetRandomQuestionByRoundRow); ok {
 		r0 = rf(ctx, arg)
 	} else {
-		r0 = ret.Get(0).(db.Question)
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]db.GetRandomQuestionByRoundRow)
+		}
 	}
 
 	if rf, ok := ret.Get(1).(func(context.Context, db.GetRandomQuestionByRoundParams) error); ok {
@@ -1428,33 +1487,35 @@ func (_c *MockStorer_GetRandomQuestionByRound_Call) Run(run func(ctx context.Con
 	return _c
 }
 
-func (_c *MockStorer_GetRandomQuestionByRound_Call) Return(_a0 db.Question, _a1 error) *MockStorer_GetRandomQuestionByRound_Call {
+func (_c *MockStorer_GetRandomQuestionByRound_Call) Return(_a0 []db.GetRandomQuestionByRoundRow, _a1 error) *MockStorer_GetRandomQuestionByRound_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *MockStorer_GetRandomQuestionByRound_Call) RunAndReturn(run func(context.Context, db.GetRandomQuestionByRoundParams) (db.Question, error)) *MockStorer_GetRandomQuestionByRound_Call {
+func (_c *MockStorer_GetRandomQuestionByRound_Call) RunAndReturn(run func(context.Context, db.GetRandomQuestionByRoundParams) ([]db.GetRandomQuestionByRoundRow, error)) *MockStorer_GetRandomQuestionByRound_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // GetRandomQuestionInGroup provides a mock function with given fields: ctx, arg
-func (_m *MockStorer) GetRandomQuestionInGroup(ctx context.Context, arg db.GetRandomQuestionInGroupParams) (db.GetRandomQuestionInGroupRow, error) {
+func (_m *MockStorer) GetRandomQuestionInGroup(ctx context.Context, arg db.GetRandomQuestionInGroupParams) ([]db.GetRandomQuestionInGroupRow, error) {
 	ret := _m.Called(ctx, arg)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetRandomQuestionInGroup")
 	}
 
-	var r0 db.GetRandomQuestionInGroupRow
+	var r0 []db.GetRandomQuestionInGroupRow
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, db.GetRandomQuestionInGroupParams) (db.GetRandomQuestionInGroupRow, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, db.GetRandomQuestionInGroupParams) ([]db.GetRandomQuestionInGroupRow, error)); ok {
 		return rf(ctx, arg)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, db.GetRandomQuestionInGroupParams) db.GetRandomQuestionInGroupRow); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, db.GetRandomQuestionInGroupParams) []db.GetRandomQuestionInGroupRow); ok {
 		r0 = rf(ctx, arg)
 	} else {
-		r0 = ret.Get(0).(db.GetRandomQuestionInGroupRow)
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]db.GetRandomQuestionInGroupRow)
+		}
 	}
 
 	if rf, ok := ret.Get(1).(func(context.Context, db.GetRandomQuestionInGroupParams) error); ok {
@@ -1485,12 +1546,12 @@ func (_c *MockStorer_GetRandomQuestionInGroup_Call) Run(run func(ctx context.Con
 	return _c
 }
 
-func (_c *MockStorer_GetRandomQuestionInGroup_Call) Return(_a0 db.GetRandomQuestionInGroupRow, _a1 error) *MockStorer_GetRandomQuestionInGroup_Call {
+func (_c *MockStorer_GetRandomQuestionInGroup_Call) Return(_a0 []db.GetRandomQuestionInGroupRow, _a1 error) *MockStorer_GetRandomQuestionInGroup_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *MockStorer_GetRandomQuestionInGroup_Call) RunAndReturn(run func(context.Context, db.GetRandomQuestionInGroupParams) (db.GetRandomQuestionInGroupRow, error)) *MockStorer_GetRandomQuestionInGroup_Call {
+func (_c *MockStorer_GetRandomQuestionInGroup_Call) RunAndReturn(run func(context.Context, db.GetRandomQuestionInGroupParams) ([]db.GetRandomQuestionInGroupRow, error)) *MockStorer_GetRandomQuestionInGroup_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -2147,6 +2208,63 @@ func (_c *MockStorer_UpdateGameState_Call) Return(_a0 db.GameState, _a1 error) *
 }
 
 func (_c *MockStorer_UpdateGameState_Call) RunAndReturn(run func(context.Context, db.UpdateGameStateParams) (db.GameState, error)) *MockStorer_UpdateGameState_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// UpdateLocale provides a mock function with given fields: ctx, arg
+func (_m *MockStorer) UpdateLocale(ctx context.Context, arg db.UpdateLocaleParams) (db.Player, error) {
+	ret := _m.Called(ctx, arg)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateLocale")
+	}
+
+	var r0 db.Player
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, db.UpdateLocaleParams) (db.Player, error)); ok {
+		return rf(ctx, arg)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, db.UpdateLocaleParams) db.Player); ok {
+		r0 = rf(ctx, arg)
+	} else {
+		r0 = ret.Get(0).(db.Player)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, db.UpdateLocaleParams) error); ok {
+		r1 = rf(ctx, arg)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockStorer_UpdateLocale_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateLocale'
+type MockStorer_UpdateLocale_Call struct {
+	*mock.Call
+}
+
+// UpdateLocale is a helper method to define mock.On call
+//   - ctx context.Context
+//   - arg db.UpdateLocaleParams
+func (_e *MockStorer_Expecter) UpdateLocale(ctx interface{}, arg interface{}) *MockStorer_UpdateLocale_Call {
+	return &MockStorer_UpdateLocale_Call{Call: _e.mock.On("UpdateLocale", ctx, arg)}
+}
+
+func (_c *MockStorer_UpdateLocale_Call) Run(run func(ctx context.Context, arg db.UpdateLocaleParams)) *MockStorer_UpdateLocale_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(db.UpdateLocaleParams))
+	})
+	return _c
+}
+
+func (_c *MockStorer_UpdateLocale_Call) Return(_a0 db.Player, _a1 error) *MockStorer_UpdateLocale_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockStorer_UpdateLocale_Call) RunAndReturn(run func(context.Context, db.UpdateLocaleParams) (db.Player, error)) *MockStorer_UpdateLocale_Call {
 	_c.Call.Return(run)
 	return _c
 }

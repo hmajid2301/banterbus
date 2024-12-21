@@ -7,12 +7,14 @@ import (
 	"time"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/invopop/ctxi18n"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"gitlab.com/hmajid2301/banterbus/internal/banterbustest"
 	"gitlab.com/hmajid2301/banterbus/internal/service"
+	"gitlab.com/hmajid2301/banterbus/internal/views"
 )
 
 func setupSubtest(t *testing.T) (*pgxpool.Pool, func()) {
@@ -164,6 +166,13 @@ func revealState(ctx context.Context,
 		time.Now().Add(120*time.Second),
 	)
 	return revealState, err
+}
+
+func getI18nCtx() (context.Context, error) {
+	ctx := context.Background()
+	ctxi18n.LoadWithDefault(views.Locales, "en-GB")
+	ctx, err := ctxi18n.WithLocale(ctx, "en-GB")
+	return ctx, err
 }
 
 // Taken from: https://gist.github.com/StevenACoffman/74347e58e5e0dc4bdf0a79240557c406
