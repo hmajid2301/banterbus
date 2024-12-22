@@ -34,7 +34,7 @@ type RoundServicer interface {
 		scoring service.Scoring,
 	) (service.ScoreState, error)
 	GetScoreState(ctx context.Context, scoring service.Scoring, playerID uuid.UUID) (service.ScoreState, error)
-	GetGameState(ctx context.Context, playerID uuid.UUID) (db.GameStateEnum, error)
+	GetGameState(ctx context.Context, playerID uuid.UUID) (db.FibbingItGameState, error)
 	GetQuestionState(ctx context.Context, playerID uuid.UUID) (service.QuestionState, error)
 }
 

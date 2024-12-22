@@ -27,7 +27,7 @@ func TestPlayerServiceUpdateNickname(t *testing.T) {
 
 		mockStore.EXPECT().GetRoomByPlayerID(ctx, playerID).Return(db.Room{
 			ID:        roomID,
-			RoomState: db.ROOMSTATE_CREATED.String(),
+			RoomState: db.Created.String(),
 		}, nil)
 		mockStore.EXPECT().GetAllPlayersInRoom(ctx, playerID).Return([]db.GetAllPlayersInRoomRow{
 			{
@@ -88,7 +88,7 @@ func TestPlayerServiceUpdateNickname(t *testing.T) {
 
 		mockStore.EXPECT().GetRoomByPlayerID(ctx, playerID).Return(db.Room{
 			ID:        roomID,
-			RoomState: db.ROOMSTATE_FINISHED.String(),
+			RoomState: db.Finished.String(),
 		}, nil)
 
 		_, err := srv.UpdateNickname(ctx, "New Nickname", playerID)
@@ -104,7 +104,7 @@ func TestPlayerServiceUpdateNickname(t *testing.T) {
 
 		mockStore.EXPECT().GetRoomByPlayerID(ctx, playerID).Return(db.Room{
 			ID:        roomID,
-			RoomState: db.ROOMSTATE_CREATED.String(),
+			RoomState: db.Created.String(),
 		}, nil)
 		mockStore.EXPECT().GetAllPlayersInRoom(ctx, playerID).Return([]db.GetAllPlayersInRoomRow{
 			{
@@ -128,7 +128,7 @@ func TestPlayerServiceUpdateNickname(t *testing.T) {
 
 		mockStore.EXPECT().GetRoomByPlayerID(ctx, playerID).Return(db.Room{
 			ID:        roomID,
-			RoomState: db.ROOMSTATE_CREATED.String(),
+			RoomState: db.Created.String(),
 		}, nil)
 		mockStore.EXPECT().GetAllPlayersInRoom(ctx, playerID).Return([]db.GetAllPlayersInRoomRow{
 			{
@@ -153,7 +153,7 @@ func TestPlayerServiceUpdateNickname(t *testing.T) {
 
 		mockStore.EXPECT().GetRoomByPlayerID(ctx, playerID).Return(db.Room{
 			ID:        roomID,
-			RoomState: db.ROOMSTATE_CREATED.String(),
+			RoomState: db.Created.String(),
 		}, nil)
 		mockStore.EXPECT().GetAllPlayersInRoom(ctx, playerID).Return([]db.GetAllPlayersInRoomRow{
 			{
@@ -183,7 +183,7 @@ func TestPlayerServiceGenerateAvatar(t *testing.T) {
 
 		mockStore.EXPECT().GetRoomByPlayerID(ctx, playerID).Return(db.Room{
 			ID:        roomID,
-			RoomState: db.ROOMSTATE_CREATED.String(),
+			RoomState: db.Created.String(),
 		}, nil)
 		mockRandomizer.EXPECT().GetAvatar("").Return(avatarURL)
 		mockStore.EXPECT().UpdateAvatar(ctx, db.UpdateAvatarParams{
@@ -243,7 +243,7 @@ func TestPlayerServiceGenerateAvatar(t *testing.T) {
 
 		mockStore.EXPECT().GetRoomByPlayerID(ctx, playerID).Return(db.Room{
 			ID:        roomID,
-			RoomState: db.ROOMSTATE_PLAYING.String(),
+			RoomState: db.Playing.String(),
 		}, nil)
 
 		_, err := srv.GenerateNewAvatar(ctx, playerID)
@@ -259,7 +259,7 @@ func TestPlayerServiceGenerateAvatar(t *testing.T) {
 
 		mockStore.EXPECT().GetRoomByPlayerID(ctx, playerID).Return(db.Room{
 			ID:        roomID,
-			RoomState: db.ROOMSTATE_CREATED.String(),
+			RoomState: db.Created.String(),
 		}, nil)
 		mockRandomizer.EXPECT().GetAvatar("").Return(avatarURL)
 		mockStore.EXPECT().UpdateAvatar(ctx, db.UpdateAvatarParams{
@@ -280,7 +280,7 @@ func TestPlayerServiceGenerateAvatar(t *testing.T) {
 
 		mockStore.EXPECT().GetRoomByPlayerID(ctx, playerID).Return(db.Room{
 			ID:        roomID,
-			RoomState: db.ROOMSTATE_CREATED.String(),
+			RoomState: db.Created.String(),
 		}, nil)
 		mockRandomizer.EXPECT().GetAvatar("").Return(avatarURL)
 		mockStore.EXPECT().UpdateAvatar(ctx, db.UpdateAvatarParams{
@@ -324,7 +324,7 @@ func TestPlayerServiceTogglePlayerIsReady(t *testing.T) {
 
 			mockStore.EXPECT().GetRoomByPlayerID(ctx, playerID).Return(db.Room{
 				ID:        roomID,
-				RoomState: db.ROOMSTATE_CREATED.String(),
+				RoomState: db.Created.String(),
 			}, nil)
 			mockStore.EXPECT().TogglePlayerIsReady(ctx, playerID).Return(db.Player{}, nil)
 			mockStore.EXPECT().GetAllPlayersInRoom(ctx, playerID).Return([]db.GetAllPlayersInRoomRow{
@@ -380,7 +380,7 @@ func TestPlayerServiceTogglePlayerIsReady(t *testing.T) {
 
 		mockStore.EXPECT().GetRoomByPlayerID(ctx, playerID).Return(db.Room{
 			ID:        roomID,
-			RoomState: db.ROOMSTATE_PLAYING.String(),
+			RoomState: db.Playing.String(),
 		}, nil)
 
 		_, err := srv.TogglePlayerIsReady(ctx, playerID)
@@ -396,7 +396,7 @@ func TestPlayerServiceTogglePlayerIsReady(t *testing.T) {
 
 		mockStore.EXPECT().GetRoomByPlayerID(ctx, playerID).Return(db.Room{
 			ID:        roomID,
-			RoomState: db.ROOMSTATE_CREATED.String(),
+			RoomState: db.Created.String(),
 		}, nil)
 		mockStore.EXPECT().TogglePlayerIsReady(ctx, playerID).Return(
 			db.Player{}, fmt.Errorf("failed to update is ready"),
@@ -415,7 +415,7 @@ func TestPlayerServiceTogglePlayerIsReady(t *testing.T) {
 
 		mockStore.EXPECT().GetRoomByPlayerID(ctx, playerID).Return(db.Room{
 			ID:        roomID,
-			RoomState: db.ROOMSTATE_CREATED.String(),
+			RoomState: db.Created.String(),
 		}, nil)
 		mockStore.EXPECT().TogglePlayerIsReady(ctx, playerID).Return(db.Player{}, nil)
 		mockStore.EXPECT().GetAllPlayersInRoom(ctx, playerID).Return(

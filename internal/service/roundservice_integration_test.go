@@ -805,7 +805,7 @@ func TestIntegrationRoundServiceGetGameState(t *testing.T) {
 
 		gameState, err := roundService.GetGameState(ctx, votingState.Players[0].ID)
 		assert.NoError(t, err)
-		assert.Equal(t, db.GAMESTATE_FIBBING_IT_VOTING, gameState)
+		assert.Equal(t, db.FibbingItVoting, gameState)
 	})
 
 	t.Run("Should successfully get game state, reveal state", func(t *testing.T) {
@@ -828,7 +828,7 @@ func TestIntegrationRoundServiceGetGameState(t *testing.T) {
 
 		gameState, err := roundService.GetGameState(ctx, revealState.PlayerIDs[0])
 		assert.NoError(t, err)
-		assert.Equal(t, db.GAMESTATE_FIBBING_IT_REVEAL_ROLE, gameState)
+		assert.Equal(t, db.FibbingItRevealRole, gameState)
 	})
 }
 

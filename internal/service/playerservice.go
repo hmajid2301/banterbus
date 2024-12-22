@@ -25,7 +25,7 @@ func (p *PlayerService) UpdateNickname(ctx context.Context, nickname string, pla
 		return Lobby{}, err
 	}
 
-	if room.RoomState != db.ROOMSTATE_CREATED.String() {
+	if room.RoomState != db.Created.String() {
 		return Lobby{}, fmt.Errorf("room is not in CREATED state")
 	}
 
@@ -63,7 +63,7 @@ func (p *PlayerService) GenerateNewAvatar(ctx context.Context, playerID uuid.UUI
 		return Lobby{}, err
 	}
 
-	if room.RoomState != db.ROOMSTATE_CREATED.String() {
+	if room.RoomState != db.Created.String() {
 		return Lobby{}, fmt.Errorf("room is not in CREATED state")
 	}
 
@@ -94,7 +94,7 @@ func (p *PlayerService) TogglePlayerIsReady(ctx context.Context, playerID uuid.U
 		return Lobby{}, err
 	}
 
-	if room.RoomState != db.ROOMSTATE_CREATED.String() {
+	if room.RoomState != db.Created.String() {
 		return Lobby{}, fmt.Errorf("room is not in CREATED state")
 	}
 

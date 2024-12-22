@@ -43,7 +43,7 @@ func (s Subscriber) reconnectOnRoomState(
 	var err error
 
 	switch roomState {
-	case db.ROOMSTATE_CREATED:
+	case db.Created:
 		lobby, err := s.lobbyService.GetLobby(ctx, playerID)
 		if err != nil {
 			clientErr := s.updateClientAboutErr(ctx, playerID, errStr)
@@ -58,16 +58,16 @@ func (s Subscriber) reconnectOnRoomState(
 		}
 
 		component = sections.Lobby(lobby.Code, lobby.Players, mePlayer)
-	case db.ROOMSTATE_PLAYING:
+	case db.Playing:
 		component, err = s.reconnectToPlayingGame(ctx, playerID)
 		if err != nil {
 			return buf, err
 		}
-	case db.ROOMSTATE_PAUSED:
+	case db.Paused:
 		return buf, fmt.Errorf("cannot reconnect game to paused game, as this is not implemented")
-	case db.ROOMSTATE_ABANDONED:
+	case db.Abandoned:
 		return buf, fmt.Errorf("cannot reconnect game is abandoned")
-	case db.ROOMSTATE_FINISHED:
+	case db.Finished:
 		return buf, fmt.Errorf("cannot reconnect game is finished")
 	default:
 		return buf, fmt.Errorf("unknown room state: %s", roomState)
@@ -89,7 +89,7 @@ func (s Subscriber) reconnectToPlayingGame(ctx context.Context, playerID uuid.UU
 	}
 
 	switch gameState {
-	case db.GAMESTATE_FIBBING_IT_QUESTION:
+	case db.FibbingITQuestion:
 		question, err := s.roundService.GetQuestionState(ctx, playerID)
 		if err != nil {
 			clientErr := s.updateClientAboutErr(ctx, playerID, errStr)
@@ -98,21 +98,21 @@ func (s Subscriber) reconnectToPlayingGame(ctx context.Context, playerID uuid.UU
 
 		showRole := false
 		component = sections.Question(question, question.Players[0], showRole)
-	case db.GAMESTATE_FIBBING_IT_VOTING:
+	case db.FibbingItVoting:
 		voting, err := s.roundService.GetVotingState(ctx, playerID)
 		if err != nil {
 			clientErr := s.updateClientAboutErr(ctx, playerID, errStr)
 			return component, errors.Join(clientErr, err)
 		}
 		component = sections.Voting(voting, voting.Players[0])
-	case db.GAMESTATE_FIBBING_IT_REVEAL_ROLE:
+	case db.FibbingItRevealRole:
 		reveal, err := s.roundService.GetRevealState(ctx, playerID)
 		if err != nil {
 			clientErr := s.updateClientAboutErr(ctx, playerID, errStr)
 			return component, errors.Join(clientErr, err)
 		}
 		component = sections.Reveal(reveal)
-	case db.GAMESTATE_FIBBING_IT_SCORING:
+	case db.FibbingItScoring:
 		scoring := service.Scoring{
 			GuessedFibber:      s.config.Scoring.GuessFibber,
 			FibberEvadeCapture: s.config.Scoring.FibberEvadeCapture,

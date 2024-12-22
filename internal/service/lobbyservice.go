@@ -42,7 +42,7 @@ func (r *LobbyService) Create(ctx context.Context, gameName string, newHostPlaye
 			return Lobby{}, err
 		}
 
-		if room.RoomState == db.ROOMSTATE_FINISHED.String() || room.RoomState == db.ROOMSTATE_ABANDONED.String() {
+		if room.RoomState == db.Finished.String() || room.RoomState == db.Abandoned.String() {
 			break
 		}
 	}
@@ -60,7 +60,7 @@ func (r *LobbyService) Create(ctx context.Context, gameName string, newHostPlaye
 		ID:         roomID,
 		GameName:   gameName,
 		RoomCode:   roomCode,
-		RoomState:  db.ROOMSTATE_CREATED.String(),
+		RoomState:  db.Created.String(),
 		HostPlayer: player.ID,
 	}
 
@@ -109,7 +109,7 @@ func (r *LobbyService) Join(ctx context.Context, roomCode string, playerID uuid.
 		return Lobby{}, err
 	}
 
-	if room.RoomState != db.ROOMSTATE_CREATED.String() {
+	if room.RoomState != db.Created.String() {
 		return Lobby{}, fmt.Errorf("room is not in CREATED state")
 	}
 
@@ -173,7 +173,7 @@ func (r *LobbyService) KickPlayer(
 		return Lobby{}, playerToKickID, fmt.Errorf("player is not the host of the room")
 	}
 
-	if room.RoomState != db.ROOMSTATE_CREATED.String() {
+	if room.RoomState != db.Created.String() {
 		return Lobby{}, playerToKickID, fmt.Errorf("room is not in CREATED state")
 	}
 
@@ -221,7 +221,7 @@ func (r *LobbyService) Start(
 		return QuestionState{}, fmt.Errorf("player is not the host of the room")
 	}
 
-	if room.RoomState != db.ROOMSTATE_CREATED.String() {
+	if room.RoomState != db.Created.String() {
 		return QuestionState{}, fmt.Errorf("room is not in CREATED state")
 	}
 
@@ -321,7 +321,7 @@ func (r *LobbyService) Start(
 func (r *LobbyService) GetRoomState(ctx context.Context, playerID uuid.UUID) (db.RoomState, error) {
 	room, err := r.store.GetRoomByPlayerID(ctx, playerID)
 	if err != nil {
-		return db.ROOMSTATE_CREATED, err
+		return db.Created, err
 	}
 
 	roomState, err := db.RoomStateFromString(room.RoomState)

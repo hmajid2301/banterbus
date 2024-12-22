@@ -488,7 +488,7 @@ func TestIntegrationLobbyGetRoomState(t *testing.T) {
 
 		roomState, err := srv.GetRoomState(ctx, id)
 		assert.NoError(t, err)
-		assert.Equal(t, db.ROOMSTATE_CREATED, roomState)
+		assert.Equal(t, db.Created, roomState)
 	})
 
 	t.Run("Should fail to get room state, player id not found", func(t *testing.T) {

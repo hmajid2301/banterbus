@@ -96,14 +96,14 @@ func (r *RevealState) Start(ctx context.Context) {
 	maxRounds := 3
 	finalRound := revealState.Round == maxRounds
 	fibberFound := revealState.ShouldReveal && revealState.VotedForPlayerRole == "fibber"
-	nextState := db.GAMESTATE_FIBBING_IT_QUESTION
+	nextState := db.FibbingITQuestion
 
 	if finalRound || fibberFound {
-		nextState = db.GAMESTATE_FIBBING_IT_SCORING
+		nextState = db.FibbingItScoring
 	}
 
 	time.Sleep(time.Until(deadline))
-	if nextState == db.GAMESTATE_FIBBING_IT_SCORING {
+	if nextState == db.FibbingItScoring {
 		s := &ScoringState{gameStateID: r.gameStateID, subscriber: r.subscriber}
 		go s.Start(ctx)
 	} else {

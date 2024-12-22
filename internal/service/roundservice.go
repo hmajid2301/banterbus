@@ -39,7 +39,7 @@ func (r *RoundService) SubmitAnswer(
 	}
 
 	// TODO: check game state
-	if room.RoomState != db.ROOMSTATE_PLAYING.String() {
+	if room.RoomState != db.Playing.String() {
 		return fmt.Errorf("room is not in PLAYING state")
 	}
 
@@ -74,7 +74,7 @@ func (r *RoundService) ToggleAnswerIsReady(
 	}
 
 	// TODO: no answer submitted should throw an error
-	if gameState.State != db.GAMESTATE_FIBBING_IT_QUESTION.String() {
+	if gameState.State != db.FibbingITQuestion.String() {
 		return false, fmt.Errorf("room game state is not in FIBBING_IT_QUESTION state")
 	}
 
@@ -107,14 +107,14 @@ func (r *RoundService) UpdateStateToVoting(
 	gameState, err := db.GameStateFromString(game.State)
 	if err != nil {
 		return VotingState{}, err
-	} else if gameState != db.GAMESTATE_FIBBING_IT_QUESTION {
+	} else if gameState != db.FibbingITQuestion {
 		return VotingState{}, fmt.Errorf("game state is not in FIBBING_IT_QUESTION state")
 	}
 
 	_, err = r.store.UpdateGameState(ctx, db.UpdateGameStateParams{
 		ID:             gameStateID,
 		SubmitDeadline: pgtype.Timestamp{Time: deadline, Valid: true},
-		State:          db.GAMESTATE_FIBBING_IT_VOTING.String(),
+		State:          db.FibbingItVoting.String(),
 	})
 	if err != nil {
 		return VotingState{}, err
@@ -140,7 +140,7 @@ func (r *RoundService) SubmitVote(
 		return VotingState{}, err
 	}
 
-	if gameState.State != db.GAMESTATE_FIBBING_IT_VOTING.String() {
+	if gameState.State != db.FibbingItVoting.String() {
 		return VotingState{}, fmt.Errorf("game state is not in FIBBING_IT_VOTING state")
 	}
 
@@ -282,7 +282,7 @@ func (r *RoundService) ToggleVotingIsReady(
 		return false, err
 	}
 
-	if gameState.State != db.GAMESTATE_FIBBING_IT_VOTING.String() {
+	if gameState.State != db.FibbingItVoting.String() {
 		return false, fmt.Errorf("room game state is not in FIBBING_IT_VOTING state")
 	}
 
@@ -315,14 +315,14 @@ func (r *RoundService) UpdateStateToReveal(
 	gameState, err := db.GameStateFromString(game.State)
 	if err != nil {
 		return RevealRoleState{}, err
-	} else if gameState != db.GAMESTATE_FIBBING_IT_VOTING {
+	} else if gameState != db.FibbingItVoting {
 		return RevealRoleState{}, fmt.Errorf("game state is not in FIBBING_IT_VOTING state")
 	}
 
 	_, err = r.store.UpdateGameState(ctx, db.UpdateGameStateParams{
 		ID:             gameStateID,
 		SubmitDeadline: pgtype.Timestamp{Time: deadline, Valid: true},
-		State:          db.GAMESTATE_FIBBING_IT_REVEAL_ROLE.String(),
+		State:          db.FibbingItRevealRole.String(),
 	})
 	if err != nil {
 		return RevealRoleState{}, err
@@ -389,14 +389,14 @@ func (r *RoundService) UpdateStateToQuestion(
 	gameState, err := db.GameStateFromString(game.State)
 	if err != nil {
 		return QuestionState{}, err
-	} else if gameState != db.GAMESTATE_FIBBING_IT_REVEAL_ROLE && gameState != db.GAMESTATE_FIBBING_IT_SCORING {
+	} else if gameState != db.FibbingItRevealRole && gameState != db.FibbingItScoring {
 		return QuestionState{}, fmt.Errorf("game state is not in FIBBING_IT_REVEAL_ROLE state or FIBBING_IT_SCORING state")
 	}
 
 	_, err = r.store.UpdateGameState(ctx, db.UpdateGameStateParams{
 		ID:             gameStateID,
 		SubmitDeadline: pgtype.Timestamp{Time: deadline, Valid: true},
-		State:          db.GAMESTATE_FIBBING_IT_QUESTION.String(),
+		State:          db.FibbingITQuestion.String(),
 	})
 	if err != nil {
 		return QuestionState{}, err
@@ -566,14 +566,14 @@ func (r *RoundService) UpdateStateToScore(
 	gameState, err := db.GameStateFromString(game.State)
 	if err != nil {
 		return ScoreState{}, err
-	} else if gameState != db.GAMESTATE_FIBBING_IT_REVEAL_ROLE {
+	} else if gameState != db.FibbingItRevealRole {
 		return ScoreState{}, fmt.Errorf("game state is not in FIBBING_IT_REVEAL_ROLE state")
 	}
 
 	_, err = r.store.UpdateGameState(ctx, db.UpdateGameStateParams{
 		ID:             gameStateID,
 		SubmitDeadline: pgtype.Timestamp{Time: deadline, Valid: true},
-		State:          db.GAMESTATE_FIBBING_IT_SCORING.String(),
+		State:          db.FibbingItScoring.String(),
 	})
 	if err != nil {
 		return ScoreState{}, err
@@ -592,10 +592,10 @@ func (r *RoundService) UpdateStateToScore(
 	return scoringState, nil
 }
 
-func (r *RoundService) GetGameState(ctx context.Context, playerID uuid.UUID) (db.GameStateEnum, error) {
+func (r *RoundService) GetGameState(ctx context.Context, playerID uuid.UUID) (db.FibbingItGameState, error) {
 	game, err := r.store.GetGameStateByPlayerID(ctx, playerID)
 	if err != nil {
-		return db.GAMESTATE_FIBBING_IT_QUESTION, err
+		return db.FibbingITQuestion, err
 	}
 
 	gameState, err := db.GameStateFromString(game.State)

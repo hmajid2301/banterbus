@@ -129,11 +129,11 @@ func TestLobbyServiceCreate(t *testing.T) {
 		mockRandom.EXPECT().GetRoomCode().Return(roomCode)
 		mockStore.EXPECT().
 			GetRoomByCode(ctx, roomCode).
-			Return(db.Room{RoomState: db.ROOMSTATE_CREATED.String()}, nil).
+			Return(db.Room{RoomState: db.Created.String()}, nil).
 			Times(1)
 		mockStore.EXPECT().
 			GetRoomByCode(ctx, roomCode).
-			Return(db.Room{RoomState: db.ROOMSTATE_ABANDONED.String()}, nil).
+			Return(db.Room{RoomState: db.Abandoned.String()}, nil).
 			Times(1)
 		mockRandom.EXPECT().GetID().Return(roomID)
 
@@ -209,7 +209,7 @@ func getCreateRoomParams(newCreatedPlayer service.NewPlayer, newPlayer service.N
 		ID:         roomID,
 		GameName:   gameName,
 		RoomCode:   roomCode,
-		RoomState:  db.ROOMSTATE_CREATED.String(),
+		RoomState:  db.Created.String(),
 		HostPlayer: newPlayer.ID,
 	}
 
@@ -248,7 +248,7 @@ func TestLobbyServiceJoin(t *testing.T) {
 		mockRandom.EXPECT().GetAvatar(defaultNewPlayer.Nickname).Return(defaultNewPlayer.Avatar)
 		mockStore.EXPECT().
 			GetRoomByCode(ctx, roomCode).
-			Return(db.Room{ID: roomID, RoomState: db.ROOMSTATE_CREATED.String()}, nil)
+			Return(db.Room{ID: roomID, RoomState: db.Created.String()}, nil)
 		mockStore.EXPECT().GetAllPlayerByRoomCode(ctx, roomCode).Return([]db.GetAllPlayerByRoomCodeRow{
 			{
 				Nickname: "Hello",
@@ -330,7 +330,7 @@ func TestLobbyServiceJoin(t *testing.T) {
 			Return("https://api.dicebear.com/9.x/bottts-neutral/svg?radius=20&seed=MyNickname")
 		mockStore.EXPECT().
 			GetRoomByCode(ctx, roomCode).
-			Return(db.Room{ID: roomID, RoomState: db.ROOMSTATE_CREATED.String()}, nil)
+			Return(db.Room{ID: roomID, RoomState: db.Created.String()}, nil)
 		mockStore.EXPECT().GetAllPlayerByRoomCode(ctx, roomCode).Return([]db.GetAllPlayerByRoomCodeRow{
 			{
 				Nickname: "Hello",
@@ -407,7 +407,7 @@ func TestLobbyServiceJoin(t *testing.T) {
 		mockRandom.EXPECT().GetAvatar(defaultNewPlayer.Nickname).Return(defaultNewPlayer.Avatar)
 		mockStore.EXPECT().
 			GetRoomByCode(ctx, roomCode).
-			Return(db.Room{ID: roomID, RoomState: db.ROOMSTATE_PLAYING.String()}, nil)
+			Return(db.Room{ID: roomID, RoomState: db.Playing.String()}, nil)
 
 		_, err := srv.Join(ctx, roomCode, defaultNewPlayer.ID, defaultNewPlayer.Nickname)
 		assert.ErrorContains(t, err, "room is not in CREATED state")
@@ -439,7 +439,7 @@ func TestLobbyServiceJoin(t *testing.T) {
 		mockRandom.EXPECT().GetAvatar(nickname).Return(defaultNewPlayer.Avatar)
 		mockStore.EXPECT().
 			GetRoomByCode(ctx, roomCode).
-			Return(db.Room{ID: roomID, RoomState: db.ROOMSTATE_CREATED.String()}, nil)
+			Return(db.Room{ID: roomID, RoomState: db.Created.String()}, nil)
 		mockStore.EXPECT().GetAllPlayerByRoomCode(ctx, roomCode).Return([]db.GetAllPlayerByRoomCodeRow{
 			{
 				Nickname: "Hello",
@@ -465,7 +465,7 @@ func TestLobbyServiceJoin(t *testing.T) {
 		mockRandom.EXPECT().GetAvatar(defaultNewPlayer.Nickname).Return(defaultNewPlayer.Avatar)
 		mockStore.EXPECT().
 			GetRoomByCode(ctx, roomCode).
-			Return(db.Room{ID: roomID, RoomState: db.ROOMSTATE_CREATED.String()}, nil)
+			Return(db.Room{ID: roomID, RoomState: db.Created.String()}, nil)
 		mockStore.EXPECT().GetAllPlayerByRoomCode(ctx, roomCode).Return([]db.GetAllPlayerByRoomCodeRow{
 			{
 				Nickname: "Hello",
@@ -509,7 +509,7 @@ func TestLobbyServiceJoin(t *testing.T) {
 		mockRandom.EXPECT().GetAvatar(defaultNewPlayer.Nickname).Return(defaultNewPlayer.Avatar)
 		mockStore.EXPECT().
 			GetRoomByCode(ctx, roomCode).
-			Return(db.Room{ID: roomID, RoomState: db.ROOMSTATE_CREATED.String()}, nil)
+			Return(db.Room{ID: roomID, RoomState: db.Created.String()}, nil)
 		mockStore.EXPECT().GetAllPlayerByRoomCode(ctx, roomCode).Return([]db.GetAllPlayerByRoomCodeRow{
 			{
 				Nickname: "Hello",
@@ -556,7 +556,7 @@ func TestLobbyServiceKickPlayer(t *testing.T) {
 		ctx := context.Background()
 		mockStore.EXPECT().
 			GetRoomByCode(ctx, roomCode).
-			Return(db.Room{ID: roomID, HostPlayer: hostPlayerID, RoomState: db.ROOMSTATE_CREATED.String()}, nil)
+			Return(db.Room{ID: roomID, HostPlayer: hostPlayerID, RoomState: db.Created.String()}, nil)
 		mockStore.EXPECT().GetAllPlayersInRoom(ctx, hostPlayerID).Return([]db.GetAllPlayersInRoomRow{
 			{
 				ID:         defaultNewPlayer.ID,
@@ -608,7 +608,7 @@ func TestLobbyServiceKickPlayer(t *testing.T) {
 		ctx := context.Background()
 		mockStore.EXPECT().
 			GetRoomByCode(ctx, roomCode).
-			Return(db.Room{ID: roomID, HostPlayer: hostPlayerID, RoomState: db.ROOMSTATE_CREATED.String()}, nil)
+			Return(db.Room{ID: roomID, HostPlayer: hostPlayerID, RoomState: db.Created.String()}, nil)
 		_, _, err := srv.KickPlayer(ctx, roomCode, defaultNewPlayer.ID, defaultNewPlayer.Nickname)
 		assert.ErrorContains(t, err, "player is not the host of the room")
 	})
@@ -621,7 +621,7 @@ func TestLobbyServiceKickPlayer(t *testing.T) {
 		ctx := context.Background()
 		mockStore.EXPECT().
 			GetRoomByCode(ctx, roomCode).
-			Return(db.Room{ID: roomID, HostPlayer: hostPlayerID, RoomState: db.ROOMSTATE_PLAYING.String()}, nil)
+			Return(db.Room{ID: roomID, HostPlayer: hostPlayerID, RoomState: db.Playing.String()}, nil)
 		_, _, err := srv.KickPlayer(ctx, roomCode, hostPlayerID, defaultNewPlayer.Nickname)
 		assert.ErrorContains(t, err, "room is not in CREATED state")
 	})
@@ -634,7 +634,7 @@ func TestLobbyServiceKickPlayer(t *testing.T) {
 		ctx := context.Background()
 		mockStore.EXPECT().
 			GetRoomByCode(ctx, roomCode).
-			Return(db.Room{ID: roomID, HostPlayer: hostPlayerID, RoomState: db.ROOMSTATE_CREATED.String()}, nil)
+			Return(db.Room{ID: roomID, HostPlayer: hostPlayerID, RoomState: db.Created.String()}, nil)
 		mockStore.EXPECT().
 			GetAllPlayersInRoom(ctx, hostPlayerID).
 			Return([]db.GetAllPlayersInRoomRow{}, fmt.Errorf("failed to get all players in room"))
@@ -651,7 +651,7 @@ func TestLobbyServiceKickPlayer(t *testing.T) {
 		ctx := context.Background()
 		mockStore.EXPECT().
 			GetRoomByCode(ctx, roomCode).
-			Return(db.Room{ID: roomID, HostPlayer: hostPlayerID, RoomState: db.ROOMSTATE_CREATED.String()}, nil)
+			Return(db.Room{ID: roomID, HostPlayer: hostPlayerID, RoomState: db.Created.String()}, nil)
 		mockStore.EXPECT().GetAllPlayersInRoom(ctx, hostPlayerID).Return([]db.GetAllPlayersInRoomRow{
 			{
 				ID:         hostPlayerID,
@@ -672,7 +672,7 @@ func TestLobbyServiceKickPlayer(t *testing.T) {
 		ctx := context.Background()
 		mockStore.EXPECT().
 			GetRoomByCode(ctx, roomCode).
-			Return(db.Room{ID: roomID, HostPlayer: hostPlayerID, RoomState: db.ROOMSTATE_CREATED.String()}, nil)
+			Return(db.Room{ID: roomID, HostPlayer: hostPlayerID, RoomState: db.Created.String()}, nil)
 		mockStore.EXPECT().GetAllPlayersInRoom(ctx, hostPlayerID).Return([]db.GetAllPlayersInRoomRow{
 			{
 				ID:         defaultNewPlayer.ID,
@@ -717,7 +717,7 @@ func TestLobbyServiceStart(t *testing.T) {
 					ID:         roomID,
 					GameName:   gameName,
 					HostPlayer: hostPlayerID,
-					RoomState:  db.ROOMSTATE_CREATED.String(),
+					RoomState:  db.Created.String(),
 				}, nil)
 		mockStore.EXPECT().GetAllPlayersInRoom(ctx, hostPlayerID).Return([]db.GetAllPlayersInRoomRow{
 			{
@@ -822,7 +822,7 @@ func TestLobbyServiceStart(t *testing.T) {
 				db.Room{ID: roomID,
 					GameName:   gameName,
 					HostPlayer: hostPlayerID,
-					RoomState:  db.ROOMSTATE_CREATED.String(),
+					RoomState:  db.Created.String(),
 				}, nil)
 
 		deadline := time.Now().Add(5 * time.Second)
@@ -842,7 +842,7 @@ func TestLobbyServiceStart(t *testing.T) {
 				db.Room{ID: roomID,
 					GameName:   gameName,
 					HostPlayer: hostPlayerID,
-					RoomState:  db.ROOMSTATE_PLAYING.String(),
+					RoomState:  db.Playing.String(),
 				}, nil)
 
 		deadline := time.Now().Add(5 * time.Second)
@@ -862,7 +862,7 @@ func TestLobbyServiceStart(t *testing.T) {
 				db.Room{ID: roomID,
 					GameName:   gameName,
 					HostPlayer: hostPlayerID,
-					RoomState:  db.ROOMSTATE_CREATED.String(),
+					RoomState:  db.Created.String(),
 				}, nil)
 		mockStore.EXPECT().
 			GetAllPlayersInRoom(ctx, hostPlayerID).
@@ -885,7 +885,7 @@ func TestLobbyServiceStart(t *testing.T) {
 				db.Room{ID: roomID,
 					GameName:   gameName,
 					HostPlayer: hostPlayerID,
-					RoomState:  db.ROOMSTATE_CREATED.String(),
+					RoomState:  db.Created.String(),
 				}, nil)
 		mockStore.EXPECT().GetAllPlayersInRoom(ctx, hostPlayerID).Return([]db.GetAllPlayersInRoomRow{
 			{
@@ -915,7 +915,7 @@ func TestLobbyServiceStart(t *testing.T) {
 					ID:         roomID,
 					GameName:   gameName,
 					HostPlayer: hostPlayerID,
-					RoomState:  db.ROOMSTATE_CREATED.String(),
+					RoomState:  db.Created.String(),
 				},
 				nil)
 		mockStore.EXPECT().GetAllPlayersInRoom(ctx, hostPlayerID).Return([]db.GetAllPlayersInRoomRow{
@@ -953,7 +953,7 @@ func TestLobbyServiceStart(t *testing.T) {
 					ID:         roomID,
 					GameName:   gameName,
 					HostPlayer: hostPlayerID,
-					RoomState:  db.ROOMSTATE_CREATED.String(),
+					RoomState:  db.Created.String(),
 				}, nil)
 		mockStore.EXPECT().GetAllPlayersInRoom(ctx, hostPlayerID).Return([]db.GetAllPlayersInRoomRow{
 			{
@@ -1000,7 +1000,7 @@ func TestLobbyServiceStart(t *testing.T) {
 				db.Room{ID: roomID,
 					GameName:   gameName,
 					HostPlayer: hostPlayerID,
-					RoomState:  db.ROOMSTATE_CREATED.String(),
+					RoomState:  db.Created.String(),
 				},
 				nil)
 		mockStore.EXPECT().GetAllPlayersInRoom(ctx, hostPlayerID).Return([]db.GetAllPlayersInRoomRow{
@@ -1054,7 +1054,7 @@ func TestLobbyServiceStart(t *testing.T) {
 					ID:         roomID,
 					GameName:   gameName,
 					HostPlayer: hostPlayerID,
-					RoomState:  db.ROOMSTATE_CREATED.String(),
+					RoomState:  db.Created.String(),
 				},
 				nil)
 		mockStore.EXPECT().GetAllPlayersInRoom(ctx, hostPlayerID).Return([]db.GetAllPlayersInRoomRow{
@@ -1135,28 +1135,28 @@ func TestLobbyServiceGetRoomState(t *testing.T) {
 	}{
 		{
 			name:          "Should successfully get room state CREATED",
-			roomState:     db.ROOMSTATE_CREATED,
-			expectedState: db.ROOMSTATE_CREATED,
+			roomState:     db.Created,
+			expectedState: db.Created,
 		},
 		{
 			name:          "Should successfully get room state PLAYING",
-			roomState:     db.ROOMSTATE_PLAYING,
-			expectedState: db.ROOMSTATE_PLAYING,
+			roomState:     db.Playing,
+			expectedState: db.Playing,
 		},
 		{
 			name:          "Should successfully get room state PAUSED",
-			roomState:     db.ROOMSTATE_PAUSED,
-			expectedState: db.ROOMSTATE_PAUSED,
+			roomState:     db.Paused,
+			expectedState: db.Paused,
 		},
 		{
 			name:          "Should successfully get room state FINISHED",
-			roomState:     db.ROOMSTATE_FINISHED,
-			expectedState: db.ROOMSTATE_FINISHED,
+			roomState:     db.Finished,
+			expectedState: db.Finished,
 		},
 		{
 			name:          "Should successfully get room state ABANDONED",
-			roomState:     db.ROOMSTATE_ABANDONED,
-			expectedState: db.ROOMSTATE_ABANDONED,
+			roomState:     db.Abandoned,
+			expectedState: db.Abandoned,
 		},
 	}
 

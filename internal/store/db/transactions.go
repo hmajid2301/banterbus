@@ -85,7 +85,7 @@ func (s DB) StartGame(ctx context.Context, arg StartGameArgs) error {
 
 	defer tx.Rollback(ctx)
 	_, err = s.WithTx(tx).UpdateRoomState(ctx, UpdateRoomStateParams{
-		RoomState: ROOMSTATE_PLAYING.String(),
+		RoomState: Playing.String(),
 		ID:        arg.RoomID,
 	})
 	if err != nil {
@@ -95,7 +95,7 @@ func (s DB) StartGame(ctx context.Context, arg StartGameArgs) error {
 	_, err = s.WithTx(tx).AddGameState(ctx, AddGameStateParams{
 		ID:             arg.GameStateID,
 		RoomID:         arg.RoomID,
-		State:          GAMESTATE_FIBBING_IT_QUESTION.String(),
+		State:          FibbingITQuestion.String(),
 		SubmitDeadline: pgtype.Timestamp{Time: arg.Deadline, Valid: true},
 	})
 	if err != nil {
