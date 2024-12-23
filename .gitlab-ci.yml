@@ -257,3 +257,12 @@ release:
   script:
     - task release
 
+smoke:tests:e2e:
+  extends:
+    - .test
+  variables:
+    BANTERBUS_PLAYWRIGHT_URL: https://banterbus.games
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'
+  script:
+    - task tests:e2e -- ${GOTEST_EXTRA_ARGS}

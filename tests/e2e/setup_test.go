@@ -37,7 +37,7 @@ var (
 	headless        = os.Getenv("BANTERBUS_PLAYWRIGHT_HEADLESS") == ""
 	browserName     = getBrowserName()
 	browserType     playwright.BrowserType
-	serverAddress   string
+	url             = os.Getenv("BANTERBUS_PLAYWRIGHT_URL")
 	testUserNum     = 2
 )
 
@@ -78,9 +78,13 @@ func BeforeAll() (*httptest.Server, error) {
 
 	expect = playwright.NewPlaywrightAssertions(1000)
 
-	server, err := newTestServer()
-	if err != nil {
-		return nil, err
+	// INFO: if no address passed start local server
+	var server *httptest.Server
+	if url == "" {
+		server, err = newTestServer()
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	ResetBrowserContexts()
@@ -88,12 +92,15 @@ func BeforeAll() (*httptest.Server, error) {
 }
 
 func AfterAll(server *httptest.Server) {
-	server.Close()
+	if server != nil {
+		server.Close()
+	}
+
 	for i := 0; i < testUserNum; i++ {
 		browserContexts[i].Close()
 	}
 	if err := pw.Stop(); err != nil {
-		log.Fatalf("could not start Playwright: %v", err)
+		log.Fatalf("could not stop Playwright: %v", err)
 	}
 }
 
@@ -152,7 +159,7 @@ func newTestServer() (*httptest.Server, error) {
 	srv := transporthttp.NewServer(subscriber, logger, staticFS, serverConfig)
 	server := httptest.NewServer(srv.Server.Handler)
 
-	serverAddress = server.Listener.Addr().String()
+	url = server.Listener.Addr().String()
 	return server, nil
 }
 
@@ -178,7 +185,7 @@ func ResetBrowserContexts() {
 			log.Fatalf("could not create page: %v", err)
 		}
 
-		_, err = page.Goto(serverAddress)
+		_, err = page.Goto(url)
 		if err != nil {
 			log.Fatalf("could not go to page: %v", err)
 		}
