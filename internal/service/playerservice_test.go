@@ -2,11 +2,11 @@ package service_test
 
 import (
 	"context"
-	"fmt"
 	"testing"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/mdobak/go-xerrors"
 	"github.com/stretchr/testify/assert"
 
 	"gitlab.com/hmajid2301/banterbus/internal/service"
@@ -72,7 +72,7 @@ func TestPlayerServiceUpdateNickname(t *testing.T) {
 
 		ctx := context.Background()
 		mockStore.EXPECT().GetRoomByPlayerID(ctx, playerID).Return(
-			db.Room{}, fmt.Errorf("failed to get room details"),
+			db.Room{}, xerrors.New("failed to get room details"),
 		)
 
 		_, err := srv.UpdateNickname(ctx, "New Nickname", playerID)
@@ -138,7 +138,7 @@ func TestPlayerServiceUpdateNickname(t *testing.T) {
 		mockStore.EXPECT().UpdateNickname(ctx, db.UpdateNicknameParams{
 			Nickname: "New Nickname",
 			ID:       playerID,
-		}).Return(db.Player{}, fmt.Errorf("failed to update nickname"))
+		}).Return(db.Player{}, xerrors.New("failed to update nickname"))
 
 		_, err := srv.UpdateNickname(ctx, "New Nickname", playerID)
 		assert.Error(t, err)
@@ -165,7 +165,7 @@ func TestPlayerServiceUpdateNickname(t *testing.T) {
 			ID:       playerID,
 		}).Return(db.Player{}, nil)
 		mockStore.EXPECT().GetAllPlayersInRoom(ctx, playerID).Return(
-			[]db.GetAllPlayersInRoomRow{}, fmt.Errorf("failed to get all players in room"),
+			[]db.GetAllPlayersInRoomRow{}, xerrors.New("failed to get all players in room"),
 		).Times(1)
 
 		_, err := srv.UpdateNickname(ctx, "New Nickname", playerID)
@@ -227,7 +227,7 @@ func TestPlayerServiceGenerateAvatar(t *testing.T) {
 		ctx := context.Background()
 
 		mockStore.EXPECT().GetRoomByPlayerID(ctx, playerID).Return(
-			db.Room{}, fmt.Errorf("failed to get room details"),
+			db.Room{}, xerrors.New("failed to get room details"),
 		)
 
 		_, err := srv.GenerateNewAvatar(ctx, playerID)
@@ -265,7 +265,7 @@ func TestPlayerServiceGenerateAvatar(t *testing.T) {
 		mockStore.EXPECT().UpdateAvatar(ctx, db.UpdateAvatarParams{
 			Avatar: avatarURL,
 			ID:     playerID,
-		}).Return(db.Player{}, fmt.Errorf("failed to update avatar"))
+		}).Return(db.Player{}, xerrors.New("failed to update avatar"))
 
 		_, err := srv.GenerateNewAvatar(ctx, playerID)
 		assert.Error(t, err)
@@ -288,7 +288,7 @@ func TestPlayerServiceGenerateAvatar(t *testing.T) {
 			ID:     playerID,
 		}).Return(db.Player{}, nil)
 		mockStore.EXPECT().GetAllPlayersInRoom(ctx, playerID).Return(
-			[]db.GetAllPlayersInRoomRow{}, fmt.Errorf("failed to get all players in room"),
+			[]db.GetAllPlayersInRoomRow{}, xerrors.New("failed to get all players in room"),
 		).Times(1)
 
 		_, err := srv.GenerateNewAvatar(ctx, playerID)
@@ -364,7 +364,7 @@ func TestPlayerServiceTogglePlayerIsReady(t *testing.T) {
 
 		ctx := context.Background()
 		mockStore.EXPECT().GetRoomByPlayerID(ctx, playerID).Return(
-			db.Room{}, fmt.Errorf("failed to get room details"),
+			db.Room{}, xerrors.New("failed to get room details"),
 		)
 
 		_, err := srv.TogglePlayerIsReady(ctx, playerID)
@@ -399,7 +399,7 @@ func TestPlayerServiceTogglePlayerIsReady(t *testing.T) {
 			RoomState: db.Created.String(),
 		}, nil)
 		mockStore.EXPECT().TogglePlayerIsReady(ctx, playerID).Return(
-			db.Player{}, fmt.Errorf("failed to update is ready"),
+			db.Player{}, xerrors.New("failed to update is ready"),
 		)
 
 		_, err := srv.TogglePlayerIsReady(ctx, playerID)
@@ -419,7 +419,7 @@ func TestPlayerServiceTogglePlayerIsReady(t *testing.T) {
 		}, nil)
 		mockStore.EXPECT().TogglePlayerIsReady(ctx, playerID).Return(db.Player{}, nil)
 		mockStore.EXPECT().GetAllPlayersInRoom(ctx, playerID).Return(
-			[]db.GetAllPlayersInRoomRow{}, fmt.Errorf("failed to get players in room"),
+			[]db.GetAllPlayersInRoomRow{}, xerrors.New("failed to get players in room"),
 		)
 
 		_, err := srv.TogglePlayerIsReady(ctx, playerID)

@@ -5,7 +5,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io"
 	"log/slog"
 	"net"
@@ -16,6 +15,7 @@ import (
 	"github.com/gobwas/ws/wsutil"
 	"github.com/google/uuid"
 	"github.com/invopop/ctxi18n"
+	"github.com/mdobak/go-xerrors"
 	"github.com/redis/go-redis/v9"
 	slogctx "github.com/veqryn/slog-context"
 
@@ -50,7 +50,7 @@ type WSHandler interface {
 	Validate() error
 }
 
-var errConnectionClosed = fmt.Errorf("connection closed")
+var errConnectionClosed = xerrors.New("connection closed")
 
 func NewSubscriber(
 	lobbyService LobbyServicer,
@@ -264,7 +264,7 @@ func (s *Subscriber) handleMessage(ctx context.Context, client *client) error {
 			return nil
 		}
 
-		return fmt.Errorf("failed to get next message: %w", err)
+		return xerrors.New("failed to get next message", err)
 	}
 
 	if hdr.OpCode == ws.OpClose {
@@ -273,14 +273,14 @@ func (s *Subscriber) handleMessage(ctx context.Context, client *client) error {
 
 	data, err := io.ReadAll(r)
 	if err != nil {
-		return fmt.Errorf("failed to read message: %w", err)
+		return xerrors.New("failed to read message", err)
 	}
 
 	var message message
 	err = json.Unmarshal(data, &message)
 	s.logger.DebugContext(ctx, "received message", slog.Any("message", message))
 	if err != nil {
-		return fmt.Errorf("failed to unmarshal message: %w", err)
+		return xerrors.New("failed to unmarshal message", err)
 	}
 
 	err = telemetry.IncrementMessageReceived(ctx, message.MessageType)
@@ -291,23 +291,23 @@ func (s *Subscriber) handleMessage(ctx context.Context, client *client) error {
 	s.logger.DebugContext(ctx, "handling message", slog.String("message_type", message.MessageType))
 	handler, ok := s.handlers[message.MessageType]
 	if !ok {
-		return fmt.Errorf("handler not found for message type: %s", message.MessageType)
+		return xerrors.New("handler not found for message type: %s", message.MessageType)
 	}
 
 	err = json.Unmarshal(data, &handler)
 	s.logger.DebugContext(ctx, "trying to unmarshal handler message", slog.Any("message", message))
 	if err != nil {
-		return fmt.Errorf("failed to unmarshal for handler: %w", err)
+		return xerrors.New("failed to unmarshal for handler", err)
 	}
 
 	err = handler.Validate()
 	if err != nil {
-		return fmt.Errorf("error validating handler message: %w", err)
+		return xerrors.New("error validating handler message", err)
 	}
 
 	err = handler.Handle(ctx, client, s)
 	if err != nil {
-		return fmt.Errorf("error in handler function: %w", err)
+		return xerrors.New("error in handler function", err)
 	}
 
 	s.logger.DebugContext(ctx, "finished handling request")

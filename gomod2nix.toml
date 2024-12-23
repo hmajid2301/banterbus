@@ -73,6 +73,9 @@ schema = 3
   [mod."github.com/lmittmann/tint"]
     version = "v1.0.6"
     hash = "sha256-toT4YdhajyOXWzOHFxpMLbx9uJyCBEP36BR0FWy1H0A="
+  [mod."github.com/mdobak/go-xerrors"]
+    version = "v0.3.1"
+    hash = "sha256-/RkHFCPT8CoQtgy3FDu9JZwVFRH1fnPdMW5dbqVWqAM="
   [mod."github.com/mfridman/interpolate"]
     version = "v0.0.2"
     hash = "sha256-3u04CYOy7PLMctdkum5pltSTkYya8EfXJexbW7j0KB8="

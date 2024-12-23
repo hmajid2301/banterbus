@@ -3,10 +3,10 @@ package websockets
 import (
 	"context"
 	"errors"
-	"fmt"
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/mdobak/go-xerrors"
 
 	"gitlab.com/hmajid2301/banterbus/internal/service"
 	"gitlab.com/hmajid2301/banterbus/internal/store/db"
@@ -109,7 +109,7 @@ func (k *KickPlayer) Handle(ctx context.Context, client *client, sub *Subscriber
 
 	err = sub.updateClientsAboutLobby(ctx, updatedRoom)
 	if err != nil {
-		return fmt.Errorf("failed to send kick error message to player: %w", err)
+		return xerrors.New("failed to send kick error message to player", err)
 	}
 
 	// TODO: take user back to home page instead of just an error

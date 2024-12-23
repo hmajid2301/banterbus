@@ -279,7 +279,7 @@ func TestIntegrationLobbyKickPlayer(t *testing.T) {
 		assert.NoError(t, err)
 
 		_, _, err = srv.KickPlayer(ctx, lobby.Code, defaultHostPlayerID, "wrong_nickname")
-		assert.ErrorContains(t, err, "player with nickname wrong_nickname not found to kick")
+		assert.ErrorContains(t, err, "player with nickname wrong_nickname not found")
 	})
 }
 

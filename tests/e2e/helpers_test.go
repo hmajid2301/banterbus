@@ -1,9 +1,9 @@
 package e2e
 
 import (
-	"fmt"
 	"time"
 
+	"github.com/mdobak/go-xerrors"
 	"github.com/playwright-community/playwright-go"
 )
 
@@ -31,7 +31,7 @@ func joinRoom(hostPlayerPage playwright.Page, otherPlayerPage playwright.Page) e
 	}
 
 	if code == "" {
-		return fmt.Errorf("room code is empty")
+		return xerrors.New("room code is empty")
 	}
 
 	err = otherPlayerPage.GetByPlaceholder("ABC12").Fill(code)

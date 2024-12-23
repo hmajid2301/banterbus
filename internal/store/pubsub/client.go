@@ -2,9 +2,9 @@ package pubsub
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/google/uuid"
+	"github.com/mdobak/go-xerrors"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -44,7 +44,7 @@ func (c Client) Publish(ctx context.Context, id uuid.UUID, msg []byte) error {
 func (c Client) Close(id uuid.UUID) error {
 	pubsub, ok := c.Subscribers[id.String()]
 	if !ok {
-		return fmt.Errorf("ID %s not found", id)
+		return xerrors.New("ID %s not found", id)
 	}
 
 	return pubsub.Close()

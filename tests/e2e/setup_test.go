@@ -2,7 +2,6 @@ package e2e
 
 import (
 	"context"
-	"fmt"
 	"io"
 	"log"
 	"log/slog"
@@ -15,6 +14,7 @@ import (
 
 	"github.com/invopop/ctxi18n"
 	"github.com/invopop/ctxi18n/i18n"
+	"github.com/mdobak/go-xerrors"
 	"github.com/playwright-community/playwright-go"
 
 	"gitlab.com/hmajid2301/banterbus/internal/banterbustest"
@@ -73,7 +73,7 @@ func BeforeAll() (*httptest.Server, error) {
 		Headless: playwright.Bool(headless),
 	})
 	if err != nil {
-		return nil, fmt.Errorf("could not start browser: %v", err)
+		return nil, xerrors.New("could not start browser: %v", err)
 	}
 
 	expect = playwright.NewPlaywrightAssertions(1000)
@@ -140,7 +140,7 @@ func newTestServer() (*httptest.Server, error) {
 	subscriber := websockets.NewSubscriber(lobbyServicer, playerServicer, roundServicer, logger, redisClient, conf)
 	err = ctxi18n.LoadWithDefault(views.Locales, "en-GB")
 	if err != nil {
-		return nil, fmt.Errorf("error loading locales: %w", err)
+		return nil, xerrors.New("error loading locales", err)
 	}
 
 	staticFS := http.Dir("../../static")

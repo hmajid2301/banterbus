@@ -2,13 +2,13 @@ package service_test
 
 import (
 	"context"
-	"fmt"
 	"testing"
 	"time"
 
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/mdobak/go-xerrors"
 	"github.com/stretchr/testify/assert"
 
 	"gitlab.com/hmajid2301/banterbus/internal/service"
@@ -61,7 +61,7 @@ func TestRoundServiceSubmitAnswer(t *testing.T) {
 
 		mockStore.EXPECT().
 			GetRoomByPlayerID(ctx, playerID).
-			Return(db.Room{}, fmt.Errorf("failed to get room details"))
+			Return(db.Room{}, xerrors.New("failed to get room details"))
 		err := srv.SubmitAnswer(ctx, playerID, "My answer", now)
 		assert.Error(t, err)
 	})
@@ -97,7 +97,7 @@ func TestRoundServiceSubmitAnswer(t *testing.T) {
 		}, nil)
 		mockStore.EXPECT().GetLatestRoundByPlayerID(ctx, playerID).Return(
 			db.GetLatestRoundByPlayerIDRow{},
-			fmt.Errorf("failed to get latest round"),
+			xerrors.New("failed to get latest round"),
 		)
 
 		err := service.SubmitAnswer(ctx, playerID, "My answer", now)
@@ -149,7 +149,7 @@ func TestRoundServiceSubmitAnswer(t *testing.T) {
 			RoundID:  roundID,
 			PlayerID: playerID,
 			Answer:   "My answer",
-		}).Return(db.FibbingItAnswer{}, fmt.Errorf("failed to add answer to DB"))
+		}).Return(db.FibbingItAnswer{}, xerrors.New("failed to add answer to DB"))
 
 		err := srv.SubmitAnswer(ctx, playerID, "My answer", now)
 		assert.Error(t, err)
@@ -203,7 +203,7 @@ func TestRoundServiceToggleAnswerIsReady(t *testing.T) {
 		ctx := context.Background()
 
 		mockStore.EXPECT().GetGameStateByPlayerID(ctx, playerID).Return(
-			db.GameState{}, fmt.Errorf("failed to get state"),
+			db.GameState{}, xerrors.New("failed to get state"),
 		)
 
 		_, err := srv.ToggleAnswerIsReady(ctx, playerID, time.Now().UTC())
@@ -240,7 +240,7 @@ func TestRoundServiceToggleAnswerIsReady(t *testing.T) {
 				SubmitDeadline: pgtype.Timestamp{Time: time.Now().Add(1 * time.Hour)},
 			}, nil)
 			mockStore.EXPECT().ToggleAnswerIsReady(ctx, playerID).Return(
-				db.FibbingItAnswer{}, fmt.Errorf("failed to toggle answer is ready"),
+				db.FibbingItAnswer{}, xerrors.New("failed to toggle answer is ready"),
 			)
 
 			_, err := srv.ToggleAnswerIsReady(ctx, playerID, time.Now().UTC())
@@ -263,7 +263,7 @@ func TestRoundServiceToggleAnswerIsReady(t *testing.T) {
 			}, nil)
 			mockStore.EXPECT().ToggleAnswerIsReady(ctx, playerID).Return(db.FibbingItAnswer{}, nil)
 			mockStore.EXPECT().GetAllPlayerAnswerIsReady(ctx, playerID).Return(
-				false, fmt.Errorf("failed to get player answer is ready status"),
+				false, xerrors.New("failed to get player answer is ready status"),
 			)
 
 			_, err := srv.ToggleAnswerIsReady(ctx, playerID, time.Now().UTC())
@@ -373,7 +373,7 @@ func TestRoundServiceUpdateStateToVoting(t *testing.T) {
 		now := time.Now().Add(30 * time.Second)
 
 		mockStore.EXPECT().GetGameState(ctx, gameStateID).Return(
-			db.GameState{}, fmt.Errorf("failed to get game state"),
+			db.GameState{}, xerrors.New("failed to get game state"),
 		)
 		_, err := srv.UpdateStateToVoting(ctx, gameStateID, now)
 		assert.Error(t, err)
@@ -410,7 +410,7 @@ func TestRoundServiceUpdateStateToVoting(t *testing.T) {
 			ID:             gameStateID,
 			SubmitDeadline: pgtype.Timestamp{Time: now, Valid: true},
 			State:          db.FibbingItVoting.String(),
-		}).Return(db.GameState{}, fmt.Errorf("failed to update game state"))
+		}).Return(db.GameState{}, xerrors.New("failed to update game state"))
 
 		_, err := srv.UpdateStateToVoting(ctx, gameStateID, now)
 		assert.Error(t, err)
@@ -516,7 +516,7 @@ func TestRoundServiceSubmitVote(t *testing.T) {
 		now := time.Now().Add(30 * time.Second)
 
 		mockStore.EXPECT().GetGameStateByPlayerID(ctx, defaultHostPlayerID).Return(
-			db.GameState{}, fmt.Errorf("failed to get game state"),
+			db.GameState{}, xerrors.New("failed to get game state"),
 		)
 
 		_, err := srv.SubmitVote(ctx, defaultHostPlayerID, "Player 2", now)
@@ -551,7 +551,7 @@ func TestRoundServiceSubmitVote(t *testing.T) {
 			State: db.FibbingItVoting.String(),
 		}, nil)
 		mockStore.EXPECT().GetAllPlayersInRoom(ctx, defaultHostPlayerID).Return(
-			[]db.GetAllPlayersInRoomRow{}, fmt.Errorf("failed to get all players in room"),
+			[]db.GetAllPlayersInRoomRow{}, xerrors.New("failed to get all players in room"),
 		)
 
 		_, err := srv.SubmitVote(ctx, defaultHostPlayerID, "Player 2", now)
@@ -632,7 +632,7 @@ func TestRoundServiceSubmitVote(t *testing.T) {
 			},
 		}, nil)
 		mockStore.EXPECT().GetLatestRoundByPlayerID(ctx, defaultHostPlayerID).Return(
-			db.GetLatestRoundByPlayerIDRow{}, fmt.Errorf("failed to get latest round"),
+			db.GetLatestRoundByPlayerIDRow{}, xerrors.New("failed to get latest round"),
 		)
 
 		_, err := srv.SubmitVote(ctx, defaultHostPlayerID, "Player 2", now)
@@ -702,7 +702,7 @@ func TestRoundServiceSubmitVote(t *testing.T) {
 			RoundID:          roundID,
 			PlayerID:         defaultHostPlayerID,
 			VotedForPlayerID: defaultOtherPlayerID,
-		}).Return(fmt.Errorf("failed to upsert fibbing it vote"))
+		}).Return(xerrors.New("failed to upsert fibbing it vote"))
 
 		_, err := srv.SubmitVote(ctx, defaultHostPlayerID, "Player 2", now)
 		assert.Error(t, err)
@@ -742,7 +742,7 @@ func TestRoundServiceSubmitVote(t *testing.T) {
 			VotedForPlayerID: defaultOtherPlayerID,
 		}).Return(nil)
 		mockStore.EXPECT().GetVotingState(ctx, roundID).Return(
-			[]db.GetVotingStateRow{}, fmt.Errorf("failed to get vote count"),
+			[]db.GetVotingStateRow{}, xerrors.New("failed to get vote count"),
 		)
 
 		_, err := srv.SubmitVote(ctx, defaultHostPlayerID, "Player 2", now)
@@ -814,7 +814,7 @@ func TestPlayerServiceGetVotingState(t *testing.T) {
 		ctx := context.Background()
 
 		mockStore.EXPECT().GetLatestRoundByPlayerID(ctx, playerID).Return(
-			db.GetLatestRoundByPlayerIDRow{}, fmt.Errorf("failed to get round info"),
+			db.GetLatestRoundByPlayerIDRow{}, xerrors.New("failed to get round info"),
 		)
 		_, err := srv.GetVotingState(ctx, playerID)
 		assert.Error(t, err)
@@ -832,7 +832,7 @@ func TestPlayerServiceGetVotingState(t *testing.T) {
 				ID: roundID,
 			}, nil)
 		mockStore.EXPECT().GetVotingState(ctx, roundID).Return(
-			[]db.GetVotingStateRow{}, fmt.Errorf("failed to get votes"),
+			[]db.GetVotingStateRow{}, xerrors.New("failed to get votes"),
 		)
 
 		_, err := srv.GetVotingState(ctx, playerID)
@@ -888,7 +888,7 @@ func TestRoundServiceToggleVotingIsReady(t *testing.T) {
 		ctx := context.Background()
 
 		mockStore.EXPECT().GetGameStateByPlayerID(ctx, playerID).Return(
-			db.GameState{}, fmt.Errorf("failed to get state"),
+			db.GameState{}, xerrors.New("failed to get state"),
 		)
 
 		_, err := srv.ToggleAnswerIsReady(ctx, playerID, time.Now().UTC())
@@ -944,7 +944,7 @@ func TestRoundServiceToggleVotingIsReady(t *testing.T) {
 				SubmitDeadline: pgtype.Timestamp{Time: time.Now().Add(1 * time.Hour)},
 			}, nil)
 			mockStore.EXPECT().ToggleVotingIsReady(ctx, playerID).Return(
-				db.FibbingItVote{}, fmt.Errorf("failed to toggle voting is ready"),
+				db.FibbingItVote{}, xerrors.New("failed to toggle voting is ready"),
 			)
 
 			_, err := srv.ToggleVotingIsReady(ctx, playerID, time.Now().UTC())
@@ -967,7 +967,7 @@ func TestRoundServiceToggleVotingIsReady(t *testing.T) {
 			}, nil)
 			mockStore.EXPECT().ToggleVotingIsReady(ctx, playerID).Return(db.FibbingItVote{}, nil)
 			mockStore.EXPECT().GetAllPlayersVotingIsReady(ctx, playerID).Return(
-				false, fmt.Errorf("failed to get player voting is ready status"),
+				false, xerrors.New("failed to get player voting is ready status"),
 			)
 
 			_, err := srv.ToggleVotingIsReady(ctx, playerID, time.Now().UTC())
@@ -1090,7 +1090,7 @@ func TestRoundServiceUpdateStateToReveal(t *testing.T) {
 
 			mockStore.EXPECT().
 				GetGameState(ctx, gameStateID).
-				Return(db.GameState{}, fmt.Errorf("failed to get game state"))
+				Return(db.GameState{}, xerrors.New("failed to get game state"))
 			_, err := srv.UpdateStateToReveal(ctx, gameStateID, now)
 			assert.Error(t, err)
 		},
@@ -1132,7 +1132,7 @@ func TestRoundServiceUpdateStateToReveal(t *testing.T) {
 				ID:             gameStateID,
 				SubmitDeadline: pgtype.Timestamp{Time: now, Valid: true},
 				State:          db.FibbingItRevealRole.String(),
-			}).Return(db.GameState{}, fmt.Errorf("failed to update game state"))
+			}).Return(db.GameState{}, xerrors.New("failed to update game state"))
 
 			_, err := srv.UpdateStateToReveal(ctx, gameStateID, now)
 			assert.Error(t, err)
@@ -1158,7 +1158,7 @@ func TestRoundServiceUpdateStateToReveal(t *testing.T) {
 				State:          db.FibbingItRevealRole.String(),
 			}).Return(db.GameState{}, nil)
 			mockStore.EXPECT().GetLatestRoundByGameStateID(ctx, gameStateID).Return(
-				db.GetLatestRoundByGameStateIDRow{}, fmt.Errorf("failed to get latest round by game state ID"),
+				db.GetLatestRoundByGameStateIDRow{}, xerrors.New("failed to get latest round by game state ID"),
 			)
 
 			_, err := srv.UpdateStateToReveal(ctx, gameStateID, now)
@@ -1189,7 +1189,7 @@ func TestRoundServiceUpdateStateToReveal(t *testing.T) {
 				Round: 1,
 			}, nil)
 			mockStore.EXPECT().GetVotingState(ctx, roundID).Return(
-				[]db.GetVotingStateRow{}, fmt.Errorf("failed to get voting state"),
+				[]db.GetVotingStateRow{}, xerrors.New("failed to get voting state"),
 			)
 
 			_, err := srv.UpdateStateToReveal(ctx, gameStateID, now)
@@ -1363,7 +1363,9 @@ func TestRoundServiceUpdateStateToQuestion(t *testing.T) {
 		ctx := context.Background()
 		deadline := time.Now().Add(5 * time.Second).UTC()
 
-		mockStore.EXPECT().GetGameState(ctx, gameStateID).Return(db.GameState{}, fmt.Errorf("failed to get game state"))
+		mockStore.EXPECT().
+			GetGameState(ctx, gameStateID).
+			Return(db.GameState{}, xerrors.New("failed to get game state"))
 		_, err := srv.UpdateStateToQuestion(ctx, gameStateID, deadline)
 		assert.Error(t, err)
 	})
@@ -1404,7 +1406,7 @@ func TestRoundServiceUpdateStateToQuestion(t *testing.T) {
 			}).Return(db.GameState{}, nil)
 			mockStore.EXPECT().GetAllPlayersByGameStateID(ctx, gameStateID).Return(
 				nil,
-				fmt.Errorf("failed to get all player IDs by game state ID"),
+				xerrors.New("failed to get all player IDs by game state ID"),
 			)
 			_, err := srv.UpdateStateToQuestion(ctx, gameStateID, deadline)
 			assert.Error(t, err)
@@ -1442,7 +1444,7 @@ func TestRoundServiceUpdateStateToQuestion(t *testing.T) {
 		)
 		mockStore.EXPECT().
 			GetLatestRoundByGameStateID(ctx, gameStateID).
-			Return(db.GetLatestRoundByGameStateIDRow{}, fmt.Errorf("failed to get latest round by game state ID"))
+			Return(db.GetLatestRoundByGameStateIDRow{}, xerrors.New("failed to get latest round by game state ID"))
 
 		_, err := srv.UpdateStateToQuestion(ctx, gameStateID, deadline)
 		assert.Error(t, err)
@@ -1487,7 +1489,7 @@ func TestRoundServiceUpdateStateToQuestion(t *testing.T) {
 			mockStore.EXPECT().GetRandomQuestionByRound(ctx, db.GetRandomQuestionByRoundParams{
 				GameName:  gameName,
 				RoundType: "free_form",
-			}).Return([]db.GetRandomQuestionByRoundRow{}, fmt.Errorf("failed to get random question by round"))
+			}).Return([]db.GetRandomQuestionByRoundRow{}, xerrors.New("failed to get random question by round"))
 
 			_, err := srv.UpdateStateToQuestion(ctx, gameStateID, deadline)
 			assert.Error(t, err)
@@ -1544,7 +1546,7 @@ func TestRoundServiceUpdateStateToQuestion(t *testing.T) {
 			ID:      uuid.MustParse("0193a629-7dcc-78ad-822f-fd5d83c89ae7"),
 		}).Return([]db.GetRandomQuestionInGroupRow{
 			{},
-		}, fmt.Errorf("failed to get random question in group"))
+		}, xerrors.New("failed to get random question in group"))
 
 		_, err := srv.UpdateStateToQuestion(ctx, gameStateID, deadline)
 		assert.Error(t, err)
@@ -1622,7 +1624,7 @@ func TestRoundServiceUpdateStateToQuestion(t *testing.T) {
 				},
 			},
 			FibberLoc: 1,
-		}).Return(fmt.Errorf("failed to add a new round"))
+		}).Return(xerrors.New("failed to add a new round"))
 
 		_, err := srv.UpdateStateToQuestion(ctx, gameStateID, deadline)
 		assert.Error(t, err)
@@ -1742,7 +1744,7 @@ func TestRoundServiceUpdateStateToScore(t *testing.T) {
 
 		mockStore.EXPECT().
 			GetGameState(ctx, gameStateID).
-			Return(db.GameState{}, fmt.Errorf("failed to get game state"))
+			Return(db.GameState{}, xerrors.New("failed to get game state"))
 
 		_, err := srv.UpdateStateToScore(ctx, gameStateID, now, scoring)
 		assert.Error(t, err)
@@ -1781,7 +1783,7 @@ func TestRoundServiceUpdateStateToScore(t *testing.T) {
 				SubmitDeadline: pgtype.Timestamp{Time: now, Valid: true},
 				State:          db.FibbingItScoring.String(),
 			}).
-			Return(db.GameState{}, fmt.Errorf("failed to update game state"))
+			Return(db.GameState{}, xerrors.New("failed to update game state"))
 
 		_, err := srv.UpdateStateToScore(ctx, gameStateID, now, scoring)
 		assert.Error(t, err)
@@ -1809,7 +1811,7 @@ func TestRoundServiceUpdateStateToScore(t *testing.T) {
 			GetAllVotesForRoundByGameStateID(ctx, gameStateID).
 			Return(
 				[]db.GetAllVotesForRoundByGameStateIDRow{},
-				fmt.Errorf("failed to get all votes for round by game state ID"),
+				xerrors.New("failed to get all votes for round by game state ID"),
 			)
 
 		_, err := srv.UpdateStateToScore(ctx, gameStateID, now, scoring)
@@ -1848,7 +1850,7 @@ func TestRoundServiceUpdateStateToScore(t *testing.T) {
 			}, nil)
 		mockStore.EXPECT().
 			GetAllPlayersByGameStateID(ctx, gameStateID).
-			Return([]db.GetAllPlayersByGameStateIDRow{}, fmt.Errorf("failed to get all players by game state ID"))
+			Return([]db.GetAllPlayersByGameStateIDRow{}, xerrors.New("failed to get all players by game state ID"))
 
 		_, err := srv.UpdateStateToScore(ctx, gameStateID, now, scoring)
 		assert.Error(t, err)
@@ -1900,7 +1902,7 @@ func TestRoundServiceUpdateStateToScore(t *testing.T) {
 			}, nil)
 		mockStore.EXPECT().
 			GetLatestRoundByGameStateID(ctx, gameStateID).
-			Return(db.GetLatestRoundByGameStateIDRow{}, fmt.Errorf("failed to get latest round by game state ID"))
+			Return(db.GetLatestRoundByGameStateIDRow{}, xerrors.New("failed to get latest round by game state ID"))
 
 		_, err := srv.UpdateStateToScore(ctx, gameStateID, now, scoring)
 		assert.Error(t, err)
@@ -1970,7 +1972,7 @@ func TestRoundServiceUpdateStateToScore(t *testing.T) {
 						Score:    0,
 					},
 				},
-			}).Return(fmt.Errorf("failed to add new scores"))
+			}).Return(xerrors.New("failed to add new scores"))
 
 		_, err := srv.UpdateStateToScore(ctx, gameStateID, now, scoring)
 		assert.Error(t, err)
@@ -2019,7 +2021,7 @@ func TestRoundServiceGetGameState(t *testing.T) {
 
 		ctx := context.Background()
 		mockStore.EXPECT().GetGameStateByPlayerID(ctx, playerID).Return(
-			db.GameState{}, fmt.Errorf("failed to get game state details"),
+			db.GameState{}, xerrors.New("failed to get game state details"),
 		)
 
 		_, err := srv.GetGameState(ctx, playerID)
@@ -2207,7 +2209,7 @@ func TestRoundServiceGetQuestionState(t *testing.T) {
 		ctx := context.Background()
 
 		mockStore.EXPECT().GetCurrentQuestionByPlayerID(ctx, playerID).Return(
-			db.GetCurrentQuestionByPlayerIDRow{}, fmt.Errorf("failed to get questions"),
+			db.GetCurrentQuestionByPlayerIDRow{}, xerrors.New("failed to get questions"),
 		)
 
 		_, err := srv.GetQuestionState(ctx, playerID)

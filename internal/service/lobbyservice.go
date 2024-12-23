@@ -10,6 +10,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/invopop/ctxi18n"
 	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/mdobak/go-xerrors"
 
 	"gitlab.com/hmajid2301/banterbus/internal/store/db"
 )
@@ -110,7 +111,7 @@ func (r *LobbyService) Join(ctx context.Context, roomCode string, playerID uuid.
 	}
 
 	if room.RoomState != db.Created.String() {
-		return Lobby{}, fmt.Errorf("room is not in CREATED state")
+		return Lobby{}, xerrors.New("room is not in CREATED state")
 	}
 
 	playersInRoom, err := r.store.GetAllPlayerByRoomCode(ctx, roomCode)
@@ -170,11 +171,11 @@ func (r *LobbyService) KickPlayer(
 	}
 
 	if room.HostPlayer != playerID {
-		return Lobby{}, playerToKickID, fmt.Errorf("player is not the host of the room")
+		return Lobby{}, playerToKickID, xerrors.New("player is not the host of the room")
 	}
 
 	if room.RoomState != db.Created.String() {
-		return Lobby{}, playerToKickID, fmt.Errorf("room is not in CREATED state")
+		return Lobby{}, playerToKickID, xerrors.New("room is not in CREATED state")
 	}
 
 	playersInRoom, err := r.store.GetAllPlayersInRoom(ctx, playerID)
@@ -192,7 +193,9 @@ func (r *LobbyService) KickPlayer(
 	}
 
 	if playerToKickID == uuid.Nil {
-		return Lobby{}, playerToKickID, fmt.Errorf("player with nickname %s not found to kick", playerNicknameToKick)
+		return Lobby{}, playerToKickID, xerrors.New(
+			fmt.Sprintf("player with nickname %s not found", playerNicknameToKick),
+		)
 	}
 
 	playersInRoom = append(playersInRoom[:removeIndex], playersInRoom[removeIndex+1:]...)
@@ -218,11 +221,11 @@ func (r *LobbyService) Start(
 	}
 
 	if room.HostPlayer != playerID {
-		return QuestionState{}, fmt.Errorf("player is not the host of the room")
+		return QuestionState{}, xerrors.New("player is not the host of the room")
 	}
 
 	if room.RoomState != db.Created.String() {
-		return QuestionState{}, fmt.Errorf("room is not in CREATED state")
+		return QuestionState{}, xerrors.New("room is not in CREATED state")
 	}
 
 	playersInRoom, err := r.store.GetAllPlayersInRoom(ctx, playerID)
@@ -232,12 +235,12 @@ func (r *LobbyService) Start(
 
 	minimumPlayers := 2
 	if len(playersInRoom) < minimumPlayers {
-		return QuestionState{}, fmt.Errorf("not enough players to start the game")
+		return QuestionState{}, xerrors.New("not enough players to start the game")
 	}
 
 	for _, player := range playersInRoom {
 		if !player.IsReady.Bool {
-			return QuestionState{}, fmt.Errorf("not all players are ready: %s", player.ID)
+			return QuestionState{}, xerrors.New("not all players are ready: %s", player.ID)
 		}
 	}
 

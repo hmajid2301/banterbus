@@ -10,6 +10,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/mdobak/go-xerrors"
 
 	"gitlab.com/hmajid2301/banterbus/internal/store/db"
 )
@@ -24,8 +25,8 @@ func NewRoundService(store Storer, randomizer Randomizer, defaultLocale string) 
 	return &RoundService{store: store, randomizer: randomizer, defaultLocale: defaultLocale}
 }
 
-var ErrMustSubmitAnswer = fmt.Errorf("must submit answer first")
-var ErrMustSubmitVote = fmt.Errorf("must submit vote first")
+var ErrMustSubmitAnswer = xerrors.New("must submit answer first")
+var ErrMustSubmitVote = xerrors.New("must submit vote first")
 
 func (r *RoundService) SubmitAnswer(
 	ctx context.Context,
@@ -40,7 +41,7 @@ func (r *RoundService) SubmitAnswer(
 
 	// TODO: check game state
 	if room.RoomState != db.Playing.String() {
-		return fmt.Errorf("room is not in PLAYING state")
+		return xerrors.New("room is not in PLAYING state")
 	}
 
 	round, err := r.store.GetLatestRoundByPlayerID(ctx, playerID)
@@ -50,7 +51,7 @@ func (r *RoundService) SubmitAnswer(
 
 	// TODO: update logic to match toggle answer is ready
 	if submittedAt.After(round.SubmitDeadline.Time) {
-		return fmt.Errorf("answer submission deadline has passed")
+		return xerrors.New("answer submission deadline has passed")
 	}
 
 	_, err = r.store.AddFibbingItAnswer(ctx, db.AddFibbingItAnswerParams{
@@ -75,11 +76,11 @@ func (r *RoundService) ToggleAnswerIsReady(
 
 	// TODO: no answer submitted should throw an error
 	if gameState.State != db.FibbingITQuestion.String() {
-		return false, fmt.Errorf("room game state is not in FIBBING_IT_QUESTION state")
+		return false, xerrors.New("room game state is not in FIBBING_IT_QUESTION state")
 	}
 
 	if submittedAt.After(gameState.SubmitDeadline.Time) {
-		return false, fmt.Errorf("toggle ready deadline has passed")
+		return false, xerrors.New("toggle ready deadline has passed")
 	}
 
 	_, err = r.store.ToggleAnswerIsReady(ctx, playerID)
@@ -108,7 +109,7 @@ func (r *RoundService) UpdateStateToVoting(
 	if err != nil {
 		return VotingState{}, err
 	} else if gameState != db.FibbingITQuestion {
-		return VotingState{}, fmt.Errorf("game state is not in FIBBING_IT_QUESTION state")
+		return VotingState{}, xerrors.New("game state is not in FIBBING_IT_QUESTION state")
 	}
 
 	_, err = r.store.UpdateGameState(ctx, db.UpdateGameStateParams{
@@ -141,7 +142,7 @@ func (r *RoundService) SubmitVote(
 	}
 
 	if gameState.State != db.FibbingItVoting.String() {
-		return VotingState{}, fmt.Errorf("game state is not in FIBBING_IT_VOTING state")
+		return VotingState{}, xerrors.New("game state is not in FIBBING_IT_VOTING state")
 	}
 
 	players, err := r.store.GetAllPlayersInRoom(ctx, playerID)
@@ -153,7 +154,7 @@ func (r *RoundService) SubmitVote(
 	for _, p := range players {
 		if p.Nickname == votedNickname {
 			if p.ID == playerID {
-				return VotingState{}, fmt.Errorf("cannot vote for yourself")
+				return VotingState{}, xerrors.New("cannot vote for yourself")
 			}
 
 			votedPlayerID = p.ID
@@ -161,7 +162,7 @@ func (r *RoundService) SubmitVote(
 	}
 
 	if votedPlayerID == uuid.Nil {
-		return VotingState{}, fmt.Errorf("player with nickname %s not found", votedNickname)
+		return VotingState{}, xerrors.New(fmt.Sprintf("player with nickname %s not found", votedNickname))
 	}
 
 	round, err := r.store.GetLatestRoundByPlayerID(ctx, playerID)
@@ -170,7 +171,7 @@ func (r *RoundService) SubmitVote(
 	}
 
 	if submittedAt.After(round.SubmitDeadline.Time) {
-		return VotingState{}, fmt.Errorf("answer submission deadline has passed")
+		return VotingState{}, xerrors.New("answer submission deadline has passed")
 	}
 
 	u := r.randomizer.GetID()
@@ -205,7 +206,7 @@ func (r *RoundService) SubmitVote(
 	}
 
 	if len(votingPlayers) == 0 {
-		return VotingState{}, fmt.Errorf("no players in room")
+		return VotingState{}, xerrors.New("no players in room")
 	}
 
 	player := playersWithVoteAndAnswers[0]
@@ -259,7 +260,7 @@ func (r *RoundService) getVotingState(ctx context.Context, roundID uuid.UUID, ro
 	}
 
 	if len(votingPlayers) == 0 {
-		return VotingState{}, fmt.Errorf("no players in room")
+		return VotingState{}, xerrors.New("no players in room")
 	}
 
 	votingState := VotingState{
@@ -283,11 +284,11 @@ func (r *RoundService) ToggleVotingIsReady(
 	}
 
 	if gameState.State != db.FibbingItVoting.String() {
-		return false, fmt.Errorf("room game state is not in FIBBING_IT_VOTING state")
+		return false, xerrors.New("room game state is not in FIBBING_IT_VOTING state")
 	}
 
 	if submittedAt.After(gameState.SubmitDeadline.Time) {
-		return false, fmt.Errorf("toggle ready deadline has passed")
+		return false, xerrors.New("toggle ready deadline has passed")
 	}
 
 	_, err = r.store.ToggleVotingIsReady(ctx, playerID)
@@ -316,7 +317,7 @@ func (r *RoundService) UpdateStateToReveal(
 	if err != nil {
 		return RevealRoleState{}, err
 	} else if gameState != db.FibbingItVoting {
-		return RevealRoleState{}, fmt.Errorf("game state is not in FIBBING_IT_VOTING state")
+		return RevealRoleState{}, xerrors.New("game state is not in FIBBING_IT_VOTING state")
 	}
 
 	_, err = r.store.UpdateGameState(ctx, db.UpdateGameStateParams{
@@ -390,7 +391,7 @@ func (r *RoundService) UpdateStateToQuestion(
 	if err != nil {
 		return QuestionState{}, err
 	} else if gameState != db.FibbingItRevealRole && gameState != db.FibbingItScoring {
-		return QuestionState{}, fmt.Errorf("game state is not in FIBBING_IT_REVEAL_ROLE state or FIBBING_IT_SCORING state")
+		return QuestionState{}, xerrors.New("game state is not in FIBBING_IT_REVEAL_ROLE state or FIBBING_IT_SCORING state")
 	}
 
 	_, err = r.store.UpdateGameState(ctx, db.UpdateGameStateParams{
@@ -567,7 +568,7 @@ func (r *RoundService) UpdateStateToScore(
 	if err != nil {
 		return ScoreState{}, err
 	} else if gameState != db.FibbingItRevealRole {
-		return ScoreState{}, fmt.Errorf("game state is not in FIBBING_IT_REVEAL_ROLE state")
+		return ScoreState{}, xerrors.New("game state is not in FIBBING_IT_REVEAL_ROLE state")
 	}
 
 	_, err = r.store.UpdateGameState(ctx, db.UpdateGameStateParams{
@@ -635,7 +636,7 @@ func (r *RoundService) getScoreState(
 
 	// INFO: This shouldn't happen.
 	if len(allVotesInRoundType) == 0 {
-		return ScoreState{}, nil, fmt.Errorf("no players in game")
+		return ScoreState{}, nil, xerrors.New("no players in game")
 	}
 
 	fibberVotesThisRound := 0

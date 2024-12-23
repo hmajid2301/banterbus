@@ -4,11 +4,11 @@ import (
 	"bytes"
 	"context"
 	"errors"
-	"fmt"
 	"log/slog"
 
 	"github.com/a-h/templ"
 	"github.com/google/uuid"
+	"github.com/mdobak/go-xerrors"
 
 	"gitlab.com/hmajid2301/banterbus/internal/service"
 	"gitlab.com/hmajid2301/banterbus/internal/store/db"
@@ -64,13 +64,13 @@ func (s Subscriber) reconnectOnRoomState(
 			return buf, err
 		}
 	case db.Paused:
-		return buf, fmt.Errorf("cannot reconnect game to paused game, as this is not implemented")
+		return buf, xerrors.New("cannot reconnect game to paused game, as this is not implemented")
 	case db.Abandoned:
-		return buf, fmt.Errorf("cannot reconnect game is abandoned")
+		return buf, xerrors.New("cannot reconnect game is abandoned")
 	case db.Finished:
-		return buf, fmt.Errorf("cannot reconnect game is finished")
+		return buf, xerrors.New("cannot reconnect game is finished")
 	default:
-		return buf, fmt.Errorf("unknown room state: %s", roomState)
+		return buf, xerrors.New("unknown room state: %s", roomState)
 	}
 
 	err = component.Render(ctx, &buf)
@@ -125,7 +125,7 @@ func (s Subscriber) reconnectToPlayingGame(ctx context.Context, playerID uuid.UU
 		}
 		component = sections.Score(score, score.Players[0])
 	default:
-		return component, fmt.Errorf("unknown game state: %s", gameState)
+		return component, xerrors.New("unknown game state: %s", gameState)
 	}
 
 	return component, nil

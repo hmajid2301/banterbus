@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/invopop/ctxi18n/i18n"
+	"github.com/mdobak/go-xerrors"
 	"github.com/sethvargo/go-envconfig"
 )
 
@@ -134,12 +135,12 @@ func LoadConfig(ctx context.Context) (Config, error) {
 
 func validateServerConfig(cfg In) error {
 	if cfg.Port < 1 || cfg.Port > 65535 {
-		return fmt.Errorf("expected port to be between 1 and 65535 but received: %d", cfg.Port)
+		return xerrors.New("expected port to be between 1 and 65535 but received: %d", cfg.Port)
 	}
 
 	hostIP := net.ParseIP(cfg.Host)
 	if hostIP == nil {
-		return fmt.Errorf("expected valid IPv4 address but received: %v", hostIP)
+		return xerrors.New("expected valid IPv4 address but received: %v", hostIP)
 	}
 
 	return nil

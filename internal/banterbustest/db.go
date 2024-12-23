@@ -11,6 +11,7 @@ import (
 
 	// INFO: Driver to connect to postgres to run DB migrations
 	_ "github.com/jackc/pgx/v5/stdlib"
+	"github.com/mdobak/go-xerrors"
 	pgxUUID "github.com/vgarvardt/pgx-google-uuid/v5"
 
 	"gitlab.com/hmajid2301/banterbus/internal/store/db"
@@ -25,7 +26,7 @@ func CreateDB(ctx context.Context) (*pgxpool.Pool, error) {
 	uri := getURI()
 	pool, err := pgxpool.New(ctx, uri)
 	if err != nil {
-		return pool, fmt.Errorf("failed to get database: %w", err)
+		return pool, xerrors.New("failed to get database", err)
 	}
 
 	randomNumLimit := 1000000
@@ -39,7 +40,7 @@ func CreateDB(ctx context.Context) (*pgxpool.Pool, error) {
 
 	pgxConfig, err := pgxpool.ParseConfig(fmt.Sprintf("%s/%s", uri, dbName))
 	if err != nil {
-		return pool, fmt.Errorf("failed to parse db uri: %w", err)
+		return pool, xerrors.New("failed to parse db uri", err)
 	}
 
 	pgxConfig.AfterConnect = func(_ context.Context, conn *pgx.Conn) error {
@@ -48,7 +49,7 @@ func CreateDB(ctx context.Context) (*pgxpool.Pool, error) {
 	}
 	pool, err = pgxpool.NewWithConfig(ctx, pgxConfig)
 	if err != nil {
-		return pool, fmt.Errorf("failed to setup database: %w", err)
+		return pool, xerrors.New("failed to setup database", err)
 	}
 
 	err = runDBMigrations(pool)
@@ -71,13 +72,13 @@ func getURI() string {
 func RemoveDB(ctx context.Context, pool *pgxpool.Pool) error {
 	dbName, err := getDatabaseName(pool)
 	if err != nil {
-		return fmt.Errorf("failed to connect to database: %w", err)
+		return xerrors.New("failed to connect to database", err)
 	}
 	defer pool.Close()
 
 	_, err = pool.Exec(ctx, fmt.Sprintf("DROP DATABASE IF EXISTS %s", dbName))
 	if err != nil {
-		return fmt.Errorf("failed to drop database: %w", err)
+		return xerrors.New("failed to drop database", err)
 	}
 
 	return nil
@@ -89,7 +90,7 @@ func getDatabaseName(pool *pgxpool.Pool) (string, error) {
 
 	config, err := pgx.ParseConfig(connString)
 	if err != nil {
-		return "", fmt.Errorf("failed to parse connection string: %w", err)
+		return "", xerrors.New("failed to parse connection string", err)
 	}
 
 	return config.Database, nil
@@ -98,7 +99,7 @@ func getDatabaseName(pool *pgxpool.Pool) (string, error) {
 func runDBMigrations(pool *pgxpool.Pool) error {
 	_, filename, _, ok := runtime.Caller(0)
 	if !ok {
-		return fmt.Errorf("failed to get current filename")
+		return xerrors.New("failed to get current filename")
 	}
 
 	dir := path.Join(path.Dir(filename), "..", "store", "db", "sqlc")
