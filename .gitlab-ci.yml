@@ -250,6 +250,8 @@ deploy:prod:
   script:
     - kubectl config use-context hmajid2301/k3s-config:ms01
     - kubectl wait --for=condition=available --timeout=600s deployment/banterbus -n prod
+  dependencies:
+    - publish:prod:docker
 
 release:
   stage: release
