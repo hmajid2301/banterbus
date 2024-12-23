@@ -62,8 +62,8 @@ schema = 3
     version = "v0.0.0-20240606120523-5a60cdf6a761"
     hash = "sha256-ETpGsLAA2wcm5xJBayr/mZrCE1YsWbnkbSSX3ptrFn0="
   [mod."github.com/jackc/pgx/v5"]
-    version = "v5.7.1"
-    hash = "sha256-N0aiHG91gMztyWC3PAEG0JVd6B/yrcOCfdl0NzqCDXk="
+    version = "v5.7.2"
+    hash = "sha256-FEh0GwrkTlFPZiqT6m3jYg5OV62/LHs/otMQuJfcMNw="
   [mod."github.com/jackc/puddle/v2"]
     version = "v2.2.2"
     hash = "sha256-IUxdu4JYfsCh/qlz2SiUWu7EVPHhyooiVA4oaS2Z6yk="
@@ -71,8 +71,8 @@ schema = 3
     version = "v1.17.11"
     hash = "sha256-LFSIWy0C4VbiuPve0eKHr7Q7s4XtaGzsZ3qpO+6bEgc="
   [mod."github.com/lmittmann/tint"]
-    version = "v1.0.5"
-    hash = "sha256-NthPT7c1Q2VSp5IrWMGAvzX7AxEcTKk+O0F56pgaTsQ="
+    version = "v1.0.6"
+    hash = "sha256-toT4YdhajyOXWzOHFxpMLbx9uJyCBEP36BR0FWy1H0A="
   [mod."github.com/mfridman/interpolate"]
     version = "v0.0.2"
     hash = "sha256-3u04CYOy7PLMctdkum5pltSTkYya8EfXJexbW7j0KB8="
@@ -80,14 +80,14 @@ schema = 3
     version = "v0.0.0-20191010083416-a7dc8b61c822"
     hash = "sha256-79URDDFenmGc9JZu+5AXHToMrtTREHb3BC84b/gym9Q="
   [mod."github.com/playwright-community/playwright-go"]
-    version = "v0.4802.0"
-    hash = "sha256-Ae++UhS+NYfoeQwlIZmHdzxs7RfDp7KV4jma/AbX32c="
+    version = "v0.4901.0"
+    hash = "sha256-OUW+oD14IpBQu22E8BtZh01qQo4R7XJQlv3Cv+Ja+Vk="
   [mod."github.com/pmezard/go-difflib"]
     version = "v1.0.0"
     hash = "sha256-/FtmHnaGjdvEIKAJtrUfEhV7EVo5A/eYrtdnUkuxLDA="
   [mod."github.com/pressly/goose/v3"]
-    version = "v3.23.0"
-    hash = "sha256-DKjiXQcUQ1ZNAwsqo3xfwMOk2Ah4fPXMjFiGKgRRx04="
+    version = "v3.24.0"
+    hash = "sha256-KT1Q4eeQLv1j3uBQOmM90ufWeBuZ7SFqyheiNmxuxnk="
   [mod."github.com/prometheus/client_golang"]
     version = "v1.20.5"
     hash = "sha256-RbDZTBH+j2ZNLbHSMFxW0j8UStvkwc4IHTz3My9w4qo="
@@ -95,17 +95,14 @@ schema = 3
     version = "v0.6.1"
     hash = "sha256-rIDyUzNfxRA934PIoySR0EhuBbZVRK/25Jlc/r8WODw="
   [mod."github.com/prometheus/common"]
-    version = "v0.60.1"
-    hash = "sha256-6ZSm800o6QjFKi5QUs/Zsjqq3i+V8UFvkGqR7lWqJ2M="
+    version = "v0.61.0"
+    hash = "sha256-h7plbzVCxbK0vYrf9UpxqQJYOF1z4WuizhTKPXg+XRA="
   [mod."github.com/prometheus/procfs"]
     version = "v0.15.1"
     hash = "sha256-H+WXJemFFwdoglmD6p7JRjrJJZmIVAmJwYmLbZ8Q9sw="
   [mod."github.com/redis/go-redis/v9"]
     version = "v9.7.0"
     hash = "sha256-lpEMK1jBuwrIY7nrk5f9Ru4Y2FXDU4FxlVjXHjV5Ahc="
-  [mod."github.com/rogpeppe/go-internal"]
-    version = "v1.13.1"
-    hash = "sha256-fD4n3XVDNHL7hfUXK9qi31LpBVzWnRK/7LNc3BmPtnU="
   [mod."github.com/sethvargo/go-envconfig"]
     version = "v1.1.0"
     hash = "sha256-WelRHfyZG9hrA4fbQcfBawb2ZXBQNT1ourEYHzQdZ4w="
@@ -124,48 +121,51 @@ schema = 3
   [mod."github.com/vgarvardt/pgx-google-uuid/v5"]
     version = "v5.6.0"
     hash = "sha256-F+E8rFEHnmJKcCxl4hA3MosSEKqxytp5y7VMVZLFQEg="
+  [mod."go.opentelemetry.io/auto/sdk"]
+    version = "v1.1.0"
+    hash = "sha256-cA9qCCu8P1NSJRxgmpfkfa5rKyn9X+Y/9FSmSd5xjyo="
   [mod."go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"]
-    version = "v0.57.0"
-    hash = "sha256-cvG6gfqfX3IasDlC8SeS7u1sp3LG9ezbX+hU5LyWKBY="
+    version = "v0.58.0"
+    hash = "sha256-iqTPHfR1wXZY/yVTWtRBMjWlZkRxasaBGNhsNWHYxGw="
   [mod."go.opentelemetry.io/otel"]
-    version = "v1.32.0"
-    hash = "sha256-Z2PoBBncuUkAksk8wT4lW6+uUu1wg24sGfwIYozIzaY="
+    version = "v1.33.0"
+    hash = "sha256-NdAEEIqa81WLpDJbz4aCR4Ha/WnZcHPXY7d/jSu7H/k="
   [mod."go.opentelemetry.io/otel/exporters/prometheus"]
-    version = "v0.54.0"
-    hash = "sha256-vsX+WXKIF522ChUHLmVGECF0Z43uW/nXZi7oqezhpz4="
+    version = "v0.55.0"
+    hash = "sha256-R//Y/cfSEx5k/uJM6lE4r9DMp1po8Ay3YViBKafXYTk="
   [mod."go.opentelemetry.io/otel/exporters/stdout/stdouttrace"]
-    version = "v1.32.0"
-    hash = "sha256-KQHeQWC7vrQmBmr+7MCHO5b22mMBcsF7HUX6va0uXhc="
+    version = "v1.33.0"
+    hash = "sha256-HC+G961t7pu6EaW+4lWK0mHUSl+7uyLimEmGMamq2ek="
   [mod."go.opentelemetry.io/otel/metric"]
-    version = "v1.32.0"
-    hash = "sha256-f2H8itkQflk/m98dSk1TCv37wvsnMojaGNZRJ6BcksU="
+    version = "v1.33.0"
+    hash = "sha256-bYr//1svQZ/uVWveaJGAxTpq0/rsFnDHKE6H2gVdce8="
   [mod."go.opentelemetry.io/otel/sdk"]
-    version = "v1.32.0"
-    hash = "sha256-Momq9xYr7USKmWndBhTwNiO90XgcrxH1+eCs1woyIlo="
+    version = "v1.33.0"
+    hash = "sha256-Xjganq6DesGN9XJUn+JDoKhwJKJ0H/PYzNcZw4qzNno="
   [mod."go.opentelemetry.io/otel/sdk/metric"]
-    version = "v1.32.0"
-    hash = "sha256-sQvM00thVv1zhOsC2PH8eVCCpjU1KjIX9VtntR8Z5+I="
+    version = "v1.33.0"
+    hash = "sha256-WUNznTdJUw9yy9GY/mKrqmOWaGw0YYIpyuZcd53kdUE="
   [mod."go.opentelemetry.io/otel/trace"]
-    version = "v1.32.0"
-    hash = "sha256-WtOrB2L8wQFiMb5BHK7a6FTw2wb3rW495whNjzdxC1I="
+    version = "v1.33.0"
+    hash = "sha256-2bDa27eZT0+JHcDzV+MMCGKKYs7eYuTtGHIlbE0/gpk="
   [mod."go.uber.org/multierr"]
     version = "v1.11.0"
     hash = "sha256-Lb6rHHfR62Ozg2j2JZy3MKOMKdsfzd1IYTR57r3Mhp0="
   [mod."golang.org/x/crypto"]
-    version = "v0.29.0"
-    hash = "sha256-sqckobR2VWucCgb7xpY2wLktnAA+XyXJbhCm80yCo78="
+    version = "v0.31.0"
+    hash = "sha256-ZBjoG7ZOuTEmjaXPP9txAvjAjC46DeaLs0zrNzi8EQw="
   [mod."golang.org/x/sync"]
-    version = "v0.9.0"
-    hash = "sha256-sGvzGqaaXE5dxohKkpbJMnu+bMmismsSqr8YMtrK+Rc="
+    version = "v0.10.0"
+    hash = "sha256-HWruKClrdoBKVdxKCyoazxeQV4dIYLdkHekQvx275/o="
   [mod."golang.org/x/sys"]
-    version = "v0.27.0"
-    hash = "sha256-BXQcF9RrJ55Pq7Nl67TeFGkgkyuKkQ8hHKN4/L4ggWc="
+    version = "v0.28.0"
+    hash = "sha256-kzSlDo5FKsQU9cLefIt2dueGUfz9XuEW+mGSGlPATGc="
   [mod."golang.org/x/text"]
-    version = "v0.20.0"
-    hash = "sha256-YP8zSo2e9okqhxVB8me8sJyij2O0tTQEg5t+8bsIUx8="
+    version = "v0.21.0"
+    hash = "sha256-QaMwddBRnoS2mv9Y86eVC2x2wx/GZ7kr2zAJvwDeCPc="
   [mod."google.golang.org/protobuf"]
-    version = "v1.35.1"
-    hash = "sha256-4NtUQoBvlPGFGjo7c+E1EBS/sb8oy50MGy45KGWPpWo="
+    version = "v1.35.2"
+    hash = "sha256-kS8fLAUgGNFn/nuIv/KUzJktRYK/nzpuJYwqzDIc7b8="
   [mod."gopkg.in/yaml.v3"]
     version = "v3.0.1"
     hash = "sha256-FqL9TKYJ0XkNwJFnq9j0VvJ5ZUU1RvH/52h/f5bkYAU="

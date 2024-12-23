@@ -5,7 +5,7 @@
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     flake-utils.url = "github:numtide/flake-utils";
     pre-commit-hooks.url = "github:cachix/pre-commit-hooks.nix";
-    playwright.url = "github:pietdevries94/playwright-web-flake/1.48.2";
+    playwright.url = "github:pietdevries94/playwright-web-flake/1.49.1";
 
     gomod2nix = {
       url = "github:nix-community/gomod2nix";

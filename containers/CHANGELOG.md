@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.6] - 2024-12-23
+
+### Changed
+
+- Updated all nix dependencies including playwright to version 1.49.1
+
 ## [0.1.5] - 2024-12-02
 
 ### Fixed

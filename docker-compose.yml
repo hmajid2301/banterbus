@@ -16,12 +16,12 @@ services:
       - "9090:9090"
 
   redis:
-    image: redis:7.2.6
+    image: redis:7.4.1
     ports:
       - "6379:6379"
 
   postgres:
-    image: postgres:16.4
+    image: postgres:16.6
     ports:
       - "5432:5432"
     command:
