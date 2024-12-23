@@ -33,9 +33,8 @@ stages:
     policy: pull
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-      # changes:
-      #   - "*.go"
-      #   - "./static/**/*"
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+      when: never
   before_script:
     # INFO: Used to create directory, needed for tests and linter
     - mkdir -p /tmp
@@ -50,6 +49,8 @@ stages:
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
     - if: $CI_COMMIT_BRANCH == "main"
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+      when: never
   before_script:
     - mkdir -p $CI_PROJECT_DIR/coverage /tmp
   artifacts:
@@ -66,6 +67,9 @@ stages:
     IMMUTABLE: "true"
   services:
     - docker:dind
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+      when: never
   script:
     - echo "experimental-features = nix-command flakes" > /etc/nix/nix.conf
     - nix-env -iA nixpkgs.docker nixpkgs.go-task
@@ -177,6 +181,8 @@ combine:coverage:
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
     - if: $CI_COMMIT_BRANCH == "main"
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+      when: never
   script:
     - task coverage
   coverage: /total:\s+\(statements\)\s+\d+.\d+%/
@@ -197,9 +203,6 @@ publish:dev:docker:
     IMMUTABLE: "false"
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-      # changes:
-      #   - "*.go"
-      #   - "./static/**/*"
   extends:
     - .docker
 
@@ -210,9 +213,6 @@ deploy:dev:
     entrypoint: ['']
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-      # changes:
-      #   - "*.go"
-      #   - "./static/**/*"
   script:
     - kubectl config use-context hmajid2301/k3s-config:ms01
     - kubectl rollout status deployment/banterbus -n dev --timeout=300s
@@ -242,6 +242,8 @@ deploy:prod:
     entrypoint: ['']
   rules:
     - if: $CI_COMMIT_TAG || $CI_COMMIT_BRANCH == "main"
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+      when: never
   script:
     - kubectl config use-context hmajid2301/k3s-config:ms01
     - kubectl rollout status deployment/banterbus -n prod --timeout=300s
@@ -263,6 +265,15 @@ smoke:tests:e2e:
   variables:
     BANTERBUS_PLAYWRIGHT_URL: https://banterbus.games
   rules:
-    - if: '$CI_PIPELINE_SOURCE == "schedule"'
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+      when: always
   script:
     - task tests:e2e -- ${GOTEST_EXTRA_ARGS}
+  after_script:
+    - |
+      if [ "$CI_JOB_STATUS" != "success" ]; then
+        curl -X POST \
+            -H "Authorization: Bearer $NOTIFY_TOKEN" "https://notify.homelab.haseebmajid.dev/message" \
+            -F "title=Job Failed" \
+            -F "message=The smoke:tests:e2e job has failed in the pipeline. Job URL: $CI_JOB_URL"
+      fi
