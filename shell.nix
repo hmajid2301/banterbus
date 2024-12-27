@@ -1,15 +1,11 @@
 {
-  pkgs ? (
-    let
-      inherit (builtins) fetchTree fromJSON readFile;
-      inherit ((fromJSON (readFile ./flake.lock)).nodes) nixpkgs gomod2nix;
-    in
-      import (fetchTree nixpkgs.locked) {
-        overlays = [
-          (import "${fetchTree gomod2nix.locked}/overlay.nix")
-        ];
-      }
-  ),
+  pkgs ? (let
+    inherit (builtins) fetchTree fromJSON readFile;
+    inherit ((fromJSON (readFile ./flake.lock)).nodes) nixpkgs gomod2nix;
+  in
+    import (fetchTree nixpkgs.locked) {
+      overlays = [(import "${fetchTree gomod2nix.locked}/overlay.nix")];
+    }),
   mkGoEnv ? pkgs.mkGoEnv,
   gomod2nix ? pkgs.gomod2nix,
   pre-commit-hooks,
@@ -24,9 +20,7 @@
       gotest.enable = true;
       golines = {
         enable = true;
-        settings = {
-          flags = "-m 120";
-        };
+        settings = {flags = "-m 120";};
       };
       generate = {
         enable = true;
@@ -55,16 +49,11 @@ in
       export BANTERBUS_PLAYWRIGHT_HEADLESS=false
       export BANTERBUS_ENVIRONMENT=local
       export BANTERBUS_AUTO_RECONNECT=true
+      export CGO_ENABLED=0
 
       ${pre-commit-check.shellHook}
       podman-compose up -d
     '';
     buildInputs = pre-commit-check.enabledPackages;
-    packages =
-      devShellPackages
-      ++ [
-        goEnv
-        gomod2nix
-        pkgs.gitlab-ci-local
-      ];
+    packages = devShellPackages ++ [goEnv gomod2nix pkgs.gitlab-ci-local];
   }
