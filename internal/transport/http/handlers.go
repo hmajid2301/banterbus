@@ -5,13 +5,13 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"net/http/pprof"
 	"strings"
 	"time"
 
 	"github.com/a-h/templ"
 	"github.com/invopop/ctxi18n"
 	"github.com/invopop/ctxi18n/i18n"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 
 	"gitlab.com/hmajid2301/banterbus/internal/views"
@@ -28,6 +28,7 @@ type Server struct {
 type ServerConfig struct {
 	Host          string
 	Port          int
+	Environment   string
 	DefaultLocale i18n.Code
 }
 
@@ -49,7 +50,14 @@ func NewServer(websocketer websocketer, logger *slog.Logger, staticFS http.FileS
 	mux.Handle("/join/{room_code}", s.LocaleMiddleware(http.HandlerFunc(s.joinHandler)))
 	mux.HandleFunc("/health", s.healthHandler)
 	mux.HandleFunc("/readiness", s.readinessHandler)
-	mux.Handle("/metrics", promhttp.Handler())
+
+	if config.Environment == "local" {
+		mux.HandleFunc("/debug/pprof/", pprof.Index)
+		mux.HandleFunc("/debug/pprof/cmdline", pprof.Cmdline)
+		mux.HandleFunc("/debug/pprof/profile", pprof.Profile)
+		mux.HandleFunc("/debug/pprof/symbol", pprof.Symbol)
+		mux.HandleFunc("/debug/pprof/trace", pprof.Trace)
+	}
 
 	handler := otelhttp.NewHandler(mux, "/")
 	writeTimeout := 10

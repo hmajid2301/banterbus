@@ -135,7 +135,11 @@ func newTestServer() (*httptest.Server, error) {
 		redisAddr = "localhost:6379"
 	}
 
-	redisClient := pubsub.NewRedisClient(redisAddr)
+	redisClient, err := pubsub.NewRedisClient(redisAddr)
+	if err != nil {
+		return nil, err
+	}
+
 	conf, err := config.LoadConfig(ctx)
 	if err != nil {
 		return nil, err

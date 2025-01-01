@@ -3,10 +3,11 @@ package telemetry
 import (
 	"context"
 	"errors"
+	"time"
 
 	"go.opentelemetry.io/otel"
-	"go.opentelemetry.io/otel/exporters/prometheus"
-	"go.opentelemetry.io/otel/exporters/stdout/stdouttrace"
+	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetrichttp"
+	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
 	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/resource"
@@ -37,20 +38,26 @@ func SetupOTelSDK(ctx context.Context) (shutdown func(context.Context) error, er
 	res, err := resource.New(
 		ctx,
 		resource.WithContainerID(),
-		resource.WithAttributes(semconv.ServiceNamespaceKey.String("banterbus")),
-		resource.WithAttributes(semconv.ServiceVersionKey.String("dev")),
+		resource.WithAttributes(
+			semconv.ServiceNamespaceKey.String("dev"),
+			semconv.ServiceVersionKey.String("0.0.01"),
+			semconv.ServiceNameKey.String("banterbus"),
+		),
 	)
+	if err != nil {
+		handleErr(err)
+		return shutdown, err
+	}
 
-	tracerProvider, err := newTraceProvider(res)
+	tracerProvider, err := newTraceProvider(ctx, res)
 	if err != nil {
 		handleErr(err)
 		return shutdown, err
 	}
 	shutdownFuncs = append(shutdownFuncs, tracerProvider.Shutdown)
-	// TODO: not to output to stdout
-	// otel.SetTracerProvider(tracerProvider)
+	otel.SetTracerProvider(tracerProvider)
 
-	meterProvider, err := newMeterProvider()
+	meterProvider, err := newMeterProvider(ctx, res)
 	if err != nil {
 		handleErr(err)
 		return shutdown, err
@@ -69,27 +76,30 @@ func newPropagator() propagation.TextMapPropagator {
 	)
 }
 
-func newTraceProvider(res *resource.Resource) (*trace.TracerProvider, error) {
-	traceExporter, err := stdouttrace.New(stdouttrace.WithPrettyPrint())
+func newTraceProvider(ctx context.Context, res *resource.Resource) (*trace.TracerProvider, error) {
+	traceExporter, err := otlptracehttp.New(ctx)
+
 	if err != nil {
 		return nil, err
 	}
 
-	traceProvider := trace.NewTracerProvider(trace.WithResource(res), trace.WithBatcher(traceExporter))
+	traceProvider := trace.NewTracerProvider(
+		trace.WithBatcher(traceExporter,
+			trace.WithBatchTimeout(time.Second)),
+		trace.WithResource(res),
+	)
+	otel.SetTracerProvider(traceProvider)
 	return traceProvider, nil
 }
 
-func newMeterProvider() (*metric.MeterProvider, error) {
-	metricExporter, err := newExporter()
+func newMeterProvider(ctx context.Context, res *resource.Resource) (*metric.MeterProvider, error) {
+	metricExporter, err := otlpmetrichttp.New(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	meterProvider := metric.NewMeterProvider(metric.WithReader(metricExporter))
+	reader := metric.NewPeriodicReader(metricExporter)
+	meterProvider := metric.NewMeterProvider(metric.WithReader(reader), metric.WithResource(res))
 	otel.SetMeterProvider(meterProvider)
 	return meterProvider, nil
-}
-
-func newExporter() (metric.Reader, error) {
-	return prometheus.New()
 }

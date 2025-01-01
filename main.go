@@ -13,6 +13,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/exaring/otelpgx"
 	_ "github.com/jackc/pgx/v5/stdlib"
 
 	"github.com/invopop/ctxi18n"
@@ -65,6 +66,15 @@ func mainLogic() error {
 		return xerrors.New("failed to fetch hostname", err)
 	}
 
+	otelShutdown, err := telemetry.SetupOTelSDK(ctx)
+	if err != nil {
+		return xerrors.New("failed to setup otel", err)
+	}
+
+	defer func() {
+		err = errors.Join(err, otelShutdown(context.Background()))
+	}()
+
 	logger := logging.New(conf.App.LogLevel, []slog.Attr{
 		slog.String("app_name", "banterbus"),
 		slog.String("node", hostname),
@@ -77,6 +87,8 @@ func mainLogic() error {
 		return xerrors.New("failed to parse db uri", err)
 	}
 
+	pgxConfig.ConnConfig.Tracer = otelpgx.NewTracer()
+
 	pgxConfig.AfterConnect = func(_ context.Context, conn *pgx.Conn) error {
 		pgxUUID.Register(conn.TypeMap())
 		return nil
@@ -87,15 +99,6 @@ func mainLogic() error {
 		return xerrors.New("failed to setup database", err)
 	}
 	defer pool.Close()
-
-	otelShutdown, err := telemetry.SetupOTelSDK(ctx)
-	if err != nil {
-		return xerrors.New("failed to setup otel", err)
-	}
-
-	defer func() {
-		err = errors.Join(err, otelShutdown(context.Background()))
-	}()
 
 	logger.InfoContext(ctx, "applying migrations")
 	err = runDBMigrations(pool)
@@ -123,13 +126,18 @@ func mainLogic() error {
 		return xerrors.New("failed to create embed file system", err)
 	}
 
-	redisClient := pubsub.NewRedisClient(conf.Redis.Address)
+	redisClient, err := pubsub.NewRedisClient(conf.Redis.Address)
+	if err != nil {
+		return xerrors.New("failed to create redis client", err)
+	}
+
 	subscriber := websockets.NewSubscriber(lobbyService, playerService, roundService, logger, redisClient, conf)
 
 	serverConfig := transporthttp.ServerConfig{
 		Host:          conf.Server.Host,
 		Port:          conf.Server.Port,
 		DefaultLocale: conf.App.DefaultLocale,
+		Environment:   conf.App.Environment,
 	}
 	server := transporthttp.NewServer(subscriber, logger, http.FS(fsys), serverConfig)
 
@@ -139,6 +147,7 @@ func mainLogic() error {
 	if err != nil {
 		return xerrors.New("failed to start server", err)
 	}
+
 	return nil
 }
 

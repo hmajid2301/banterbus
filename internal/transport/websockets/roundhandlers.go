@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"go.opentelemetry.io/otel/trace"
 
 	"gitlab.com/hmajid2301/banterbus/internal/service"
 	"gitlab.com/hmajid2301/banterbus/internal/store/db"
@@ -41,7 +42,9 @@ type RoundServicer interface {
 func (s *SubmitAnswer) Handle(ctx context.Context, client *client, sub *Subscriber) error {
 	err := sub.roundService.SubmitAnswer(ctx, client.playerID, s.Answer, time.Now().UTC())
 	if err != nil {
-		errStr := "failed to submit answer, try again"
+		span := trace.SpanFromContext(ctx)
+		spanID := span.SpanContext().SpanID().String()
+		errStr := "failed to submit answer, try again. Correleation ID: " + spanID
 		clientErr := sub.updateClientAboutErr(ctx, client.playerID, errStr)
 		return errors.Join(clientErr, err)
 	}

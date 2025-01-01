@@ -50,6 +50,8 @@ in
       export BANTERBUS_ENVIRONMENT=local
       export BANTERBUS_AUTO_RECONNECT=true
       export CGO_ENABLED=0
+      export OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4317
+
 
       ${pre-commit-check.shellHook}
       podman-compose up -d

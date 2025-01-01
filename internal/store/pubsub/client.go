@@ -5,6 +5,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/mdobak/go-xerrors"
+	"github.com/redis/go-redis/extra/redisotel/v9"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -13,16 +14,21 @@ type Client struct {
 	Subscribers map[string]*redis.PubSub
 }
 
-func NewRedisClient(address string) Client {
+func NewRedisClient(address string) (Client, error) {
 	r := redis.NewClient(&redis.Options{
 		Addr:     address,
 		Password: "",
 		DB:       0,
 	})
+
+	if err := redisotel.InstrumentTracing(r); err != nil {
+		return Client{}, err
+	}
+
 	return Client{
 		Redis:       r,
 		Subscribers: map[string]*redis.PubSub{},
-	}
+	}, nil
 }
 
 func (c Client) Subscribe(ctx context.Context, id uuid.UUID) <-chan *redis.Message {

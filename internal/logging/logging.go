@@ -9,6 +9,7 @@ import (
 
 	"github.com/lmittmann/tint"
 	"github.com/mdobak/go-xerrors"
+	slogotel "github.com/remychantenay/slog-otel"
 	slogctx "github.com/veqryn/slog-context"
 )
 
@@ -38,7 +39,7 @@ func New(logLevel slog.Level, defaultAttrs []slog.Attr) *slog.Logger {
 	}
 
 	customHandler := slogctx.NewHandler(handler, nil)
-	logger := slog.New(customHandler)
+	logger := slog.New(slogotel.OtelHandler{Next: customHandler})
 	return logger
 }
 

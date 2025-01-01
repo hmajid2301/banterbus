@@ -18,6 +18,10 @@ import (
 	"github.com/mdobak/go-xerrors"
 	"github.com/redis/go-redis/v9"
 	slogctx "github.com/veqryn/slog-context"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/codes"
+	"go.opentelemetry.io/otel/trace"
 
 	"gitlab.com/hmajid2301/banterbus/internal/config"
 	"gitlab.com/hmajid2301/banterbus/internal/logging"
@@ -252,9 +256,11 @@ func (s *Subscriber) handleMessages(ctx context.Context, cancel context.CancelFu
 }
 
 func (s *Subscriber) handleMessage(ctx context.Context, client *client) error {
-	correlationID := uuid.NewString()
+	tracer := otel.Tracer("banterbus")
+	ctx, span := tracer.Start(ctx, "handleMessage", trace.WithSpanKind(trace.SpanKindServer))
+	defer span.End()
+
 	ctx = slogctx.Append(ctx, "player_id", client.playerID)
-	ctx = slogctx.Append(ctx, "correlation_id", correlationID)
 
 	hdr, r, err := wsutil.NextReader(client.connection, ws.StateServerSide)
 	if err != nil {
@@ -266,6 +272,13 @@ func (s *Subscriber) handleMessage(ctx context.Context, client *client) error {
 
 		return xerrors.New("failed to get next message", err)
 	}
+
+	span.AddEvent(
+		"handling message",
+		trace.WithAttributes(
+			attribute.String("reason", "missing session cookie"),
+		),
+	)
 
 	if hdr.OpCode == ws.OpClose {
 		return errConnectionClosed
@@ -311,5 +324,6 @@ func (s *Subscriber) handleMessage(ctx context.Context, client *client) error {
 	}
 
 	s.logger.DebugContext(ctx, "finished handling request")
+	span.SetStatus(codes.Ok, "handled message successfully")
 	return nil
 }
