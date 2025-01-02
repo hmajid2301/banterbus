@@ -2,6 +2,7 @@ package service_test
 
 import (
 	"context"
+	"fmt"
 	"testing"
 	"time"
 
@@ -36,6 +37,7 @@ func TestRoundServiceSubmitAnswer(t *testing.T) {
 			db.GetLatestRoundByPlayerIDRow{
 				ID:             roundID,
 				SubmitDeadline: pgtype.Timestamp{Time: now.Add(1 * time.Hour)},
+				RoundType:      "free_form",
 			}, nil)
 
 		u := uuid.Must(uuid.NewV7())
@@ -48,6 +50,81 @@ func TestRoundServiceSubmitAnswer(t *testing.T) {
 		}).Return(db.FibbingItAnswer{}, nil)
 
 		err := srv.SubmitAnswer(ctx, playerID, "My answer", now)
+		assert.NoError(t, err)
+	})
+
+	t.Run("Should successfully submit answer in most_likely round", func(t *testing.T) {
+		mockStore := mockService.NewMockStorer(t)
+		mockRandom := mockService.NewMockRandomizer(t)
+		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
+
+		now := time.Now()
+		ctx := context.Background()
+
+		mockStore.EXPECT().GetRoomByPlayerID(ctx, playerID).Return(db.Room{
+			ID:        roomID,
+			RoomState: db.Playing.String(),
+		}, nil)
+		mockStore.EXPECT().GetLatestRoundByPlayerID(ctx, playerID).Return(
+			db.GetLatestRoundByPlayerIDRow{
+				ID:             roundID,
+				SubmitDeadline: pgtype.Timestamp{Time: now.Add(1 * time.Hour)},
+				RoundType:      "most_likely",
+			}, nil)
+		mockStore.EXPECT().GetAllPlayersInRoom(ctx, playerID).Return(
+			[]db.GetAllPlayersInRoomRow{
+				{
+					ID:       playerID,
+					Nickname: "host_player",
+				},
+				{
+					ID:       uuid.MustParse("0194291f-ca55-7a36-baf8-9085c2fae7fb"),
+					Nickname: "other_player",
+				},
+			}, nil)
+
+		u := uuid.Must(uuid.NewV7())
+		mockRandom.EXPECT().GetID().Return(u)
+		mockStore.EXPECT().AddFibbingItAnswer(ctx, db.AddFibbingItAnswerParams{
+			ID:       u,
+			RoundID:  roundID,
+			PlayerID: playerID,
+			Answer:   "other_player",
+		}).Return(db.FibbingItAnswer{}, nil)
+
+		err := srv.SubmitAnswer(ctx, playerID, "other_player", now)
+		assert.NoError(t, err)
+	})
+
+	t.Run("Should successfully submit answer in multiple_choice round", func(t *testing.T) {
+		mockStore := mockService.NewMockStorer(t)
+		mockRandom := mockService.NewMockRandomizer(t)
+		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
+
+		now := time.Now()
+		ctx := context.Background()
+
+		mockStore.EXPECT().GetRoomByPlayerID(ctx, playerID).Return(db.Room{
+			ID:        roomID,
+			RoomState: db.Playing.String(),
+		}, nil)
+		mockStore.EXPECT().GetLatestRoundByPlayerID(ctx, playerID).Return(
+			db.GetLatestRoundByPlayerIDRow{
+				ID:             roundID,
+				SubmitDeadline: pgtype.Timestamp{Time: now.Add(1 * time.Hour)},
+				RoundType:      "multiple_choice",
+			}, nil)
+
+		u := uuid.Must(uuid.NewV7())
+		mockRandom.EXPECT().GetID().Return(u)
+		mockStore.EXPECT().AddFibbingItAnswer(ctx, db.AddFibbingItAnswerParams{
+			ID:       u,
+			RoundID:  roundID,
+			PlayerID: playerID,
+			Answer:   "Strongly Agree",
+		}).Return(db.FibbingItAnswer{}, nil)
+
+		err := srv.SubmitAnswer(ctx, playerID, "Strongly Agree", now)
 		assert.NoError(t, err)
 	})
 
@@ -141,6 +218,7 @@ func TestRoundServiceSubmitAnswer(t *testing.T) {
 			db.GetLatestRoundByPlayerIDRow{
 				ID:             roundID,
 				SubmitDeadline: pgtype.Timestamp{Time: now.Add(1 * time.Hour)},
+				RoundType:      "free_form",
 			}, nil)
 
 		mockRandom.EXPECT().GetID().Return(defaultHostPlayerID)
@@ -153,6 +231,88 @@ func TestRoundServiceSubmitAnswer(t *testing.T) {
 
 		err := srv.SubmitAnswer(ctx, playerID, "My answer", now)
 		assert.Error(t, err)
+	})
+
+	t.Run("Should fail to submit answer in most_likely round, player not in room", func(t *testing.T) {
+		mockStore := mockService.NewMockStorer(t)
+		mockRandom := mockService.NewMockRandomizer(t)
+		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
+
+		now := time.Now()
+		ctx := context.Background()
+
+		mockStore.EXPECT().GetRoomByPlayerID(ctx, playerID).Return(db.Room{
+			ID:        roomID,
+			RoomState: db.Playing.String(),
+		}, nil)
+		mockStore.EXPECT().GetLatestRoundByPlayerID(ctx, playerID).Return(
+			db.GetLatestRoundByPlayerIDRow{
+				ID:             roundID,
+				SubmitDeadline: pgtype.Timestamp{Time: now.Add(1 * time.Hour)},
+				RoundType:      "most_likely",
+			}, nil)
+		mockStore.EXPECT().GetAllPlayersInRoom(ctx, playerID).Return(
+			[]db.GetAllPlayersInRoomRow{
+				{
+					ID:       playerID,
+					Nickname: "host_player",
+				},
+				{
+					ID:       uuid.MustParse("0194291f-ca55-7a36-baf8-9085c2fae7fb"),
+					Nickname: "other_player",
+				},
+			}, nil)
+
+		err := srv.SubmitAnswer(ctx, playerID, "player_not_found", now)
+		assert.ErrorContains(t, err, "answer must be one of")
+	})
+
+	t.Run("Should fail to submit answer in most_likely round, db call fails", func(t *testing.T) {
+		mockStore := mockService.NewMockStorer(t)
+		mockRandom := mockService.NewMockRandomizer(t)
+		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
+
+		now := time.Now()
+		ctx := context.Background()
+
+		mockStore.EXPECT().GetRoomByPlayerID(ctx, playerID).Return(db.Room{
+			ID:        roomID,
+			RoomState: db.Playing.String(),
+		}, nil)
+		mockStore.EXPECT().GetLatestRoundByPlayerID(ctx, playerID).Return(
+			db.GetLatestRoundByPlayerIDRow{
+				ID:             roundID,
+				SubmitDeadline: pgtype.Timestamp{Time: now.Add(1 * time.Hour)},
+				RoundType:      "most_likely",
+			}, nil)
+		mockStore.EXPECT().GetAllPlayersInRoom(ctx, playerID).Return(
+			[]db.GetAllPlayersInRoomRow{}, fmt.Errorf("fail to make db call"))
+
+		err := srv.SubmitAnswer(ctx, playerID, "player_not_found", now)
+		assert.Error(t, err)
+	})
+
+	t.Run("Should fail to submit answer in multiple_choice round, invalid answer", func(t *testing.T) {
+		mockStore := mockService.NewMockStorer(t)
+		mockRandom := mockService.NewMockRandomizer(t)
+		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
+
+		now := time.Now()
+		ctx := context.Background()
+
+		mockStore.EXPECT().GetRoomByPlayerID(ctx, playerID).Return(db.Room{
+			ID:        roomID,
+			RoomState: db.Playing.String(),
+		}, nil)
+		mockStore.EXPECT().GetLatestRoundByPlayerID(ctx, playerID).Return(
+			db.GetLatestRoundByPlayerIDRow{
+				ID:             roundID,
+				SubmitDeadline: pgtype.Timestamp{Time: now.Add(1 * time.Hour)},
+				RoundType:      "multiple_choice",
+			}, nil)
+
+		err := srv.SubmitAnswer(ctx, playerID, "invalid answer", now)
+		assert.ErrorContains(t, err, "answer must be one of")
 	})
 }
 

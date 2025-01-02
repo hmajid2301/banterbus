@@ -54,6 +54,24 @@ func (r *RoundService) SubmitAnswer(
 		return xerrors.New("answer submission deadline has passed")
 	}
 
+	answers, err := r.getValidAnswers(ctx, round.RoundType, playerID)
+	if err != nil {
+		return err
+	}
+
+	if len(answers) > 0 {
+		isAnswerValid := false
+		for _, validAnswer := range answers {
+			if answer == validAnswer {
+				isAnswerValid = true
+			}
+		}
+
+		if !isAnswerValid {
+			return xerrors.New("answer must be one of", answers)
+		}
+	}
+
 	_, err = r.store.AddFibbingItAnswer(ctx, db.AddFibbingItAnswerParams{
 		ID:       r.randomizer.GetID(),
 		RoundID:  round.ID,
@@ -517,19 +535,9 @@ func (r *RoundService) GetQuestionState(ctx context.Context, playerID uuid.UUID)
 		return QuestionState{}, err
 	}
 
-	answers := []string{}
-	if g.RoundType == "multiple_choice" {
-		answers = []string{"Strongly Agree", "Agree", "Neutral", "Disagree", "Strongly Disagree"}
-	} else if g.RoundType == "most_likely" {
-		players, err := r.store.GetAllPlayersInRoom(ctx, playerID)
-		if err != nil {
-			return QuestionState{}, err
-		}
-		for _, player := range players {
-			if player.ID != playerID {
-				answers = append(answers, player.Nickname)
-			}
-		}
+	answers, err := r.getValidAnswers(ctx, g.RoundType, playerID)
+	if err != nil {
+		return QuestionState{}, err
 	}
 
 	players := []PlayerWithRole{
@@ -749,4 +757,22 @@ func getNextRoundType(roundType string) string {
 	}
 
 	return nextRoundMap[roundType]
+}
+
+func (r RoundService) getValidAnswers(ctx context.Context, roundType string, playerID uuid.UUID) ([]string, error) {
+	answers := []string{}
+	if roundType == "multiple_choice" {
+		answers = []string{"Strongly Agree", "Agree", "Neutral", "Disagree", "Strongly Disagree"}
+	} else if roundType == "most_likely" {
+		players, err := r.store.GetAllPlayersInRoom(ctx, playerID)
+		if err != nil {
+			return nil, err
+		}
+		for _, player := range players {
+			if player.ID != playerID {
+				answers = append(answers, player.Nickname)
+			}
+		}
+	}
+	return answers, nil
 }
