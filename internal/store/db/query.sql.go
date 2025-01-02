@@ -984,6 +984,52 @@ func (q *Queries) GetRoomByPlayerID(ctx context.Context, playerID uuid.UUID) (Ro
 	return i, err
 }
 
+const getTotalScoresByGameStateID = `-- name: GetTotalScoresByGameStateID :many
+SELECT
+    s.player_id,
+    SUM(s.score) AS total_score
+FROM
+    fibbing_it_scores s
+JOIN
+    fibbing_it_rounds r ON s.round_id = r.id
+JOIN
+    game_state gs ON r.game_state_id = gs.id
+WHERE
+    gs.id = $1 AND r.id != $2
+GROUP BY
+    s.player_id
+`
+
+type GetTotalScoresByGameStateIDParams struct {
+	ID   uuid.UUID
+	ID_2 uuid.UUID
+}
+
+type GetTotalScoresByGameStateIDRow struct {
+	PlayerID   uuid.UUID
+	TotalScore int64
+}
+
+func (q *Queries) GetTotalScoresByGameStateID(ctx context.Context, arg GetTotalScoresByGameStateIDParams) ([]GetTotalScoresByGameStateIDRow, error) {
+	rows, err := q.db.Query(ctx, getTotalScoresByGameStateID, arg.ID, arg.ID_2)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetTotalScoresByGameStateIDRow
+	for rows.Next() {
+		var i GetTotalScoresByGameStateIDRow
+		if err := rows.Scan(&i.PlayerID, &i.TotalScore); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getVotingState = `-- name: GetVotingState :many
 SELECT
     fir.round AS round,

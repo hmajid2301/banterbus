@@ -66,7 +66,7 @@ func mainLogic() error {
 		return xerrors.New("failed to fetch hostname", err)
 	}
 
-	otelShutdown, err := telemetry.SetupOTelSDK(ctx)
+	otelShutdown, err := telemetry.SetupOTelSDK(ctx, conf.App.Environment)
 	if err != nil {
 		return xerrors.New("failed to setup otel", err)
 	}
@@ -75,6 +75,7 @@ func mainLogic() error {
 		err = errors.Join(err, otelShutdown(context.Background()))
 	}()
 
+	// TODO: take these values from otel? instrument via otel?
 	logger := logging.New(conf.App.LogLevel, []slog.Attr{
 		slog.String("app_name", "banterbus"),
 		slog.String("node", hostname),

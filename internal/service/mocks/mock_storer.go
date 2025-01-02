@@ -1670,6 +1670,65 @@ func (_c *MockStorer_GetRoomByPlayerID_Call) RunAndReturn(run func(context.Conte
 	return _c
 }
 
+// GetTotalScoresByGameStateID provides a mock function with given fields: ctx, arg
+func (_m *MockStorer) GetTotalScoresByGameStateID(ctx context.Context, arg db.GetTotalScoresByGameStateIDParams) ([]db.GetTotalScoresByGameStateIDRow, error) {
+	ret := _m.Called(ctx, arg)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetTotalScoresByGameStateID")
+	}
+
+	var r0 []db.GetTotalScoresByGameStateIDRow
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, db.GetTotalScoresByGameStateIDParams) ([]db.GetTotalScoresByGameStateIDRow, error)); ok {
+		return rf(ctx, arg)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, db.GetTotalScoresByGameStateIDParams) []db.GetTotalScoresByGameStateIDRow); ok {
+		r0 = rf(ctx, arg)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]db.GetTotalScoresByGameStateIDRow)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, db.GetTotalScoresByGameStateIDParams) error); ok {
+		r1 = rf(ctx, arg)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockStorer_GetTotalScoresByGameStateID_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetTotalScoresByGameStateID'
+type MockStorer_GetTotalScoresByGameStateID_Call struct {
+	*mock.Call
+}
+
+// GetTotalScoresByGameStateID is a helper method to define mock.On call
+//   - ctx context.Context
+//   - arg db.GetTotalScoresByGameStateIDParams
+func (_e *MockStorer_Expecter) GetTotalScoresByGameStateID(ctx interface{}, arg interface{}) *MockStorer_GetTotalScoresByGameStateID_Call {
+	return &MockStorer_GetTotalScoresByGameStateID_Call{Call: _e.mock.On("GetTotalScoresByGameStateID", ctx, arg)}
+}
+
+func (_c *MockStorer_GetTotalScoresByGameStateID_Call) Run(run func(ctx context.Context, arg db.GetTotalScoresByGameStateIDParams)) *MockStorer_GetTotalScoresByGameStateID_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(db.GetTotalScoresByGameStateIDParams))
+	})
+	return _c
+}
+
+func (_c *MockStorer_GetTotalScoresByGameStateID_Call) Return(_a0 []db.GetTotalScoresByGameStateIDRow, _a1 error) *MockStorer_GetTotalScoresByGameStateID_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockStorer_GetTotalScoresByGameStateID_Call) RunAndReturn(run func(context.Context, db.GetTotalScoresByGameStateIDParams) ([]db.GetTotalScoresByGameStateIDRow, error)) *MockStorer_GetTotalScoresByGameStateID_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetVotingState provides a mock function with given fields: ctx, id
 func (_m *MockStorer) GetVotingState(ctx context.Context, id uuid.UUID) ([]db.GetVotingStateRow, error) {
 	ret := _m.Called(ctx, id)

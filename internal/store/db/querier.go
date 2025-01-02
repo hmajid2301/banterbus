@@ -38,6 +38,7 @@ type Querier interface {
 	GetRandomQuestionInGroup(ctx context.Context, arg GetRandomQuestionInGroupParams) ([]GetRandomQuestionInGroupRow, error)
 	GetRoomByCode(ctx context.Context, roomCode string) (Room, error)
 	GetRoomByPlayerID(ctx context.Context, playerID uuid.UUID) (Room, error)
+	GetTotalScoresByGameStateID(ctx context.Context, arg GetTotalScoresByGameStateIDParams) ([]GetTotalScoresByGameStateIDRow, error)
 	GetVotingState(ctx context.Context, id uuid.UUID) ([]GetVotingStateRow, error)
 	RemovePlayerFromRoom(ctx context.Context, playerID uuid.UUID) (RoomsPlayer, error)
 	ToggleAnswerIsReady(ctx context.Context, playerID uuid.UUID) (FibbingItAnswer, error)

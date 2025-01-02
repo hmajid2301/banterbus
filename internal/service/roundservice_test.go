@@ -1691,6 +1691,12 @@ func TestRoundServiceUpdateStateToScore(t *testing.T) {
 				RoundType: "free_form",
 			}, nil)
 		mockStore.EXPECT().
+			GetTotalScoresByGameStateID(ctx, db.GetTotalScoresByGameStateIDParams{
+				ID:   gameStateID,
+				ID_2: uuid.MustParse("0193a62a-364e-751a-9088-cf3b9711153e"),
+			}).
+			Return([]db.GetTotalScoresByGameStateIDRow{}, nil)
+		mockStore.EXPECT().
 			NewScores(ctx, db.NewScoresArgs{
 				Players: []db.AddFibbingItScoreParams{
 					{
@@ -1958,6 +1964,12 @@ func TestRoundServiceUpdateStateToScore(t *testing.T) {
 				ID:    uuid.MustParse("0193a62a-364e-751a-9088-cf3b9711153e"),
 				Round: 1,
 			}, nil)
+		mockStore.EXPECT().
+			GetTotalScoresByGameStateID(ctx, db.GetTotalScoresByGameStateIDParams{
+				ID:   gameStateID,
+				ID_2: uuid.MustParse("0193a62a-364e-751a-9088-cf3b9711153e"),
+			}).
+			Return([]db.GetTotalScoresByGameStateIDRow{}, nil)
 		mockStore.EXPECT().
 			NewScores(ctx, db.NewScoresArgs{
 				Players: []db.AddFibbingItScoreParams{

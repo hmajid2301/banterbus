@@ -634,6 +634,19 @@ func (r *RoundService) getScoreState(
 		return ScoreState{}, nil, err
 	}
 
+	scoredByPlayerID, err := r.store.GetTotalScoresByGameStateID(ctx, db.GetTotalScoresByGameStateIDParams{
+		ID:   gameStateID,
+		ID_2: round.ID,
+	})
+	if err != nil {
+		return ScoreState{}, nil, err
+	}
+
+	currentScoreMap := map[uuid.UUID]int{}
+	for _, p := range scoredByPlayerID {
+		currentScoreMap[p.PlayerID] = int(p.TotalScore)
+	}
+
 	// INFO: This shouldn't happen.
 	if len(allVotesInRoundType) == 0 {
 		return ScoreState{}, nil, xerrors.New("no players in game")
@@ -653,6 +666,12 @@ func (r *RoundService) getScoreState(
 				Nickname: p.VoterNickname,
 				Score:    0,
 			}
+		}
+
+		// INFO: If user has an existing score add it on so we can show their total score.
+		// If this is the first round of scoring, then there won't be a score to show.
+		if currentScore, ok := currentScoreMap[p.VoterID]; ok {
+			player.Score += currentScore
 		}
 
 		playerScoreMap[p.VoterID] = player

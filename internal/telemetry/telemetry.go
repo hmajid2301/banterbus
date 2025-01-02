@@ -15,7 +15,7 @@ import (
 	semconv "go.opentelemetry.io/otel/semconv/v1.26.0"
 )
 
-func SetupOTelSDK(ctx context.Context) (shutdown func(context.Context) error, err error) {
+func SetupOTelSDK(ctx context.Context, environment string) (shutdown func(context.Context) error, err error) {
 	var shutdownFuncs []func(context.Context) error
 
 	shutdown = func(ctx context.Context) error {
@@ -37,10 +37,10 @@ func SetupOTelSDK(ctx context.Context) (shutdown func(context.Context) error, er
 	// TODO: use ldflags to make these dynamic
 	res, err := resource.New(
 		ctx,
+		resource.WithHost(),
 		resource.WithContainerID(),
 		resource.WithAttributes(
-			semconv.ServiceNamespaceKey.String("dev"),
-			semconv.ServiceVersionKey.String("0.0.01"),
+			semconv.ServiceNamespaceKey.String(environment),
 			semconv.ServiceNameKey.String("banterbus"),
 		),
 	)
