@@ -8,8 +8,8 @@ processors:
   batch:
 
 exporters:
-  otlp/jaeger:
-    endpoint: jaeger:4317
+  otlp:
+    endpoint: tempo:4317
     tls:
       insecure: true
   prometheus:
@@ -26,7 +26,7 @@ service:
     traces:
       receivers: [otlp]
       processors: [batch]
-      exporters: [otlp/jaeger]
+      exporters: [otlp]
     metrics:
       receivers: [otlp]
       processors: [batch]
