@@ -26,7 +26,7 @@ func CreateDB(ctx context.Context) (*pgxpool.Pool, error) {
 	uri := getURI()
 	pool, err := pgxpool.New(ctx, uri)
 	if err != nil {
-		return pool, xerrors.New("failed to get database", err)
+		return pool, fmt.Errorf("failed to get database :%w", err)
 	}
 
 	randomNumLimit := 1000000
@@ -40,7 +40,7 @@ func CreateDB(ctx context.Context) (*pgxpool.Pool, error) {
 
 	pgxConfig, err := pgxpool.ParseConfig(fmt.Sprintf("%s/%s", uri, dbName))
 	if err != nil {
-		return pool, xerrors.New("failed to parse db uri", err)
+		return pool, fmt.Errorf("failed to parse db uri :%w", err)
 	}
 
 	pgxConfig.AfterConnect = func(_ context.Context, conn *pgx.Conn) error {
@@ -49,7 +49,7 @@ func CreateDB(ctx context.Context) (*pgxpool.Pool, error) {
 	}
 	pool, err = pgxpool.NewWithConfig(ctx, pgxConfig)
 	if err != nil {
-		return pool, xerrors.New("failed to setup database", err)
+		return pool, fmt.Errorf("failed to setup database :%w", err)
 	}
 
 	err = runDBMigrations(pool)
@@ -72,13 +72,13 @@ func getURI() string {
 func RemoveDB(ctx context.Context, pool *pgxpool.Pool) error {
 	dbName, err := getDatabaseName(pool)
 	if err != nil {
-		return xerrors.New("failed to connect to database", err)
+		return fmt.Errorf("failed to connect to database :%w", err)
 	}
 	defer pool.Close()
 
 	_, err = pool.Exec(ctx, fmt.Sprintf("DROP DATABASE IF EXISTS %s", dbName))
 	if err != nil {
-		return xerrors.New("failed to drop database", err)
+		return fmt.Errorf("failed to drop database :%w", err)
 	}
 
 	return nil
@@ -90,7 +90,7 @@ func getDatabaseName(pool *pgxpool.Pool) (string, error) {
 
 	config, err := pgx.ParseConfig(connString)
 	if err != nil {
-		return "", xerrors.New("failed to parse connection string", err)
+		return "", fmt.Errorf("failed to parse connection string :%w", err)
 	}
 
 	return config.Database, nil

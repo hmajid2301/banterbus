@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"embed"
 	"errors"
+	"fmt"
 	"io/fs"
 	"log/slog"
 	"net/http"
@@ -19,7 +20,6 @@ import (
 	"github.com/invopop/ctxi18n"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/mdobak/go-xerrors"
 	"github.com/pressly/goose/v3"
 	pgxUUID "github.com/vgarvardt/pgx-google-uuid/v5"
 
@@ -59,16 +59,16 @@ func mainLogic() error {
 
 	conf, err := config.LoadConfig(ctx)
 	if err != nil {
-		return xerrors.New("failed to load config", err)
+		return fmt.Errorf("failed to load config: %w", err)
 	}
 	hostname, err := os.Hostname()
 	if err != nil {
-		return xerrors.New("failed to fetch hostname", err)
+		return fmt.Errorf("failed to fetch hostname: %w", err)
 	}
 
 	otelShutdown, err := telemetry.SetupOTelSDK(ctx, conf.App.Environment)
 	if err != nil {
-		return xerrors.New("failed to setup otel", err)
+		return fmt.Errorf("failed to setup otel: %w", err)
 	}
 
 	defer func() {
@@ -85,7 +85,7 @@ func mainLogic() error {
 	// TODO: refactor this
 	pgxConfig, err := pgxpool.ParseConfig(conf.DB.URI)
 	if err != nil {
-		return xerrors.New("failed to parse db uri", err)
+		return fmt.Errorf("failed to parse db uri: %w", err)
 	}
 
 	pgxConfig.ConnConfig.Tracer = otelpgx.NewTracer()
@@ -97,24 +97,24 @@ func mainLogic() error {
 
 	pool, err := pgxpool.NewWithConfig(ctx, pgxConfig)
 	if err != nil {
-		return xerrors.New("failed to setup database", err)
+		return fmt.Errorf("failed to setup database: %w", err)
 	}
 	defer pool.Close()
 
 	logger.InfoContext(ctx, "applying migrations")
 	err = runDBMigrations(pool)
 	if err != nil {
-		return xerrors.New("failed to run migrations", err)
+		return fmt.Errorf("failed to run migrations: %w", err)
 	}
 
 	str, err := db.NewDB(pool)
 	if err != nil {
-		return xerrors.New("failed to setup store", err)
+		return fmt.Errorf("failed to setup store: %w", err)
 	}
 
 	err = ctxi18n.LoadWithDefault(views.Locales, conf.App.DefaultLocale)
 	if err != nil {
-		return xerrors.New("error loading locales", err)
+		return fmt.Errorf("error loading locales: %w", err)
 	}
 
 	userRandomizer := randomizer.NewUserRandomizer()
@@ -124,12 +124,12 @@ func mainLogic() error {
 
 	fsys, err := fs.Sub(staticFiles, "static")
 	if err != nil {
-		return xerrors.New("failed to create embed file system", err)
+		return fmt.Errorf("failed to create embed file system: %w", err)
 	}
 
 	redisClient, err := pubsub.NewRedisClient(conf.Redis.Address)
 	if err != nil {
-		return xerrors.New("failed to create redis client", err)
+		return fmt.Errorf("failed to create redis client: %w", err)
 	}
 
 	subscriber := websockets.NewSubscriber(lobbyService, playerService, roundService, logger, redisClient, conf)
@@ -146,7 +146,7 @@ func mainLogic() error {
 	go terminateHandler(ctx, logger, server, timeoutSeconds)
 	err = server.Serve(ctx)
 	if err != nil {
-		return xerrors.New("failed to start server", err)
+		return fmt.Errorf("failed to start server: %w", err)
 	}
 
 	return nil

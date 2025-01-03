@@ -5,10 +5,8 @@ package icons
 
 //lint:file-ignore SA4006 This context is only used if a nested component is present.
 
-import (
-	"github.com/a-h/templ"
-	templruntime "github.com/a-h/templ/runtime"
-)
+import "github.com/a-h/templ"
+import templruntime "github.com/a-h/templ/runtime"
 
 func EditText(className string) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
@@ -36,7 +34,7 @@ func EditText(className string) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" width=\"24\" height=\"24\" fill=\"none\" class=\"")
+		templ_7745c5c3_Err = templ.WriteWatchModeString(templ_7745c5c3_Buffer, 1)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -49,7 +47,7 @@ func EditText(className string) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\"><path fill-rule=\"evenodd\" clip-rule=\"evenodd\" d=\"M12.7461 21.75C12.7461 21.1977 13.1938 20.75 13.7461 20.75L21.7461 20.75C22.2984 20.75 22.7461 21.1977 22.7461 21.75C22.7461 22.3023 22.2984 22.75 21.7461 22.75L13.7461 22.75C13.1938 22.75 12.7461 22.3023 12.7461 21.75Z\" fill=\"currentColor\"></path> <path d=\"M19.0517 1.7366C17.8469 1.06772 16.3859 1.0898 15.2014 1.79431C14.8253 2.01799 14.478 2.35124 14.0409 2.81506C13.855 3.01232 13.762 3.11094 13.7638 3.2326C13.7656 3.35426 13.8624 3.45109 14.0561 3.64476L20.4474 10.036C20.6451 10.2338 20.744 10.3327 20.8679 10.3329C20.9918 10.3332 21.0898 10.236 21.2859 10.0416C21.7067 9.62443 22.0117 9.28622 22.2192 8.92206C22.9029 7.72256 22.924 6.24777 22.2754 5.02866C22.005 4.52051 21.5497 4.05569 20.8694 3.36116L20.6853 3.17307C20.0073 2.48005 19.5515 2.01406 19.0517 1.7366Z\" fill=\"currentColor\"></path> <path d=\"M18.9827 12.2642C19.1899 12.0646 19.2935 11.9648 19.2947 11.8389C19.2959 11.713 19.1942 11.6113 18.9907 11.4078L12.7326 5.14972C12.5252 4.94228 12.4215 4.83856 12.2937 4.84112C12.1659 4.84367 12.0664 4.95146 11.8675 5.16704L4.14154 13.5377C3.02147 14.7509 2.33498 15.4944 1.93314 16.4194C1.53206 17.3425 1.45308 18.3582 1.32393 20.019L1.32371 20.0219C1.32348 20.0248 1.23822 21.1155 1.25138 21.3517C1.26628 21.6191 1.32998 21.9442 1.57819 22.2259C1.82863 22.5101 2.1452 22.6123 2.41173 22.6568C2.64357 22.6955 3.68775 22.7227 3.68986 22.7227C5.587 22.7727 6.75977 22.8036 7.83824 22.3823C8.91518 21.9617 9.76624 21.1417 11.1471 19.8112L18.9827 12.2642Z\" fill=\"currentColor\"></path></svg>")
+		templ_7745c5c3_Err = templ.WriteWatchModeString(templ_7745c5c3_Buffer, 2)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

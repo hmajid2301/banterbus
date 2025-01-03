@@ -71,7 +71,7 @@ func (s *StartGame) Handle(ctx context.Context, client *client, sub *Subscriber)
 	if err != nil {
 		errStr := "failed to start game"
 		clientErr := sub.updateClientAboutErr(ctx, client.playerID, errStr)
-		return errors.Join(clientErr, err)
+		return xerrors.Append(clientErr, err)
 	}
 
 	showRole := true

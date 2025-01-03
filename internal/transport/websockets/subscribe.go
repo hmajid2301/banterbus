@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"log/slog"
 	"net"
@@ -270,7 +271,7 @@ func (s *Subscriber) handleMessage(ctx context.Context, client *client) error {
 			return nil
 		}
 
-		return xerrors.New("failed to get next message", err)
+		return fmt.Errorf("failed to get next message: %w", err)
 	}
 
 	span.AddEvent(
@@ -286,14 +287,14 @@ func (s *Subscriber) handleMessage(ctx context.Context, client *client) error {
 
 	data, err := io.ReadAll(r)
 	if err != nil {
-		return xerrors.New("failed to read message", err)
+		return fmt.Errorf("failed to read message: %w", err)
 	}
 
 	var message message
 	err = json.Unmarshal(data, &message)
 	s.logger.DebugContext(ctx, "received message", slog.Any("message", message))
 	if err != nil {
-		return xerrors.New("failed to unmarshal message", err)
+		return fmt.Errorf("failed to unmarshal message: %w", err)
 	}
 
 	err = telemetry.IncrementMessageReceived(ctx, message.MessageType)
@@ -304,23 +305,23 @@ func (s *Subscriber) handleMessage(ctx context.Context, client *client) error {
 	s.logger.DebugContext(ctx, "handling message", slog.String("message_type", message.MessageType))
 	handler, ok := s.handlers[message.MessageType]
 	if !ok {
-		return xerrors.New("handler not found for message type: %s", message.MessageType)
+		return fmt.Errorf("handler not found for message type: %s", message.MessageType)
 	}
 
 	err = json.Unmarshal(data, &handler)
 	s.logger.DebugContext(ctx, "trying to unmarshal handler message", slog.Any("message", message))
 	if err != nil {
-		return xerrors.New("failed to unmarshal for handler", err)
+		return fmt.Errorf("failed to unmarshal for handler: %w", err)
 	}
 
 	err = handler.Validate()
 	if err != nil {
-		return xerrors.New("error validating handler message", err)
+		return fmt.Errorf("error validating handler message: %w", err)
 	}
 
 	err = handler.Handle(ctx, client, s)
 	if err != nil {
-		return xerrors.New("error in handler function", err)
+		return fmt.Errorf("error in handler function: %w", err)
 	}
 
 	s.logger.DebugContext(ctx, "finished handling request")
