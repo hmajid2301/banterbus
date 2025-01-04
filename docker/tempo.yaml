@@ -8,23 +8,23 @@ distributor:
     jaeger:                            # the receives all come from the OpenTelemetry collector.  more configuration information can
       protocols:                       # be found there: https://github.com/open-telemetry/opentelemetry-collector/tree/main/receiver
         thrift_http:                   #
-          endpoint: "localhost:14268"      # for a production deployment you should only enable the receivers you need!
+          endpoint: "0.0.0.0:14268"      # for a production deployment you should only enable the receivers you need!
         grpc:
-          endpoint: "localhost:14250"
+          endpoint: "0.0.0.0:14250"
         thrift_binary:
-          endpoint: "localhost:6832"
+          endpoint: "0.0.0.0:6832"
         thrift_compact:
-          endpoint: "localhost:6831"
+          endpoint: "0.0.0.0:6831"
     zipkin:
-      endpoint: "localhost:9411"
+      endpoint: "0.0.0.0:9411"
     otlp:
       protocols:
         grpc:
-          endpoint: "localhost:4317"
+          endpoint: "0.0.0.0:4317"
         http:
-          endpoint: "localhost:4318"
+          endpoint: "0.0.0.0:4318"
     opencensus:
-      endpoint: "localhost:55678"
+      endpoint: "0.0.0.0:55678"
 
 ingester:
   max_block_duration: 5m               # cut the headblock when this much time passes. this is being set for demo purposes and should probably be left alone normally

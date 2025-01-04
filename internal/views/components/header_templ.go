@@ -5,10 +5,11 @@ package components
 
 //lint:file-ignore SA4006 This context is only used if a nested component is present.
 
-import "github.com/a-h/templ"
-import templruntime "github.com/a-h/templ/runtime"
-
-import "github.com/invopop/ctxi18n/i18n"
+import (
+	"github.com/a-h/templ"
+	templruntime "github.com/a-h/templ/runtime"
+	"github.com/invopop/ctxi18n/i18n"
+)
 
 func Header(languages map[string]string) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
@@ -31,7 +32,7 @@ func Header(languages map[string]string) templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templ.WriteWatchModeString(templ_7745c5c3_Buffer, 1)
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<header class=\"bg-surface0 font-main\"><nav class=\"flex justify-between items-center p-2 mx-auto max-w-7xl\"><div class=\"flex flex-1\"><div x-data=\"{\n                        open: false,\n                        toggle() {\n                            if (this.open) {\n                                return this.close()\n                            }\n                            this.$refs.button.focus()\n                            this.open = true\n                        },\n                        close(focusAfter) {\n                            if (! this.open) return\n                            this.open = false\n                            focusAfter &amp;&amp; focusAfter.focus()\n                        }\n                    }\" x-on:keydown.escape.prevent.stop=\"close($refs.button)\" x-on:focusin.window=\"! $refs.panel.contains($event.target) &amp;&amp; close()\" x-id=\"[&#39;dropdown-button&#39;]\" class=\"relative\"><button x-ref=\"button\" x-on:click=\"toggle()\" :aria-expanded=\"open\" :aria-controls=\"$id(&#39;dropdown-button&#39;)\" type=\"button\" class=\"flex flex-row p-3 space-x-4 rounded-lg rounded-b-lg shadow-custom-border bg-surface2 text-text fill-transparent\"><svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" width=\"20\"><circle cx=\"12\" cy=\"12\" r=\"10\" stroke=\"currentColor\" stroke-width=\"1.5\"></circle> <path d=\"M8 12C8 18 12 22 12 22C12 22 16 18 16 12C16 6 12 2 12 2C12 2 8 6 8 12Z\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linejoin=\"round\"></path> <path d=\"M21 15H3\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"></path> <path d=\"M21 9H3\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"></path></svg><p>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -44,13 +45,13 @@ func Header(languages map[string]string) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templ.WriteWatchModeString(templ_7745c5c3_Buffer, 2)
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</p><svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" width=\"20\" class=\"fill-transparent\"><path d=\"M18.593 8.19486C19.0376 8.52237 19.1326 9.14837 18.8051 9.59306C18.5507 9.93847 18.2963 10.2668 18.0731 10.5528C17.6276 11.1236 17.0143 11.8882 16.3479 12.6556C15.6859 13.4181 14.9518 14.2064 14.2666 14.8119C13.9251 15.1136 13.5721 15.3911 13.2279 15.5986C12.9112 15.7895 12.476 16 11.9999 16C11.5238 16 11.0885 15.7895 10.7718 15.5986C10.4276 15.3911 10.0747 15.1136 9.7332 14.8119C9.04791 14.2064 8.31387 13.4181 7.65183 12.6556C6.98548 11.8882 6.37216 11.1236 5.92664 10.5528C5.70347 10.2668 5.44902 9.93847 5.19463 9.59307C4.86712 9.14837 4.96211 8.52237 5.4068 8.19486C5.58556 8.0632 5.79362 7.99983 5.99982 8L11.9999 8L17.9999 8C18.2061 7.99983 18.4142 8.0632 18.593 8.19486Z\"></path></svg></button><div x-ref=\"panel\" x-show=\"open\" x-transition.origin.top.left x-on:click.outside=\"close($refs.button)\" :id=\"$id(&#39;dropdown-button&#39;)\" style=\"display: none;\" class=\"flex absolute left-0 z-10 w-full\"><div class=\"flex-auto mt-5 rounded-md shadow-lg bg-surface2\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		for key, language := range languages {
 			if language != i18n.T(ctx, "navbar.language") {
-				templ_7745c5c3_Err = templ.WriteWatchModeString(templ_7745c5c3_Buffer, 3)
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div class=\"relative p-2 cursor-pointer hover:text-black text-text2 hover:bg-text\"><a href=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -59,7 +60,7 @@ func Header(languages map[string]string) templ.Component {
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templ.WriteWatchModeString(templ_7745c5c3_Buffer, 4)
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -72,13 +73,13 @@ func Header(languages map[string]string) templ.Component {
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templ.WriteWatchModeString(templ_7745c5c3_Buffer, 5)
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</a></div>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			}
 		}
-		templ_7745c5c3_Err = templ.WriteWatchModeString(templ_7745c5c3_Buffer, 6)
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</div></div></div></div><img class=\"w-auto h-16\" src=\"/static/images/logo-outline.svg\" alt=\"Logo\"><div class=\"flex flex-1 justify-end\"><button disabled type=\"button\" class=\"flex flex-row p-3 space-x-4 rounded-lg rounded-b-lg shadow-custom-border bg-surface2 text-text fill-transparent\"><svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" width=\"24\" height=\"24\"><path fill-rule=\"evenodd\" clip-rule=\"evenodd\" d=\"M12 1.25C6.06294 1.25 1.25 6.06294 1.25 12C1.25 17.937 6.06293 22.75 12 22.75C12.0515 22.75 12.1103 22.7509 12.175 22.7518L12.1754 22.7518C12.5352 22.7572 13.0737 22.7651 13.5177 22.6409C13.8057 22.5603 14.1315 22.4079 14.382 22.1074C14.6396 21.7982 14.75 21.4139 14.75 21C14.75 20.159 14.3186 19.5207 14.0232 19.0836L13.9905 19.0351C13.7467 18.6736 13.5967 18.4383 13.5315 18.1908C13.4789 17.9911 13.4711 17.7348 13.6708 17.3354C13.9111 16.8549 14.1887 16.6617 14.561 16.5536C15.0104 16.4232 15.593 16.4167 16.4815 16.4167H16.493C17.3426 16.4167 18.3867 16.4167 19.6061 16.2425C20.8111 16.0703 21.6693 15.5847 22.1796 14.7414C22.6553 13.955 22.75 12.9748 22.75 12C22.75 6.06293 17.937 1.25 12 1.25ZM7.26509 15.9668C7.79895 15.8253 8.11704 15.2778 7.97556 14.744C7.83408 14.2101 7.28661 13.892 6.75276 14.0335L6.74408 14.0358C6.21022 14.1773 5.89214 14.7247 6.03361 15.2586C6.17509 15.7924 6.72256 16.1105 7.25641 15.9691L7.26509 15.9668ZM7.25 8.5C7.25 7.25736 8.25736 6.25 9.5 6.25C10.7426 6.25 11.75 7.25736 11.75 8.5C11.75 9.74264 10.7426 10.75 9.5 10.75C8.25736 10.75 7.25 9.74264 7.25 8.5ZM16.5 7.25C15.2574 7.25 14.25 8.25736 14.25 9.5C14.25 10.7426 15.2574 11.75 16.5 11.75C17.7426 11.75 18.75 10.7426 18.75 9.5C18.75 8.25736 17.7426 7.25 16.5 7.25Z\" fill=\"currentColor\"></path></svg></button></div></nav></header>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

@@ -277,7 +277,7 @@ func (s *Subscriber) handleMessage(ctx context.Context, client *client) error {
 	span.AddEvent(
 		"handling message",
 		trace.WithAttributes(
-			attribute.String("reason", "missing session cookie"),
+			attribute.String("player_id", client.playerID.String()),
 		),
 	)
 
@@ -302,6 +302,7 @@ func (s *Subscriber) handleMessage(ctx context.Context, client *client) error {
 		s.logger.WarnContext(ctx, "failed to increment message type metric", slog.Any("error", err))
 	}
 
+	span.SetAttributes(attribute.String("message_type", message.MessageType))
 	s.logger.DebugContext(ctx, "handling message", slog.String("message_type", message.MessageType))
 	handler, ok := s.handlers[message.MessageType]
 	if !ok {

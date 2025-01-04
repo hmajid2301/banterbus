@@ -28,6 +28,8 @@ services:
       - 8889:8889
     volumes:
       - ./docker/otelcol.yaml:/etc/otelcol/config.yaml
+    depends_on:
+      - tempo
 
   prometheus:
     image: prom/prometheus:v3.0.0
