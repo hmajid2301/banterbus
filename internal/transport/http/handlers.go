@@ -59,7 +59,9 @@ func NewServer(websocketer websocketer, logger *slog.Logger, staticFS http.FileS
 		mux.HandleFunc("/debug/pprof/trace", pprof.Trace)
 	}
 
-	handler := otelhttp.NewHandler(mux, "/")
+	handler := otelhttp.NewHandler(mux, "/", otelhttp.WithFilter(func(r *http.Request) bool {
+		return r.URL.Path != "/health" && r.URL.Path != "readiness"
+	}))
 	writeTimeout := 10
 	httpServer := &http.Server{
 		Addr:         fmt.Sprintf("%s:%d", s.Config.Host, s.Config.Port),
