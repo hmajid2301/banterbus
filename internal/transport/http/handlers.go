@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/a-h/templ"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/invopop/ctxi18n"
 	"github.com/invopop/ctxi18n/i18n"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
@@ -23,6 +24,7 @@ type Server struct {
 	Websocket websocketer
 	Config    ServerConfig
 	Server    *http.Server
+	Keyfunc   jwt.Keyfunc
 }
 
 type ServerConfig struct {
@@ -36,20 +38,28 @@ type websocketer interface {
 	Subscribe(r *http.Request, w http.ResponseWriter) (err error)
 }
 
-func NewServer(websocketer websocketer, logger *slog.Logger, staticFS http.FileSystem, config ServerConfig) *Server {
+func NewServer(
+	websocketer websocketer,
+	logger *slog.Logger,
+	staticFS http.FileSystem,
+	keyfunc jwt.Keyfunc,
+	config ServerConfig,
+) *Server {
 	s := &Server{
 		Websocket: websocketer,
 		Logger:    logger,
 		Config:    config,
+		Keyfunc:   keyfunc,
 	}
 
 	mux := http.NewServeMux()
-	mux.Handle("/", s.LocaleMiddleware(http.HandlerFunc(s.indexHandler)))
+	mux.Handle("/", s.localeMiddleware(http.HandlerFunc(s.indexHandler)))
 	mux.Handle("/static/", http.StripPrefix("/static", http.FileServer(staticFS)))
-	mux.Handle("/ws", s.LocaleMiddleware(http.HandlerFunc(s.subscribeHandler)))
-	mux.Handle("/join/{room_code}", s.LocaleMiddleware(http.HandlerFunc(s.joinHandler)))
+	mux.Handle("/ws", s.localeMiddleware(http.HandlerFunc(s.subscribeHandler)))
+	mux.Handle("/join/{room_code}", s.localeMiddleware(http.HandlerFunc(s.joinHandler)))
 	mux.HandleFunc("/health", s.healthHandler)
 	mux.HandleFunc("/readiness", s.readinessHandler)
+	mux.Handle("/question", s.jwtMiddleware(http.HandlerFunc(s.addQuestionHandler)))
 
 	if config.Environment == "local" {
 		mux.HandleFunc("/debug/pprof/", pprof.Index)
@@ -111,6 +121,32 @@ func (s *Server) indexHandler(w http.ResponseWriter, r *http.Request) {
 	templ.Handler(pages.Index(languages)).ServeHTTP(w, r)
 }
 
+func (s *Server) addQuestionHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
+		return
+	}
+}
+
+func (s *Server) jwtMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		authHeader := r.Header.Get("Authorization")
+		if authHeader == "" {
+			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			return
+		}
+
+		bearerToken := authHeader[len("Bearer "):]
+		token, err := jwt.Parse(bearerToken, s.Keyfunc)
+		if err != nil || !token.Valid {
+			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	})
+}
+
 func (s *Server) healthHandler(w http.ResponseWriter, _ *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
@@ -134,7 +170,7 @@ func (s *Server) joinHandler(w http.ResponseWriter, r *http.Request) {
 	templ.Handler(pages.Join(languages, roomCode)).ServeHTTP(w, r)
 }
 
-func (s *Server) LocaleMiddleware(next http.Handler) http.Handler {
+func (s *Server) localeMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		locale := r.Header.Get("Accept-Language")
 		pathSegments := strings.Split(r.URL.Path, "/")

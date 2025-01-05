@@ -2,16 +2,20 @@ package e2e
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"log"
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"os"
 	"strings"
 	"testing"
 	"time"
 
+	"github.com/MicahParks/jwkset"
+	"github.com/MicahParks/keyfunc/v3"
 	"github.com/invopop/ctxi18n"
 	"github.com/invopop/ctxi18n/i18n"
 	"github.com/mdobak/go-xerrors"
@@ -37,7 +41,7 @@ var (
 	headless        = os.Getenv("BANTERBUS_PLAYWRIGHT_HEADLESS") == ""
 	browserName     = getBrowserName()
 	browserType     playwright.BrowserType
-	url             = os.Getenv("BANTERBUS_PLAYWRIGHT_URL")
+	webappURL       = os.Getenv("BANTERBUS_PLAYWRIGHT_URL")
 	testUserNum     = 2
 )
 
@@ -80,7 +84,7 @@ func BeforeAll() (*httptest.Server, error) {
 
 	// INFO: if no address passed start local server
 	var server *httptest.Server
-	if url == "" {
+	if webappURL == "" {
 		server, err = newTestServer()
 		if err != nil {
 			return nil, err
@@ -160,10 +164,27 @@ func newTestServer() (*httptest.Server, error) {
 		Port:          8198,
 		DefaultLocale: i18n.Code("en-GB"),
 	}
-	srv := transporthttp.NewServer(subscriber, logger, staticFS, serverConfig)
+
+	u, err := url.Parse(conf.JWT.JWSURL)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse jwks URL: %w", err)
+	}
+
+	storage, err := jwkset.NewStorageFromHTTP(u, jwkset.HTTPClientStorageOptions{Ctx: ctx})
+	if err != nil {
+		return nil, fmt.Errorf("failed to jwkset storage: %w", err)
+	}
+
+	k, err := keyfunc.New(keyfunc.Options{
+		Storage: storage,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to create keyfunc: %w", err)
+	}
+	srv := transporthttp.NewServer(subscriber, logger, staticFS, k.Keyfunc, serverConfig)
 	server := httptest.NewServer(srv.Server.Handler)
 
-	url = server.Listener.Addr().String()
+	webappURL = server.Listener.Addr().String()
 	return server, nil
 }
 
@@ -189,7 +210,7 @@ func ResetBrowserContexts() {
 			log.Fatalf("could not create page: %v", err)
 		}
 
-		_, err = page.Goto(url)
+		_, err = page.Goto(webappURL)
 		if err != nil {
 			log.Fatalf("could not go to page: %v", err)
 		}

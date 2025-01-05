@@ -9,11 +9,14 @@ import (
 	"io/fs"
 	"log/slog"
 	"net/http"
+	"net/url"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
 
+	"github.com/MicahParks/jwkset"
+	"github.com/MicahParks/keyfunc/v3"
 	"github.com/exaring/otelpgx"
 	_ "github.com/jackc/pgx/v5/stdlib"
 
@@ -133,6 +136,23 @@ func mainLogic() error {
 	}
 
 	subscriber := websockets.NewSubscriber(lobbyService, playerService, roundService, logger, redisClient, conf)
+	u, err := url.Parse(conf.JWT.JWSURL)
+	if err != nil {
+		return fmt.Errorf("failed to parse jwks URL: %w", err)
+	}
+
+	// TODO: should we stop startup if this is failing?
+	storage, err := jwkset.NewStorageFromHTTP(u, jwkset.HTTPClientStorageOptions{Ctx: ctx})
+	if err != nil {
+		return fmt.Errorf("failed to jwkset storage: %w", err)
+	}
+
+	k, err := keyfunc.New(keyfunc.Options{
+		Storage: storage,
+	})
+	if err != nil {
+		return fmt.Errorf("failed to create keyfunc: %w", err)
+	}
 
 	serverConfig := transporthttp.ServerConfig{
 		Host:          conf.Server.Host,
@@ -140,7 +160,7 @@ func mainLogic() error {
 		DefaultLocale: conf.App.DefaultLocale,
 		Environment:   conf.App.Environment,
 	}
-	server := transporthttp.NewServer(subscriber, logger, http.FS(fsys), serverConfig)
+	server := transporthttp.NewServer(subscriber, logger, http.FS(fsys), k.Keyfunc, serverConfig)
 
 	timeoutSeconds := 15
 	go terminateHandler(ctx, logger, server, timeoutSeconds)

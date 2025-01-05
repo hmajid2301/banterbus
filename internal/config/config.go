@@ -18,6 +18,7 @@ type Config struct {
 	Server  Server
 	Redis   Redis
 	App     App
+	JWT     JWT
 	Timings Timings
 	Scoring Scoring
 }
@@ -33,6 +34,10 @@ type Server struct {
 
 type Redis struct {
 	Address string
+}
+
+type JWT struct {
+	JWSURL string
 }
 
 type App struct {
@@ -69,6 +74,8 @@ type In struct {
 	Port          int    `env:"BANTERBUS_WEBSERVER_PORT, default=8080"`
 	DefaultLocale string `env:"BANTERBUS_DEFAULT_LOCALE, default=en-GB"`
 	AutoReconnect bool   `env:"BANTERBUS_AUTO_RECONNECT, default=false"`
+
+	JWKSURL string `env:"BANTERBUS_JWKS_URL"`
 
 	ShowQuestionScreenFor   time.Duration `env:"SHOW_QUESTION_SCREEN_FOR, default=61s"`
 	ShowVotingScreenFor     time.Duration `env:"SHOW_VOTING_SCREEN_FOR, default=31s"`
@@ -110,6 +117,9 @@ func LoadConfig(ctx context.Context) (Config, error) {
 		},
 		Redis: Redis{
 			Address: input.RedisAddress,
+		},
+		JWT: JWT{
+			input.JWKSURL,
 		},
 		App: App{
 			Environment:   input.Environment,

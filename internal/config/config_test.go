@@ -31,6 +31,9 @@ func TestLoadConfig(t *testing.T) {
 			DB: config.Database{
 				URI: "postgresql://:@:5432/banterbus",
 			},
+			JWT: config.JWT{
+				JWSURL: "",
+			},
 			Timings: config.Timings{
 				ShowQuestionScreenFor:   time.Second * 61,
 				ShowVotingScreenFor:     time.Second * 31,
