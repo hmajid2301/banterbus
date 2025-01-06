@@ -110,3 +110,8 @@ type Question struct {
 	Locale    string
 	RoundType string
 }
+
+type QuestionTranslation struct {
+	Text   string
+	Locale string
+}

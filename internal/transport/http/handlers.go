@@ -82,6 +82,7 @@ func (s *Server) setupHTTPRoutes(config ServerConfig, keyfunc jwt.Keyfunc, stati
 	mux.HandleFunc("/readiness", s.readinessHandler)
 
 	mux.Handle("/question", m.ValidateJWT(http.HandlerFunc(s.addQuestionHandler)))
+	mux.Handle("/question/{id}/locale/{locale}", m.ValidateJWT(http.HandlerFunc(s.addQuestionTranslationHandler)))
 
 	if config.Environment == "local" {
 		mux.HandleFunc("/debug/pprof/", pprof.Index)

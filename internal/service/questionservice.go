@@ -3,6 +3,8 @@ package service
 import (
 	"context"
 
+	"github.com/google/uuid"
+
 	"gitlab.com/hmajid2301/banterbus/internal/store/db"
 )
 
@@ -34,5 +36,25 @@ func (q QuestionService) Add(
 		GroupName: group,
 		Locale:    q.defaultLocale,
 		RoundType: roundType,
+	}, err
+}
+
+func (q QuestionService) AddTranslation(
+	ctx context.Context,
+	questionID uuid.UUID,
+	text string,
+	locale string,
+) (QuestionTranslation, error) {
+	u := q.randomizer.GetID()
+	_, err := q.store.AddQuestionTranslation(ctx, db.AddQuestionTranslationParams{
+		ID:         u,
+		Question:   text,
+		Locale:     locale,
+		QuestionID: questionID,
+	})
+
+	return QuestionTranslation{
+		Text:   text,
+		Locale: locale,
 	}, err
 }
