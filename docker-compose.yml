@@ -18,6 +18,11 @@ services:
     volumes:
       - postgres-data:/var/lib/postgresql/data
 
+  oauth:
+    image: ghcr.io/navikt/mock-oauth2-server:2.1.10
+    ports:
+      - "9090:8080"
+
   otel-collector:
     image: otel/opentelemetry-collector:0.111.0
     ports:

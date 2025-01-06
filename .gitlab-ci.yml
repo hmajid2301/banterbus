@@ -171,10 +171,12 @@ tests:integration:
         - "postgres"
         - "-c"
         - "max_connections=1000"
+    - name: ghcr.io/navikt/mock-oauth2-server:2.1.10
+      alias: oauth2
   variables:
     BANTERBUS_REDIS_ADDRESS: redis:6379
     BANTERBUS_DB_URI: postgresql://banterbus:banterbus@postgres:5432
-    BANTERBUS_JWKS_URL: https://authentik.haseebmajid.dev/application/o/budibase/jwks/
+    BANTERBUS_JWKS_URL: http://oauth2:8080/default/jwks
   script:
     - task tests:integration -- ${GOTEST_EXTRA_ARGS}
 
@@ -184,10 +186,12 @@ test:e2e:
   services:
     - redis:7.4.1
     - postgres:16.6
+    - name: ghcr.io/navikt/mock-oauth2-server:2.1.10
+      alias: oauth2
   variables:
     BANTERBUS_REDIS_ADDRESS: redis:6379
     BANTERBUS_DB_URI: postgresql://banterbus:banterbus@postgres:5432
-    BANTERBUS_JWKS_URL: https://authentik.haseebmajid.dev/application/o/budibase/jwks/
+    BANTERBUS_JWKS_URL: http://oauth2:8080/default/jwks
   script:
     - task tests:e2e -- ${GOTEST_EXTRA_ARGS}
   artifacts:
