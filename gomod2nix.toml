@@ -31,6 +31,9 @@ schema = 3
   [mod."github.com/felixge/httpsnoop"]
     version = "v1.0.4"
     hash = "sha256-c1JKoRSndwwOyOxq9ddCe+8qn7mG9uRq2o/822x5O/c="
+  [mod."github.com/gabriel-vasile/mimetype"]
+    version = "v1.4.3"
+    hash = "sha256-EDmlRi3av27dq/ISVTglv08z4yZzMQ/SxL1c46EJro0="
   [mod."github.com/go-jose/go-jose/v3"]
     version = "v3.0.3"
     hash = "sha256-PsjN1vVhAFI6X11iIkpQU4i7Ax6FvkhXNxApeBa2BvA="
@@ -40,6 +43,15 @@ schema = 3
   [mod."github.com/go-logr/stdr"]
     version = "v1.2.2"
     hash = "sha256-rRweAP7XIb4egtT1f2gkz4sYOu7LDHmcJ5iNsJUd0sE="
+  [mod."github.com/go-playground/locales"]
+    version = "v0.14.1"
+    hash = "sha256-BMJGAexq96waZn60DJXZfByRHb8zA/JP/i6f/YrW9oQ="
+  [mod."github.com/go-playground/universal-translator"]
+    version = "v0.18.1"
+    hash = "sha256-2/B2qP51zfiY+k8G0w0D03KXUc7XpWj6wKY7NjNP/9E="
+  [mod."github.com/go-playground/validator/v10"]
+    version = "v10.23.0"
+    hash = "sha256-vzLoqM9L248OFLZq4NVqnrKXOhNM2bSlqzW6g78BObs="
   [mod."github.com/go-stack/stack"]
     version = "v1.8.1"
     hash = "sha256-ixcJ2RrK1ZH3YWGQZF9QFBo02NOuLeSp9wJ7gniipgY="
@@ -82,6 +94,9 @@ schema = 3
   [mod."github.com/jackc/puddle/v2"]
     version = "v2.2.2"
     hash = "sha256-IUxdu4JYfsCh/qlz2SiUWu7EVPHhyooiVA4oaS2Z6yk="
+  [mod."github.com/leodido/go-urn"]
+    version = "v1.4.0"
+    hash = "sha256-Q6kplWkY37Tzy6GOme3Wut40jFK4Izun+ij/BJvcEu0="
   [mod."github.com/lmittmann/tint"]
     version = "v1.0.6"
     hash = "sha256-toT4YdhajyOXWzOHFxpMLbx9uJyCBEP36BR0FWy1H0A="

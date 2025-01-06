@@ -19,7 +19,6 @@ type Querier interface {
 	AddPlayer(ctx context.Context, arg AddPlayerParams) (Player, error)
 	AddQuestion(ctx context.Context, arg AddQuestionParams) (Question, error)
 	AddQuestionTranslation(ctx context.Context, arg AddQuestionTranslationParams) (QuestionsI18n, error)
-	AddQuestionsGroup(ctx context.Context, arg AddQuestionsGroupParams) (QuestionsGroup, error)
 	AddRoom(ctx context.Context, arg AddRoomParams) (Room, error)
 	AddRoomPlayer(ctx context.Context, arg AddRoomPlayerParams) (RoomsPlayer, error)
 	GetAllPlayerAnswerIsReady(ctx context.Context, playerID uuid.UUID) (bool, error)
@@ -50,6 +49,7 @@ type Querier interface {
 	UpdateNickname(ctx context.Context, arg UpdateNicknameParams) (Player, error)
 	UpdateRoomState(ctx context.Context, arg UpdateRoomStateParams) (Room, error)
 	UpsertFibbingItVote(ctx context.Context, arg UpsertFibbingItVoteParams) error
+	UpsertQuestionsGroup(ctx context.Context, arg UpsertQuestionsGroupParams) (QuestionsGroup, error)
 }
 
 var _ Querier = (*Queries)(nil)

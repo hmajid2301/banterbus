@@ -261,29 +261,6 @@ func (q *Queries) AddQuestionTranslation(ctx context.Context, arg AddQuestionTra
 	return i, err
 }
 
-const addQuestionsGroup = `-- name: AddQuestionsGroup :one
-INSERT INTO questions_groups (id, group_name, group_type) VALUES ($1, $2, $3) RETURNING id, created_at, updated_at, group_name, group_type
-`
-
-type AddQuestionsGroupParams struct {
-	ID        uuid.UUID
-	GroupName string
-	GroupType string
-}
-
-func (q *Queries) AddQuestionsGroup(ctx context.Context, arg AddQuestionsGroupParams) (QuestionsGroup, error) {
-	row := q.db.QueryRow(ctx, addQuestionsGroup, arg.ID, arg.GroupName, arg.GroupType)
-	var i QuestionsGroup
-	err := row.Scan(
-		&i.ID,
-		&i.CreatedAt,
-		&i.UpdatedAt,
-		&i.GroupName,
-		&i.GroupType,
-	)
-	return i, err
-}
-
 const addRoom = `-- name: AddRoom :one
 INSERT INTO rooms (id, game_name, host_player, room_code, room_state) VALUES ($1, $2, $3, $4, $5) RETURNING id, created_at, updated_at, game_name, host_player, room_state, room_code
 `
@@ -1332,4 +1309,32 @@ func (q *Queries) UpsertFibbingItVote(ctx context.Context, arg UpsertFibbingItVo
 		arg.RoundID,
 	)
 	return err
+}
+
+const upsertQuestionsGroup = `-- name: UpsertQuestionsGroup :one
+INSERT INTO questions_groups (id, group_name, group_type)
+VALUES ($1, $2, $3)
+ON CONFLICT (id) DO UPDATE SET
+    group_name = EXCLUDED.group_name,
+    group_type = EXCLUDED.group_type
+RETURNING id, created_at, updated_at, group_name, group_type
+`
+
+type UpsertQuestionsGroupParams struct {
+	ID        uuid.UUID
+	GroupName string
+	GroupType string
+}
+
+func (q *Queries) UpsertQuestionsGroup(ctx context.Context, arg UpsertQuestionsGroupParams) (QuestionsGroup, error) {
+	row := q.db.QueryRow(ctx, upsertQuestionsGroup, arg.ID, arg.GroupName, arg.GroupType)
+	var i QuestionsGroup
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.GroupName,
+		&i.GroupType,
+	)
+	return i, err
 }

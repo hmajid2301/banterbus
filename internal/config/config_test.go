@@ -32,7 +32,7 @@ func TestLoadConfig(t *testing.T) {
 				URI: "postgresql://:@:5432/banterbus",
 			},
 			JWT: config.JWT{
-				JWSURL: "",
+				JWKSURL: "",
 			},
 			Timings: config.Timings{
 				ShowQuestionScreenFor:   time.Second * 61,

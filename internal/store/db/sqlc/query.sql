@@ -59,8 +59,13 @@ INSERT INTO questions (id, game_name, group_id, round_type) VALUES ($1, $2, $3, 
 -- name: AddQuestionTranslation :one
 INSERT INTO questions_i18n (id,  question, locale, question_id) VALUES ($1, $2, $3, $4) RETURNING *;
 
--- name: AddQuestionsGroup :one
-INSERT INTO questions_groups (id, group_name, group_type) VALUES ($1, $2, $3) RETURNING *;
+-- name: UpsertQuestionsGroup :one
+INSERT INTO questions_groups (id, group_name, group_type)
+VALUES ($1, $2, $3)
+ON CONFLICT (id) DO UPDATE SET
+    group_name = EXCLUDED.group_name,
+    group_type = EXCLUDED.group_type
+RETURNING *;
 
 -- name: GetAllPlayersInRoom :many
 SELECT p.id, p.created_at, p.updated_at, p.avatar, p.nickname, p.is_ready, p.locale, r.room_code, r.host_player

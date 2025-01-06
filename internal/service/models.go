@@ -103,3 +103,10 @@ type Scoring struct {
 	GuessedFibber      int
 	FibberEvadeCapture int
 }
+
+type Question struct {
+	Text      string
+	GroupName string
+	Locale    string
+	RoundType string
+}

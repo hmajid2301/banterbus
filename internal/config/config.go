@@ -37,7 +37,7 @@ type Redis struct {
 }
 
 type JWT struct {
-	JWSURL string
+	JWKSURL string
 }
 
 type App struct {

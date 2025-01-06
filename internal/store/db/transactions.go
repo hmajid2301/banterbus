@@ -210,3 +210,40 @@ func (s DB) NewScores(ctx context.Context, arg NewScoresArgs) error {
 
 	return tx.Commit(ctx)
 }
+
+type CreateQuestionArgs struct {
+	GameName  string
+	GroupName string
+	RoundType string
+}
+
+func (s DB) CreateQuestion(ctx context.Context, arg CreateQuestionArgs) error {
+	tx, err := s.pool.BeginTx(ctx, pgx.TxOptions{})
+	if err != nil {
+		return err
+	}
+
+	defer tx.Rollback(ctx)
+
+	// TODO: should we do this or create if not exists?
+	questionGroup, err := s.WithTx(tx).UpsertQuestionsGroup(ctx, UpsertQuestionsGroupParams{
+		ID:        uuid.Must(uuid.NewV7()),
+		GroupName: arg.GroupName,
+		GroupType: "questions",
+	})
+	if err != nil {
+		return nil
+	}
+
+	_, err = s.AddQuestion(ctx, AddQuestionParams{
+		ID:        uuid.Must(uuid.NewV7()),
+		GameName:  arg.GameName,
+		RoundType: arg.RoundType,
+		GroupID:   questionGroup.ID,
+	})
+	if err != nil {
+		return nil
+	}
+
+	return tx.Commit(ctx)
+}

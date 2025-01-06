@@ -124,6 +124,7 @@ func mainLogic() error {
 	lobbyService := service.NewLobbyService(str, userRandomizer, conf.App.DefaultLocale.String())
 	playerService := service.NewPlayerService(str, userRandomizer)
 	roundService := service.NewRoundService(str, userRandomizer, conf.App.DefaultLocale.String())
+	questionService := service.NewQuestionService(str, userRandomizer, conf.App.DefaultLocale.String())
 
 	fsys, err := fs.Sub(staticFiles, "static")
 	if err != nil {
@@ -136,7 +137,7 @@ func mainLogic() error {
 	}
 
 	subscriber := websockets.NewSubscriber(lobbyService, playerService, roundService, logger, redisClient, conf)
-	u, err := url.Parse(conf.JWT.JWSURL)
+	u, err := url.Parse(conf.JWT.JWKSURL)
 	if err != nil {
 		return fmt.Errorf("failed to parse jwks URL: %w", err)
 	}
@@ -160,7 +161,7 @@ func mainLogic() error {
 		DefaultLocale: conf.App.DefaultLocale,
 		Environment:   conf.App.Environment,
 	}
-	server := transporthttp.NewServer(subscriber, logger, http.FS(fsys), k.Keyfunc, serverConfig)
+	server := transporthttp.NewServer(subscriber, logger, http.FS(fsys), k.Keyfunc, questionService, serverConfig)
 
 	timeoutSeconds := 15
 	go terminateHandler(ctx, logger, server, timeoutSeconds)

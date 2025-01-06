@@ -142,7 +142,7 @@ func FillWithDummyData(ctx context.Context, pool *pgxpool.Pool) error {
 
 	for _, group := range groups {
 		groupNameToID[group] = map[string]uuid.UUID{}
-		questionGroup, err := queries.WithTx(tx).AddQuestionsGroup(ctx, db.AddQuestionsGroupParams{
+		questionGroup, err := queries.WithTx(tx).UpsertQuestionsGroup(ctx, db.UpsertQuestionsGroupParams{
 			ID:        uuid.Must(uuid.NewV7()),
 			GroupName: group,
 			GroupType: "questions",
@@ -152,7 +152,7 @@ func FillWithDummyData(ctx context.Context, pool *pgxpool.Pool) error {
 		}
 		groupNameToID[group]["questions"] = questionGroup.ID
 
-		answerGroup, err := queries.WithTx(tx).AddQuestionsGroup(ctx, db.AddQuestionsGroupParams{
+		answerGroup, err := queries.WithTx(tx).UpsertQuestionsGroup(ctx, db.UpsertQuestionsGroupParams{
 			ID:        uuid.Must(uuid.NewV7()),
 			GroupName: group,
 			GroupType: "answers",

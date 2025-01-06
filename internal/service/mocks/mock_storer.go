@@ -528,63 +528,6 @@ func (_c *MockStorer_AddQuestionTranslation_Call) RunAndReturn(run func(context.
 	return _c
 }
 
-// AddQuestionsGroup provides a mock function with given fields: ctx, arg
-func (_m *MockStorer) AddQuestionsGroup(ctx context.Context, arg db.AddQuestionsGroupParams) (db.QuestionsGroup, error) {
-	ret := _m.Called(ctx, arg)
-
-	if len(ret) == 0 {
-		panic("no return value specified for AddQuestionsGroup")
-	}
-
-	var r0 db.QuestionsGroup
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, db.AddQuestionsGroupParams) (db.QuestionsGroup, error)); ok {
-		return rf(ctx, arg)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, db.AddQuestionsGroupParams) db.QuestionsGroup); ok {
-		r0 = rf(ctx, arg)
-	} else {
-		r0 = ret.Get(0).(db.QuestionsGroup)
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context, db.AddQuestionsGroupParams) error); ok {
-		r1 = rf(ctx, arg)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// MockStorer_AddQuestionsGroup_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'AddQuestionsGroup'
-type MockStorer_AddQuestionsGroup_Call struct {
-	*mock.Call
-}
-
-// AddQuestionsGroup is a helper method to define mock.On call
-//   - ctx context.Context
-//   - arg db.AddQuestionsGroupParams
-func (_e *MockStorer_Expecter) AddQuestionsGroup(ctx interface{}, arg interface{}) *MockStorer_AddQuestionsGroup_Call {
-	return &MockStorer_AddQuestionsGroup_Call{Call: _e.mock.On("AddQuestionsGroup", ctx, arg)}
-}
-
-func (_c *MockStorer_AddQuestionsGroup_Call) Run(run func(ctx context.Context, arg db.AddQuestionsGroupParams)) *MockStorer_AddQuestionsGroup_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(db.AddQuestionsGroupParams))
-	})
-	return _c
-}
-
-func (_c *MockStorer_AddQuestionsGroup_Call) Return(_a0 db.QuestionsGroup, _a1 error) *MockStorer_AddQuestionsGroup_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *MockStorer_AddQuestionsGroup_Call) RunAndReturn(run func(context.Context, db.AddQuestionsGroupParams) (db.QuestionsGroup, error)) *MockStorer_AddQuestionsGroup_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // AddRoom provides a mock function with given fields: ctx, arg
 func (_m *MockStorer) AddRoom(ctx context.Context, arg db.AddRoomParams) (db.Room, error) {
 	ret := _m.Called(ctx, arg)
@@ -695,6 +638,53 @@ func (_c *MockStorer_AddRoomPlayer_Call) Return(_a0 db.RoomsPlayer, _a1 error) *
 }
 
 func (_c *MockStorer_AddRoomPlayer_Call) RunAndReturn(run func(context.Context, db.AddRoomPlayerParams) (db.RoomsPlayer, error)) *MockStorer_AddRoomPlayer_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// CreateQuestion provides a mock function with given fields: ctx, arg
+func (_m *MockStorer) CreateQuestion(ctx context.Context, arg db.CreateQuestionArgs) error {
+	ret := _m.Called(ctx, arg)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CreateQuestion")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, db.CreateQuestionArgs) error); ok {
+		r0 = rf(ctx, arg)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// MockStorer_CreateQuestion_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateQuestion'
+type MockStorer_CreateQuestion_Call struct {
+	*mock.Call
+}
+
+// CreateQuestion is a helper method to define mock.On call
+//   - ctx context.Context
+//   - arg db.CreateQuestionArgs
+func (_e *MockStorer_Expecter) CreateQuestion(ctx interface{}, arg interface{}) *MockStorer_CreateQuestion_Call {
+	return &MockStorer_CreateQuestion_Call{Call: _e.mock.On("CreateQuestion", ctx, arg)}
+}
+
+func (_c *MockStorer_CreateQuestion_Call) Run(run func(ctx context.Context, arg db.CreateQuestionArgs)) *MockStorer_CreateQuestion_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(db.CreateQuestionArgs))
+	})
+	return _c
+}
+
+func (_c *MockStorer_CreateQuestion_Call) Return(_a0 error) *MockStorer_CreateQuestion_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *MockStorer_CreateQuestion_Call) RunAndReturn(run func(context.Context, db.CreateQuestionArgs) error) *MockStorer_CreateQuestion_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -2485,6 +2475,63 @@ func (_c *MockStorer_UpsertFibbingItVote_Call) Return(_a0 error) *MockStorer_Ups
 }
 
 func (_c *MockStorer_UpsertFibbingItVote_Call) RunAndReturn(run func(context.Context, db.UpsertFibbingItVoteParams) error) *MockStorer_UpsertFibbingItVote_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// UpsertQuestionsGroup provides a mock function with given fields: ctx, arg
+func (_m *MockStorer) UpsertQuestionsGroup(ctx context.Context, arg db.UpsertQuestionsGroupParams) (db.QuestionsGroup, error) {
+	ret := _m.Called(ctx, arg)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpsertQuestionsGroup")
+	}
+
+	var r0 db.QuestionsGroup
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, db.UpsertQuestionsGroupParams) (db.QuestionsGroup, error)); ok {
+		return rf(ctx, arg)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, db.UpsertQuestionsGroupParams) db.QuestionsGroup); ok {
+		r0 = rf(ctx, arg)
+	} else {
+		r0 = ret.Get(0).(db.QuestionsGroup)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, db.UpsertQuestionsGroupParams) error); ok {
+		r1 = rf(ctx, arg)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockStorer_UpsertQuestionsGroup_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpsertQuestionsGroup'
+type MockStorer_UpsertQuestionsGroup_Call struct {
+	*mock.Call
+}
+
+// UpsertQuestionsGroup is a helper method to define mock.On call
+//   - ctx context.Context
+//   - arg db.UpsertQuestionsGroupParams
+func (_e *MockStorer_Expecter) UpsertQuestionsGroup(ctx interface{}, arg interface{}) *MockStorer_UpsertQuestionsGroup_Call {
+	return &MockStorer_UpsertQuestionsGroup_Call{Call: _e.mock.On("UpsertQuestionsGroup", ctx, arg)}
+}
+
+func (_c *MockStorer_UpsertQuestionsGroup_Call) Run(run func(ctx context.Context, arg db.UpsertQuestionsGroupParams)) *MockStorer_UpsertQuestionsGroup_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(db.UpsertQuestionsGroupParams))
+	})
+	return _c
+}
+
+func (_c *MockStorer_UpsertQuestionsGroup_Call) Return(_a0 db.QuestionsGroup, _a1 error) *MockStorer_UpsertQuestionsGroup_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockStorer_UpsertQuestionsGroup_Call) RunAndReturn(run func(context.Context, db.UpsertQuestionsGroupParams) (db.QuestionsGroup, error)) *MockStorer_UpsertQuestionsGroup_Call {
 	_c.Call.Return(run)
 	return _c
 }

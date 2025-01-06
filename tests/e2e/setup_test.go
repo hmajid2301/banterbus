@@ -1,35 +1,15 @@
 package e2e
 
 import (
-	"context"
-	"fmt"
-	"io"
 	"log"
-	"log/slog"
-	"net/http"
 	"net/http/httptest"
-	"net/url"
 	"os"
-	"strings"
 	"testing"
-	"time"
 
-	"github.com/MicahParks/jwkset"
-	"github.com/MicahParks/keyfunc/v3"
-	"github.com/invopop/ctxi18n"
-	"github.com/invopop/ctxi18n/i18n"
 	"github.com/mdobak/go-xerrors"
 	"github.com/playwright-community/playwright-go"
 
 	"gitlab.com/hmajid2301/banterbus/internal/banterbustest"
-	"gitlab.com/hmajid2301/banterbus/internal/config"
-	"gitlab.com/hmajid2301/banterbus/internal/service"
-	"gitlab.com/hmajid2301/banterbus/internal/service/randomizer"
-	"gitlab.com/hmajid2301/banterbus/internal/store/db"
-	"gitlab.com/hmajid2301/banterbus/internal/store/pubsub"
-	transporthttp "gitlab.com/hmajid2301/banterbus/internal/transport/http"
-	"gitlab.com/hmajid2301/banterbus/internal/transport/websockets"
-	"gitlab.com/hmajid2301/banterbus/internal/views"
 )
 
 var (
@@ -85,7 +65,8 @@ func BeforeAll() (*httptest.Server, error) {
 	// INFO: if no address passed start local server
 	var server *httptest.Server
 	if webappURL == "" {
-		server, err = newTestServer()
+		server, err = banterbustest.NewTestServer()
+		webappURL = server.Listener.Addr().String()
 		if err != nil {
 			return nil, err
 		}
@@ -114,78 +95,6 @@ func getBrowserName() string {
 		return browserName
 	}
 	return "chromium"
-}
-
-func newTestServer() (*httptest.Server, error) {
-	ctx := context.Background()
-	pool, err := banterbustest.CreateDB(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	myStore, err := db.NewDB(pool)
-	if err != nil {
-		return nil, err
-	}
-
-	userRandomizer := randomizer.NewUserRandomizer()
-	lobbyServicer := service.NewLobbyService(myStore, userRandomizer, "en-GB")
-	playerServicer := service.NewPlayerService(myStore, userRandomizer)
-	roundServicer := service.NewRoundService(myStore, userRandomizer, "en-GB")
-	logger := setupLogger()
-
-	redisAddr := os.Getenv("BANTERBUS_REDIS_ADDRESS")
-	if redisAddr == "" {
-		redisAddr = "localhost:6379"
-	}
-
-	redisClient, err := pubsub.NewRedisClient(redisAddr)
-	if err != nil {
-		return nil, err
-	}
-
-	conf, err := config.LoadConfig(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	conf.Timings.ShowScoreScreenFor = time.Second * 2
-	conf.App.AutoReconnect = false
-
-	subscriber := websockets.NewSubscriber(lobbyServicer, playerServicer, roundServicer, logger, redisClient, conf)
-	err = ctxi18n.LoadWithDefault(views.Locales, "en-GB")
-	if err != nil {
-		return nil, xerrors.New("error loading locales", err)
-	}
-
-	staticFS := http.Dir("../../static")
-	serverConfig := transporthttp.ServerConfig{
-		Host:          "localhost",
-		Port:          8198,
-		DefaultLocale: i18n.Code("en-GB"),
-	}
-
-	u, err := url.Parse(conf.JWT.JWSURL)
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse jwks URL: %w", err)
-	}
-
-	storage, err := jwkset.NewStorageFromHTTP(u, jwkset.HTTPClientStorageOptions{Ctx: ctx})
-	if err != nil {
-		return nil, fmt.Errorf("failed to jwkset storage: %w", err)
-	}
-
-	k, err := keyfunc.New(keyfunc.Options{
-		Storage: storage,
-	})
-	if err != nil {
-		return nil, fmt.Errorf("failed to create keyfunc: %w", err)
-	}
-	srv := transporthttp.NewServer(subscriber, logger, staticFS, k.Keyfunc, serverConfig)
-	server := httptest.NewServer(srv.Server.Handler)
-
-	webappURL = server.Listener.Addr().String()
-	return server, nil
 }
 
 func ResetBrowserContexts() {
@@ -217,37 +126,4 @@ func ResetBrowserContexts() {
 
 		pages[i] = page
 	}
-}
-
-func setupLogger() *slog.Logger {
-	logLevel := os.Getenv("LOG_LEVEL")
-	if logLevel == "" {
-		logLevel = "DEBUG"
-	}
-
-	var level slog.Level
-	switch strings.ToUpper(logLevel) {
-	case "DEBUG":
-		level = slog.LevelDebug
-	case "INFO":
-		level = slog.LevelInfo
-	case "WARN":
-		level = slog.LevelWarn
-	case "ERROR":
-		level = slog.LevelError
-	default:
-		log.Fatalf("unknown log level: %s", logLevel)
-	}
-
-	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
-		Level: level,
-	}))
-
-	if os.Getenv("LOG_DISABLED") == "true" {
-		logger = slog.New(slog.NewTextHandler(io.Discard, &slog.HandlerOptions{
-			Level: level,
-		}))
-	}
-
-	return logger
 }
