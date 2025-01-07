@@ -93,7 +93,7 @@ func (s *Server) setupHTTPRoutes(config ServerConfig, keyfunc jwt.Keyfunc, stati
 	}
 
 	handler := otelhttp.NewHandler(mux, "/", otelhttp.WithFilter(func(r *http.Request) bool {
-		return r.URL.Path != "/health" && r.URL.Path != "readiness"
+		return r.URL.Path != "/health" && r.URL.Path != "/readiness"
 	}))
 
 	return handler
