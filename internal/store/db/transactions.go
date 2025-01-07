@@ -215,6 +215,8 @@ type CreateQuestionArgs struct {
 	GameName  string
 	GroupName string
 	RoundType string
+	Text      string
+	Locale    string
 }
 
 func (s DB) CreateQuestion(ctx context.Context, arg CreateQuestionArgs) error {
@@ -235,11 +237,21 @@ func (s DB) CreateQuestion(ctx context.Context, arg CreateQuestionArgs) error {
 		return nil
 	}
 
-	_, err = s.AddQuestion(ctx, AddQuestionParams{
+	q, err := s.AddQuestion(ctx, AddQuestionParams{
 		ID:        uuid.Must(uuid.NewV7()),
 		GameName:  arg.GameName,
 		RoundType: arg.RoundType,
 		GroupID:   questionGroup.ID,
+	})
+	if err != nil {
+		return nil
+	}
+
+	_, err = s.AddQuestionTranslation(ctx, AddQuestionTranslationParams{
+		ID:         uuid.Must(uuid.NewV7()),
+		Question:   arg.Text,
+		QuestionID: q.ID,
+		Locale:     arg.Locale,
 	})
 	if err != nil {
 		return nil

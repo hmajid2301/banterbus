@@ -29,6 +29,8 @@ func TestQuestionAdd(t *testing.T) {
 			GameName:  "fibbing_it",
 			GroupName: groupName,
 			RoundType: roundType,
+			Text:      text,
+			Locale:    "en-GB",
 		}).Return(nil)
 
 		question, err := srv.Add(ctx, text, groupName, roundType)
@@ -59,6 +61,8 @@ func TestQuestionAdd(t *testing.T) {
 			GameName:  "fibbing_it",
 			GroupName: groupName,
 			RoundType: roundType,
+			Text:      text,
+			Locale:    "en-GB",
 		}).Return(fmt.Errorf("failed to create question"))
 
 		_, err := srv.Add(ctx, text, groupName, roundType)

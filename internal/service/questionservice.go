@@ -29,6 +29,8 @@ func (q QuestionService) Add(
 		GameName:  "fibbing_it",
 		GroupName: group,
 		RoundType: roundType,
+		Text:      text,
+		Locale:    q.defaultLocale,
 	})
 
 	return Question{

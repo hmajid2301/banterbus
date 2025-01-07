@@ -68,7 +68,8 @@ CREATE TABLE questions_i18n (
     question TEXT NOT NULL,
     locale TEXT NOT NULL,
     question_id UUID NOT NULL,
-    FOREIGN KEY (question_id) REFERENCES questions (id)
+    FOREIGN KEY (question_id) REFERENCES questions (id),
+    UNIQUE (question, locale)
 );
 
 CREATE TABLE fibbing_it_rounds (
