@@ -258,8 +258,8 @@ func (r *RoundService) getVotingState(ctx context.Context, roundID uuid.UUID, ro
 	var votingPlayers []PlayerWithVoting
 	for _, p := range votes {
 		voteCount := 0
-		if vc, ok := p.Votes.(int); ok {
-			voteCount = vc
+		if vc, ok := p.Votes.(int64); ok {
+			voteCount = int(vc)
 		}
 
 		if p.Role.String != FibberRole {

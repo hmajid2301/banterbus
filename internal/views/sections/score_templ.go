@@ -155,12 +155,15 @@ func Score(state service.ScoreState, player service.PlayerWithScoring, maxScore 
 }
 
 func scoreBarClass(score int, maxScore int, index int) string {
+	widthClass := ""
+
 	if maxScore == 0 {
-		return "w-0/12"
-	}
-	width := (score / maxScore) * 100
-	if width == 100 {
-		return "w-full"
+		widthClass = "w-0"
+	} else if width := (score / maxScore) * 100; width == 100 {
+		widthClass = "w-full"
+	} else {
+		width = int(float64(width / 100 * 12))
+		widthClass = fmt.Sprintf("w-%d", width)
 	}
 
 	colours := []string{
@@ -168,9 +171,7 @@ func scoreBarClass(score int, maxScore int, index int) string {
 	}
 
 	colour := colours[index]
-
-	width = int(float64(width / 100 * 12))
-	return fmt.Sprintf("h-4 rounded-full %s w-%d/12", colour, width)
+	return fmt.Sprintf("h-4 rounded-full %s %s", colour, widthClass)
 }
 
 var _ = templruntime.GeneratedTemplate

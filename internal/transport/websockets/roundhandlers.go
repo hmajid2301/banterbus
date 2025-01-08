@@ -114,7 +114,10 @@ func (s *SubmitVote) Handle(ctx context.Context, client *client, sub *Subscriber
 func (t *ToggleVotingIsReady) Handle(ctx context.Context, client *client, sub *Subscriber) error {
 	allReady, err := sub.roundService.ToggleVotingIsReady(ctx, client.playerID, time.Now().UTC())
 	if err != nil {
-		errStr := "failed to toggle voting you are ready, try again"
+		errStr := "failed to toggle voting try again"
+		if errors.Is(err, service.ErrMustSubmitVote) {
+			errStr = "Must submit vote before readying up"
+		}
 		clientErr := sub.updateClientAboutErr(ctx, client.playerID, errStr)
 		return errors.Join(clientErr, err)
 	}

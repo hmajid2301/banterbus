@@ -3,6 +3,7 @@ package websockets
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 
 	"github.com/google/uuid"
 
@@ -35,14 +36,13 @@ func (s *Subscriber) updateClientsAboutLobby(ctx context.Context, lobby service.
 }
 
 func (s *Subscriber) updateClientAboutErr(ctx context.Context, playerID uuid.UUID, errStr string) error {
-	var buf bytes.Buffer
-	component := sections.Error(errStr)
-	err := component.Render(ctx, &buf)
+	t := Toast{Message: errStr, Type: "failure"}
+	toastJSON, err := json.Marshal(t)
 	if err != nil {
 		return err
 	}
 
-	err = s.websocket.Publish(ctx, playerID, buf.Bytes())
+	err = s.websocket.Publish(ctx, playerID, toastJSON)
 	return err
 }
 
