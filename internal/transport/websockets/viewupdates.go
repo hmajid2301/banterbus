@@ -106,8 +106,17 @@ func (s *Subscriber) updateClientsAboutReveal(ctx context.Context, revealState s
 
 func (s *Subscriber) updateClientsAboutScore(ctx context.Context, scoreState service.ScoreState) error {
 	var buf bytes.Buffer
+
+	// TODO: should this be moved else where?
+	maxScore := 0
 	for _, player := range scoreState.Players {
-		component := sections.Score(scoreState, player)
+		if player.Score > maxScore {
+			maxScore = player.Score
+		}
+	}
+
+	for _, player := range scoreState.Players {
+		component := sections.Score(scoreState, player, maxScore)
 		err := component.Render(ctx, &buf)
 		if err != nil {
 			return err

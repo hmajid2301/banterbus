@@ -123,7 +123,15 @@ func (s Subscriber) reconnectToPlayingGame(ctx context.Context, playerID uuid.UU
 			clientErr := s.updateClientAboutErr(ctx, playerID, errStr)
 			return component, errors.Join(clientErr, err)
 		}
-		component = sections.Score(score, score.Players[0])
+
+		maxScore := 0
+		for _, player := range score.Players {
+			if player.Score > maxScore {
+				maxScore = player.Score
+			}
+		}
+
+		component = sections.Score(score, score.Players[0], maxScore)
 	case db.FibbingItWinner:
 		state, err := s.roundService.GetWinnerState(ctx, playerID)
 		if err != nil {

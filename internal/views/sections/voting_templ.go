@@ -154,8 +154,8 @@ func Voting(state service.VotingState, currentPlayer service.PlayerWithVoting) t
 			}
 		}
 		for _, player := range state.Players {
-			if currentPlayer.ID.String() == player.ID.String() {
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div class=\"flex flex-col items-center\"><form id=\"vote_for_player\" hx-vals=\"{&#34;message_type&#34;: &#34;submit_vote&#34; }\" ws-send><button class=\"flex flex-col items-center\" aria-label=\"Submit Vote\">")
+			if currentPlayer.ID.String() != player.ID.String() {
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div class=\"flex flex-col items-center p-4 rounded-lg border bg-overlay0 border-text2\"><form id=\"vote_for_player\" hx-vals=\"{&#34;message_type&#34;: &#34;submit_vote&#34; }\" ws-send><button class=\"flex flex-col items-center cursor-pointer\" aria-label=\"Submit Vote\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -168,7 +168,7 @@ func Voting(state service.VotingState, currentPlayer service.PlayerWithVoting) t
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div class=\"w-20 h-20 rounded-full border-2 border-white bg-overlay0\"><img src=\"")
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div class=\"w-20 h-20 rounded-full bg-surface1\"><img src=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -239,7 +239,7 @@ func Voting(state service.VotingState, currentPlayer service.PlayerWithVoting) t
 				}
 			}
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<form id=\"toggle_ready_form\" hx-vals=\"{&#34;message_type&#34;: &#34;toggle_voting_is_ready&#34; }\" ws-send class=\"w-full\">")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</div><form id=\"toggle_ready_form\" hx-vals=\"{&#34;message_type&#34;: &#34;toggle_voting_is_ready&#34; }\" ws-send class=\"w-full\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -259,7 +259,7 @@ func Voting(state service.VotingState, currentPlayer service.PlayerWithVoting) t
 				var templ_7745c5c3_Var17 string
 				templ_7745c5c3_Var17, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "common.ready_button"))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/sections/voting.templ`, Line: 51, Col: 44}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/sections/voting.templ`, Line: 52, Col: 43}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var17))
 				if templ_7745c5c3_Err != nil {
@@ -287,7 +287,7 @@ func Voting(state service.VotingState, currentPlayer service.PlayerWithVoting) t
 				var templ_7745c5c3_Var19 string
 				templ_7745c5c3_Var19, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "common.not_ready_button"))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/sections/voting.templ`, Line: 55, Col: 48}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/sections/voting.templ`, Line: 56, Col: 47}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var19))
 				if templ_7745c5c3_Err != nil {
@@ -300,7 +300,7 @@ func Voting(state service.VotingState, currentPlayer service.PlayerWithVoting) t
 				return templ_7745c5c3_Err
 			}
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</form></div></div></div></div>")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</form></div></div></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

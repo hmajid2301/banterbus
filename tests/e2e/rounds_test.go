@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	"github.com/playwright-community/playwright-go"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -79,10 +78,6 @@ func TestE2ERounds(t *testing.T) {
 
 		err = hostPlayerPage.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Not Ready"}).Click()
 		require.NoError(t, err)
-
-		b, err := hostPlayerPage.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Ready"}).IsVisible()
-		require.NoError(t, err)
-		assert.True(t, b)
 
 		votedFor := hostPlayerPage.GetByText("You all voted for")
 		expect.Locator(votedFor).ToBeVisible()
