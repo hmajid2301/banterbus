@@ -2,7 +2,6 @@ package websockets
 
 import (
 	"context"
-	"fmt"
 	"log/slog"
 	"time"
 
@@ -148,7 +147,7 @@ func (r *ScoringState) Start(ctx context.Context) {
 
 	if scoringState.RoundType == "most_likely" && scoringState.RoundNumber == 3 {
 		time.Sleep(time.Until(deadline))
-		q := &FinalState{gameStateID: r.gameStateID, subscriber: r.subscriber}
+		q := &WinnerState{gameStateID: r.gameStateID, subscriber: r.subscriber}
 		go q.Start(ctx)
 	} else {
 		time.Sleep(time.Until(deadline))
@@ -157,11 +156,44 @@ func (r *ScoringState) Start(ctx context.Context) {
 	}
 }
 
-type FinalState struct {
+type WinnerState struct {
 	subscriber  Subscriber
 	gameStateID uuid.UUID
 }
 
-func (r *FinalState) Start(ctx context.Context) {
-	fmt.Println("Game Over", ctx)
+func (r *WinnerState) Start(ctx context.Context) {
+	deadline := time.Now().UTC().Add(r.subscriber.config.Timings.ShowWinnerScreenFor)
+	winnerState, err := r.subscriber.roundService.UpdateStateToWinner(ctx, r.gameStateID, deadline)
+	if err != nil {
+		r.subscriber.logger.ErrorContext(
+			ctx,
+			"failed to update game state to winner",
+			slog.Any("error", err),
+			slog.String("game_state_id", r.gameStateID.String()),
+		)
+		return
+	}
+
+	err = r.subscriber.updateClientsAboutWinner(ctx, winnerState)
+	if err != nil {
+		r.subscriber.logger.ErrorContext(
+			ctx,
+			"failed to update clients to winner screen",
+			slog.Any("error", err),
+			slog.String("game_state_id", r.gameStateID.String()),
+		)
+		return
+	}
+
+	time.Sleep(time.Until(deadline))
+	err = r.subscriber.roundService.FinishGame(ctx, r.gameStateID)
+	if err != nil {
+		r.subscriber.logger.ErrorContext(
+			ctx,
+			"failed to finish",
+			slog.Any("error", err),
+			slog.String("game_state_id", r.gameStateID.String()),
+		)
+		return
+	}
 }

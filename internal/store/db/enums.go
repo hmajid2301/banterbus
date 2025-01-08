@@ -38,6 +38,7 @@ const (
 	FibbingItVoting
 	FibbingItRevealRole
 	FibbingItScoring
+	FibbingItWinner
 )
 
 func GameStateFromString(s string) (FibbingItGameState, error) {
@@ -46,6 +47,7 @@ func GameStateFromString(s string) (FibbingItGameState, error) {
 		"FIBBING_IT_VOTING":      FibbingItVoting,
 		"FIBBING_IT_REVEAL_ROLE": FibbingItRevealRole,
 		"FIBBING_IT_SCORING":     FibbingItScoring,
+		"FIBBING_IT_WINNER":      FibbingItWinner,
 	}
 
 	if rs, ok := stringToGameState[s]; ok {
@@ -55,5 +57,11 @@ func GameStateFromString(s string) (FibbingItGameState, error) {
 }
 
 func (gs FibbingItGameState) String() string {
-	return [...]string{"FIBBING_IT_QUESTION", "FIBBING_IT_VOTING", "FIBBING_IT_REVEAL_ROLE", "FIBBING_IT_SCORING"}[gs]
+	return [...]string{
+		"FIBBING_IT_QUESTION",
+		"FIBBING_IT_VOTING",
+		"FIBBING_IT_REVEAL_ROLE",
+		"FIBBING_IT_SCORING",
+		"FIBBING_IT_WINNER",
+	}[gs]
 }

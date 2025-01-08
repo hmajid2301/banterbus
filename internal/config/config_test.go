@@ -40,6 +40,7 @@ func TestLoadConfig(t *testing.T) {
 				AllReadyToNextScreenFor: time.Second * 2,
 				ShowRevealScreenFor:     time.Second * 16,
 				ShowScoreScreenFor:      time.Second * 15,
+				ShowWinnerScreenFor:     time.Second * 15,
 			},
 			Scoring: config.Scoring{
 				GuessFibber:        100,

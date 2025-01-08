@@ -37,6 +37,9 @@ type RoundServicer interface {
 	GetScoreState(ctx context.Context, scoring service.Scoring, playerID uuid.UUID) (service.ScoreState, error)
 	GetGameState(ctx context.Context, playerID uuid.UUID) (db.FibbingItGameState, error)
 	GetQuestionState(ctx context.Context, playerID uuid.UUID) (service.QuestionState, error)
+	UpdateStateToWinner(ctx context.Context, gameStateID uuid.UUID, deadline time.Time) (service.WinnerState, error)
+	GetWinnerState(ctx context.Context, playerID uuid.UUID) (service.WinnerState, error)
+	FinishGame(ctx context.Context, gameStateID uuid.UUID) error
 }
 
 func (s *SubmitAnswer) Handle(ctx context.Context, client *client, sub *Subscriber) error {

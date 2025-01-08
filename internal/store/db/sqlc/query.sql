@@ -323,6 +323,8 @@ ORDER BY v.round_id DESC;
 -- name: GetTotalScoresByGameStateID :many
 SELECT
     s.player_id,
+    p.avatar,
+    p.nickname,
     SUM(s.score) AS total_score
 FROM
     fibbing_it_scores s
@@ -330,7 +332,11 @@ JOIN
     fibbing_it_rounds r ON s.round_id = r.id
 JOIN
     game_state gs ON r.game_state_id = gs.id
+JOIN
+    players p ON s.player_id = p.id
 WHERE
     gs.id = $1 AND r.id != $2
 GROUP BY
-    s.player_id;
+    s.player_id,
+    p.avatar,
+    p.nickname;

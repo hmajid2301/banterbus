@@ -750,6 +750,77 @@ func (r *RoundService) getScoreState(
 	return scoringState, dbPlayerScores, nil
 }
 
+func (r *RoundService) UpdateStateToWinner(
+	ctx context.Context,
+	gameStateID uuid.UUID,
+	deadline time.Time,
+) (WinnerState, error) {
+	game, err := r.store.GetGameState(ctx, gameStateID)
+	if err != nil {
+		return WinnerState{}, err
+	}
+
+	gameState, err := db.GameStateFromString(game.State)
+	if err != nil {
+		return WinnerState{}, err
+	} else if gameState != db.FibbingItScoring {
+		return WinnerState{}, xerrors.New("game state is not in FIBBING_IT_SCORING_STATE state")
+	}
+
+	_, err = r.store.UpdateGameState(ctx, db.UpdateGameStateParams{
+		ID:             gameStateID,
+		SubmitDeadline: pgtype.Timestamp{Time: deadline, Valid: true},
+		State:          db.FibbingItWinner.String(),
+	})
+	if err != nil {
+		return WinnerState{}, err
+	}
+
+	return r.getWinnerState(ctx, gameStateID)
+}
+
+func (r *RoundService) GetWinnerState(ctx context.Context, playerID uuid.UUID) (WinnerState, error) {
+	gameState, err := r.store.GetGameStateByPlayerID(ctx, playerID)
+	if err != nil {
+		return WinnerState{}, err
+	}
+
+	return r.getWinnerState(ctx, gameState.ID)
+}
+
+func (r *RoundService) getWinnerState(ctx context.Context, gameStateID uuid.UUID) (WinnerState, error) {
+	// INFO: Query adds all scored that don't include a certain round ID, so we use a fake round ID, so it adds
+	// all player scores.
+	fakeRoundID := r.randomizer.GetID()
+	scoredByPlayerID, err := r.store.GetTotalScoresByGameStateID(ctx, db.GetTotalScoresByGameStateIDParams{
+		ID:   gameStateID,
+		ID_2: fakeRoundID,
+	})
+
+	sort.Slice(scoredByPlayerID, func(i, j int) bool {
+		return scoredByPlayerID[i].TotalScore > scoredByPlayerID[j].TotalScore
+	})
+	if err != nil {
+		return WinnerState{}, err
+	}
+
+	players := []PlayerWithScoring{}
+	for _, p := range scoredByPlayerID {
+		player := PlayerWithScoring{
+			ID:       p.PlayerID,
+			Score:    int(p.TotalScore),
+			Avatar:   p.Avatar,
+			Nickname: p.Nickname,
+		}
+
+		players = append(players, player)
+	}
+
+	return WinnerState{
+		Players: players,
+	}, nil
+}
+
 func getNextRoundType(roundType string) string {
 	nextRoundMap := map[string]string{
 		"free_form":       "multiple_choice",
@@ -775,4 +846,20 @@ func (r RoundService) getValidAnswers(ctx context.Context, roundType string, pla
 		}
 	}
 	return answers, nil
+}
+
+func (r *RoundService) FinishGame(ctx context.Context, gameStateID uuid.UUID) error {
+	game, err := r.store.GetGameState(ctx, gameStateID)
+	if err != nil {
+		return err
+	}
+
+	// TODO: check current room state
+
+	_, err = r.store.UpdateRoomState(ctx, db.UpdateRoomStateParams{RoomState: db.Finished.String(), ID: game.RoomID})
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

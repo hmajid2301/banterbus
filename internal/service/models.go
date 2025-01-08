@@ -115,3 +115,7 @@ type QuestionTranslation struct {
 	Text   string
 	Locale string
 }
+
+type WinnerState struct {
+	Players []PlayerWithScoring
+}

@@ -964,6 +964,8 @@ func (q *Queries) GetRoomByPlayerID(ctx context.Context, playerID uuid.UUID) (Ro
 const getTotalScoresByGameStateID = `-- name: GetTotalScoresByGameStateID :many
 SELECT
     s.player_id,
+    p.avatar,
+    p.nickname,
     SUM(s.score) AS total_score
 FROM
     fibbing_it_scores s
@@ -971,10 +973,14 @@ JOIN
     fibbing_it_rounds r ON s.round_id = r.id
 JOIN
     game_state gs ON r.game_state_id = gs.id
+JOIN
+    players p ON s.player_id = p.id
 WHERE
     gs.id = $1 AND r.id != $2
 GROUP BY
-    s.player_id
+    s.player_id,
+    p.avatar,
+    p.nickname
 `
 
 type GetTotalScoresByGameStateIDParams struct {
@@ -984,6 +990,8 @@ type GetTotalScoresByGameStateIDParams struct {
 
 type GetTotalScoresByGameStateIDRow struct {
 	PlayerID   uuid.UUID
+	Avatar     string
+	Nickname   string
 	TotalScore int64
 }
 
@@ -996,7 +1004,12 @@ func (q *Queries) GetTotalScoresByGameStateID(ctx context.Context, arg GetTotalS
 	var items []GetTotalScoresByGameStateIDRow
 	for rows.Next() {
 		var i GetTotalScoresByGameStateIDRow
-		if err := rows.Scan(&i.PlayerID, &i.TotalScore); err != nil {
+		if err := rows.Scan(
+			&i.PlayerID,
+			&i.Avatar,
+			&i.Nickname,
+			&i.TotalScore,
+		); err != nil {
 			return nil, err
 		}
 		items = append(items, i)

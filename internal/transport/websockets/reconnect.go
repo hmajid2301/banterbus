@@ -124,6 +124,13 @@ func (s Subscriber) reconnectToPlayingGame(ctx context.Context, playerID uuid.UU
 			return component, errors.Join(clientErr, err)
 		}
 		component = sections.Score(score, score.Players[0])
+	case db.FibbingItWinner:
+		state, err := s.roundService.GetWinnerState(ctx, playerID)
+		if err != nil {
+			clientErr := s.updateClientAboutErr(ctx, playerID, errStr)
+			return component, errors.Join(clientErr, err)
+		}
+		component = sections.Winner(state)
 	default:
 		return component, xerrors.New("unknown game state: %s", gameState)
 	}

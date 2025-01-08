@@ -13,6 +13,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"gitlab.com/hmajid2301/banterbus/internal/banterbustest"
+	"gitlab.com/hmajid2301/banterbus/internal/config"
 	"gitlab.com/hmajid2301/banterbus/internal/service"
 	"gitlab.com/hmajid2301/banterbus/internal/views"
 )
@@ -166,6 +167,71 @@ func revealState(ctx context.Context,
 		time.Now().Add(120*time.Second),
 	)
 	return revealState, err
+}
+
+func scoreState(ctx context.Context,
+	lobbyService *service.LobbyService,
+	playerService *service.PlayerService,
+	roundService *service.RoundService,
+	config config.Config,
+) (service.ScoreState, error) {
+	questionState, err := startGame(ctx, lobbyService, playerService)
+	if err != nil {
+		return service.ScoreState{}, err
+	}
+
+	err = roundService.SubmitAnswer(ctx, questionState.Players[0].ID, "This is my answer", time.Now())
+	if err != nil {
+		return service.ScoreState{}, err
+	}
+
+	err = roundService.SubmitAnswer(
+		ctx,
+		questionState.Players[1].ID,
+		"This is the other players answer",
+		time.Now(),
+	)
+	if err != nil {
+		return service.ScoreState{}, err
+	}
+
+	votingState, err := roundService.UpdateStateToVoting(
+		ctx,
+		questionState.GameStateID,
+		time.Now().Add(120*time.Second),
+	)
+	if err != nil {
+		return service.ScoreState{}, err
+	}
+
+	_, err = roundService.SubmitVote(
+		ctx,
+		votingState.Players[0].ID,
+		votingState.Players[1].Nickname,
+		time.Now(),
+	)
+	if err != nil {
+		return service.ScoreState{}, err
+	}
+	_, err = roundService.UpdateStateToReveal(
+		ctx,
+		votingState.GameStateID,
+		time.Now().Add(120*time.Second),
+	)
+	if err != nil {
+		return service.ScoreState{}, err
+	}
+
+	scoring := service.Scoring{
+		GuessedFibber:      config.Scoring.GuessFibber,
+		FibberEvadeCapture: config.Scoring.FibberEvadeCapture,
+	}
+	scoreState, err := roundService.UpdateStateToScore(
+		ctx,
+		votingState.GameStateID,
+		time.Now().Add(120*time.Second),
+		scoring)
+	return scoreState, err
 }
 
 func getI18nCtx() (context.Context, error) {

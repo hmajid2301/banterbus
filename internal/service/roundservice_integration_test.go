@@ -9,6 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"gitlab.com/hmajid2301/banterbus/internal/config"
 	"gitlab.com/hmajid2301/banterbus/internal/service"
 	"gitlab.com/hmajid2301/banterbus/internal/service/randomizer"
 	db "gitlab.com/hmajid2301/banterbus/internal/store/db"
@@ -935,5 +936,152 @@ func TestIntegrationRoundServiceGetScoringState(t *testing.T) {
 		diffOpts := cmpopts.IgnoreFields(scoreState, "Deadline")
 		PartialEqual(t, getState, scoreState, diffOpts)
 		assert.LessOrEqual(t, int(getState.Deadline.Seconds()), 120)
+	})
+}
+
+func TestIntegrationRoundServiceUpdateStateToWinner(t *testing.T) {
+	t.Run("Should successfully update state to winner", func(t *testing.T) {
+		pool, teardown := setupSubtest(t)
+		defer teardown()
+
+		str, err := db.NewDB(pool)
+		assert.NoError(t, err)
+		randomizer := randomizer.NewUserRandomizer()
+
+		ctx, err := getI18nCtx()
+		require.NoError(t, err)
+
+		lobbyService := service.NewLobbyService(str, randomizer, "en-GB")
+		playerService := service.NewPlayerService(str, randomizer)
+		roundService := service.NewRoundService(str, randomizer, "en-GB")
+
+		conf, err := config.LoadConfig(ctx)
+		require.NoError(t, err)
+
+		scoreState, err := scoreState(ctx, lobbyService, playerService, roundService, conf)
+		require.NoError(t, err)
+
+		// TODO: not use this is a hack only used to get game state id
+		votingState, err := roundService.GetVotingState(ctx, scoreState.Players[0].ID)
+		require.NoError(t, err)
+
+		winnerState, err := roundService.UpdateStateToWinner(
+			ctx,
+			votingState.GameStateID,
+			time.Now().Add(120*time.Second),
+		)
+		assert.NoError(t, err)
+		assert.NotNil(t, winnerState)
+
+		// TODO: fix with actual scores
+		// expectedWinnerState := service.WinnerState{
+		// 	Players: []service.PlayerWithScoring{
+		// 		{
+		// 			ID:       winnerState.Players[0].ID,
+		// 			Nickname: "host_player",
+		// 			Avatar:   "https://api.dicebear.com/9.x/bottts-neutral/svg?radius=20&seed=host_player",
+		// 			Score:    0,
+		// 		},
+		//
+		// 		{
+		// 			ID:       winnerState.Players[1].ID,
+		// 			Nickname: "another_player",
+		// 			Avatar:   "https://api.dicebear.com/9.x/bottts-neutral/svg?radius=20&seed=another_player",
+		// 			Score:    0,
+		// 		},
+		// 	},
+		// }
+		// assert.Equal(t, expectedWinnerState, winnerState)
+	})
+}
+
+func TestIntegrationRoundServiceGetWinnerState(t *testing.T) {
+	t.Run("Should successfully get winner state", func(t *testing.T) {
+		pool, teardown := setupSubtest(t)
+		defer teardown()
+
+		str, err := db.NewDB(pool)
+		assert.NoError(t, err)
+		randomizer := randomizer.NewUserRandomizer()
+
+		ctx, err := getI18nCtx()
+		require.NoError(t, err)
+
+		lobbyService := service.NewLobbyService(str, randomizer, "en-GB")
+		playerService := service.NewPlayerService(str, randomizer)
+		roundService := service.NewRoundService(str, randomizer, "en-GB")
+
+		conf, err := config.LoadConfig(ctx)
+		require.NoError(t, err)
+
+		scoreState, err := scoreState(ctx, lobbyService, playerService, roundService, conf)
+		require.NoError(t, err)
+
+		// TODO: not use this is a hack
+		votingState, err := roundService.GetVotingState(ctx, scoreState.Players[0].ID)
+		require.NoError(t, err)
+
+		_, err = roundService.UpdateStateToWinner(
+			ctx,
+			votingState.GameStateID,
+			time.Now().Add(120*time.Second),
+		)
+		assert.NoError(t, err)
+
+		winnerState, err := roundService.GetWinnerState(
+			ctx,
+			scoreState.Players[0].ID,
+		)
+		assert.NoError(t, err)
+		assert.NotNil(t, winnerState)
+
+		// TODO: fix with actual scores
+		// expectedWinnerState := service.WinnerState{
+		// 	Players: []service.PlayerWithScoring{
+		// 		{
+		// 			ID:       winnerState.Players[0].ID,
+		// 			Nickname: "another_player",
+		// 			Avatar:   "https://api.dicebear.com/9.x/bottts-neutral/svg?radius=20&seed=another_player",
+		// 			Score:    100,
+		// 		},
+		// 		{
+		// 			ID:       winnerState.Players[1].ID,
+		// 			Nickname: "host_player",
+		// 			Avatar:   "https://api.dicebear.com/9.x/bottts-neutral/svg?radius=20&seed=host_player",
+		// 			Score:    0,
+		// 		},
+		// 	},
+		// }
+		// assert.Equal(t, expectedWinnerState, winnerState)
+	})
+}
+
+func TestIntegrationRoundServiceFinsishGame(t *testing.T) {
+	t.Run("Should successfully finish game", func(t *testing.T) {
+		pool, teardown := setupSubtest(t)
+		defer teardown()
+
+		str, err := db.NewDB(pool)
+		assert.NoError(t, err)
+		randomizer := randomizer.NewUserRandomizer()
+
+		ctx, err := getI18nCtx()
+		require.NoError(t, err)
+
+		lobbyService := service.NewLobbyService(str, randomizer, "en-GB")
+		playerService := service.NewPlayerService(str, randomizer)
+		roundService := service.NewRoundService(str, randomizer, "en-GB")
+
+		conf, err := config.LoadConfig(ctx)
+		require.NoError(t, err)
+
+		scoreState, err := scoreState(ctx, lobbyService, playerService, roundService, conf)
+		require.NoError(t, err)
+
+		questionState, err := roundService.GetQuestionState(ctx, scoreState.Players[0].ID)
+		require.NoError(t, err)
+
+		err = roundService.FinishGame(ctx, questionState.GameStateID)
+		assert.NoError(t, err)
 	})
 }

@@ -2388,3 +2388,319 @@ func TestRoundServiceGetQuestionState(t *testing.T) {
 		assert.Error(t, err)
 	})
 }
+
+func TestRoundServiceUpdateStateToWinning(t *testing.T) {
+	t.Run("Should successfully update state to winner state", func(t *testing.T) {
+		mockStore := mockService.NewMockStorer(t)
+		mockRandom := mockService.NewMockRandomizer(t)
+		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
+
+		ctx := context.Background()
+
+		gameID := uuid.Must(uuid.NewV7())
+		mockStore.EXPECT().GetGameState(ctx, gameID).Return(db.GameState{
+			State: db.FibbingItScoring.String(),
+			ID:    gameID,
+		}, nil)
+
+		u := uuid.Must(uuid.NewV7())
+		mockRandom.EXPECT().GetID().Return(u)
+
+		deadline := time.Now().UTC().Add(1 * time.Hour)
+		mockStore.EXPECT().UpdateGameState(ctx, db.UpdateGameStateParams{
+			ID:             gameID,
+			State:          db.FibbingItWinner.String(),
+			SubmitDeadline: pgtype.Timestamp{Time: deadline, Valid: true},
+		}).Return(db.GameState{}, nil)
+
+		mockStore.EXPECT().GetTotalScoresByGameStateID(ctx, db.GetTotalScoresByGameStateIDParams{
+			ID:   gameID,
+			ID_2: u,
+		}).Return([]db.GetTotalScoresByGameStateIDRow{
+			{
+				PlayerID:   playerID,
+				TotalScore: int64(100),
+				Nickname:   "Player 1",
+				Avatar:     "https://api.dicebear.com/9.x/bottts-neutral/svg?radius=20&seed=Player+1",
+			},
+			{
+				PlayerID:   defaultOtherPlayerID,
+				TotalScore: int64(200),
+				Nickname:   "Player 2",
+				Avatar:     "https://api.dicebear.com/9.x/bottts-neutral/svg?radius=20&seed=Player+2",
+			},
+		}, nil)
+
+		winnerState, err := srv.UpdateStateToWinner(ctx, gameID, deadline)
+		assert.NoError(t, err)
+
+		expectedWinnerState := service.WinnerState{
+			Players: []service.PlayerWithScoring{
+				{
+					ID:       defaultOtherPlayerID,
+					Score:    200,
+					Nickname: "Player 2",
+					Avatar:   "https://api.dicebear.com/9.x/bottts-neutral/svg?radius=20&seed=Player+2",
+				},
+				{
+					ID:       playerID,
+					Score:    100,
+					Nickname: "Player 1",
+					Avatar:   "https://api.dicebear.com/9.x/bottts-neutral/svg?radius=20&seed=Player+1",
+				},
+			},
+		}
+		assert.Equal(t, expectedWinnerState, winnerState)
+	})
+
+	t.Run("Should fail to update state to winner state, fail to get game state", func(t *testing.T) {
+		mockStore := mockService.NewMockStorer(t)
+		mockRandom := mockService.NewMockRandomizer(t)
+		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
+
+		ctx := context.Background()
+
+		gameID := uuid.Must(uuid.NewV7())
+		mockStore.EXPECT().GetGameState(ctx, gameID).Return(db.GameState{}, fmt.Errorf("failed to get game state"))
+
+		deadline := time.Now().UTC().Add(1 * time.Hour)
+
+		_, err := srv.UpdateStateToWinner(ctx, gameID, deadline)
+		assert.Error(t, err)
+	})
+
+	t.Run("Should fail to update state to winner state, game not in scoring state", func(t *testing.T) {
+		mockStore := mockService.NewMockStorer(t)
+		mockRandom := mockService.NewMockRandomizer(t)
+		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
+
+		ctx := context.Background()
+
+		gameID := uuid.Must(uuid.NewV7())
+		mockStore.EXPECT().GetGameState(ctx, gameID).Return(db.GameState{
+			State: db.FibbingItRevealRole.String(),
+			ID:    gameID,
+		}, nil)
+
+		deadline := time.Now().UTC().Add(1 * time.Hour)
+
+		_, err := srv.UpdateStateToWinner(ctx, gameID, deadline)
+		assert.ErrorContains(t, err, "game state is not in FIBBING_IT_SCORING_STATE state")
+	})
+
+	t.Run("Should fail to update state to winner state, fail to update state in DB", func(t *testing.T) {
+		mockStore := mockService.NewMockStorer(t)
+		mockRandom := mockService.NewMockRandomizer(t)
+		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
+
+		ctx := context.Background()
+
+		gameID := uuid.Must(uuid.NewV7())
+		mockStore.EXPECT().GetGameState(ctx, gameID).Return(db.GameState{
+			State: db.FibbingItScoring.String(),
+			ID:    gameID,
+		}, nil)
+
+		deadline := time.Now().UTC().Add(1 * time.Hour)
+		mockStore.EXPECT().UpdateGameState(ctx, db.UpdateGameStateParams{
+			ID:             gameID,
+			State:          db.FibbingItWinner.String(),
+			SubmitDeadline: pgtype.Timestamp{Time: deadline, Valid: true},
+		}).Return(db.GameState{}, fmt.Errorf("failed to update game state"))
+
+		_, err := srv.UpdateStateToWinner(ctx, gameID, deadline)
+		assert.Error(t, err)
+	})
+
+	t.Run("Should fail to update state to winner state, fail to get total scores from DB", func(t *testing.T) {
+		mockStore := mockService.NewMockStorer(t)
+		mockRandom := mockService.NewMockRandomizer(t)
+		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
+
+		ctx := context.Background()
+
+		gameID := uuid.Must(uuid.NewV7())
+		mockStore.EXPECT().GetGameState(ctx, gameID).Return(db.GameState{
+			State: db.FibbingItScoring.String(),
+			ID:    gameID,
+		}, nil)
+
+		u := uuid.Must(uuid.NewV7())
+		mockRandom.EXPECT().GetID().Return(u)
+
+		deadline := time.Now().UTC().Add(1 * time.Hour)
+		mockStore.EXPECT().UpdateGameState(ctx, db.UpdateGameStateParams{
+			ID:             gameID,
+			State:          db.FibbingItWinner.String(),
+			SubmitDeadline: pgtype.Timestamp{Time: deadline, Valid: true},
+		}).Return(db.GameState{}, nil)
+
+		mockStore.EXPECT().GetTotalScoresByGameStateID(ctx, db.GetTotalScoresByGameStateIDParams{
+			ID:   gameID,
+			ID_2: u,
+		}).Return([]db.GetTotalScoresByGameStateIDRow{}, fmt.Errorf("fail to get scores from DB"))
+
+		_, err := srv.UpdateStateToWinner(ctx, gameID, deadline)
+		assert.Error(t, err)
+	})
+}
+
+func TestRoundServiceGetWinnerState(t *testing.T) {
+	t.Run("Should successfully get winner state", func(t *testing.T) {
+		mockStore := mockService.NewMockStorer(t)
+		mockRandom := mockService.NewMockRandomizer(t)
+		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
+
+		ctx := context.Background()
+
+		gameID := uuid.Must(uuid.NewV7())
+		mockStore.EXPECT().GetGameStateByPlayerID(ctx, playerID).Return(db.GameState{
+			State: db.FibbingItWinner.String(),
+			ID:    gameID,
+		}, nil)
+
+		u := uuid.Must(uuid.NewV7())
+		mockRandom.EXPECT().GetID().Return(u)
+
+		mockStore.EXPECT().GetTotalScoresByGameStateID(ctx, db.GetTotalScoresByGameStateIDParams{
+			ID:   gameID,
+			ID_2: u,
+		}).Return([]db.GetTotalScoresByGameStateIDRow{
+			{
+				PlayerID:   playerID,
+				TotalScore: int64(100),
+				Nickname:   "Player 1",
+				Avatar:     "https://api.dicebear.com/9.x/bottts-neutral/svg?radius=20&seed=Player+1",
+			},
+			{
+				PlayerID:   defaultOtherPlayerID,
+				TotalScore: int64(200),
+				Nickname:   "Player 2",
+				Avatar:     "https://api.dicebear.com/9.x/bottts-neutral/svg?radius=20&seed=Player+2",
+			},
+		}, nil)
+
+		winnerState, err := srv.GetWinnerState(ctx, playerID)
+		assert.NoError(t, err)
+
+		expectedWinnerState := service.WinnerState{
+			Players: []service.PlayerWithScoring{
+				{
+					ID:       defaultOtherPlayerID,
+					Score:    200,
+					Nickname: "Player 2",
+					Avatar:   "https://api.dicebear.com/9.x/bottts-neutral/svg?radius=20&seed=Player+2",
+				},
+				{
+					ID:       playerID,
+					Score:    100,
+					Nickname: "Player 1",
+					Avatar:   "https://api.dicebear.com/9.x/bottts-neutral/svg?radius=20&seed=Player+1",
+				},
+			},
+		}
+		assert.Equal(t, expectedWinnerState, winnerState)
+	})
+
+	t.Run("Should fail to get winner state, cannot get game state", func(t *testing.T) {
+		mockStore := mockService.NewMockStorer(t)
+		mockRandom := mockService.NewMockRandomizer(t)
+		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
+
+		ctx := context.Background()
+
+		mockStore.EXPECT().
+			GetGameStateByPlayerID(ctx, playerID).
+			Return(db.GameState{}, fmt.Errorf("failed to get game state"))
+
+		_, err := srv.GetWinnerState(ctx, playerID)
+		assert.Error(t, err)
+	})
+
+	t.Run("Should fail to get winner state, failed to get total scores", func(t *testing.T) {
+		mockStore := mockService.NewMockStorer(t)
+		mockRandom := mockService.NewMockRandomizer(t)
+		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
+
+		ctx := context.Background()
+
+		gameID := uuid.Must(uuid.NewV7())
+		mockStore.EXPECT().GetGameStateByPlayerID(ctx, playerID).Return(db.GameState{
+			State: db.FibbingItWinner.String(),
+			ID:    gameID,
+		}, nil)
+
+		u := uuid.Must(uuid.NewV7())
+		mockRandom.EXPECT().GetID().Return(u)
+
+		mockStore.EXPECT().GetTotalScoresByGameStateID(ctx, db.GetTotalScoresByGameStateIDParams{
+			ID:   gameID,
+			ID_2: u,
+		}).Return([]db.GetTotalScoresByGameStateIDRow{}, fmt.Errorf("failed to get total scores"))
+
+		_, err := srv.GetWinnerState(ctx, playerID)
+		assert.Error(t, err)
+	})
+}
+
+func TestRoundServiceFinishGame(t *testing.T) {
+	t.Run("Should successfully finish game", func(t *testing.T) {
+		mockStore := mockService.NewMockStorer(t)
+		mockRandom := mockService.NewMockRandomizer(t)
+		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
+
+		ctx := context.Background()
+
+		gameID := uuid.Must(uuid.NewV7())
+		roomID := uuid.Must(uuid.NewV7())
+		mockStore.EXPECT().GetGameState(ctx, gameID).Return(db.GameState{
+			State:  db.FibbingItWinner.String(),
+			ID:     gameID,
+			RoomID: roomID,
+		}, nil)
+
+		mockStore.EXPECT().
+			UpdateRoomState(ctx, db.UpdateRoomStateParams{RoomState: db.Finished.String(), ID: roomID}).
+			Return(db.Room{}, nil)
+
+		err := srv.FinishGame(ctx, gameID)
+		assert.NoError(t, err)
+	})
+
+	t.Run("Should fail to finish game, fail to get game state", func(t *testing.T) {
+		mockStore := mockService.NewMockStorer(t)
+		mockRandom := mockService.NewMockRandomizer(t)
+		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
+
+		ctx := context.Background()
+
+		gameID := uuid.Must(uuid.NewV7())
+		mockStore.EXPECT().GetGameState(ctx, gameID).Return(db.GameState{}, fmt.Errorf("fail to get game state"))
+
+		err := srv.FinishGame(ctx, gameID)
+		assert.Error(t, err)
+	})
+
+	t.Run("Should fail to finish game, fail to update room state", func(t *testing.T) {
+		mockStore := mockService.NewMockStorer(t)
+		mockRandom := mockService.NewMockRandomizer(t)
+		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
+
+		ctx := context.Background()
+
+		gameID := uuid.Must(uuid.NewV7())
+		roomID := uuid.Must(uuid.NewV7())
+		mockStore.EXPECT().GetGameState(ctx, gameID).Return(db.GameState{
+			State:  db.FibbingItWinner.String(),
+			ID:     gameID,
+			RoomID: roomID,
+		}, nil)
+
+		mockStore.EXPECT().
+			UpdateRoomState(ctx, db.UpdateRoomStateParams{RoomState: db.Finished.String(), ID: roomID}).
+			Return(db.Room{}, fmt.Errorf("fail to update room state"))
+
+		err := srv.FinishGame(ctx, gameID)
+		assert.Error(t, err)
+	})
+}

@@ -53,6 +53,7 @@ type Timings struct {
 	AllReadyToNextScreenFor time.Duration
 	ShowRevealScreenFor     time.Duration
 	ShowScoreScreenFor      time.Duration
+	ShowWinnerScreenFor     time.Duration
 }
 
 type Scoring struct {
@@ -82,6 +83,7 @@ type In struct {
 	AllReadyToNextScreenFor time.Duration `env:"ALL_READY_TO_NEXT_SCREEN_FOR, default=2s"`
 	ShowRevealScreenFor     time.Duration `env:"SHOW_REVEAL_SCREEN_FOR, default=16s"`
 	ShowScoreScreenFor      time.Duration `env:"SHOW_SCORE_SCREEN_FOR, default=15s"`
+	ShowWinnerScoreFor      time.Duration `env:"SHOW_SCORE_SCREEN_FOR, default=15s"`
 
 	GuessFibber        int `env:"GUESS_FIBBER, default=100"`
 	FibberEvadeCapture int `env:"FIBBER_EVADE_CAPTURE, default=150"`
@@ -133,6 +135,7 @@ func LoadConfig(ctx context.Context) (Config, error) {
 			AllReadyToNextScreenFor: input.AllReadyToNextScreenFor,
 			ShowRevealScreenFor:     input.ShowRevealScreenFor,
 			ShowScoreScreenFor:      input.ShowScoreScreenFor,
+			ShowWinnerScreenFor:     input.ShowWinnerScoreFor,
 		},
 		Scoring: Scoring{
 			GuessFibber:        input.GuessFibber,
