@@ -1485,7 +1485,7 @@ func TestRoundServiceUpdateStateToQuestion(t *testing.T) {
 				FibberLoc: 1,
 			}).Return(nil)
 
-			gameState, err := srv.UpdateStateToQuestion(ctx, gameStateID, deadline)
+			gameState, err := srv.UpdateStateToQuestion(ctx, gameStateID, deadline, false)
 			expectedGameState := service.QuestionState{
 				Deadline:    time.Until(deadline),
 				GameStateID: gameStateID,
@@ -1526,7 +1526,7 @@ func TestRoundServiceUpdateStateToQuestion(t *testing.T) {
 		mockStore.EXPECT().
 			GetGameState(ctx, gameStateID).
 			Return(db.GameState{}, xerrors.New("failed to get game state"))
-		_, err := srv.UpdateStateToQuestion(ctx, gameStateID, deadline)
+		_, err := srv.UpdateStateToQuestion(ctx, gameStateID, deadline, false)
 		assert.Error(t, err)
 	})
 
@@ -1542,7 +1542,8 @@ func TestRoundServiceUpdateStateToQuestion(t *testing.T) {
 			State: db.FibbingITQuestion.String(),
 		}, nil)
 
-		_, err := srv.UpdateStateToQuestion(ctx, gameStateID, deadline)
+		// TODO: add test for newRound = true
+		_, err := srv.UpdateStateToQuestion(ctx, gameStateID, deadline, false)
 		assert.ErrorContains(t, err, "game state is not in FIBBING_IT_REVEAL_ROLE state or FIBBING_IT_SCORING state")
 	})
 
@@ -1568,7 +1569,7 @@ func TestRoundServiceUpdateStateToQuestion(t *testing.T) {
 				nil,
 				xerrors.New("failed to get all player IDs by game state ID"),
 			)
-			_, err := srv.UpdateStateToQuestion(ctx, gameStateID, deadline)
+			_, err := srv.UpdateStateToQuestion(ctx, gameStateID, deadline, false)
 			assert.Error(t, err)
 		},
 	)
@@ -1606,7 +1607,7 @@ func TestRoundServiceUpdateStateToQuestion(t *testing.T) {
 			GetLatestRoundByGameStateID(ctx, gameStateID).
 			Return(db.GetLatestRoundByGameStateIDRow{}, xerrors.New("failed to get latest round by game state ID"))
 
-		_, err := srv.UpdateStateToQuestion(ctx, gameStateID, deadline)
+		_, err := srv.UpdateStateToQuestion(ctx, gameStateID, deadline, false)
 		assert.Error(t, err)
 	})
 
@@ -1651,7 +1652,7 @@ func TestRoundServiceUpdateStateToQuestion(t *testing.T) {
 				RoundType: "free_form",
 			}).Return([]db.GetRandomQuestionByRoundRow{}, xerrors.New("failed to get random question by round"))
 
-			_, err := srv.UpdateStateToQuestion(ctx, gameStateID, deadline)
+			_, err := srv.UpdateStateToQuestion(ctx, gameStateID, deadline, false)
 			assert.Error(t, err)
 		},
 	)
@@ -1708,7 +1709,7 @@ func TestRoundServiceUpdateStateToQuestion(t *testing.T) {
 			{},
 		}, xerrors.New("failed to get random question in group"))
 
-		_, err := srv.UpdateStateToQuestion(ctx, gameStateID, deadline)
+		_, err := srv.UpdateStateToQuestion(ctx, gameStateID, deadline, false)
 		assert.Error(t, err)
 	})
 
@@ -1786,7 +1787,7 @@ func TestRoundServiceUpdateStateToQuestion(t *testing.T) {
 			FibberLoc: 1,
 		}).Return(xerrors.New("failed to add a new round"))
 
-		_, err := srv.UpdateStateToQuestion(ctx, gameStateID, deadline)
+		_, err := srv.UpdateStateToQuestion(ctx, gameStateID, deadline, false)
 		assert.Error(t, err)
 	})
 }

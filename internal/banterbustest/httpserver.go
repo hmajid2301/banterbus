@@ -65,6 +65,9 @@ func NewTestServer() (*httptest.Server, error) {
 
 	showScreenFor := 2
 	conf.Timings.ShowScoreScreenFor = time.Second * time.Duration(showScreenFor)
+	conf.Timings.ShowQuestionScreenFor = time.Second * time.Duration(showScreenFor)
+	conf.Timings.ShowVotingScreenFor = time.Second * time.Duration(showScreenFor)
+	conf.Timings.ShowRevealScreenFor = time.Second * time.Duration(showScreenFor)
 	conf.App.AutoReconnect = false
 
 	subscriber := websockets.NewSubscriber(lobbyServicer, playerServicer, roundServicer, logger, redisClient, conf)

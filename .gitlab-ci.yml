@@ -52,7 +52,7 @@ stages:
     - if: $CI_PIPELINE_SOURCE == "schedule"
       when: never
   before_script:
-    - mkdir -p $CI_PROJECT_DIR/coverage /tmp
+    - mkdir -p $CI_PROJECT_DIR/coverage /tmp  $CI_PROJECT_DIR/e2e/screenshots
   artifacts:
     paths:
       - coverage
@@ -199,6 +199,7 @@ test:e2e:
     paths:
       - coverage
       - tests/e2e/videos/*
+      - tests/e2e/*.png
 
 combine:coverage:
   stage: build

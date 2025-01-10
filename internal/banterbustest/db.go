@@ -250,9 +250,6 @@ func FillWithDummyData(ctx context.Context, pool *pgxpool.Pool) error {
 		},
 		{"fibbing_it", uuid.New(), "free_form", true, "A funny question?", "en-GB", "bike_group", "questions"},
 		{"fibbing_it", uuid.New(), "free_form", true, "Favourite bike colour?", "en-GB", "bike_group", "questions"},
-		{"fibbing_it", uuid.New(), "multiple_choice", true, "lame", "en-GB", "horse_group", "answers"},
-		{"fibbing_it", uuid.New(), "multiple_choice", true, "tasty", "en-GB", "horse_group", "answers"},
-		{"fibbing_it", uuid.New(), "multiple_choice", true, "cool", "en-GB", "horse_group", "answers"},
 		{
 			"fibbing_it",
 			uuid.New(),
@@ -273,9 +270,6 @@ func FillWithDummyData(ctx context.Context, pool *pgxpool.Pool) error {
 			"horse_group",
 			"questions",
 		},
-		{"fibbing_it", uuid.New(), "multiple_choice", true, "purple", "en-GB", "colour_group", "answers"},
-		{"fibbing_it", uuid.New(), "multiple_choice", true, "blue", "en-GB", "colour_group", "answers"},
-		{"fibbing_it", uuid.New(), "multiple_choice", true, "red", "en-GB", "colour_group", "answers"},
 		{
 			"fibbing_it",
 			uuid.New(),

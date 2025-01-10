@@ -399,6 +399,7 @@ func (r *RoundService) UpdateStateToQuestion(
 	ctx context.Context,
 	gameStateID uuid.UUID,
 	deadline time.Time,
+	nextRound bool,
 ) (QuestionState, error) {
 	game, err := r.store.GetGameState(ctx, gameStateID)
 	if err != nil {
@@ -435,7 +436,7 @@ func (r *RoundService) UpdateStateToQuestion(
 	roundNumber := round.Round + 1
 	// TODO: move to config
 	var maxRounds int32 = 3
-	if roundNumber == maxRounds+1 {
+	if roundNumber == maxRounds+1 || nextRound {
 		roundType = getNextRoundType(roundType)
 		roundNumber = 1
 	}

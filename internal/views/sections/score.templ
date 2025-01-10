@@ -8,16 +8,21 @@ import (
 
 templ Score(state service.ScoreState, player service.PlayerWithScoring, maxScore int) {
 	<div hx-swap-oob="innerHTML:#page">
-		<div x-data={ toJSON(int(state.Deadline.Seconds())) } x-init="setInterval(() => { if (timer > 0) timer--; }, 1000)">
+		<div x-data={ toJSON(map[string]any{"timer": int(state.Deadline.Seconds())}) } x-init="setInterval(() => { if (timer > 0) timer--; }, 1000)">
 			<div class="flex flex-col justify-center items-center space-y-4 text-text2">
 				<div>{ strconv.Itoa(state.RoundNumber) } / 3</div>
+				<div class="text-right">
+					<div class="flex justify-center items-center w-16 h-16 rounded-full border-2 border-blue-500">
+						<p x-text="timer"></p>
+					</div>
+				</div>
 				<div class="space-y-4">
 					for i, p := range state.Players {
 						<div class="flex items-center p-4 rounded-lg bg-surface0 shadow-custom-border">
 							<img src={ p.Avatar } alt={ p.Avatar } class="mr-4 w-12 h-12 rounded-full"/>
 							<div class="flex-grow">
 								<div class="flex justify-between items-center mb-2">
-									<span class="font-semibold">{ p.Nickname }</span>
+									<span class="py-5 font-semibold">{ p.Nickname }</span>
 									<span class="font-bold font-button">{ strconv.Itoa(p.Score) }</span>
 								</div>
 								<div class={ scoreBarClass(p.Score, maxScore, i) }></div>

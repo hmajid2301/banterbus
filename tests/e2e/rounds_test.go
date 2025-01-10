@@ -36,6 +36,17 @@ func TestE2ERounds(t *testing.T) {
 		err := startGame(hostPlayerPage, otherPlayerPage)
 		require.NoError(t, err)
 
+		fibberText := hostPlayerPage.GetByText("fibber")
+		fibber := otherPlayerPage
+		normalPlayer := hostPlayerPage
+
+		isFibber, err := fibberText.IsVisible()
+		if isFibber {
+			fibber = hostPlayerPage
+			normalPlayer = otherPlayerPage
+		}
+		require.NoError(t, err)
+
 		err = hostPlayerPage.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Close"}).Click()
 		require.NoError(t, err)
 
@@ -70,19 +81,19 @@ func TestE2ERounds(t *testing.T) {
 		votesText = hostPlayerPage.GetByText("Votes:")
 		expect.Locator(votesText).ToBeVisible()
 
-		err = hostPlayerPage.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Submit Vote"}).Click()
+		err = normalPlayer.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Submit Vote"}).Click()
 		require.NoError(t, err)
 
-		votesText = hostPlayerPage.GetByText("Votes: 1")
+		votesText = normalPlayer.GetByText("Votes: 1")
 		expect.Locator(votesText).ToBeVisible()
 
-		err = hostPlayerPage.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Not Ready"}).Click()
-		require.NoError(t, err)
-
-		votedFor := hostPlayerPage.GetByText("You all voted for")
+		votedFor := normalPlayer.GetByText("They were fibber")
 		expect.Locator(votedFor).ToBeVisible()
 
-		scoring := hostPlayerPage.GetByText("100")
+		scoring := normalPlayer.GetByText("100")
+		expect.Locator(scoring).ToBeVisible()
+
+		scoring = fibber.GetByText("0")
 		expect.Locator(scoring).ToBeVisible()
 	})
 }

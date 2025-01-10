@@ -15,6 +15,7 @@ import (
 )
 
 type RoundServicer interface {
+	GetGameState(ctx context.Context, playerID uuid.UUID) (db.FibbingItGameState, error)
 	SubmitAnswer(ctx context.Context, playerID uuid.UUID, answer string, submittedAt time.Time) error
 	SubmitVote(
 		ctx context.Context,
@@ -35,7 +36,12 @@ type RoundServicer interface {
 		scoring service.Scoring,
 	) (service.ScoreState, error)
 	GetScoreState(ctx context.Context, scoring service.Scoring, playerID uuid.UUID) (service.ScoreState, error)
-	GetGameState(ctx context.Context, playerID uuid.UUID) (db.FibbingItGameState, error)
+	UpdateStateToQuestion(
+		ctx context.Context,
+		gameStateID uuid.UUID,
+		deadline time.Time,
+		nextRound bool,
+	) (service.QuestionState, error)
 	GetQuestionState(ctx context.Context, playerID uuid.UUID) (service.QuestionState, error)
 	UpdateStateToWinner(ctx context.Context, gameStateID uuid.UUID, deadline time.Time) (service.WinnerState, error)
 	GetWinnerState(ctx context.Context, playerID uuid.UUID) (service.WinnerState, error)

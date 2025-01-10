@@ -724,10 +724,12 @@ func TestIntegrationRoundServiceUpdateStateToQuestion(t *testing.T) {
 		votingState, err := roundService.GetVotingState(ctx, revealState.PlayerIDs[0])
 		require.NoError(t, err)
 
+		newRound := false
 		questionState, err := roundService.UpdateStateToQuestion(
 			ctx,
 			votingState.GameStateID,
 			time.Now().Add(120*time.Second),
+			newRound,
 		)
 		assert.NoError(t, err)
 
@@ -767,10 +769,12 @@ func TestIntegrationRoundServiceGetQuestionState(t *testing.T) {
 		votingState, err := roundService.GetVotingState(ctx, revealState.PlayerIDs[0])
 		require.NoError(t, err)
 
+		newRound := false
 		questionState, err := roundService.UpdateStateToQuestion(
 			ctx,
 			votingState.GameStateID,
 			time.Now().Add(120*time.Second),
+			newRound,
 		)
 		require.NoError(t, err)
 

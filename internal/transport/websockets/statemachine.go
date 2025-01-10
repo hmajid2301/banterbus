@@ -19,10 +19,33 @@ type State interface {
 type QuestionState struct {
 	gameStateID uuid.UUID
 	subscriber  Subscriber
+	nextRound   bool
 }
 
 func (q *QuestionState) Start(ctx context.Context) {
 	deadline := time.Now().UTC().Add(q.subscriber.config.Timings.ShowQuestionScreenFor)
+	questionState, err := q.subscriber.roundService.UpdateStateToQuestion(ctx, q.gameStateID, deadline, q.nextRound)
+	if err != nil {
+		q.subscriber.logger.ErrorContext(
+			ctx,
+			"failed to update game state to question",
+			slog.Any("error", err),
+			slog.String("game_state_id", q.gameStateID.String()),
+		)
+		return
+	}
+
+	showModal := true
+	err = q.subscriber.updateClientsAboutQuestion(ctx, questionState, showModal)
+	if err != nil {
+		q.subscriber.logger.ErrorContext(
+			ctx,
+			"failed to update clients to question screen",
+			slog.Any("error", err),
+			slog.String("game_state_id", q.gameStateID.String()),
+		)
+		return
+	}
 
 	time.Sleep(time.Until(deadline))
 	v := &VotingState{gameStateID: q.gameStateID, subscriber: q.subscriber}
@@ -106,7 +129,7 @@ func (r *RevealState) Start(ctx context.Context) {
 		s := &ScoringState{gameStateID: r.gameStateID, subscriber: r.subscriber}
 		go s.Start(ctx)
 	} else {
-		q := &QuestionState{gameStateID: r.gameStateID, subscriber: r.subscriber}
+		q := &QuestionState{gameStateID: r.gameStateID, subscriber: r.subscriber, nextRound: false}
 		go q.Start(ctx)
 	}
 }
@@ -145,13 +168,13 @@ func (r *ScoringState) Start(ctx context.Context) {
 		return
 	}
 
-	if scoringState.RoundType == "most_likely" && scoringState.RoundNumber == 3 {
+	if scoringState.RoundType == "most_likely" {
 		time.Sleep(time.Until(deadline))
 		q := &WinnerState{gameStateID: r.gameStateID, subscriber: r.subscriber}
 		go q.Start(ctx)
 	} else {
 		time.Sleep(time.Until(deadline))
-		q := &QuestionState{gameStateID: r.gameStateID, subscriber: r.subscriber}
+		q := &QuestionState{gameStateID: r.gameStateID, subscriber: r.subscriber, nextRound: true}
 		go q.Start(ctx)
 	}
 }
