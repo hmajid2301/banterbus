@@ -234,27 +234,27 @@ func (s DB) CreateQuestion(ctx context.Context, arg CreateQuestionArgs) error {
 		GroupType: "questions",
 	})
 	if err != nil {
-		return nil
+		return err
 	}
 
-	q, err := s.AddQuestion(ctx, AddQuestionParams{
+	q, err := s.WithTx(tx).AddQuestion(ctx, AddQuestionParams{
 		ID:        uuid.Must(uuid.NewV7()),
 		GameName:  arg.GameName,
 		RoundType: arg.RoundType,
 		GroupID:   questionGroup.ID,
 	})
 	if err != nil {
-		return nil
+		return err
 	}
 
-	_, err = s.AddQuestionTranslation(ctx, AddQuestionTranslationParams{
+	_, err = s.WithTx(tx).AddQuestionTranslation(ctx, AddQuestionTranslationParams{
 		ID:         uuid.Must(uuid.NewV7()),
 		Question:   arg.Text,
 		QuestionID: q.ID,
 		Locale:     arg.Locale,
 	})
 	if err != nil {
-		return nil
+		return err
 	}
 
 	return tx.Commit(ctx)
