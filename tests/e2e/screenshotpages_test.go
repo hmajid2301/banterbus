@@ -2,7 +2,6 @@ package e2e
 
 import (
 	"testing"
-	"time"
 
 	"github.com/playwright-community/playwright-go"
 	"github.com/stretchr/testify/require"
@@ -82,14 +81,12 @@ func TestE2EScreenshotPages(t *testing.T) {
 
 		votedFor := hostPlayerPage.GetByText("You all voted for")
 		playwright.Locator.WaitFor(votedFor)
-		time.Sleep(time.Second * 1)
 		hostPlayerPage.Screenshot(playwright.PageScreenshotOptions{
 			Path: playwright.String("reveal.png"),
 		})
 
 		scoring := hostPlayerPage.GetByText("100")
 		playwright.Locator.WaitFor(scoring)
-		time.Sleep(time.Second * 1)
 		hostPlayerPage.Screenshot(playwright.PageScreenshotOptions{
 			Path: playwright.String("scoring.png"),
 		})
