@@ -53,20 +53,6 @@ ON CONFLICT(player_id, round_id) DO UPDATE SET
     round_id = EXCLUDED.round_id
 RETURNING *;
 
--- name: AddQuestion :one
-INSERT INTO questions (id, game_name, group_id, round_type) VALUES ($1, $2, $3, $4) RETURNING *;
-
--- name: AddQuestionTranslation :one
-INSERT INTO questions_i18n (id,  question, locale, question_id) VALUES ($1, $2, $3, $4) RETURNING *;
-
--- name: UpsertQuestionsGroup :one
-INSERT INTO questions_groups (id, group_name, group_type)
-VALUES ($1, $2, $3)
-ON CONFLICT (id) DO UPDATE SET
-    group_name = EXCLUDED.group_name,
-    group_type = EXCLUDED.group_type
-RETURNING *;
-
 -- name: GetAllPlayersInRoom :many
 SELECT p.id, p.created_at, p.updated_at, p.avatar, p.nickname, p.is_ready, p.locale, r.room_code, r.host_player
 FROM players p
@@ -125,39 +111,6 @@ SELECT r.* FROM rooms r JOIN rooms_players rp ON r.id = rp.room_id WHERE rp.play
 
 -- name: GetRoomByCode :one
 SELECT * FROM rooms WHERE room_code = $1;
-
--- name: GetRandomQuestionByRound :many
-SELECT
-    qi.*,
-    random_question.group_id,
-    random_question.id
-FROM questions_i18n qi
-JOIN (
-    SELECT q.id, q.group_id
-    FROM questions q
-    WHERE q.game_name = $1
-      AND q.round_type = $2
-      AND q.enabled = TRUE
-    ORDER BY RANDOM()
-    LIMIT 1
-) random_question ON qi.question_id = random_question.id;
-
--- name: GetRandomQuestionInGroup :many
-SELECT
-    qi.*,
-    random_question.id
-FROM questions_i18n qi
-JOIN (
-    SELECT q.id
-    FROM questions q
-    JOIN questions_groups qg ON q.group_id = qg.id
-    WHERE qg.group_type = 'questions'
-      AND q.group_id = $1
-      AND q.enabled = TRUE
-      AND q.id != $2
-    ORDER BY RANDOM()
-    LIMIT 1
-) random_question ON qi.question_id = random_question.id;
 
 -- name: GetLatestRoundByPlayerID :one
 SELECT fir.*, gs.submit_deadline
@@ -319,7 +272,6 @@ WHERE
     )
 ORDER BY v.round_id DESC;
 
-
 -- name: GetTotalScoresByGameStateID :many
 SELECT
     s.player_id,
@@ -341,9 +293,68 @@ GROUP BY
     p.avatar,
     p.nickname;
 
+-- name: AddQuestion :one
+INSERT INTO questions (id, game_name, group_id, round_type) VALUES ($1, $2, $3, $4) RETURNING *;
+
+-- name: AddQuestionTranslation :one
+INSERT INTO questions_i18n (id,  question, locale, question_id) VALUES ($1, $2, $3, $4) RETURNING *;
+
+-- name: GetRandomQuestionByRound :many
+SELECT
+    qi.*,
+    random_question.group_id,
+    random_question.id
+FROM questions_i18n qi
+JOIN (
+    SELECT q.id, q.group_id
+    FROM questions q
+    WHERE q.game_name = $1
+      AND q.round_type = $2
+      AND q.enabled = TRUE
+    ORDER BY RANDOM()
+    LIMIT 1
+) random_question ON qi.question_id = random_question.id;
+
+-- name: GetRandomQuestionInGroup :many
+SELECT
+    qi.*,
+    random_question.id
+FROM questions_i18n qi
+JOIN (
+    SELECT q.id
+    FROM questions q
+    JOIN questions_groups qg ON q.group_id = qg.id
+    WHERE qg.group_type = 'questions'
+      AND q.group_id = $1
+      AND q.enabled = TRUE
+      AND q.id != $2
+    ORDER BY RANDOM()
+    LIMIT 1
+) random_question ON qi.question_id = random_question.id;
+
+-- name: UpsertQuestionsGroup :one
+INSERT INTO questions_groups (id, group_name, group_type)
+VALUES ($1, $2, $3)
+ON CONFLICT (id) DO UPDATE SET
+    group_name = EXCLUDED.group_name,
+    group_type = EXCLUDED.group_type
+RETURNING *;
+
 -- name: GetGroupNames :many
 SELECT DISTINCT
    group_name
 FROM
    questions_groups
 ORDER BY group_name DESC;
+
+-- name: GetQuestions :many
+SELECT q.*, qi.question, qi.locale, qg.group_name, qg.group_type
+FROM questions q
+JOIN questions_i18n qi ON q.id = qi.question_id
+JOIN questions_groups qg ON q.group_id = qg.id
+WHERE ($1::text = '' OR qi.locale = $1)
+  AND ($2::text = '' OR q.round_type = $2)
+  AND ($3::text = '' OR qg.group_name = $3)
+  AND ($4::boolean IS NULL OR q.enabled = $4)
+ORDER BY q.created_at DESC
+LIMIT $5 OFFSET $6;

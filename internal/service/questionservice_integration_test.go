@@ -102,3 +102,397 @@ func TestIntegrationQuestionGetGroupNames(t *testing.T) {
 		assert.Equal(t, expectedGroups, groups)
 	})
 }
+
+func TestIntegrationQuestionGetQuestions(t *testing.T) {
+	t.Run("Should successfully get questions with no filters", func(t *testing.T) {
+		pool, teardown := setupSubtest(t)
+		defer teardown()
+
+		str, err := db.NewDB(pool)
+		assert.NoError(t, err)
+		randomizer := randomizer.NewUserRandomizer()
+
+		ctx, err := getI18nCtx()
+		require.NoError(t, err)
+
+		questionService := service.NewQuestionService(str, randomizer, "en-GB")
+
+		filters := service.GetQuestionFilters{}
+		questions, err := questionService.GetQuestions(ctx, filters, 100, 1)
+		assert.NoError(t, err)
+
+		expectedQuestions := []service.Question{
+			{
+				Text:      "to get arrested",
+				GroupName: "all",
+				Locale:    "en-GB",
+				RoundType: "most_likely",
+			},
+			{
+				Text:      "to eat ice-cream from the tub",
+				GroupName: "all",
+				Locale:    "en-GB",
+				RoundType: "most_likely",
+			},
+			{
+				Text:      "to fight a police person",
+				GroupName: "all",
+				Locale:    "en-GB",
+				RoundType: "most_likely",
+			},
+			{
+				Text:      "to fight a horse",
+				GroupName: "all",
+				Locale:    "en-GB",
+				RoundType: "most_likely",
+			},
+			{
+				Text:      "What do you think about programmers?",
+				GroupName: "programming_group",
+				Locale:    "en-GB",
+				RoundType: "free_form",
+			},
+			{
+				Text:      "What don't you like about programmers?",
+				GroupName: "programming_group",
+				Locale:    "en-GB",
+				RoundType: "free_form",
+			},
+			{
+				Text:      "what don't you think about programmers?",
+				GroupName: "programming_group",
+				Locale:    "en-GB",
+				RoundType: "free_form",
+			},
+			{
+				Text:      "what dont you think about cats",
+				GroupName: "cat_group",
+				Locale:    "en-GB",
+				RoundType: "free_form",
+			},
+			{
+				Text:      "what don't you like about cats?",
+				GroupName: "cat_group",
+				Locale:    "en-GB",
+				RoundType: "free_form",
+			},
+			{
+				Text:      "what do you like about cats?",
+				GroupName: "cat_group",
+				Locale:    "en-GB",
+				RoundType: "free_form",
+			},
+			{
+				Text:      "what do you think about cats",
+				GroupName: "cat_group",
+				Locale:    "en-GB",
+				RoundType: "free_form",
+			},
+			{
+				Text:      "A funny question?",
+				GroupName: "bike_group",
+				Locale:    "en-GB",
+				RoundType: "free_form",
+			},
+			{
+				Text:      "Favourite bike colour?",
+				GroupName: "bike_group",
+				Locale:    "en-GB",
+				RoundType: "free_form",
+			},
+			{
+				Text:      "What do you think about camels?",
+				GroupName: "horse_group",
+				Locale:    "en-GB",
+				RoundType: "multiple_choice",
+			},
+			{
+				Text:      "What do you think about horses?",
+				GroupName: "horse_group",
+				Locale:    "en-GB",
+				RoundType: "multiple_choice",
+			},
+			{
+				Text:      "What is your favourite colour?",
+				GroupName: "colour_group",
+				Locale:    "en-GB",
+				RoundType: "multiple_choice",
+			},
+			{
+				Text:      "What is your least favourite colour?",
+				GroupName: "colour_group",
+				Locale:    "en-GB",
+				RoundType: "multiple_choice",
+			},
+			{
+				Text:      "Strongly Agree",
+				GroupName: "animal_group",
+				Locale:    "en-GB",
+				RoundType: "multiple_choice",
+			},
+			{
+				Text:      "Agree",
+				GroupName: "animal_group",
+				Locale:    "en-GB",
+				RoundType: "multiple_choice",
+			},
+			{
+				Text:      "Disagree",
+				GroupName: "animal_group",
+				Locale:    "en-GB",
+				RoundType: "multiple_choice",
+			},
+			{
+				Text:      "Are cats cute?",
+				GroupName: "animal_group",
+				Locale:    "en-GB",
+				RoundType: "multiple_choice",
+			},
+			{
+				Text:      "Dogs are cuter than cats?",
+				GroupName: "animal_group",
+				Locale:    "en-GB",
+				RoundType: "multiple_choice",
+			},
+		}
+		assert.Equal(t, expectedQuestions, questions)
+	})
+
+	t.Run("Should successfully get questions with group filter", func(t *testing.T) {
+		pool, teardown := setupSubtest(t)
+		defer teardown()
+
+		str, err := db.NewDB(pool)
+		assert.NoError(t, err)
+		randomizer := randomizer.NewUserRandomizer()
+
+		ctx, err := getI18nCtx()
+		require.NoError(t, err)
+
+		questionService := service.NewQuestionService(str, randomizer, "en-GB")
+
+		filters := service.GetQuestionFilters{
+			GroupName: "animal_group",
+		}
+		questions, err := questionService.GetQuestions(ctx, filters, 100, 1)
+		assert.NoError(t, err)
+
+		expectedQuestions := []service.Question{
+			{
+				Text:      "Strongly Agree",
+				GroupName: "animal_group",
+				Locale:    "en-GB",
+				RoundType: "multiple_choice",
+			},
+			{
+				Text:      "Agree",
+				GroupName: "animal_group",
+				Locale:    "en-GB",
+				RoundType: "multiple_choice",
+			},
+			{
+				Text:      "Disagree",
+				GroupName: "animal_group",
+				Locale:    "en-GB",
+				RoundType: "multiple_choice",
+			},
+			{
+				Text:      "Are cats cute?",
+				GroupName: "animal_group",
+				Locale:    "en-GB",
+				RoundType: "multiple_choice",
+			},
+			{
+				Text:      "Dogs are cuter than cats?",
+				GroupName: "animal_group",
+				Locale:    "en-GB",
+				RoundType: "multiple_choice",
+			},
+		}
+		assert.Equal(t, expectedQuestions, questions)
+	})
+
+	t.Run("Should successfully get questions with round type filter", func(t *testing.T) {
+		pool, teardown := setupSubtest(t)
+		defer teardown()
+
+		str, err := db.NewDB(pool)
+		assert.NoError(t, err)
+		randomizer := randomizer.NewUserRandomizer()
+
+		ctx, err := getI18nCtx()
+		require.NoError(t, err)
+
+		questionService := service.NewQuestionService(str, randomizer, "en-GB")
+
+		filters := service.GetQuestionFilters{
+			RoundType: "free_form",
+		}
+		questions, err := questionService.GetQuestions(ctx, filters, 100, 1)
+		assert.NoError(t, err)
+
+		expectedQuestions := []service.Question{
+			{
+				Text:      "What do you think about programmers?",
+				GroupName: "programming_group",
+				Locale:    "en-GB",
+				RoundType: "free_form",
+			},
+			{
+				Text:      "What don't you like about programmers?",
+				GroupName: "programming_group",
+				Locale:    "en-GB",
+				RoundType: "free_form",
+			},
+			{
+				Text:      "what don't you think about programmers?",
+				GroupName: "programming_group",
+				Locale:    "en-GB",
+				RoundType: "free_form",
+			},
+			{
+				Text:      "what dont you think about cats",
+				GroupName: "cat_group",
+				Locale:    "en-GB",
+				RoundType: "free_form",
+			},
+			{
+				Text:      "what don't you like about cats?",
+				GroupName: "cat_group",
+				Locale:    "en-GB",
+				RoundType: "free_form",
+			},
+			{
+				Text:      "what do you like about cats?",
+				GroupName: "cat_group",
+				Locale:    "en-GB",
+				RoundType: "free_form",
+			},
+			{
+				Text:      "what do you think about cats",
+				GroupName: "cat_group",
+				Locale:    "en-GB",
+				RoundType: "free_form",
+			},
+			{
+				Text:      "A funny question?",
+				GroupName: "bike_group",
+				Locale:    "en-GB",
+				RoundType: "free_form",
+			},
+			{
+				Text:      "Favourite bike colour?",
+				GroupName: "bike_group",
+				Locale:    "en-GB",
+				RoundType: "free_form",
+			},
+		}
+		assert.Equal(t, expectedQuestions, questions)
+	})
+
+	t.Run("Should successfully get questions with all the filters", func(t *testing.T) {
+		pool, teardown := setupSubtest(t)
+		defer teardown()
+
+		str, err := db.NewDB(pool)
+		assert.NoError(t, err)
+		randomizer := randomizer.NewUserRandomizer()
+
+		ctx, err := getI18nCtx()
+		require.NoError(t, err)
+
+		questionService := service.NewQuestionService(str, randomizer, "en-GB")
+
+		filters := service.GetQuestionFilters{
+			GroupName: "cat_group",
+			RoundType: "free_form",
+		}
+		questions, err := questionService.GetQuestions(ctx, filters, 100, 1)
+		assert.NoError(t, err)
+
+		expectedQuestions := []service.Question{
+			{
+				Text:      "what dont you think about cats",
+				GroupName: "cat_group",
+				Locale:    "en-GB",
+				RoundType: "free_form",
+			},
+			{
+				Text:      "what don't you like about cats?",
+				GroupName: "cat_group",
+				Locale:    "en-GB",
+				RoundType: "free_form",
+			},
+			{
+				Text:      "what do you like about cats?",
+				GroupName: "cat_group",
+				Locale:    "en-GB",
+				RoundType: "free_form",
+			},
+			{
+				Text:      "what do you think about cats",
+				GroupName: "cat_group",
+				Locale:    "en-GB",
+				RoundType: "free_form",
+			},
+		}
+		assert.Equal(t, expectedQuestions, questions)
+	})
+
+	t.Run("Should successfully get questions with limit", func(t *testing.T) {
+		pool, teardown := setupSubtest(t)
+		defer teardown()
+
+		str, err := db.NewDB(pool)
+		assert.NoError(t, err)
+		randomizer := randomizer.NewUserRandomizer()
+
+		ctx, err := getI18nCtx()
+		require.NoError(t, err)
+
+		questionService := service.NewQuestionService(str, randomizer, "en-GB")
+
+		filters := service.GetQuestionFilters{}
+		questions, err := questionService.GetQuestions(ctx, filters, 1, 1)
+		assert.NoError(t, err)
+
+		expectedQuestions := []service.Question{
+
+			{
+				Text:      "to get arrested",
+				GroupName: "all",
+				Locale:    "en-GB",
+				RoundType: "most_likely",
+			},
+		}
+		assert.Equal(t, expectedQuestions, questions)
+	})
+
+	// t.Run("Should successfully get questions with limit and offset", func(t *testing.T) {
+	// 	pool, teardown := setupSubtest(t)
+	// 	defer teardown()
+	//
+	// 	str, err := db.NewDB(pool)
+	// 	assert.NoError(t, err)
+	// 	randomizer := randomizer.NewUserRandomizer()
+	//
+	// 	ctx, err := getI18nCtx()
+	// 	require.NoError(t, err)
+	//
+	// 	questionService := service.NewQuestionService(str, randomizer, "en-GB")
+	//
+	// 	filters := service.GetQuestionFilters{}
+	// 	questions, err := questionService.GetQuestions(ctx, filters, 1, 1)
+	// 	assert.NoError(t, err)
+	//
+	// 	expectedQuestions := []service.Question{
+	// 		{
+	// 			Text:      "to eat ice-cream from the tub",
+	// 			GroupName: "all",
+	// 			Locale:    "en-GB",
+	// 			RoundType: "most_likely",
+	// 		},
+	// 	}
+	// 	assert.Equal(t, expectedQuestions, questions)
+	// })
+}

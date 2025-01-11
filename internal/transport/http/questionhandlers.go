@@ -5,7 +5,9 @@ import (
 	"encoding/json"
 	"io"
 	"log/slog"
+	"math"
 	"net/http"
+	"strconv"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
@@ -22,6 +24,12 @@ type QuestionServicer interface {
 		locale string,
 	) (service.QuestionTranslation, error)
 	GetGroupNames(ctx context.Context) ([]string, error)
+	GetQuestions(
+		ctx context.Context,
+		filters service.GetQuestionFilters,
+		limit int32,
+		pageNum int32,
+	) ([]service.Question, error)
 }
 
 type NewQuestion struct {
@@ -33,12 +41,6 @@ type NewQuestion struct {
 func (s *Server) addQuestionHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	s.Logger.DebugContext(ctx, "addQuestionHandler called")
-
-	if r.Method != http.MethodPost {
-		s.Logger.WarnContext(ctx, "invalid HTTP method, expected POST", slog.Any("method", r.Method))
-		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
-		return
-	}
 
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
@@ -80,12 +82,6 @@ type NewQuestionTranslation struct {
 func (s *Server) addQuestionTranslationHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	s.Logger.DebugContext(ctx, "addQuestionTranslationHandler called")
-
-	if r.Method != http.MethodPut {
-		s.Logger.WarnContext(ctx, "invalid HTTP method, expected PUT", slog.Any("method", r.Method))
-		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
-		return
-	}
 
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
@@ -130,15 +126,75 @@ func (s *Server) addQuestionTranslationHandler(w http.ResponseWriter, r *http.Re
 	w.WriteHeader(http.StatusCreated)
 }
 
+func (s *Server) getQuestionsHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	s.Logger.DebugContext(ctx, "GetQuestionsHandler called")
+
+	roundType := r.URL.Query().Get("round_type")
+	groupName := r.URL.Query().Get("group_name")
+	limitQuery := r.URL.Query().Get("limit")
+	pageNumQuery := r.URL.Query().Get("page_num")
+
+	if limitQuery == "" {
+		limitQuery = "100"
+	}
+
+	if pageNumQuery == "" {
+		pageNumQuery = "1"
+	}
+
+	limit, err := strconv.Atoi(limitQuery)
+	if err != nil {
+		s.Logger.ErrorContext(ctx, "failed to parse limit", slog.Any("error", err))
+		http.Error(w, "Bad Request", http.StatusBadRequest)
+		return
+	}
+
+	if limit < 0 || limit > math.MaxInt32 {
+		s.Logger.ErrorContext(ctx, "limit out of range must be greater than 0", slog.Any("limit", limit))
+		http.Error(w, "Bad Request", http.StatusBadRequest)
+		return
+	}
+
+	pageNum, err := strconv.Atoi(pageNumQuery)
+	if err != nil {
+		s.Logger.ErrorContext(ctx, "failed to parse pageNum", slog.Any("error", err))
+		http.Error(w, "Bad Request", http.StatusBadRequest)
+		return
+	}
+
+	if pageNum < 1 || pageNum > math.MaxInt32 {
+		s.Logger.ErrorContext(ctx, "pageNum out of range must be greater than 0", slog.Any("page_num", pageNum))
+		http.Error(w, "Bad Request", http.StatusBadRequest)
+		return
+	}
+
+	filters := service.GetQuestionFilters{
+		Locale:    s.Config.DefaultLocale.String(),
+		RoundType: roundType,
+		GroupName: groupName,
+	}
+
+	//nolint:gosec // disable G109
+	// We check the max limit above
+	questions, err := s.QuestionService.GetQuestions(ctx, filters, int32(limit), int32(pageNum))
+	if err != nil {
+		s.Logger.ErrorContext(ctx, "failed to get questions", slog.Any("error", err))
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+
+	if err := json.NewEncoder(w).Encode(questions); err != nil {
+		s.Logger.ErrorContext(ctx, "failed to encode questions", slog.Any("error", err))
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+}
+
 func (s *Server) getGroupNamesHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	s.Logger.DebugContext(ctx, "GetGroupNamesHandler called")
-
-	if r.Method != http.MethodGet {
-		s.Logger.WarnContext(ctx, "invalid HTTP method, expected GET", slog.Any("method", r.Method))
-		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
-		return
-	}
 
 	groupNames, err := s.QuestionService.GetGroupNames(ctx)
 	if err != nil {

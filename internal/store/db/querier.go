@@ -34,6 +34,7 @@ type Querier interface {
 	GetLatestRoundByGameStateID(ctx context.Context, id uuid.UUID) (GetLatestRoundByGameStateIDRow, error)
 	GetLatestRoundByPlayerID(ctx context.Context, playerID uuid.UUID) (GetLatestRoundByPlayerIDRow, error)
 	GetPlayerByID(ctx context.Context, id uuid.UUID) (Player, error)
+	GetQuestions(ctx context.Context, arg GetQuestionsParams) ([]GetQuestionsRow, error)
 	GetRandomQuestionByRound(ctx context.Context, arg GetRandomQuestionByRoundParams) ([]GetRandomQuestionByRoundRow, error)
 	GetRandomQuestionInGroup(ctx context.Context, arg GetRandomQuestionInGroupParams) ([]GetRandomQuestionInGroupRow, error)
 	GetRoomByCode(ctx context.Context, roomCode string) (Room, error)

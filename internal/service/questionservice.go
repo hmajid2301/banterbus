@@ -64,3 +64,42 @@ func (q QuestionService) AddTranslation(
 func (q QuestionService) GetGroupNames(ctx context.Context) ([]string, error) {
 	return q.store.GetGroupNames(ctx)
 }
+
+type GetQuestionFilters struct {
+	Locale    string
+	RoundType string
+	GroupName string
+	Enabled   string
+}
+
+// TODO: fix pagination
+func (q QuestionService) GetQuestions(
+	ctx context.Context,
+	filters GetQuestionFilters,
+	limit int32,
+	pageNum int32,
+) ([]Question, error) {
+	offset := (pageNum - 1) * limit
+	// TODO: refactor query to include actual names i.e. Locale instead of column1
+	qq, err := q.store.GetQuestions(ctx, db.GetQuestionsParams{
+		Column1: filters.Locale,
+		Column2: filters.RoundType,
+		Column3: filters.GroupName,
+		Column4: true,
+		Limit:   limit,
+		Offset:  offset,
+	})
+
+	questions := []Question{}
+	for _, q := range qq {
+		question := Question{
+			Text:      q.Question,
+			GroupName: q.GroupName,
+			Locale:    q.Locale,
+			RoundType: q.RoundType,
+		}
+		questions = append(questions, question)
+	}
+
+	return questions, err
+}

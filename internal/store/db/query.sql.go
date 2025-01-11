@@ -828,6 +828,81 @@ func (q *Queries) GetPlayerByID(ctx context.Context, id uuid.UUID) (Player, erro
 	return i, err
 }
 
+const getQuestions = `-- name: GetQuestions :many
+SELECT q.id, q.created_at, q.updated_at, q.game_name, q.round_type, q.enabled, q.group_id, qi.question, qi.locale, qg.group_name, qg.group_type
+FROM questions q
+JOIN questions_i18n qi ON q.id = qi.question_id
+JOIN questions_groups qg ON q.group_id = qg.id
+WHERE ($1::text = '' OR qi.locale = $1)
+  AND ($2::text = '' OR q.round_type = $2)
+  AND ($3::text = '' OR qg.group_name = $3)
+  AND ($4::boolean IS NULL OR q.enabled = $4)
+ORDER BY q.created_at DESC
+LIMIT $5 OFFSET $6
+`
+
+type GetQuestionsParams struct {
+	Column1 string
+	Column2 string
+	Column3 string
+	Column4 bool
+	Limit   int32
+	Offset  int32
+}
+
+type GetQuestionsRow struct {
+	ID        uuid.UUID
+	CreatedAt pgtype.Timestamp
+	UpdatedAt pgtype.Timestamp
+	GameName  string
+	RoundType string
+	Enabled   pgtype.Bool
+	GroupID   uuid.UUID
+	Question  string
+	Locale    string
+	GroupName string
+	GroupType string
+}
+
+func (q *Queries) GetQuestions(ctx context.Context, arg GetQuestionsParams) ([]GetQuestionsRow, error) {
+	rows, err := q.db.Query(ctx, getQuestions,
+		arg.Column1,
+		arg.Column2,
+		arg.Column3,
+		arg.Column4,
+		arg.Limit,
+		arg.Offset,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetQuestionsRow
+	for rows.Next() {
+		var i GetQuestionsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.GameName,
+			&i.RoundType,
+			&i.Enabled,
+			&i.GroupID,
+			&i.Question,
+			&i.Locale,
+			&i.GroupName,
+			&i.GroupType,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getRandomQuestionByRound = `-- name: GetRandomQuestionByRound :many
 SELECT
     qi.id, qi.created_at, qi.updated_at, qi.question, qi.locale, qi.question_id,

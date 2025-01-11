@@ -154,3 +154,83 @@ func TestQuestionGetGroupNames(t *testing.T) {
 		assert.Error(t, err)
 	})
 }
+
+func TestQuestionGetQuestions(t *testing.T) {
+	t.Run("Should successfully get questions", func(t *testing.T) {
+		mockStore := mockService.NewMockStorer(t)
+		mockRandom := mockService.NewMockRandomizer(t)
+		srv := service.NewQuestionService(mockStore, mockRandom, "en-GB")
+
+		ctx := context.Background()
+
+		questionsDB := []db.GetQuestionsRow{
+			{
+				Question:  "Why are cats cool",
+				GroupName: "cat",
+				Locale:    "en-GB",
+				RoundType: "free_form",
+			},
+			{
+				Question:  "What is your favourite cat",
+				GroupName: "cat",
+				Locale:    "en-GB",
+				RoundType: "free_form",
+			},
+		}
+		mockStore.EXPECT().GetQuestions(ctx, db.GetQuestionsParams{
+			Column1: "en-GB",
+			Column2: "free_form",
+			Column3: "cat",
+			Column4: true,
+			Limit:   100,
+			Offset:  0,
+		}).Return(questionsDB, nil)
+
+		filters := service.GetQuestionFilters{
+			Locale:    "en-GB",
+			RoundType: "free_form",
+			GroupName: "cat",
+		}
+		questions, err := srv.GetQuestions(ctx, filters, 100, 1)
+		assert.NoError(t, err)
+		expectedQuestions := []service.Question{
+			{
+				Text:      "Why are cats cool",
+				GroupName: "cat",
+				Locale:    "en-GB",
+				RoundType: "free_form",
+			},
+			{
+				Text:      "What is your favourite cat",
+				GroupName: "cat",
+				Locale:    "en-GB",
+				RoundType: "free_form",
+			},
+		}
+		assert.Equal(t, expectedQuestions, questions)
+	})
+
+	t.Run("Should fail to get questions, DB fails", func(t *testing.T) {
+		mockStore := mockService.NewMockStorer(t)
+		mockRandom := mockService.NewMockRandomizer(t)
+		srv := service.NewQuestionService(mockStore, mockRandom, "en-GB")
+
+		ctx := context.Background()
+		mockStore.EXPECT().GetQuestions(ctx, db.GetQuestionsParams{
+			Column1: "en-GB",
+			Column2: "free_form",
+			Column3: "cat",
+			Column4: true,
+			Limit:   100,
+			Offset:  0,
+		}).Return(nil, fmt.Errorf("fail to get questions"))
+
+		filters := service.GetQuestionFilters{
+			Locale:    "en-GB",
+			RoundType: "free_form",
+			GroupName: "cat",
+		}
+		_, err := srv.GetQuestions(ctx, filters, 100, 1)
+		assert.Error(t, err)
+	})
+}

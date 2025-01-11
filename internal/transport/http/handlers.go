@@ -81,9 +81,25 @@ func (s *Server) setupHTTPRoutes(config ServerConfig, keyfunc jwt.Keyfunc, stati
 	mux.HandleFunc("/health", s.healthHandler)
 	mux.HandleFunc("/readiness", s.readinessHandler)
 
-	mux.Handle("/question", m.ValidateJWT(http.HandlerFunc(s.addQuestionHandler)))
+	mux.Handle("/question", m.ValidateJWT(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodPost:
+			s.addQuestionHandler(w, r)
+		case http.MethodGet:
+			s.getQuestionsHandler(w, r)
+		default:
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		}
+	})))
+
 	mux.Handle("/question/{id}/locale/{locale}", m.ValidateJWT(http.HandlerFunc(s.addQuestionTranslationHandler)))
-	mux.Handle("/question/group/name", m.ValidateJWT(http.HandlerFunc(s.getGroupNamesHandler)))
+	mux.Handle("/question/group/name", m.ValidateJWT(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodGet {
+			s.getGroupNamesHandler(w, r)
+		} else {
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		}
+	})))
 
 	if config.Environment == "local" {
 		mux.HandleFunc("/debug/pprof/", pprof.Index)

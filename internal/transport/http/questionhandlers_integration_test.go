@@ -53,7 +53,7 @@ func TestIntegrationAddQuestionHandler(t *testing.T) {
 
 		ctx := context.Background()
 		endpoint := fmt.Sprintf("%s/question", srv.URL)
-		req, err := http.NewRequestWithContext(ctx, http.MethodGet, endpoint, bytes.NewReader(jsonData))
+		req, err := http.NewRequestWithContext(ctx, http.MethodPut, endpoint, bytes.NewReader(jsonData))
 		require.NoError(t, err)
 
 		client := &http.Client{}
@@ -187,4 +187,31 @@ func TestIntegrationGetGroupNamesHandler(t *testing.T) {
 		}
 		assert.ElementsMatch(t, expectedGroups, groupNames)
 	})
+}
+
+func TestIntegrationGetQuestionsHandler(t *testing.T) {
+	srv, err := banterbustest.NewTestServer()
+	require.NoError(t, err)
+	defer srv.Close()
+
+	// TODO: enable with pagination
+	// t.Run("Should successfully get handler", func(t *testing.T) {
+	// 	ctx := context.Background()
+	// 	endpoint := fmt.Sprintf("%s/question", srv.URL)
+	// 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, endpoint, http.NoBody)
+	// 	require.NoError(t, err)
+	//
+	// 	client := &http.Client{}
+	// 	resp, err := client.Do(req)
+	// 	assert.NoError(t, err)
+	// 	defer resp.Body.Close()
+	//
+	// 	assert.Equal(t, http.StatusOK, resp.StatusCode)
+	// 	var questions []service.Question
+	// 	err = json.NewDecoder(resp.Body).Decode(&questions)
+	// 	assert.NoError(t, err)
+	//
+	// 	expectedQuestions := []service.Question{}
+	// 	assert.ElementsMatch(t, expectedQuestions, questions)
+	// })
 }

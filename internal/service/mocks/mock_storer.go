@@ -1486,6 +1486,65 @@ func (_c *MockStorer_GetPlayerByID_Call) RunAndReturn(run func(context.Context, 
 	return _c
 }
 
+// GetQuestions provides a mock function with given fields: ctx, arg
+func (_m *MockStorer) GetQuestions(ctx context.Context, arg db.GetQuestionsParams) ([]db.GetQuestionsRow, error) {
+	ret := _m.Called(ctx, arg)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetQuestions")
+	}
+
+	var r0 []db.GetQuestionsRow
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, db.GetQuestionsParams) ([]db.GetQuestionsRow, error)); ok {
+		return rf(ctx, arg)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, db.GetQuestionsParams) []db.GetQuestionsRow); ok {
+		r0 = rf(ctx, arg)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]db.GetQuestionsRow)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, db.GetQuestionsParams) error); ok {
+		r1 = rf(ctx, arg)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockStorer_GetQuestions_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetQuestions'
+type MockStorer_GetQuestions_Call struct {
+	*mock.Call
+}
+
+// GetQuestions is a helper method to define mock.On call
+//   - ctx context.Context
+//   - arg db.GetQuestionsParams
+func (_e *MockStorer_Expecter) GetQuestions(ctx interface{}, arg interface{}) *MockStorer_GetQuestions_Call {
+	return &MockStorer_GetQuestions_Call{Call: _e.mock.On("GetQuestions", ctx, arg)}
+}
+
+func (_c *MockStorer_GetQuestions_Call) Run(run func(ctx context.Context, arg db.GetQuestionsParams)) *MockStorer_GetQuestions_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(db.GetQuestionsParams))
+	})
+	return _c
+}
+
+func (_c *MockStorer_GetQuestions_Call) Return(_a0 []db.GetQuestionsRow, _a1 error) *MockStorer_GetQuestions_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockStorer_GetQuestions_Call) RunAndReturn(run func(context.Context, db.GetQuestionsParams) ([]db.GetQuestionsRow, error)) *MockStorer_GetQuestions_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetRandomQuestionByRound provides a mock function with given fields: ctx, arg
 func (_m *MockStorer) GetRandomQuestionByRound(ctx context.Context, arg db.GetRandomQuestionByRoundParams) ([]db.GetRandomQuestionByRoundRow, error) {
 	ret := _m.Called(ctx, arg)
