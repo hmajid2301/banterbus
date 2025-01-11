@@ -126,31 +126,45 @@ func TestQuestionAddTranslation(t *testing.T) {
 	})
 }
 
-func TestQuestionGetGroupNames(t *testing.T) {
-	t.Run("Should successfully get all group names", func(t *testing.T) {
+func TestQuestionGetGroups(t *testing.T) {
+	t.Run("Should successfully get all group", func(t *testing.T) {
 		mockStore := mockService.NewMockStorer(t)
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewQuestionService(mockStore, mockRandom, "en-GB")
 
 		ctx := context.Background()
 
-		expectedGroups := []string{"cat", "cricket", "programming"}
-		mockStore.EXPECT().GetGroupNames(ctx).Return(expectedGroups, nil)
+		mockStore.EXPECT().GetGroups(ctx).Return([]db.QuestionsGroup{
+			{
+				GroupName: "cat",
+			},
+			{
+				GroupName: "programming",
+			},
+		}, nil)
 
-		groups, err := srv.GetGroupNames(ctx)
+		groups, err := srv.GetGroups(ctx)
 		assert.NoError(t, err)
+		expectedGroups := []service.Group{
+			{
+				Name: "cat",
+			},
+			{
+				Name: "programming",
+			},
+		}
 		assert.Equal(t, expectedGroups, groups)
 	})
 
-	t.Run("Should fail get all group names, request to DB fails", func(t *testing.T) {
+	t.Run("Should fail get all group, request to DB fails", func(t *testing.T) {
 		mockStore := mockService.NewMockStorer(t)
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewQuestionService(mockStore, mockRandom, "en-GB")
 
 		ctx := context.Background()
 
-		mockStore.EXPECT().GetGroupNames(ctx).Return(nil, fmt.Errorf("failed to make request"))
-		_, err := srv.GetGroupNames(ctx)
+		mockStore.EXPECT().GetGroups(ctx).Return(nil, fmt.Errorf("failed to make request"))
+		_, err := srv.GetGroups(ctx)
 		assert.Error(t, err)
 	})
 }

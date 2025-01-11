@@ -111,6 +111,10 @@ type Question struct {
 	RoundType string
 }
 
+type Group struct {
+	Name string
+}
+
 type QuestionTranslation struct {
 	Text   string
 	Locale string

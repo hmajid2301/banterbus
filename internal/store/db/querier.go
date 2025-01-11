@@ -30,7 +30,7 @@ type Querier interface {
 	GetCurrentQuestionByPlayerID(ctx context.Context, id uuid.UUID) (GetCurrentQuestionByPlayerIDRow, error)
 	GetGameState(ctx context.Context, id uuid.UUID) (GameState, error)
 	GetGameStateByPlayerID(ctx context.Context, playerID uuid.UUID) (GameState, error)
-	GetGroupNames(ctx context.Context) ([]string, error)
+	GetGroups(ctx context.Context) ([]QuestionsGroup, error)
 	GetLatestRoundByGameStateID(ctx context.Context, id uuid.UUID) (GetLatestRoundByGameStateIDRow, error)
 	GetLatestRoundByPlayerID(ctx context.Context, playerID uuid.UUID) (GetLatestRoundByPlayerIDRow, error)
 	GetPlayerByID(ctx context.Context, id uuid.UUID) (Player, error)

@@ -12,6 +12,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"gitlab.com/hmajid2301/banterbus/internal/banterbustest"
+	"gitlab.com/hmajid2301/banterbus/internal/service"
 	transporthttp "gitlab.com/hmajid2301/banterbus/internal/transport/http"
 )
 
@@ -155,14 +156,14 @@ func TestIntegrationAddQuestionHandler(t *testing.T) {
 // 	})
 // }
 
-func TestIntegrationGetGroupNamesHandler(t *testing.T) {
+func TestIntegrationGetGroupsHandler(t *testing.T) {
 	srv, err := banterbustest.NewTestServer()
 	require.NoError(t, err)
 	defer srv.Close()
 
-	t.Run("Should successfully get group names", func(t *testing.T) {
+	t.Run("Should successfully get group", func(t *testing.T) {
 		ctx := context.Background()
-		endpoint := fmt.Sprintf("%s/question/group/name", srv.URL)
+		endpoint := fmt.Sprintf("%s/question/group", srv.URL)
 		req, err := http.NewRequestWithContext(ctx, http.MethodGet, endpoint, http.NoBody)
 		require.NoError(t, err)
 
@@ -172,20 +173,29 @@ func TestIntegrationGetGroupNamesHandler(t *testing.T) {
 		defer resp.Body.Close()
 
 		assert.Equal(t, http.StatusOK, resp.StatusCode)
-		var groupNames []string
-		err = json.NewDecoder(resp.Body).Decode(&groupNames)
+		var groups transporthttp.Group
+		err = json.NewDecoder(resp.Body).Decode(&groups)
 		assert.NoError(t, err)
 
-		expectedGroups := []string{
-			"programming_group",
-			"horse_group",
-			"colour_group",
-			"cat_group",
-			"bike_group",
-			"animal_group",
-			"all",
+		expectedGroups := transporthttp.Group{
+			Groups: []service.Group{
+				{Name: "programming_group"},
+				{Name: "programming_group"},
+				{Name: "horse_group"},
+				{Name: "horse_group"},
+				{Name: "colour_group"},
+				{Name: "colour_group"},
+				{Name: "cat_group"},
+				{Name: "cat_group"},
+				{Name: "bike_group"},
+				{Name: "bike_group"},
+				{Name: "animal_group"},
+				{Name: "animal_group"},
+				{Name: "all"},
+				{Name: "all"},
+			},
 		}
-		assert.ElementsMatch(t, expectedGroups, groupNames)
+		assert.Equal(t, expectedGroups, groups)
 	})
 }
 

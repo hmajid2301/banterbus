@@ -704,27 +704,33 @@ func (q *Queries) GetGameStateByPlayerID(ctx context.Context, playerID uuid.UUID
 	return i, err
 }
 
-const getGroupNames = `-- name: GetGroupNames :many
-SELECT DISTINCT
-   group_name
+const getGroups = `-- name: GetGroups :many
+SELECT
+   id, created_at, updated_at, group_name, group_type
 FROM
    questions_groups
 ORDER BY group_name DESC
 `
 
-func (q *Queries) GetGroupNames(ctx context.Context) ([]string, error) {
-	rows, err := q.db.Query(ctx, getGroupNames)
+func (q *Queries) GetGroups(ctx context.Context) ([]QuestionsGroup, error) {
+	rows, err := q.db.Query(ctx, getGroups)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []string
+	var items []QuestionsGroup
 	for rows.Next() {
-		var group_name string
-		if err := rows.Scan(&group_name); err != nil {
+		var i QuestionsGroup
+		if err := rows.Scan(
+			&i.ID,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.GroupName,
+			&i.GroupType,
+		); err != nil {
 			return nil, err
 		}
-		items = append(items, group_name)
+		items = append(items, i)
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err

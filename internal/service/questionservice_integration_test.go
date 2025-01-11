@@ -88,16 +88,25 @@ func TestIntegrationQuestionGetGroupNames(t *testing.T) {
 
 		questionService := service.NewQuestionService(str, randomizer, "en-GB")
 
-		groups, err := questionService.GetGroupNames(ctx)
+		groups, err := questionService.GetGroups(ctx)
 		assert.NoError(t, err)
-		expectedGroups := []string{
-			"programming_group",
-			"horse_group",
-			"colour_group",
-			"cat_group",
-			"bike_group",
-			"animal_group",
-			"all",
+
+		// TODO: fix this with questions vs answers
+		expectedGroups := []service.Group{
+			{Name: "programming_group"},
+			{Name: "programming_group"},
+			{Name: "horse_group"},
+			{Name: "horse_group"},
+			{Name: "colour_group"},
+			{Name: "colour_group"},
+			{Name: "cat_group"},
+			{Name: "cat_group"},
+			{Name: "bike_group"},
+			{Name: "bike_group"},
+			{Name: "animal_group"},
+			{Name: "animal_group"},
+			{Name: "all"},
+			{Name: "all"},
 		}
 		assert.Equal(t, expectedGroups, groups)
 	})

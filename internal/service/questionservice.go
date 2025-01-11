@@ -61,8 +61,19 @@ func (q QuestionService) AddTranslation(
 	}, err
 }
 
-func (q QuestionService) GetGroupNames(ctx context.Context) ([]string, error) {
-	return q.store.GetGroupNames(ctx)
+func (q QuestionService) GetGroups(ctx context.Context) ([]Group, error) {
+	groupsDB, err := q.store.GetGroups(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	groups := []Group{}
+	for _, g := range groupsDB {
+		group := Group{Name: g.GroupName}
+		groups = append(groups, group)
+	}
+
+	return groups, nil
 }
 
 type GetQuestionFilters struct {

@@ -23,7 +23,7 @@ type QuestionServicer interface {
 		text string,
 		locale string,
 	) (service.QuestionTranslation, error)
-	GetGroupNames(ctx context.Context) ([]string, error)
+	GetGroups(ctx context.Context) ([]service.Group, error)
 	GetQuestions(
 		ctx context.Context,
 		filters service.GetQuestionFilters,
@@ -130,6 +130,7 @@ func (s *Server) getQuestionsHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	s.Logger.DebugContext(ctx, "GetQuestionsHandler called")
 
+	// TODO: validate round_type and group_name
 	roundType := r.URL.Query().Get("round_type")
 	groupName := r.URL.Query().Get("group_name")
 	limitQuery := r.URL.Query().Get("limit")
@@ -193,22 +194,38 @@ func (s *Server) getQuestionsHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-func (s *Server) getGroupNamesHandler(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-	s.Logger.DebugContext(ctx, "GetGroupNamesHandler called")
+type Group struct {
+	Groups []service.Group
+}
 
-	groupNames, err := s.QuestionService.GetGroupNames(ctx)
+func (s *Server) getGroupsHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	s.Logger.DebugContext(ctx, "getGroupsHandler called")
+
+	groups, err := s.QuestionService.GetGroups(ctx)
 	if err != nil {
-		s.Logger.ErrorContext(ctx, "failed to get group names", slog.Any("error", err))
+		s.Logger.ErrorContext(ctx, "failed to get groups", slog.Any("error", err))
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 
-	if err := json.NewEncoder(w).Encode(groupNames); err != nil {
-		s.Logger.ErrorContext(ctx, "failed to encode group names", slog.Any("error", err))
+	respBody := Group{
+		Groups: groups,
+	}
+
+	resp, err := json.Marshal(respBody)
+	if err != nil {
+		s.Logger.ErrorContext(ctx, "failed to encode groups", slog.Any("error", err))
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
+
+	_, err = w.Write(resp)
+	if err != nil {
+		s.Logger.ErrorContext(ctx, "failed to write JSON", slog.Any("error", err))
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
 }

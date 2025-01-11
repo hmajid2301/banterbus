@@ -340,9 +340,9 @@ ON CONFLICT (id) DO UPDATE SET
     group_type = EXCLUDED.group_type
 RETURNING *;
 
--- name: GetGroupNames :many
-SELECT DISTINCT
-   group_name
+-- name: GetGroups :many
+SELECT
+   *
 FROM
    questions_groups
 ORDER BY group_name DESC;

@@ -1257,24 +1257,24 @@ func (_c *MockStorer_GetGameStateByPlayerID_Call) RunAndReturn(run func(context.
 	return _c
 }
 
-// GetGroupNames provides a mock function with given fields: ctx
-func (_m *MockStorer) GetGroupNames(ctx context.Context) ([]string, error) {
+// GetGroups provides a mock function with given fields: ctx
+func (_m *MockStorer) GetGroups(ctx context.Context) ([]db.QuestionsGroup, error) {
 	ret := _m.Called(ctx)
 
 	if len(ret) == 0 {
-		panic("no return value specified for GetGroupNames")
+		panic("no return value specified for GetGroups")
 	}
 
-	var r0 []string
+	var r0 []db.QuestionsGroup
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context) ([]string, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context) ([]db.QuestionsGroup, error)); ok {
 		return rf(ctx)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context) []string); ok {
+	if rf, ok := ret.Get(0).(func(context.Context) []db.QuestionsGroup); ok {
 		r0 = rf(ctx)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]string)
+			r0 = ret.Get(0).([]db.QuestionsGroup)
 		}
 	}
 
@@ -1287,30 +1287,30 @@ func (_m *MockStorer) GetGroupNames(ctx context.Context) ([]string, error) {
 	return r0, r1
 }
 
-// MockStorer_GetGroupNames_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetGroupNames'
-type MockStorer_GetGroupNames_Call struct {
+// MockStorer_GetGroups_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetGroups'
+type MockStorer_GetGroups_Call struct {
 	*mock.Call
 }
 
-// GetGroupNames is a helper method to define mock.On call
+// GetGroups is a helper method to define mock.On call
 //   - ctx context.Context
-func (_e *MockStorer_Expecter) GetGroupNames(ctx interface{}) *MockStorer_GetGroupNames_Call {
-	return &MockStorer_GetGroupNames_Call{Call: _e.mock.On("GetGroupNames", ctx)}
+func (_e *MockStorer_Expecter) GetGroups(ctx interface{}) *MockStorer_GetGroups_Call {
+	return &MockStorer_GetGroups_Call{Call: _e.mock.On("GetGroups", ctx)}
 }
 
-func (_c *MockStorer_GetGroupNames_Call) Run(run func(ctx context.Context)) *MockStorer_GetGroupNames_Call {
+func (_c *MockStorer_GetGroups_Call) Run(run func(ctx context.Context)) *MockStorer_GetGroups_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		run(args[0].(context.Context))
 	})
 	return _c
 }
 
-func (_c *MockStorer_GetGroupNames_Call) Return(_a0 []string, _a1 error) *MockStorer_GetGroupNames_Call {
+func (_c *MockStorer_GetGroups_Call) Return(_a0 []db.QuestionsGroup, _a1 error) *MockStorer_GetGroups_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *MockStorer_GetGroupNames_Call) RunAndReturn(run func(context.Context) ([]string, error)) *MockStorer_GetGroupNames_Call {
+func (_c *MockStorer_GetGroups_Call) RunAndReturn(run func(context.Context) ([]db.QuestionsGroup, error)) *MockStorer_GetGroups_Call {
 	_c.Call.Return(run)
 	return _c
 }
