@@ -117,7 +117,10 @@ func (s *Server) setupHTTPRoutes(config ServerConfig, keyfunc jwt.Keyfunc, stati
 		return r.URL.Path != "/health" && r.URL.Path != "/readiness"
 	}
 
+	// routes := m.Logging(mux)
+
 	handler := otelhttp.NewHandler(
+		// routes,
 		mux,
 		"/",
 		otelhttp.WithFilter(healthFilter),
