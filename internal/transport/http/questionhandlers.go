@@ -126,6 +126,10 @@ func (s *Server) addQuestionTranslationHandler(w http.ResponseWriter, r *http.Re
 	w.WriteHeader(http.StatusCreated)
 }
 
+type Question struct {
+	Questions []service.Question
+}
+
 func (s *Server) getQuestionsHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	s.Logger.DebugContext(ctx, "GetQuestionsHandler called")
@@ -185,13 +189,25 @@ func (s *Server) getQuestionsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := json.NewEncoder(w).Encode(questions); err != nil {
+	respBody := Question{
+		Questions: questions,
+	}
+
+	resp, err := json.Marshal(respBody)
+	if err != nil {
 		s.Logger.ErrorContext(ctx, "failed to encode questions", slog.Any("error", err))
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
+
+	_, err = w.Write(resp)
+	if err != nil {
+		s.Logger.ErrorContext(ctx, "failed to write JSON", slog.Any("error", err))
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
 }
 
 type Group struct {
