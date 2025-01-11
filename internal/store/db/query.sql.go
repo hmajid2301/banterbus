@@ -704,6 +704,34 @@ func (q *Queries) GetGameStateByPlayerID(ctx context.Context, playerID uuid.UUID
 	return i, err
 }
 
+const getGroupNames = `-- name: GetGroupNames :many
+SELECT DISTINCT
+   group_name
+FROM
+   questions_groups
+ORDER BY group_name DESC
+`
+
+func (q *Queries) GetGroupNames(ctx context.Context) ([]string, error) {
+	rows, err := q.db.Query(ctx, getGroupNames)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []string
+	for rows.Next() {
+		var group_name string
+		if err := rows.Scan(&group_name); err != nil {
+			return nil, err
+		}
+		items = append(items, group_name)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getLatestRoundByGameStateID = `-- name: GetLatestRoundByGameStateID :one
 SELECT fir.id, fir.created_at, fir.updated_at, fir.round_type, fir.round, fir.fibber_question_id, fir.normal_question_id, fir.game_state_id, gs.submit_deadline
 FROM fibbing_it_rounds fir

@@ -83,6 +83,7 @@ func (s *Server) setupHTTPRoutes(config ServerConfig, keyfunc jwt.Keyfunc, stati
 
 	mux.Handle("/question", m.ValidateJWT(http.HandlerFunc(s.addQuestionHandler)))
 	mux.Handle("/question/{id}/locale/{locale}", m.ValidateJWT(http.HandlerFunc(s.addQuestionTranslationHandler)))
+	mux.Handle("/question/group/name", m.ValidateJWT(http.HandlerFunc(s.getGroupNamesHandler)))
 
 	if config.Environment == "local" {
 		mux.HandleFunc("/debug/pprof/", pprof.Index)
@@ -92,10 +93,20 @@ func (s *Server) setupHTTPRoutes(config ServerConfig, keyfunc jwt.Keyfunc, stati
 		mux.HandleFunc("/debug/pprof/trace", pprof.Trace)
 	}
 
-	handler := otelhttp.NewHandler(mux, "/", otelhttp.WithFilter(func(r *http.Request) bool {
-		return r.URL.Path != "/health" && r.URL.Path != "/readiness"
-	}))
+	httpSpanName := func(_ string, r *http.Request) string {
+		return fmt.Sprintf("HTTP %s %s", r.Method, r.URL.Path)
+	}
 
+	healthFilter := func(r *http.Request) bool {
+		return r.URL.Path != "/health" && r.URL.Path != "/readiness"
+	}
+
+	handler := otelhttp.NewHandler(
+		mux,
+		"/",
+		otelhttp.WithFilter(healthFilter),
+		otelhttp.WithSpanNameFormatter(httpSpanName),
+	)
 	return handler
 }
 

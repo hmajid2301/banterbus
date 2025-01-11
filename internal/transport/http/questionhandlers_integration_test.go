@@ -154,3 +154,37 @@ func TestIntegrationAddQuestionHandler(t *testing.T) {
 // 		require.Equal(t, http.StatusBadRequest, resp.StatusCode)
 // 	})
 // }
+
+func TestIntegrationGetGroupNamesHandler(t *testing.T) {
+	srv, err := banterbustest.NewTestServer()
+	require.NoError(t, err)
+	defer srv.Close()
+
+	t.Run("Should successfully get group names", func(t *testing.T) {
+		ctx := context.Background()
+		endpoint := fmt.Sprintf("%s/question/group/name", srv.URL)
+		req, err := http.NewRequestWithContext(ctx, http.MethodGet, endpoint, http.NoBody)
+		require.NoError(t, err)
+
+		client := &http.Client{}
+		resp, err := client.Do(req)
+		assert.NoError(t, err)
+		defer resp.Body.Close()
+
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
+		var groupNames []string
+		err = json.NewDecoder(resp.Body).Decode(&groupNames)
+		assert.NoError(t, err)
+
+		expectedGroups := []string{
+			"programming_group",
+			"horse_group",
+			"colour_group",
+			"cat_group",
+			"bike_group",
+			"animal_group",
+			"all",
+		}
+		assert.ElementsMatch(t, expectedGroups, groupNames)
+	})
+}

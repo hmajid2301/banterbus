@@ -340,3 +340,10 @@ GROUP BY
     s.player_id,
     p.avatar,
     p.nickname;
+
+-- name: GetGroupNames :many
+SELECT DISTINCT
+   group_name
+FROM
+   questions_groups
+ORDER BY group_name DESC;

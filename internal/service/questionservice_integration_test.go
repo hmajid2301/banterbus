@@ -73,3 +73,32 @@ func TestIntegrationQuestionServiceAdd(t *testing.T) {
 // 		assert.Equal(t, expectedQuestion, q)
 // 	})
 // }
+
+func TestIntegrationQuestionGetGroupNames(t *testing.T) {
+	t.Run("Should successfully get group names", func(t *testing.T) {
+		pool, teardown := setupSubtest(t)
+		defer teardown()
+
+		str, err := db.NewDB(pool)
+		assert.NoError(t, err)
+		randomizer := randomizer.NewUserRandomizer()
+
+		ctx, err := getI18nCtx()
+		require.NoError(t, err)
+
+		questionService := service.NewQuestionService(str, randomizer, "en-GB")
+
+		groups, err := questionService.GetGroupNames(ctx)
+		assert.NoError(t, err)
+		expectedGroups := []string{
+			"programming_group",
+			"horse_group",
+			"colour_group",
+			"cat_group",
+			"bike_group",
+			"animal_group",
+			"all",
+		}
+		assert.Equal(t, expectedGroups, groups)
+	})
+}

@@ -21,6 +21,7 @@ type QuestionServicer interface {
 		text string,
 		locale string,
 	) (service.QuestionTranslation, error)
+	GetGroupNames(ctx context.Context) ([]string, error)
 }
 
 type NewQuestion struct {
@@ -127,4 +128,29 @@ func (s *Server) addQuestionTranslationHandler(w http.ResponseWriter, r *http.Re
 	}
 
 	w.WriteHeader(http.StatusCreated)
+}
+
+func (s *Server) getGroupNamesHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	s.Logger.DebugContext(ctx, "GetGroupNamesHandler called")
+
+	if r.Method != http.MethodGet {
+		s.Logger.WarnContext(ctx, "invalid HTTP method, expected GET", slog.Any("method", r.Method))
+		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	groupNames, err := s.QuestionService.GetGroupNames(ctx)
+	if err != nil {
+		s.Logger.ErrorContext(ctx, "failed to get group names", slog.Any("error", err))
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+
+	if err := json.NewEncoder(w).Encode(groupNames); err != nil {
+		s.Logger.ErrorContext(ctx, "failed to encode group names", slog.Any("error", err))
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
 }

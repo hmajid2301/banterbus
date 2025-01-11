@@ -60,3 +60,7 @@ func (q QuestionService) AddTranslation(
 		Locale: locale,
 	}, err
 }
+
+func (q QuestionService) GetGroupNames(ctx context.Context) ([]string, error) {
+	return q.store.GetGroupNames(ctx)
+}
