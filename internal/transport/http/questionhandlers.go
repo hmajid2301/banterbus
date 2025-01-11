@@ -175,7 +175,7 @@ func (s *Server) getQuestionsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	filters := service.GetQuestionFilters{
-		Locale:    s.Config.DefaultLocale.String(),
+		Locale:    "",
 		RoundType: roundType,
 		GroupName: groupName,
 	}
