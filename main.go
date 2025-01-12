@@ -194,6 +194,7 @@ func terminateHandler(ctx context.Context, logger *slog.Logger, srv *transportht
 
 func runDBMigrations(pool *pgxpool.Pool) error {
 	goose.SetBaseFS(migrations)
+	goose.WithLogger(goose.NopLogger())
 
 	if err := goose.SetDialect("postgres"); err != nil {
 		return err
