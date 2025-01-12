@@ -133,8 +133,16 @@ func (s *Subscriber) updateClientsAboutScore(ctx context.Context, scoreState ser
 
 func (s *Subscriber) updateClientsAboutWinner(ctx context.Context, winnerState service.WinnerState) error {
 	var buf bytes.Buffer
+
+	maxScore := 0
 	for _, player := range winnerState.Players {
-		component := sections.Winner(winnerState)
+		if player.Score > maxScore {
+			maxScore = player.Score
+		}
+	}
+
+	for _, player := range winnerState.Players {
+		component := sections.Winner(winnerState, maxScore)
 		err := component.Render(ctx, &buf)
 		if err != nil {
 			return err

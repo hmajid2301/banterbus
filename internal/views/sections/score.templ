@@ -1,8 +1,8 @@
 package sections
 
 import (
-	"fmt"
 	"gitlab.com/hmajid2301/banterbus/internal/service"
+	"gitlab.com/hmajid2301/banterbus/internal/views/components"
 	"strconv"
 )
 
@@ -16,41 +16,8 @@ templ Score(state service.ScoreState, player service.PlayerWithScoring, maxScore
 						<p x-text="timer"></p>
 					</div>
 				</div>
-				<div class="space-y-4">
-					for i, p := range state.Players {
-						<div class="flex items-center p-4 rounded-lg bg-surface0 shadow-custom-border">
-							<img src={ p.Avatar } alt={ p.Avatar } class="mr-4 w-12 h-12 rounded-full"/>
-							<div class="flex-grow">
-								<div class="flex justify-between items-center mb-2">
-									<span class="py-5 font-semibold">{ p.Nickname }</span>
-									<span class="font-bold font-button">{ strconv.Itoa(p.Score) }</span>
-								</div>
-								<div class={ scoreBarClass(p.Score, maxScore, i) }></div>
-							</div>
-						</div>
-					}
-				</div>
+				@components.Scoreboard(state.Players, maxScore)
 			</div>
 		</div>
 	</div>
-}
-
-func scoreBarClass(score int, maxScore int, index int) string {
-	widthClass := ""
-
-	if maxScore == 0 {
-		widthClass = "w-0"
-	} else if width := (score / maxScore) * 100; width == 100 {
-		widthClass = "w-full"
-	} else {
-		width = int(float64(width / 100 * 12))
-		widthClass = fmt.Sprintf("w-%d", width)
-	}
-
-	colours := []string{
-		"bg-blue", "bg-sapphire", "bg-peach", "bg-flamingo", "bg-green", "bg-yellow", "bg-sky", "bg-teal", "bg-maroon",
-	}
-
-	colour := colours[index]
-	return fmt.Sprintf("h-4 rounded-full %s %s", colour, widthClass)
 }

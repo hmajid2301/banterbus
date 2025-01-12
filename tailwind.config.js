@@ -43,6 +43,10 @@ module.exports = {
         base: "#1e1e2e",
         mantle: "#181825",
         crust: "#11111b",
+
+        gold: "#FFD700",
+        silver: "#C0C0C0",
+        bronze: "#CD7F32",
       },
     },
   },

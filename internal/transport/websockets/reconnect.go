@@ -138,7 +138,14 @@ func (s Subscriber) reconnectToPlayingGame(ctx context.Context, playerID uuid.UU
 			clientErr := s.updateClientAboutErr(ctx, playerID, errStr)
 			return component, errors.Join(clientErr, err)
 		}
-		component = sections.Winner(state)
+
+		maxScore := 0
+		for _, player := range state.Players {
+			if player.Score > maxScore {
+				maxScore = player.Score
+			}
+		}
+		component = sections.Winner(state, maxScore)
 	default:
 		return component, xerrors.New("unknown game state: %s", gameState)
 	}
