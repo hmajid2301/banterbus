@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"fmt"
 	"net/http"
 	"strings"
 
@@ -14,19 +15,8 @@ func (m Middleware) ValidateJWT(next http.Handler) http.Handler {
 			return
 		}
 
-		authHeader := r.Header.Get("Authorization")
-		if authHeader == "" {
-			http.Error(w, "Unauthorized", http.StatusUnauthorized)
-			return
-		}
-
-		if !strings.HasPrefix(authHeader, "Bearer ") {
-			http.Error(w, "Unauthorized", http.StatusUnauthorized)
-			return
-		}
-
-		bearerToken := strings.TrimPrefix(authHeader, "Bearer ")
-		if bearerToken == "" {
+		bearerToken, err := getBearerToken(r.Header.Get("authorization"))
+		if err != nil {
 			http.Error(w, "Unauthorized", http.StatusUnauthorized)
 			return
 		}
@@ -39,4 +29,20 @@ func (m Middleware) ValidateJWT(next http.Handler) http.Handler {
 
 		next.ServeHTTP(w, r)
 	})
+}
+
+func getBearerToken(authHeader string) (string, error) {
+	if authHeader == "" {
+		return "", fmt.Errorf("no authorization header")
+	}
+
+	if !strings.HasPrefix(authHeader, "Bearer ") {
+		return "", fmt.Errorf("no bearer prefix in authorization header")
+	}
+
+	bearerToken := strings.TrimPrefix(authHeader, "Bearer ")
+	if bearerToken == "" {
+		return "", fmt.Errorf("no jwt in authorization header")
+	}
+	return bearerToken, nil
 }

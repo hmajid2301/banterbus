@@ -219,22 +219,17 @@ type CreateQuestionArgs struct {
 	Locale    string
 }
 
-func (s DB) CreateQuestion(ctx context.Context, arg CreateQuestionArgs) error {
+func (s DB) CreateQuestion(ctx context.Context, arg CreateQuestionArgs) (uuid.UUID, error) {
 	tx, err := s.pool.BeginTx(ctx, pgx.TxOptions{})
 	if err != nil {
-		return err
+		return uuid.UUID{}, err
 	}
 
 	defer tx.Rollback(ctx)
 
-	// TODO: should we do this or create if not exists?
-	questionGroup, err := s.WithTx(tx).UpsertQuestionsGroup(ctx, UpsertQuestionsGroupParams{
-		ID:        uuid.Must(uuid.NewV7()),
-		GroupName: arg.GroupName,
-		GroupType: "questions",
-	})
+	questionGroup, err := s.WithTx(tx).GetGroupByName(ctx, arg.GroupName)
 	if err != nil {
-		return err
+		return uuid.UUID{}, err
 	}
 
 	q, err := s.WithTx(tx).AddQuestion(ctx, AddQuestionParams{
@@ -244,7 +239,7 @@ func (s DB) CreateQuestion(ctx context.Context, arg CreateQuestionArgs) error {
 		GroupID:   questionGroup.ID,
 	})
 	if err != nil {
-		return err
+		return uuid.UUID{}, err
 	}
 
 	_, err = s.WithTx(tx).AddQuestionTranslation(ctx, AddQuestionTranslationParams{
@@ -254,8 +249,8 @@ func (s DB) CreateQuestion(ctx context.Context, arg CreateQuestionArgs) error {
 		Locale:     arg.Locale,
 	})
 	if err != nil {
-		return err
+		return uuid.UUID{}, err
 	}
 
-	return tx.Commit(ctx)
+	return q.ID, tx.Commit(ctx)
 }

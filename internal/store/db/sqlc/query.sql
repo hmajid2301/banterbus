@@ -332,12 +332,15 @@ JOIN (
     LIMIT 1
 ) random_question ON qi.question_id = random_question.id;
 
--- name: UpsertQuestionsGroup :one
+-- name: DisableQuestion :one
+UPDATE questions SET enabled = false WHERE id = $1 RETURNING *;
+
+-- name: EnableQuestion :one
+UPDATE questions SET enabled = true WHERE id = $1 RETURNING *;
+
+-- name: AddGroup :one
 INSERT INTO questions_groups (id, group_name, group_type)
 VALUES ($1, $2, $3)
-ON CONFLICT (id) DO UPDATE SET
-    group_name = EXCLUDED.group_name,
-    group_type = EXCLUDED.group_type
 RETURNING *;
 
 -- name: GetGroups :many
@@ -346,6 +349,14 @@ SELECT
 FROM
    questions_groups
 ORDER BY group_name DESC;
+
+-- name: GetGroupByName :one
+SELECT
+   *
+FROM
+   questions_groups
+WHERE
+   group_name = $1;
 
 -- name: GetQuestions :many
 SELECT q.*, qi.question, qi.locale, qg.group_name, qg.group_type

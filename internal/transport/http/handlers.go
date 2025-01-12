@@ -93,10 +93,33 @@ func (s *Server) setupHTTPRoutes(config ServerConfig, keyfunc jwt.Keyfunc, stati
 	})))
 
 	mux.Handle("/question/{id}/locale/{locale}", m.ValidateJWT(http.HandlerFunc(s.addQuestionTranslationHandler)))
+	mux.Handle(
+		"/question/{id}/enable",
+		m.ValidateAdminJWT(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if r.Method == http.MethodPut {
+				s.enableQuestionHandler(w, r)
+			} else {
+				http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+			}
+		})),
+	)
+	mux.Handle(
+		"/question/{id}/disable",
+		m.ValidateAdminJWT(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if r.Method == http.MethodPut {
+				s.disableQuestionHandler(w, r)
+			} else {
+				http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+			}
+		})),
+	)
 	mux.Handle("/question/group", m.ValidateJWT(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.Method == http.MethodGet {
+		switch r.Method {
+		case http.MethodPost:
+			s.addGroupHandler(w, r)
+		case http.MethodGet:
 			s.getGroupsHandler(w, r)
-		} else {
+		default:
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		}
 	})))

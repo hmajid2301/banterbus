@@ -105,13 +105,16 @@ type Scoring struct {
 }
 
 type Question struct {
+	ID        string
 	Text      string
 	GroupName string
 	Locale    string
 	RoundType string
+	Enabled   bool
 }
 
 type Group struct {
+	ID   string
 	Name string
 }
 

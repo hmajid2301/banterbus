@@ -16,11 +16,14 @@ type Querier interface {
 	AddFibbingItRound(ctx context.Context, arg AddFibbingItRoundParams) (FibbingItRound, error)
 	AddFibbingItScore(ctx context.Context, arg AddFibbingItScoreParams) (FibbingItScore, error)
 	AddGameState(ctx context.Context, arg AddGameStateParams) (GameState, error)
+	AddGroup(ctx context.Context, arg AddGroupParams) (QuestionsGroup, error)
 	AddPlayer(ctx context.Context, arg AddPlayerParams) (Player, error)
 	AddQuestion(ctx context.Context, arg AddQuestionParams) (Question, error)
 	AddQuestionTranslation(ctx context.Context, arg AddQuestionTranslationParams) (QuestionsI18n, error)
 	AddRoom(ctx context.Context, arg AddRoomParams) (Room, error)
 	AddRoomPlayer(ctx context.Context, arg AddRoomPlayerParams) (RoomsPlayer, error)
+	DisableQuestion(ctx context.Context, id uuid.UUID) (Question, error)
+	EnableQuestion(ctx context.Context, id uuid.UUID) (Question, error)
 	GetAllPlayerAnswerIsReady(ctx context.Context, playerID uuid.UUID) (bool, error)
 	GetAllPlayerByRoomCode(ctx context.Context, roomCode string) ([]GetAllPlayerByRoomCodeRow, error)
 	GetAllPlayersByGameStateID(ctx context.Context, id uuid.UUID) ([]GetAllPlayersByGameStateIDRow, error)
@@ -30,6 +33,7 @@ type Querier interface {
 	GetCurrentQuestionByPlayerID(ctx context.Context, id uuid.UUID) (GetCurrentQuestionByPlayerIDRow, error)
 	GetGameState(ctx context.Context, id uuid.UUID) (GameState, error)
 	GetGameStateByPlayerID(ctx context.Context, playerID uuid.UUID) (GameState, error)
+	GetGroupByName(ctx context.Context, groupName string) (QuestionsGroup, error)
 	GetGroups(ctx context.Context) ([]QuestionsGroup, error)
 	GetLatestRoundByGameStateID(ctx context.Context, id uuid.UUID) (GetLatestRoundByGameStateIDRow, error)
 	GetLatestRoundByPlayerID(ctx context.Context, playerID uuid.UUID) (GetLatestRoundByPlayerIDRow, error)
@@ -51,7 +55,6 @@ type Querier interface {
 	UpdateNickname(ctx context.Context, arg UpdateNicknameParams) (Player, error)
 	UpdateRoomState(ctx context.Context, arg UpdateRoomStateParams) (Room, error)
 	UpsertFibbingItVote(ctx context.Context, arg UpsertFibbingItVoteParams) error
-	UpsertQuestionsGroup(ctx context.Context, arg UpsertQuestionsGroupParams) (QuestionsGroup, error)
 }
 
 var _ Querier = (*Queries)(nil)

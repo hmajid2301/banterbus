@@ -23,13 +23,16 @@ type QuestionServicer interface {
 		text string,
 		locale string,
 	) (service.QuestionTranslation, error)
-	GetGroups(ctx context.Context) ([]service.Group, error)
 	GetQuestions(
 		ctx context.Context,
 		filters service.GetQuestionFilters,
 		limit int32,
 		pageNum int32,
 	) ([]service.Question, error)
+	DisableQuestion(ctx context.Context, id uuid.UUID) error
+	EnableQuestion(ctx context.Context, id uuid.UUID) error
+	AddGroup(ctx context.Context, name string) (service.Group, error)
+	GetGroups(ctx context.Context) ([]service.Group, error)
 }
 
 type NewQuestion struct {
@@ -208,6 +211,93 @@ func (s *Server) getQuestionsHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
+}
+
+func (s *Server) disableQuestionHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	s.Logger.DebugContext(ctx, "disableQuestionHandler called")
+
+	id := r.PathValue("id")
+
+	questionID, err := uuid.Parse(id)
+	if err != nil {
+		s.Logger.ErrorContext(ctx, "failed to parse question UUID", slog.Any("error", err))
+		http.Error(w, "Bad Request", http.StatusBadRequest)
+		return
+	}
+
+	err = s.QuestionService.DisableQuestion(ctx, questionID)
+	if err != nil {
+		s.Logger.ErrorContext(ctx, "failed to disable question", slog.Any("error", err))
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+}
+
+func (s *Server) enableQuestionHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	s.Logger.DebugContext(ctx, "enableQuestionHandler called")
+
+	id := r.PathValue("id")
+
+	questionID, err := uuid.Parse(id)
+	if err != nil {
+		s.Logger.ErrorContext(ctx, "failed to parse question UUID", slog.Any("error", err))
+		http.Error(w, "Bad Request", http.StatusBadRequest)
+		return
+	}
+
+	err = s.QuestionService.EnableQuestion(ctx, questionID)
+	if err != nil {
+		s.Logger.ErrorContext(ctx, "failed to enable question", slog.Any("error", err))
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+}
+
+type NewGroup struct {
+	Name string `json:"group_name" validate:"required"`
+}
+
+func (s *Server) addGroupHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	s.Logger.DebugContext(ctx, "addGroupHandler called")
+
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		s.Logger.ErrorContext(ctx, "failed to ready request body", slog.Any("error", err))
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+	defer r.Body.Close()
+
+	var newGroup NewGroup
+	if err := json.Unmarshal(body, &newGroup); err != nil {
+		s.Logger.ErrorContext(ctx, "failed to unmarshal json", slog.Any("error", err))
+		http.Error(w, "Bad Request", http.StatusBadRequest)
+		return
+	}
+
+	validate := validator.New()
+	err = validate.Struct(newGroup)
+	if err != nil {
+		s.Logger.ErrorContext(ctx, "failed to validate json", slog.Any("error", err))
+		http.Error(w, "Bad Request", http.StatusBadRequest)
+		return
+	}
+
+	_, err = s.QuestionService.AddGroup(ctx, newGroup.Name)
+	if err != nil {
+		s.Logger.ErrorContext(ctx, "failed to add groups", slog.Any("error", err))
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusCreated)
 }
 
 type Group struct {

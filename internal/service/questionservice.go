@@ -25,7 +25,7 @@ func (q QuestionService) Add(
 	roundType string,
 ) (Question, error) {
 	// TODO: do not hardcode game name here
-	err := q.store.CreateQuestion(ctx, db.CreateQuestionArgs{
+	u, err := q.store.CreateQuestion(ctx, db.CreateQuestionArgs{
 		GameName:  "fibbing_it",
 		GroupName: group,
 		RoundType: roundType,
@@ -34,10 +34,12 @@ func (q QuestionService) Add(
 	})
 
 	return Question{
+		ID:        u.String(),
 		Text:      text,
 		GroupName: group,
 		Locale:    q.defaultLocale,
 		RoundType: roundType,
+		Enabled:   true,
 	}, err
 }
 
@@ -69,7 +71,7 @@ func (q QuestionService) GetGroups(ctx context.Context) ([]Group, error) {
 
 	groups := []Group{}
 	for _, g := range groupsDB {
-		group := Group{Name: g.GroupName}
+		group := Group{Name: g.GroupName, ID: g.ID.String()}
 		groups = append(groups, group)
 	}
 
@@ -104,13 +106,42 @@ func (q QuestionService) GetQuestions(
 	questions := []Question{}
 	for _, q := range qq {
 		question := Question{
+			ID:        q.ID.String(),
 			Text:      q.Question,
 			GroupName: q.GroupName,
 			Locale:    q.Locale,
 			RoundType: q.RoundType,
+			Enabled:   q.Enabled.Bool,
 		}
 		questions = append(questions, question)
 	}
 
 	return questions, err
+}
+
+func (q QuestionService) AddGroup(ctx context.Context, name string) (Group, error) {
+	u := q.randomizer.GetID()
+	_, err := q.store.AddGroup(ctx, db.AddGroupParams{
+		ID:        u,
+		GroupName: name,
+		GroupType: "questions",
+	})
+	if err != nil {
+		return Group{}, err
+	}
+
+	return Group{
+		ID:   u.String(),
+		Name: name,
+	}, nil
+}
+
+func (q QuestionService) DisableQuestion(ctx context.Context, id uuid.UUID) error {
+	_, err := q.store.DisableQuestion(ctx, id)
+	return err
+}
+
+func (q QuestionService) EnableQuestion(ctx context.Context, id uuid.UUID) error {
+	_, err := q.store.EnableQuestion(ctx, id)
+	return err
 }

@@ -15,7 +15,7 @@ type Storer interface {
 	StartGame(ctx context.Context, arg db.StartGameArgs) error
 	NewRound(ctx context.Context, arg db.NewRoundArgs) error
 	NewScores(ctx context.Context, arg db.NewScoresArgs) error
-	CreateQuestion(ctx context.Context, arg db.CreateQuestionArgs) error
+	CreateQuestion(ctx context.Context, arg db.CreateQuestionArgs) (uuid.UUID, error)
 }
 
 type Randomizer interface {

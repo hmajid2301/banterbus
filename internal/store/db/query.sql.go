@@ -169,6 +169,31 @@ func (q *Queries) AddGameState(ctx context.Context, arg AddGameStateParams) (Gam
 	return i, err
 }
 
+const addGroup = `-- name: AddGroup :one
+INSERT INTO questions_groups (id, group_name, group_type)
+VALUES ($1, $2, $3)
+RETURNING id, created_at, updated_at, group_name, group_type
+`
+
+type AddGroupParams struct {
+	ID        uuid.UUID
+	GroupName string
+	GroupType string
+}
+
+func (q *Queries) AddGroup(ctx context.Context, arg AddGroupParams) (QuestionsGroup, error) {
+	row := q.db.QueryRow(ctx, addGroup, arg.ID, arg.GroupName, arg.GroupType)
+	var i QuestionsGroup
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.GroupName,
+		&i.GroupType,
+	)
+	return i, err
+}
+
 const addPlayer = `-- name: AddPlayer :one
 INSERT INTO players (id, avatar, nickname, locale) VALUES ($1, $2, $3, $4) RETURNING id, created_at, updated_at, avatar, nickname, is_ready, locale
 `
@@ -311,6 +336,44 @@ func (q *Queries) AddRoomPlayer(ctx context.Context, arg AddRoomPlayerParams) (R
 		&i.PlayerID,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const disableQuestion = `-- name: DisableQuestion :one
+UPDATE questions SET enabled = false WHERE id = $1 RETURNING id, created_at, updated_at, game_name, round_type, enabled, group_id
+`
+
+func (q *Queries) DisableQuestion(ctx context.Context, id uuid.UUID) (Question, error) {
+	row := q.db.QueryRow(ctx, disableQuestion, id)
+	var i Question
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.GameName,
+		&i.RoundType,
+		&i.Enabled,
+		&i.GroupID,
+	)
+	return i, err
+}
+
+const enableQuestion = `-- name: EnableQuestion :one
+UPDATE questions SET enabled = true WHERE id = $1 RETURNING id, created_at, updated_at, game_name, round_type, enabled, group_id
+`
+
+func (q *Queries) EnableQuestion(ctx context.Context, id uuid.UUID) (Question, error) {
+	row := q.db.QueryRow(ctx, enableQuestion, id)
+	var i Question
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.GameName,
+		&i.RoundType,
+		&i.Enabled,
+		&i.GroupID,
 	)
 	return i, err
 }
@@ -700,6 +763,28 @@ func (q *Queries) GetGameStateByPlayerID(ctx context.Context, playerID uuid.UUID
 		&i.RoomID,
 		&i.SubmitDeadline,
 		&i.State,
+	)
+	return i, err
+}
+
+const getGroupByName = `-- name: GetGroupByName :one
+SELECT
+   id, created_at, updated_at, group_name, group_type
+FROM
+   questions_groups
+WHERE
+   group_name = $1
+`
+
+func (q *Queries) GetGroupByName(ctx context.Context, groupName string) (QuestionsGroup, error) {
+	row := q.db.QueryRow(ctx, getGroupByName, groupName)
+	var i QuestionsGroup
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.GroupName,
+		&i.GroupType,
 	)
 	return i, err
 }
@@ -1431,32 +1516,4 @@ func (q *Queries) UpsertFibbingItVote(ctx context.Context, arg UpsertFibbingItVo
 		arg.RoundID,
 	)
 	return err
-}
-
-const upsertQuestionsGroup = `-- name: UpsertQuestionsGroup :one
-INSERT INTO questions_groups (id, group_name, group_type)
-VALUES ($1, $2, $3)
-ON CONFLICT (id) DO UPDATE SET
-    group_name = EXCLUDED.group_name,
-    group_type = EXCLUDED.group_type
-RETURNING id, created_at, updated_at, group_name, group_type
-`
-
-type UpsertQuestionsGroupParams struct {
-	ID        uuid.UUID
-	GroupName string
-	GroupType string
-}
-
-func (q *Queries) UpsertQuestionsGroup(ctx context.Context, arg UpsertQuestionsGroupParams) (QuestionsGroup, error) {
-	row := q.db.QueryRow(ctx, upsertQuestionsGroup, arg.ID, arg.GroupName, arg.GroupType)
-	var i QuestionsGroup
-	err := row.Scan(
-		&i.ID,
-		&i.CreatedAt,
-		&i.UpdatedAt,
-		&i.GroupName,
-		&i.GroupType,
-	)
-	return i, err
 }

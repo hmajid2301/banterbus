@@ -11,4 +11,5 @@ type Middleware struct {
 	Logger        *slog.Logger
 	Keyfunc       jwt.Keyfunc
 	DisableAuth   bool
+	AdminGroup    string
 }
