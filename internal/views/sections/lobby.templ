@@ -8,7 +8,7 @@ import (
 	"gitlab.com/hmajid2301/banterbus/internal/views/icons"
 )
 
-templ Lobby(code string, players []service.LobbyPlayer, currentPlayer service.LobbyPlayer) {
+templ Lobby(code string, players []service.LobbyPlayer, currentPlayer service.LobbyPlayer, rulesContent templ.Component) {
 	<div hx-swap-oob="innerHTML:#page">
 		@components.TextInput(components.TextInputProps{
 			LabelName: i18n.T(ctx, "common.roomcode_label"),
@@ -19,6 +19,9 @@ templ Lobby(code string, players []service.LobbyPlayer, currentPlayer service.Lo
 				@icons.Clipboard("")
 			</button>
 		}
+		<div>
+			@components.Rules(rulesContent)
+		</div>
 		<div class="flex flex-col space-y-4 text-text2">
 			for _, player := range players {
 				<div class="flex flex-col">

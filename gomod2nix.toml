@@ -145,6 +145,9 @@ schema = 3
   [mod."github.com/vgarvardt/pgx-google-uuid/v5"]
     version = "v5.6.0"
     hash = "sha256-F+E8rFEHnmJKcCxl4hA3MosSEKqxytp5y7VMVZLFQEg="
+  [mod."github.com/yuin/goldmark"]
+    version = "v1.7.8"
+    hash = "sha256-SNJMPPiXkRDLVOldrHN0ErC3bUB2VoWaLDkd9zmMATw="
   [mod."go.opentelemetry.io/auto/sdk"]
     version = "v1.1.0"
     hash = "sha256-cA9qCCu8P1NSJRxgmpfkfa5rKyn9X+Y/9FSmSd5xjyo="

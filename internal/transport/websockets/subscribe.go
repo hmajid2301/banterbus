@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/a-h/templ"
 	"github.com/gobwas/ws"
 	"github.com/gobwas/ws/wsutil"
 	"github.com/google/uuid"
@@ -38,6 +39,7 @@ type Subscriber struct {
 	handlers      map[string]WSHandler
 	websocket     Websocketer
 	config        config.Config
+	rules         templ.Component
 }
 
 type Websocketer interface {
@@ -64,6 +66,7 @@ func NewSubscriber(
 	logger *slog.Logger,
 	websocket Websocketer,
 	config config.Config,
+	rules templ.Component,
 ) *Subscriber {
 	s := &Subscriber{
 		lobbyService:  lobbyService,
@@ -72,6 +75,7 @@ func NewSubscriber(
 		logger:        logger,
 		websocket:     websocket,
 		config:        config,
+		rules:         rules,
 	}
 
 	s.handlers = map[string]WSHandler{

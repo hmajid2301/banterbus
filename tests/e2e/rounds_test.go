@@ -36,7 +36,7 @@ func TestE2ERounds(t *testing.T) {
 		err := startGame(hostPlayerPage, otherPlayerPage)
 		require.NoError(t, err)
 
-		fibberText := hostPlayerPage.GetByText("fibber")
+		fibberText := hostPlayerPage.GetByText("You are fibber")
 		fibber := otherPlayerPage
 		normalPlayer := hostPlayerPage
 

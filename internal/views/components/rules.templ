@@ -1,0 +1,35 @@
+package components
+
+import "gitlab.com/hmajid2301/banterbus/internal/views/icons"
+
+templ Rules(body templ.Component) {
+	<div
+		x-data={ toJSON(map[string]any{"showModal": false}) }
+		@keydown.escape="showModal = false"
+	>
+		<button type="button" @click="showModal = true">
+			@icons.Info("")
+		</button>
+		<div
+			class="flex overflow-auto fixed inset-0 z-30 justify-center items-center bg-black bg-opacity-50"
+			x-show="showModal"
+		>
+			<div
+				class="py-4 px-6 mx-auto max-w-3xl text-left rounded shadow-lg bg-surface0"
+				@click.away="showModal = false"
+				x-transition:enter="motion-safe:ease-out duration-300"
+				x-transition:enter-start="opacity-0 scale-90"
+				x-transition:enter-end="opacity-100 scale-100"
+			>
+				<div class="flex justify-between items-center">
+					<button type="button" aria-label="Close" class="z-50 cursor-pointer" @click="showModal = false">
+						@icons.Cross("")
+					</button>
+				</div>
+				<div class="markdown">
+					@body
+				</div>
+			</div>
+		</div>
+	</div>
+}

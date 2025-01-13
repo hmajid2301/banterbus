@@ -13,15 +13,15 @@ templ Scoreboard(players []service.PlayerWithScoring, maxScore int) {
 			<div class="flex items-center p-4 rounded-lg bg-surface0 shadow-custom-border">
 				if i == 0 {
 					<div class="flex justify-center items-center mr-4 w-12 h-12">
-						@icons.FirstPlace("text-3xl fas fa-medal text-gold")
+						@icons.FirstPlace("text-3xl  text-gold")
 					</div>
 				} else if i == 1 {
 					<div class="flex justify-center items-center mr-4 w-12 h-12">
-						@icons.SecondPlace("text-3xl fas fa-medal text-silver")
+						@icons.SecondPlace("text-3xl  text-silver")
 					</div>
 				} else if i == 2 {
 					<div class="flex justify-center items-center mr-4 w-12 h-12">
-						@icons.ThirdPlace("text-3xl fas fa-medal text-bronze")
+						@icons.ThirdPlace("text-3xl  text-bronze")
 					</div>
 				}
 				<img src={ p.Avatar } alt={ p.Avatar } class="mr-4 w-12 h-12 rounded-full"/>

@@ -20,7 +20,7 @@ type Toast struct {
 func (s *Subscriber) updateClientsAboutLobby(ctx context.Context, lobby service.Lobby) error {
 	var buf bytes.Buffer
 	for _, player := range lobby.Players {
-		component := sections.Lobby(lobby.Code, lobby.Players, player)
+		component := sections.Lobby(lobby.Code, lobby.Players, player, s.rules)
 		err := component.Render(ctx, &buf)
 		if err != nil {
 			return err

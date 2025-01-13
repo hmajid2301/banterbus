@@ -70,7 +70,20 @@ func NewTestServer() (*httptest.Server, error) {
 	conf.Timings.ShowRevealScreenFor = time.Second * time.Duration(showScreenFor)
 	conf.App.AutoReconnect = false
 
-	subscriber := websockets.NewSubscriber(lobbyServicer, playerServicer, roundServicer, logger, redisClient, conf)
+	rules, err := views.RuleMarkdown()
+	if err != nil {
+		return nil, fmt.Errorf("failed to convert rules MD to HTML: %w", err)
+	}
+
+	subscriber := websockets.NewSubscriber(
+		lobbyServicer,
+		playerServicer,
+		roundServicer,
+		logger,
+		redisClient,
+		conf,
+		rules,
+	)
 	err = ctxi18n.LoadWithDefault(views.Locales, "en-GB")
 	if err != nil {
 		return nil, xerrors.New("error loading locales", err)

@@ -57,7 +57,7 @@ func (s Subscriber) reconnectOnRoomState(
 			}
 		}
 
-		component = sections.Lobby(lobby.Code, lobby.Players, mePlayer)
+		component = sections.Lobby(lobby.Code, lobby.Players, mePlayer, s.rules)
 	case db.Playing:
 		component, err = s.reconnectToPlayingGame(ctx, playerID)
 		if err != nil {

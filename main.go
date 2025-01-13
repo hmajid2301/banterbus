@@ -136,7 +136,12 @@ func mainLogic() error {
 		return fmt.Errorf("failed to create redis client: %w", err)
 	}
 
-	subscriber := websockets.NewSubscriber(lobbyService, playerService, roundService, logger, redisClient, conf)
+	rules, err := views.RuleMarkdown()
+	if err != nil {
+		return fmt.Errorf("failed to convert rules MD to HTML: %w", err)
+	}
+
+	subscriber := websockets.NewSubscriber(lobbyService, playerService, roundService, logger, redisClient, conf, rules)
 	u, err := url.Parse(conf.JWT.JWKSURL)
 	if err != nil {
 		return fmt.Errorf("failed to parse jwks URL: %w", err)

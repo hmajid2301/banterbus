@@ -51,7 +51,7 @@ func Scoreboard(players []service.PlayerWithScoring, maxScore int) templ.Compone
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = icons.FirstPlace("text-3xl fas fa-medal text-gold").Render(ctx, templ_7745c5c3_Buffer)
+				templ_7745c5c3_Err = icons.FirstPlace("text-3xl  text-gold").Render(ctx, templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -64,7 +64,7 @@ func Scoreboard(players []service.PlayerWithScoring, maxScore int) templ.Compone
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = icons.SecondPlace("text-3xl fas fa-medal text-silver").Render(ctx, templ_7745c5c3_Buffer)
+				templ_7745c5c3_Err = icons.SecondPlace("text-3xl  text-silver").Render(ctx, templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -77,7 +77,7 @@ func Scoreboard(players []service.PlayerWithScoring, maxScore int) templ.Compone
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = icons.ThirdPlace("text-3xl fas fa-medal text-bronze").Render(ctx, templ_7745c5c3_Buffer)
+				templ_7745c5c3_Err = icons.ThirdPlace("text-3xl  text-bronze").Render(ctx, templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
