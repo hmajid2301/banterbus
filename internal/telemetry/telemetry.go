@@ -85,7 +85,8 @@ func newTraceProvider(ctx context.Context, res *resource.Resource) (*trace.Trace
 
 	traceProvider := trace.NewTracerProvider(
 		trace.WithBatcher(traceExporter,
-			trace.WithBatchTimeout(time.Second)),
+			trace.WithBatchTimeout(time.Second),
+		),
 		trace.WithResource(res),
 	)
 	otel.SetTracerProvider(traceProvider)

@@ -6,6 +6,7 @@ tasks:
     env:
       BANTERBUS_LOG_LEVEL: debug
     cmds:
+      - podman-compose up -d
       - task: watch
       - air
 
