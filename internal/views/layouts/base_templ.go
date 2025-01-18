@@ -57,7 +57,7 @@ func Base(languages map[string]string) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</div></div></div></div></section><div id=\"error\"></div></div></body><script src=\"/static/js/htmx.min.js\"></script><script src=\"/static/js/htmx.ws.js\"></script><script src=\"/static/js/alpine.min.js\"></script><script defer>\n            htmx.on(\"htmx:wsBeforeMessage\", (evt) => {\n                try {\n                    const {message, type} = JSON.parse(event.detail.message);\n                    window.toast(message, type);\n                } catch (_) {}\n            });\n        </script></html>")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</div></div></div></div></section><div id=\"error\"></div></div></body><script src=\"/static/js/htmx.min.js\"></script><script src=\"/static/js/htmx.ws.js\"></script><script src=\"/static/js/alpine.min.js\"></script><script defer>\n            htmx.on(\"htmx:wsBeforeMessage\", (evt) => {\n                try {\n                    const {message, type} = JSON.parse(event.detail.message);\n                    window.toast(message, type);\n                } catch (_) {}\n            });\n        </script><script defer data-domain=\"plausible.haseebmajid.dev\" src=\"https://plausible.haseebmajid.dev/js/script.file-downloads.hash.outbound-links.pageview-props.tagged-events.js\"></script><script>window.plausible = window.plausible || function() { (window.plausible.q = window.plausible.q || []).push(arguments) }</script></html>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
