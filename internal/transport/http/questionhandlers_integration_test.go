@@ -23,7 +23,7 @@ func TestIntegrationAddQuestionHandler(t *testing.T) {
 	t.Run("Should successfully add new question", func(t *testing.T) {
 		question := transporthttp.NewQuestion{
 			Text:      "Do you like cats",
-			GroupName: "cat_group",
+			GroupName: "cat",
 			RoundType: "free_form",
 		}
 
@@ -178,18 +178,18 @@ func TestIntegrationAddQuestionHandler(t *testing.T) {
 //
 // 		expectedGroups := transporthttp.Group{
 // 			Groups: []service.Group{
-// 				{Name: "programming_group"},
-// 				{Name: "programming_group"},
-// 				{Name: "horse_group"},
-// 				{Name: "horse_group"},
-// 				{Name: "colour_group"},
-// 				{Name: "colour_group"},
-// 				{Name: "cat_group"},
-// 				{Name: "cat_group"},
-// 				{Name: "bike_group"},
-// 				{Name: "bike_group"},
-// 				{Name: "animal_group"},
-// 				{Name: "animal_group"},
+// 				{Name: "programming"},
+// 				{Name: "programming"},
+// 				{Name: "horse"},
+// 				{Name: "horse"},
+// 				{Name: "colour"},
+// 				{Name: "colour"},
+// 				{Name: "cat"},
+// 				{Name: "cat"},
+// 				{Name: "bike"},
+// 				{Name: "bike"},
+// 				{Name: "animal"},
+// 				{Name: "animal"},
 // 				{Name: "all"},
 // 				{Name: "all"},
 // 			},
