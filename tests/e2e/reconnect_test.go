@@ -9,9 +9,11 @@ import (
 )
 
 func TestE2EReconnect(t *testing.T) {
+	playerNum := 2
 	t.Run("Should be able to reconnect to room with just one player", func(t *testing.T) {
-		t.Cleanup(ResetBrowserContexts)
-		hostPlayerPage := pages[0]
+		p := ResetBrowserContexts(playerNum)
+		t.Cleanup(func() { ResetBrowserContexts(playerNum) })
+		hostPlayerPage := p[0]
 
 		err := hostPlayerPage.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Start"}).Click()
 		require.NoError(t, err)
@@ -42,11 +44,12 @@ func TestE2EReconnect(t *testing.T) {
 	})
 
 	t.Run("Should be able to reconnect with started game showing questions", func(t *testing.T) {
-		t.Cleanup(ResetBrowserContexts)
-		hostPlayerPage := pages[0]
-		otherPlayerPage := pages[1]
+		p := ResetBrowserContexts(playerNum)
+		t.Cleanup(func() { ResetBrowserContexts(playerNum) })
+		hostPlayerPage := p[0]
+		otherPlayerPage := p[1]
 
-		err := joinRoom(hostPlayerPage, otherPlayerPage)
+		err := joinRoom(hostPlayerPage, p[1:])
 		require.NoError(t, err)
 
 		code, err := hostPlayerPage.Locator("input[name='room_code']").InputValue()

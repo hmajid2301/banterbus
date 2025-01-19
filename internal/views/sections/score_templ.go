@@ -62,7 +62,7 @@ func Score(state service.ScoreState, player service.PlayerWithScoring, maxScore 
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(" / 3</div><div class=\"text-right\"><div class=\"flex justify-center items-center w-16 h-16 rounded-full border-2 border-blue-500\"><p x-text=\"timer\"></p></div></div>")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(" / 3</div><h2>Scoreboard</h2><div class=\"text-right\"><div class=\"flex justify-center items-center w-16 h-16 rounded-full border-2 border-blue-500\"><p x-text=\"timer\"></p></div></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

@@ -63,7 +63,7 @@ func NewTestServer() (*httptest.Server, error) {
 		return nil, err
 	}
 
-	showScreenFor := 2
+	showScreenFor := 3
 	conf.Timings.ShowScoreScreenFor = time.Second * time.Duration(showScreenFor)
 	conf.Timings.ShowQuestionScreenFor = time.Second * time.Duration(showScreenFor)
 	conf.Timings.ShowVotingScreenFor = time.Second * time.Duration(showScreenFor)

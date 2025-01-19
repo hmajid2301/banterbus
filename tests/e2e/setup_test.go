@@ -13,16 +13,13 @@ import (
 )
 
 var (
-	pw              *playwright.Playwright
-	browser         playwright.Browser
-	browserContexts []playwright.BrowserContext
-	pages           []playwright.Page
-	expect          playwright.PlaywrightAssertions
-	headless        = os.Getenv("BANTERBUS_PLAYWRIGHT_HEADLESS") == ""
-	browserName     = getBrowserName()
-	browserType     playwright.BrowserType
-	webappURL       = os.Getenv("BANTERBUS_PLAYWRIGHT_URL")
-	testUserNum     = 2
+	pw          *playwright.Playwright
+	browser     playwright.Browser
+	expect      playwright.PlaywrightAssertions
+	headless    = os.Getenv("BANTERBUS_PLAYWRIGHT_HEADLESS") == ""
+	browserName = getBrowserName()
+	browserType playwright.BrowserType
+	webappURL   = os.Getenv("BANTERBUS_PLAYWRIGHT_URL")
 )
 
 func TestMain(m *testing.M) {
@@ -72,7 +69,6 @@ func BeforeAll() (*httptest.Server, error) {
 		}
 	}
 
-	ResetBrowserContexts()
 	return server, nil
 }
 
@@ -81,9 +77,9 @@ func AfterAll(server *httptest.Server) {
 		server.Close()
 	}
 
-	for i := 0; i < testUserNum; i++ {
-		browserContexts[i].Close()
-	}
+	// for i := 0; i < testUserNum; i++ {
+	// 	browserContexts[i].Close()
+	// }
 	if err := pw.Stop(); err != nil {
 		log.Fatalf("could not stop Playwright: %v", err)
 	}
@@ -97,14 +93,14 @@ func getBrowserName() string {
 	return "chromium"
 }
 
-func ResetBrowserContexts() {
+func ResetBrowserContexts(playerNum int) []playwright.Page {
 	var err error
 
-	browserContexts = make([]playwright.BrowserContext, testUserNum)
-	pages = make([]playwright.Page, testUserNum)
+	contexts := make([]playwright.BrowserContext, playerNum)
+	p := make([]playwright.Page, playerNum)
 
-	for i := 0; i < testUserNum; i++ {
-		browserContexts[i], err = browser.NewContext(playwright.BrowserNewContextOptions{
+	for i := 0; i < playerNum; i++ {
+		contexts[i], err = browser.NewContext(playwright.BrowserNewContextOptions{
 			RecordVideo: &playwright.RecordVideo{
 				Dir: "videos/",
 			},
@@ -114,7 +110,7 @@ func ResetBrowserContexts() {
 		if err != nil {
 			log.Fatalf("could not create a new browser context: %v", err)
 		}
-		page, err := browserContexts[i].NewPage()
+		page, err := contexts[i].NewPage()
 		if err != nil {
 			log.Fatalf("could not create page: %v", err)
 		}
@@ -124,6 +120,8 @@ func ResetBrowserContexts() {
 			log.Fatalf("could not go to page: %v", err)
 		}
 
-		pages[i] = page
+		p[i] = page
 	}
+
+	return p
 }

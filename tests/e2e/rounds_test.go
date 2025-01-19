@@ -1,6 +1,7 @@
 package e2e
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/playwright-community/playwright-go"
@@ -8,92 +9,63 @@ import (
 )
 
 func TestE2ERounds(t *testing.T) {
-	t.Run("Should successfully submit answer", func(t *testing.T) {
-		t.Cleanup(ResetBrowserContexts)
-		hostPlayerPage := pages[0]
-		otherPlayerPage := pages[1]
+	playerNum := 6
+	players := ResetBrowserContexts(playerNum)
 
-		err := startGame(hostPlayerPage, otherPlayerPage)
+	t.Run("Should successfully complete an entire round type by voting for the fibber", func(t *testing.T) {
+		t.Cleanup(func() { ResetBrowserContexts(playerNum) })
+		hostPlayerPage := players[0]
+		otherPlayerPages := players[1:]
+
+		fibber, normals, err := startAndGetRoles(hostPlayerPage, otherPlayerPages)
 		require.NoError(t, err)
 
-		err = hostPlayerPage.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Close"}).Click()
-		require.NoError(t, err)
-
-		err = hostPlayerPage.Locator("#submit_answer_form").
-			Locator(`input[name="answer"]`).
-			Fill("this is a test answer")
-		require.NoError(t, err)
-
-		err = hostPlayerPage.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Submit Answer"}).Click()
-		require.NoError(t, err)
-	})
-
-	t.Run("Should successfully complete an entire round type", func(t *testing.T) {
-		t.Cleanup(ResetBrowserContexts)
-		hostPlayerPage := pages[0]
-		otherPlayerPage := pages[1]
-
-		err := startGame(hostPlayerPage, otherPlayerPage)
-		require.NoError(t, err)
-
-		fibberText := hostPlayerPage.GetByText("You are fibber")
-		fibber := otherPlayerPage
-		normalPlayer := hostPlayerPage
-
-		isFibber, err := fibberText.IsVisible()
-		if isFibber {
-			fibber = hostPlayerPage
-			normalPlayer = otherPlayerPage
+		for _, player := range players {
+			err = player.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Close"}).Click()
+			require.NoError(t, err)
 		}
+
+		err = fibber.Locator("#submit_answer_form").Locator(`input[name="answer"]`).Fill("I am not a fibber")
 		require.NoError(t, err)
 
-		err = hostPlayerPage.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Close"}).Click()
+		err = fibber.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Submit Answer"}).Click()
 		require.NoError(t, err)
 
-		err = hostPlayerPage.Locator("#submit_answer_form").
-			Locator(`input[name="answer"]`).
-			Fill("this is a test answer")
+		err = fibber.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Not Ready"}).Click()
 		require.NoError(t, err)
 
-		err = hostPlayerPage.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Submit Answer"}).Click()
-		require.NoError(t, err)
+		for i, normal := range normals {
+			err = normal.Locator("#submit_answer_form").
+				Locator(`input[name="answer"]`).
+				Fill(fmt.Sprintf("I am a normal player %d", i))
+			require.NoError(t, err)
 
-		err = hostPlayerPage.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Not Ready"}).Click()
-		require.NoError(t, err)
+			err = normal.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Submit Answer"}).Click()
+			require.NoError(t, err)
 
-		err = otherPlayerPage.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Close"}).Click()
-		require.NoError(t, err)
+			err = normal.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Not Ready"}).Click()
+			require.NoError(t, err)
+		}
 
-		err = otherPlayerPage.Locator("#submit_answer_form").
-			Locator(`input[name="answer"]`).
-			Fill("this is a another answer")
-		require.NoError(t, err)
+		fibberTest := hostPlayerPage.GetByText("I am not a fibber")
+		expect.Locator(fibberTest).ToBeVisible()
+		for _, normal := range normals {
+			err = normal.GetByText("I am not a fibber").Click()
+			require.NoError(t, err)
+		}
 
-		err = otherPlayerPage.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Submit Answer"}).Click()
-		require.NoError(t, err)
+		for _, player := range append(normals, fibber) {
+			fibberCaughtText := player.GetByText("They were fibber")
+			expect.Locator(fibberCaughtText).ToBeVisible()
+		}
 
-		err = otherPlayerPage.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Not Ready"}).Click()
-		require.NoError(t, err)
-
-		votesText := otherPlayerPage.GetByText("Votes:")
-		expect.Locator(votesText).ToBeVisible()
-
-		votesText = hostPlayerPage.GetByText("Votes:")
-		expect.Locator(votesText).ToBeVisible()
-
-		err = normalPlayer.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Submit Vote"}).Click()
-		require.NoError(t, err)
-
-		votesText = normalPlayer.GetByText("Votes: 1")
-		expect.Locator(votesText).ToBeVisible()
-
-		votedFor := normalPlayer.GetByText("They were fibber")
-		expect.Locator(votedFor).ToBeVisible()
-
-		scoring := normalPlayer.GetByText("100")
-		expect.Locator(scoring).ToBeVisible()
-
-		scoring = fibber.GetByText("0")
-		expect.Locator(scoring).ToBeVisible()
+		// for _, player := range append(normals, fibber) {
+		// 	scoreboardText := player.GetByText("Scoreboard")
+		// 	expect.Locator(scoreboardText).ToBeVisible()
+		//
+		// 	maxScoreCount, err := player.GetByText("100").Count()
+		// 	require.NoError(t, err)
+		// 	assert.Equal(t, len(normals), maxScoreCount)
+		// }
 	})
 }

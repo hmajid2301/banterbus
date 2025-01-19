@@ -40,6 +40,8 @@ tasks:
 
   tests:e2e:
     desc: Runs e2e tests with playwright.
+    env:
+      BANTERBUS_LOG_LEVEL: info
     cmds:
       - gotestsum --format testname --hide-summary=skipped --rerun-fails --packages="./tests/e2e" -- -cover {{.CLI_ARGS}}
 
