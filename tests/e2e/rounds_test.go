@@ -10,17 +10,18 @@ import (
 
 func TestE2ERounds(t *testing.T) {
 	playerNum := 6
-	players := ResetBrowserContexts(playerNum)
 
 	t.Run("Should successfully complete an entire round type by voting for the fibber", func(t *testing.T) {
-		t.Cleanup(func() { ResetBrowserContexts(playerNum) })
-		hostPlayerPage := players[0]
-		otherPlayerPages := players[1:]
+		playerPages, teardown := setupTest(playerNum)
+		t.Cleanup(func() { teardown(playerPages) })
+
+		hostPlayerPage := playerPages[0]
+		otherPlayerPages := playerPages[1:]
 
 		fibber, normals, err := startAndGetRoles(hostPlayerPage, otherPlayerPages)
 		require.NoError(t, err)
 
-		for _, player := range players {
+		for _, player := range playerPages {
 			err = player.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Close"}).Click()
 			require.NoError(t, err)
 		}

@@ -13,32 +13,36 @@ import (
 )
 
 var (
-	pw          *playwright.Playwright
-	browser     playwright.Browser
-	expect      playwright.PlaywrightAssertions
-	headless    = os.Getenv("BANTERBUS_PLAYWRIGHT_HEADLESS") == ""
-	browserName = getBrowserName()
-	browserType playwright.BrowserType
-	webappURL   = os.Getenv("BANTERBUS_PLAYWRIGHT_URL")
+	expect    playwright.PlaywrightAssertions
+	browser   playwright.Browser
+	webappURL = os.Getenv("BANTERBUS_PLAYWRIGHT_URL")
 )
 
 func TestMain(m *testing.M) {
-	server, err := BeforeAll()
+	pw, server, err := beforeAll()
 	if err != nil {
 		log.Fatalf("could not start server: %v", err)
 	}
 
 	code := m.Run()
-	AfterAll(server)
+	afterAll(pw, server)
 	os.Exit(code)
 }
 
-func BeforeAll() (*httptest.Server, error) {
+func beforeAll() (*playwright.Playwright, *httptest.Server, error) {
 	var err error
-	pw, err = playwright.Run()
+	pw, err := playwright.Run()
 	if err != nil {
 		log.Fatalf("could not start Playwright: %v", err)
 	}
+
+	browserName, hasEnv := os.LookupEnv("BROWSER")
+	if !hasEnv {
+		browserName = "chromium"
+	}
+
+	var browserType playwright.BrowserType
+
 	switch browserName {
 	case "chromium":
 		browserType = pw.Chromium
@@ -50,11 +54,12 @@ func BeforeAll() (*httptest.Server, error) {
 		browserType = pw.Chromium
 	}
 
+	headless := os.Getenv("BANTERBUS_PLAYWRIGHT_HEADLESS") == ""
 	browser, err = browserType.Launch(playwright.BrowserTypeLaunchOptions{
 		Headless: playwright.Bool(headless),
 	})
 	if err != nil {
-		return nil, xerrors.New("could not start browser: %v", err)
+		return &playwright.Playwright{}, nil, xerrors.New("could not start browser: %v", err)
 	}
 
 	expect = playwright.NewPlaywrightAssertions(1000)
@@ -65,14 +70,14 @@ func BeforeAll() (*httptest.Server, error) {
 		server, err = banterbustest.NewTestServer()
 		webappURL = server.Listener.Addr().String()
 		if err != nil {
-			return nil, err
+			return &playwright.Playwright{}, nil, err
 		}
 	}
 
-	return server, nil
+	return pw, server, nil
 }
 
-func AfterAll(server *httptest.Server) {
+func afterAll(pw *playwright.Playwright, server *httptest.Server) {
 	if server != nil {
 		server.Close()
 	}
@@ -82,19 +87,11 @@ func AfterAll(server *httptest.Server) {
 	}
 }
 
-func getBrowserName() string {
-	browserName, hasEnv := os.LookupEnv("BROWSER")
-	if hasEnv {
-		return browserName
-	}
-	return "chromium"
-}
-
-func ResetBrowserContexts(playerNum int) []playwright.Page {
+func setupTest(playerNum int) ([]playwright.Page, func(pages []playwright.Page) error) {
 	var err error
 
 	contexts := make([]playwright.BrowserContext, playerNum)
-	p := make([]playwright.Page, playerNum)
+	pages := make([]playwright.Page, playerNum)
 
 	for i := 0; i < playerNum; i++ {
 		contexts[i], err = browser.NewContext(playwright.BrowserNewContextOptions{
@@ -117,8 +114,14 @@ func ResetBrowserContexts(playerNum int) []playwright.Page {
 			log.Fatalf("could not go to page: %v", err)
 		}
 
-		p[i] = page
+		pages[i] = page
 	}
 
-	return p
+	return pages, func(pages []playwright.Page) error {
+		for _, page := range pages {
+			err := page.Close()
+			return err
+		}
+		return nil
+	}
 }
