@@ -77,9 +77,6 @@ func AfterAll(server *httptest.Server) {
 		server.Close()
 	}
 
-	// for i := 0; i < testUserNum; i++ {
-	// 	browserContexts[i].Close()
-	// }
 	if err := pw.Stop(); err != nil {
 		log.Fatalf("could not stop Playwright: %v", err)
 	}

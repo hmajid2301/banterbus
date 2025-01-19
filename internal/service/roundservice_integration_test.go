@@ -18,7 +18,7 @@ import (
 func TestIntegrationRoundServiceSubmitAnswer(t *testing.T) {
 	t.Run("Should successfully submit answer", func(t *testing.T) {
 		pool, teardown := setupSubtest(t)
-		defer teardown()
+		t.Cleanup(teardown)
 
 		str, err := db.NewDB(pool)
 		assert.NoError(t, err)
@@ -48,7 +48,7 @@ func TestIntegrationRoundServiceSubmitAnswer(t *testing.T) {
 
 	t.Run("Should fail to submit answer, time has passed", func(t *testing.T) {
 		pool, teardown := setupSubtest(t)
-		defer teardown()
+		t.Cleanup(teardown)
 
 		str, err := db.NewDB(pool)
 		assert.NoError(t, err)
@@ -75,7 +75,7 @@ func TestIntegrationRoundServiceSubmitAnswer(t *testing.T) {
 
 	t.Run("Should fail to submit answer, player id doesn't belong to room", func(t *testing.T) {
 		pool, teardown := setupSubtest(t)
-		defer teardown()
+		t.Cleanup(teardown)
 
 		str, err := db.NewDB(pool)
 		assert.NoError(t, err)
@@ -99,7 +99,7 @@ func TestIntegrationRoundServiceSubmitAnswer(t *testing.T) {
 func TestIntegrationRoundServiceToggleAnswerIsReady(t *testing.T) {
 	t.Run("Should successfully toggle answer is ready", func(t *testing.T) {
 		pool, teardown := setupSubtest(t)
-		defer teardown()
+		t.Cleanup(teardown)
 
 		str, err := db.NewDB(pool)
 		assert.NoError(t, err)
@@ -137,7 +137,7 @@ func TestIntegrationRoundServiceToggleAnswerIsReady(t *testing.T) {
 
 	t.Run("Should fail to toggle answer is ready, submit deadline passed", func(t *testing.T) {
 		pool, teardown := setupSubtest(t)
-		defer teardown()
+		t.Cleanup(teardown)
 
 		str, err := db.NewDB(pool)
 		assert.NoError(t, err)
@@ -172,7 +172,7 @@ func TestIntegrationRoundServiceToggleAnswerIsReady(t *testing.T) {
 func TestIntegrationRoundServiceUpdateStateToVoting(t *testing.T) {
 	t.Run("Should successfully update state to voting", func(t *testing.T) {
 		pool, teardown := setupSubtest(t)
-		defer teardown()
+		t.Cleanup(teardown)
 
 		str, err := db.NewDB(pool)
 		assert.NoError(t, err)
@@ -248,7 +248,7 @@ func TestIntegrationRoundServiceUpdateStateToVoting(t *testing.T) {
 
 	t.Run("Should fail to update state to voting because incorrect game state id", func(t *testing.T) {
 		pool, teardown := setupSubtest(t)
-		defer teardown()
+		t.Cleanup(teardown)
 
 		str, err := db.NewDB(pool)
 		assert.NoError(t, err)
@@ -287,7 +287,7 @@ func TestIntegrationRoundServiceUpdateStateToVoting(t *testing.T) {
 func TestIntegrationRoundServiceSubmitVote(t *testing.T) {
 	t.Run("Should successfully submit vote", func(t *testing.T) {
 		pool, teardown := setupSubtest(t)
-		defer teardown()
+		t.Cleanup(teardown)
 
 		str, err := db.NewDB(pool)
 		assert.NoError(t, err)
@@ -315,7 +315,7 @@ func TestIntegrationRoundServiceSubmitVote(t *testing.T) {
 
 	t.Run("Should fail to submit vote, because player id voting does not exist", func(t *testing.T) {
 		pool, teardown := setupSubtest(t)
-		defer teardown()
+		t.Cleanup(teardown)
 
 		str, err := db.NewDB(pool)
 		assert.NoError(t, err)
@@ -342,7 +342,7 @@ func TestIntegrationRoundServiceSubmitVote(t *testing.T) {
 
 	t.Run("Should fail to submit vote, because player nickname does not exist", func(t *testing.T) {
 		pool, teardown := setupSubtest(t)
-		defer teardown()
+		t.Cleanup(teardown)
 
 		str, err := db.NewDB(pool)
 		assert.NoError(t, err)
@@ -369,7 +369,7 @@ func TestIntegrationRoundServiceSubmitVote(t *testing.T) {
 
 	t.Run("Should fail to submit vote, because we cannot vote for ourselves", func(t *testing.T) {
 		pool, teardown := setupSubtest(t)
-		defer teardown()
+		t.Cleanup(teardown)
 
 		str, err := db.NewDB(pool)
 		assert.NoError(t, err)
@@ -396,7 +396,7 @@ func TestIntegrationRoundServiceSubmitVote(t *testing.T) {
 
 	t.Run("Should fail to submit vote, because deadline has passed", func(t *testing.T) {
 		pool, teardown := setupSubtest(t)
-		defer teardown()
+		t.Cleanup(teardown)
 
 		str, err := db.NewDB(pool)
 		assert.NoError(t, err)
@@ -425,7 +425,7 @@ func TestIntegrationRoundServiceSubmitVote(t *testing.T) {
 func TestIntegrationRoundServiceGetVotingState(t *testing.T) {
 	t.Run("Should successfully get voting state", func(t *testing.T) {
 		pool, teardown := setupSubtest(t)
-		defer teardown()
+		t.Cleanup(teardown)
 
 		str, err := db.NewDB(pool)
 		assert.NoError(t, err)
@@ -451,7 +451,7 @@ func TestIntegrationRoundServiceGetVotingState(t *testing.T) {
 
 	t.Run("Should fail to get voting state, because player ID does not exist", func(t *testing.T) {
 		pool, teardown := setupSubtest(t)
-		defer teardown()
+		t.Cleanup(teardown)
 
 		str, err := db.NewDB(pool)
 		assert.NoError(t, err)
@@ -475,7 +475,7 @@ func TestIntegrationRoundServiceGetVotingState(t *testing.T) {
 func TestIntegrationRoundServiceToggleVotingIsReady(t *testing.T) {
 	t.Run("Should successfully toggle voting is ready", func(t *testing.T) {
 		pool, teardown := setupSubtest(t)
-		defer teardown()
+		t.Cleanup(teardown)
 
 		str, err := db.NewDB(pool)
 		assert.NoError(t, err)
@@ -515,7 +515,7 @@ func TestIntegrationRoundServiceToggleVotingIsReady(t *testing.T) {
 
 	t.Run("Should fail to toggle voting is ready, because we did not submit vote", func(t *testing.T) {
 		pool, teardown := setupSubtest(t)
-		defer teardown()
+		t.Cleanup(teardown)
 
 		str, err := db.NewDB(pool)
 		assert.NoError(t, err)
@@ -537,7 +537,7 @@ func TestIntegrationRoundServiceToggleVotingIsReady(t *testing.T) {
 
 	t.Run("Should fail to toggle voting is ready, because player ID does not exist", func(t *testing.T) {
 		pool, teardown := setupSubtest(t)
-		defer teardown()
+		t.Cleanup(teardown)
 
 		str, err := db.NewDB(pool)
 		assert.NoError(t, err)
@@ -572,7 +572,7 @@ func TestIntegrationRoundServiceToggleVotingIsReady(t *testing.T) {
 
 	t.Run("Should fail to toggle voting is ready, because deadline passed", func(t *testing.T) {
 		pool, teardown := setupSubtest(t)
-		defer teardown()
+		t.Cleanup(teardown)
 
 		str, err := db.NewDB(pool)
 		assert.NoError(t, err)
@@ -613,7 +613,7 @@ func TestIntegrationRoundServiceToggleVotingIsReady(t *testing.T) {
 func TestIntegrationRoundServiceUpdateStateToReveal(t *testing.T) {
 	t.Run("Should successfully update state to reveal", func(t *testing.T) {
 		pool, teardown := setupSubtest(t)
-		defer teardown()
+		t.Cleanup(teardown)
 
 		str, err := db.NewDB(pool)
 		assert.NoError(t, err)
@@ -661,7 +661,7 @@ func TestIntegrationRoundServiceUpdateStateToReveal(t *testing.T) {
 func TestIntegrationRoundServiceGetRevealState(t *testing.T) {
 	t.Run("Should successfully get state to reveal", func(t *testing.T) {
 		pool, teardown := setupSubtest(t)
-		defer teardown()
+		t.Cleanup(teardown)
 
 		str, err := db.NewDB(pool)
 		assert.NoError(t, err)
@@ -705,7 +705,7 @@ func TestIntegrationRoundServiceGetRevealState(t *testing.T) {
 func TestIntegrationRoundServiceUpdateStateToQuestion(t *testing.T) {
 	t.Run("Should successfully update state to question", func(t *testing.T) {
 		pool, teardown := setupSubtest(t)
-		defer teardown()
+		t.Cleanup(teardown)
 
 		str, err := db.NewDB(pool)
 		assert.NoError(t, err)
@@ -750,7 +750,7 @@ func TestIntegrationRoundServiceUpdateStateToQuestion(t *testing.T) {
 func TestIntegrationRoundServiceGetQuestionState(t *testing.T) {
 	t.Run("Should successfully get question state", func(t *testing.T) {
 		pool, teardown := setupSubtest(t)
-		defer teardown()
+		t.Cleanup(teardown)
 
 		str, err := db.NewDB(pool)
 		assert.NoError(t, err)
@@ -793,7 +793,7 @@ func TestIntegrationRoundServiceGetQuestionState(t *testing.T) {
 func TestIntegrationRoundServiceGetGameState(t *testing.T) {
 	t.Run("Should successfully get game state, voting state", func(t *testing.T) {
 		pool, teardown := setupSubtest(t)
-		defer teardown()
+		t.Cleanup(teardown)
 
 		str, err := db.NewDB(pool)
 		assert.NoError(t, err)
@@ -816,7 +816,7 @@ func TestIntegrationRoundServiceGetGameState(t *testing.T) {
 
 	t.Run("Should successfully get game state, reveal state", func(t *testing.T) {
 		pool, teardown := setupSubtest(t)
-		defer teardown()
+		t.Cleanup(teardown)
 
 		str, err := db.NewDB(pool)
 		assert.NoError(t, err)
@@ -841,7 +841,7 @@ func TestIntegrationRoundServiceGetGameState(t *testing.T) {
 func TestIntegrationRoundServiceUpdateStateToScoring(t *testing.T) {
 	t.Run("Should successfully update state to scoring", func(t *testing.T) {
 		pool, teardown := setupSubtest(t)
-		defer teardown()
+		t.Cleanup(teardown)
 
 		str, err := db.NewDB(pool)
 		assert.NoError(t, err)
@@ -901,7 +901,7 @@ func TestIntegrationRoundServiceUpdateStateToScoring(t *testing.T) {
 func TestIntegrationRoundServiceGetScoringState(t *testing.T) {
 	t.Run("Should successfully get scoring state", func(t *testing.T) {
 		pool, teardown := setupSubtest(t)
-		defer teardown()
+		t.Cleanup(teardown)
 
 		str, err := db.NewDB(pool)
 		assert.NoError(t, err)
@@ -946,7 +946,7 @@ func TestIntegrationRoundServiceGetScoringState(t *testing.T) {
 func TestIntegrationRoundServiceUpdateStateToWinner(t *testing.T) {
 	t.Run("Should successfully update state to winner", func(t *testing.T) {
 		pool, teardown := setupSubtest(t)
-		defer teardown()
+		t.Cleanup(teardown)
 
 		str, err := db.NewDB(pool)
 		assert.NoError(t, err)
@@ -1002,7 +1002,7 @@ func TestIntegrationRoundServiceUpdateStateToWinner(t *testing.T) {
 func TestIntegrationRoundServiceGetWinnerState(t *testing.T) {
 	t.Run("Should successfully get winner state", func(t *testing.T) {
 		pool, teardown := setupSubtest(t)
-		defer teardown()
+		t.Cleanup(teardown)
 
 		str, err := db.NewDB(pool)
 		assert.NoError(t, err)
@@ -1063,7 +1063,7 @@ func TestIntegrationRoundServiceGetWinnerState(t *testing.T) {
 func TestIntegrationRoundServiceFinsishGame(t *testing.T) {
 	t.Run("Should successfully finish game", func(t *testing.T) {
 		pool, teardown := setupSubtest(t)
-		defer teardown()
+		t.Cleanup(teardown)
 
 		str, err := db.NewDB(pool)
 		assert.NoError(t, err)

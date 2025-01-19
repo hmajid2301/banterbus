@@ -15,7 +15,7 @@ import (
 func TestIntegrationPlayerUpdateNickname(t *testing.T) {
 	t.Run("Should successfully update nickname", func(t *testing.T) {
 		pool, teardown := setupSubtest(t)
-		defer teardown()
+		t.Cleanup(teardown)
 
 		str, err := db.NewDB(pool)
 		assert.NoError(t, err)
@@ -40,7 +40,7 @@ func TestIntegrationPlayerUpdateNickname(t *testing.T) {
 
 	t.Run("Should fail to update nickname, because room is not in CREATED state", func(t *testing.T) {
 		pool, teardown := setupSubtest(t)
-		defer teardown()
+		t.Cleanup(teardown)
 
 		str, err := db.NewDB(pool)
 		assert.NoError(t, err)
@@ -73,7 +73,7 @@ func TestIntegrationPlayerUpdateNickname(t *testing.T) {
 
 	t.Run("Should fail to update nickname, because nickname already exists", func(t *testing.T) {
 		pool, teardown := setupSubtest(t)
-		defer teardown()
+		t.Cleanup(teardown)
 
 		str, err := db.NewDB(pool)
 		assert.NoError(t, err)
@@ -100,7 +100,7 @@ func TestIntegrationPlayerUpdateNickname(t *testing.T) {
 func TestIntegrationPlayerGenerateNewAvatar(t *testing.T) {
 	t.Run("Should successfully update avatar", func(t *testing.T) {
 		pool, teardown := setupSubtest(t)
-		defer teardown()
+		t.Cleanup(teardown)
 
 		str, err := db.NewDB(pool)
 		assert.NoError(t, err)
@@ -128,7 +128,7 @@ func TestIntegrationPlayerGenerateNewAvatar(t *testing.T) {
 
 	t.Run("Should fail to update avatar, because room is not in CREATED state", func(t *testing.T) {
 		pool, teardown := setupSubtest(t)
-		defer teardown()
+		t.Cleanup(teardown)
 
 		str, err := db.NewDB(pool)
 		assert.NoError(t, err)
@@ -162,7 +162,7 @@ func TestIntegrationPlayerGenerateNewAvatar(t *testing.T) {
 func TestIntegrationToggleIsReady(t *testing.T) {
 	t.Run("Should successfully toggle not ready -> ready", func(t *testing.T) {
 		pool, teardown := setupSubtest(t)
-		defer teardown()
+		t.Cleanup(teardown)
 
 		str, err := db.NewDB(pool)
 		assert.NoError(t, err)
@@ -188,7 +188,7 @@ func TestIntegrationToggleIsReady(t *testing.T) {
 
 	t.Run("Should successfully toggle ready -> notready", func(t *testing.T) {
 		pool, teardown := setupSubtest(t)
-		defer teardown()
+		t.Cleanup(teardown)
 
 		str, err := db.NewDB(pool)
 		assert.NoError(t, err)
@@ -216,7 +216,7 @@ func TestIntegrationToggleIsReady(t *testing.T) {
 
 	t.Run("Should fail to update avatar, because player id doesn't exist", func(t *testing.T) {
 		pool, teardown := setupSubtest(t)
-		defer teardown()
+		t.Cleanup(teardown)
 
 		str, err := db.NewDB(pool)
 		assert.NoError(t, err)
@@ -241,7 +241,7 @@ func TestIntegrationToggleIsReady(t *testing.T) {
 
 	t.Run("Should fail to update avatar, because room is not in CREATED state", func(t *testing.T) {
 		pool, teardown := setupSubtest(t)
-		defer teardown()
+		t.Cleanup(teardown)
 
 		str, err := db.NewDB(pool)
 		assert.NoError(t, err)

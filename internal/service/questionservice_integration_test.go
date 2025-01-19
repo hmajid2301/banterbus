@@ -19,7 +19,7 @@ var defaultRoundType = "free_form"
 func TestIntegrationQuestionServiceAdd(t *testing.T) {
 	t.Run("Should successfully add question", func(t *testing.T) {
 		pool, teardown := setupSubtest(t)
-		defer teardown()
+		t.Cleanup(teardown)
 
 		str, err := db.NewDB(pool)
 		assert.NoError(t, err)
@@ -48,7 +48,7 @@ func TestIntegrationQuestionServiceAdd(t *testing.T) {
 // func TestIntegrationQuestionServiceAddTranslation(t *testing.T) {
 // 	t.Run("Should successfully add question translation", func(t *testing.T) {
 // 		pool, teardown := setupSubtest(t)
-// 		defer teardown()
+// 		t.Cleanup(teardown)
 //
 // 		str, err := db.NewDB(pool)
 // 		assert.NoError(t, err)
@@ -80,7 +80,7 @@ func TestIntegrationQuestionServiceAdd(t *testing.T) {
 func TestIntegrationQuestionGetGroupNames(t *testing.T) {
 	t.Run("Should successfully get group names", func(t *testing.T) {
 		pool, teardown := setupSubtest(t)
-		defer teardown()
+		t.Cleanup(teardown)
 
 		str, err := db.NewDB(pool)
 		assert.NoError(t, err)
@@ -111,7 +111,7 @@ func TestIntegrationQuestionGetGroupNames(t *testing.T) {
 func TestIntegrationQuestionGetQuestions(t *testing.T) {
 	t.Run("Should successfully get questions with no filters", func(t *testing.T) {
 		pool, teardown := setupSubtest(t)
-		defer teardown()
+		t.Cleanup(teardown)
 
 		str, err := db.NewDB(pool)
 		assert.NoError(t, err)
@@ -269,7 +269,7 @@ func TestIntegrationQuestionGetQuestions(t *testing.T) {
 
 	t.Run("Should successfully get questions with group filter", func(t *testing.T) {
 		pool, teardown := setupSubtest(t)
-		defer teardown()
+		t.Cleanup(teardown)
 
 		str, err := db.NewDB(pool)
 		assert.NoError(t, err)
@@ -309,7 +309,7 @@ func TestIntegrationQuestionGetQuestions(t *testing.T) {
 
 	t.Run("Should successfully get questions with round type filter", func(t *testing.T) {
 		pool, teardown := setupSubtest(t)
-		defer teardown()
+		t.Cleanup(teardown)
 
 		str, err := db.NewDB(pool)
 		assert.NoError(t, err)
@@ -405,7 +405,7 @@ func TestIntegrationQuestionGetQuestions(t *testing.T) {
 
 	t.Run("Should successfully get questions with all the filters", func(t *testing.T) {
 		pool, teardown := setupSubtest(t)
-		defer teardown()
+		t.Cleanup(teardown)
 
 		str, err := db.NewDB(pool)
 		assert.NoError(t, err)
@@ -462,7 +462,7 @@ func TestIntegrationQuestionGetQuestions(t *testing.T) {
 
 	t.Run("Should successfully get questions with limit", func(t *testing.T) {
 		pool, teardown := setupSubtest(t)
-		defer teardown()
+		t.Cleanup(teardown)
 
 		str, err := db.NewDB(pool)
 		assert.NoError(t, err)
@@ -492,7 +492,7 @@ func TestIntegrationQuestionGetQuestions(t *testing.T) {
 
 	// t.Run("Should successfully get questions with limit and offset", func(t *testing.T) {
 	// 	pool, teardown := setupSubtest(t)
-	// 	defer teardown()
+	// 	t.Cleanup(teardown)
 	//
 	// 	str, err := db.NewDB(pool)
 	// 	assert.NoError(t, err)
@@ -522,7 +522,7 @@ func TestIntegrationQuestionGetQuestions(t *testing.T) {
 func TestIntegrationQuestionAddGroup(t *testing.T) {
 	t.Run("Should successfully add group", func(t *testing.T) {
 		pool, teardown := setupSubtest(t)
-		defer teardown()
+		t.Cleanup(teardown)
 
 		str, err := db.NewDB(pool)
 		assert.NoError(t, err)
@@ -546,7 +546,7 @@ func TestIntegrationQuestionAddGroup(t *testing.T) {
 func TestIntegrationQuestionDisableQuestion(t *testing.T) {
 	t.Run("Should successfully disable question", func(t *testing.T) {
 		pool, teardown := setupSubtest(t)
-		defer teardown()
+		t.Cleanup(teardown)
 
 		str, err := db.NewDB(pool)
 		assert.NoError(t, err)
@@ -572,7 +572,7 @@ func TestIntegrationQuestionDisableQuestion(t *testing.T) {
 func TestIntegrationQuestionEnableQuestion(t *testing.T) {
 	t.Run("Should successfully enable question", func(t *testing.T) {
 		pool, teardown := setupSubtest(t)
-		defer teardown()
+		t.Cleanup(teardown)
 
 		str, err := db.NewDB(pool)
 		assert.NoError(t, err)
