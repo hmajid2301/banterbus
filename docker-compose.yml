@@ -23,46 +23,45 @@ services:
     ports:
       - "9090:8080"
 
-  # TODO: using high cpu, uncomment when needed for testing
-  # otel-collector:
-  #   image: otel/opentelemetry-collector:0.111.0
-  #   ports:
-  #     - 4317:4317
-  #     - 4318:4318
-  #     - 1888:1888
-  #     - 8888:8888
-  #     - 8889:8889
-  #   volumes:
-  #     - ./docker/otelcol.yaml:/etc/otelcol/config.yaml
-  #   depends_on:
-  #     - tempo
-  #
-  # prometheus:
-  #   image: prom/prometheus:v3.0.0
-  #   volumes:
-  #     - ./docker/prometheus.yaml:/etc/prometheus/prometheus.yml
-  #
-  # grafana:
-  #   image: grafana/grafana:11.4.0
-  #   ports:
-  #     - 3000:3000
-  #   environment:
-  #     - GF_AUTH_ANONYMOUS_ENABLED=true
-  #     - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
-  #   volumes:
-  #     - grafana-data:/var/lib/grafana
-  #
-  # tempo:
-  #   image: grafana/tempo:2.6.1
-  #   command: [ "-config.file=/etc/tempo.yaml" ]
-  #   volumes:
-  #     - ./docker/tempo.yaml:/etc/tempo.yaml
-  #
-  # loki:
-  #   image: grafana/loki:3.2.1
-  #   command: [ "-config.file=/etc/loki/loki-config.yaml" ]
-  #   volumes:
-  #     - ./docker/loki.yaml:/etc/loki/loki-config.yaml
+  otel-collector:
+    image: otel/opentelemetry-collector:0.111.0
+    ports:
+      - 4317:4317
+      - 4318:4318
+      - 1888:1888
+      - 8888:8888
+      - 8889:8889
+    volumes:
+      - ./docker/otelcol.yaml:/etc/otelcol/config.yaml
+    depends_on:
+      - tempo
+
+  prometheus:
+    image: prom/prometheus:v3.0.0
+    volumes:
+      - ./docker/prometheus.yaml:/etc/prometheus/prometheus.yml
+
+  grafana:
+    image: grafana/grafana:11.4.0
+    ports:
+      - 3000:3000
+    environment:
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+    volumes:
+      - grafana-data:/var/lib/grafana
+
+  tempo:
+    image: grafana/tempo:2.6.1
+    command: [ "-config.file=/etc/tempo.yaml" ]
+    volumes:
+      - ./docker/tempo.yaml:/etc/tempo.yaml
+
+  loki:
+    image: grafana/loki:3.2.1
+    command: [ "-config.file=/etc/loki/loki-config.yaml" ]
+    volumes:
+      - ./docker/loki.yaml:/etc/loki/loki-config.yaml
 
 volumes:
   postgres-data:

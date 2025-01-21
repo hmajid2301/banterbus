@@ -27,7 +27,7 @@ templ Voting(state service.VotingState, currentPlayer service.PlayerWithVoting) 
 								<div class="w-20 h-20 rounded-full border-2 border-white bg-overlay0">
 									<img src={ player.Avatar } alt="avatar" class="w-full h-full rounded-full"/>
 								</div>
-								{ player.Answer }
+								Answer { player.Answer }
 								<p class="text-center">{ i18n.T(ctx, "voting.votes") } { strconv.Itoa(player.Votes) }</p>
 							</div>
 						}
@@ -42,7 +42,9 @@ templ Voting(state service.VotingState, currentPlayer service.PlayerWithVoting) 
 										<div class="w-20 h-20 rounded-full bg-surface1">
 											<img src={ player.Avatar } alt="avatar" class="w-full h-full rounded-full"/>
 										</div>
-										{ player.Answer }
+										<p>
+											Answer { player.Answer }
+										</p>
 										<p class="text-center">{ i18n.T(ctx, "voting.votes") }: { strconv.Itoa(player.Votes) }</p>
 										<input class="hidden" name="voted_player_nickname" value={ player.Nickname }/>
 									</button>

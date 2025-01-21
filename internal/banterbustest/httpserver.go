@@ -121,9 +121,9 @@ func NewTestServer() (*httptest.Server, error) {
 }
 
 func setupLogger() *slog.Logger {
-	logLevel := os.Getenv("LOG_LEVEL")
+	logLevel := os.Getenv("BANTERBUS_LOG_LEVEL")
 	if logLevel == "" {
-		logLevel = "DEBUG"
+		logLevel = "INFO"
 	}
 
 	var level slog.Level
@@ -144,7 +144,7 @@ func setupLogger() *slog.Logger {
 		Level: level,
 	}))
 
-	if os.Getenv("LOG_DISABLED") == "true" {
+	if os.Getenv("BANTERBUS_LOG_DISABLED") == "true" {
 		logger = slog.New(slog.NewTextHandler(io.Discard, &slog.HandlerOptions{
 			Level: level,
 		}))

@@ -70,19 +70,15 @@ func startGame(hostPlayerPage playwright.Page, otherPlayerPages []playwright.Pag
 	return nil
 }
 
-func startAndGetRoles(
+func getPlayerRoles(
 	hostPlayerPage playwright.Page,
 	otherPlayerPages []playwright.Page,
 ) (playwright.Page, []playwright.Page, error) {
 	var fibber playwright.Page
 	normals := []playwright.Page{}
-	err := startGame(hostPlayerPage, otherPlayerPages)
-	if err != nil {
-		return fibber, normals, err
-	}
 
-	submitButton := hostPlayerPage.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Submit Answer"})
-	err = submitButton.WaitFor()
+	submitButton := hostPlayerPage.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Not Ready"})
+	err := submitButton.WaitFor()
 	if err != nil {
 		return fibber, normals, fmt.Errorf("failed to find 'Submit Answer' button: %w", err)
 	}

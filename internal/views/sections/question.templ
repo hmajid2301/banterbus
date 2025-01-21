@@ -24,12 +24,19 @@ templ Question(gameState service.QuestionState, currentPlayer service.PlayerWith
 					</div>
 				</div>
 				<p class="text-6xl text-center">{ currentPlayer.Question }</p>
-				<form id="submit_answer_form" hx-vals='{"message_type": "submit_answer" }' ws-send>
+				<form id="submit_answer_form" ws-send hx-vals='{"message_type": "submit_answer"}'>
 					if len(currentPlayer.PossibleAnswers) > 0 {
 						for _, answer := range currentPlayer.PossibleAnswers {
 							<div class="flex justify-between items-center">
-								<p class="text-2xl">{ answer }</p>
-								<input type="radio" name="answer" value={ answer } class="w-6 h-6"/>
+								<button
+									value={ answer }
+									name="answer"
+									hx-include="this"
+									aria-label={ answer }
+									class="flex flex-row justify-center items-center p-3 space-x-2 w-full text-3xl rounded-lg rounded-b-lg cursor-pointer font-button shadow-custom-border fill-transparent text-text bg-surface2"
+								>
+									{ answer }
+								</button>
 							</div>
 						}
 					} else {
@@ -37,9 +44,9 @@ templ Question(gameState service.QuestionState, currentPlayer service.PlayerWith
 							InputName:   "answer",
 							Placeholder: i18n.T(ctx, "question.answer_placeholder"),
 						}, templ.Attributes{})
-					}
-					@components.Button(components.ButtonProps{}) {
-						{ i18n.T(ctx, "question.submit_answer_button") }
+						@components.Button(components.ButtonProps{}) {
+							{ i18n.T(ctx, "question.submit_answer_button") }
+						}
 					}
 				</form>
 				<form id="toggle_ready_form" hx-vals='{"message_type": "toggle_answer_is_ready" }' ws-send class="w-full">
