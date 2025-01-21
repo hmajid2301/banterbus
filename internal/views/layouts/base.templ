@@ -55,5 +55,12 @@ templ Base(languages map[string]string) {
         </script>
 		<script defer data-domain="banterbus.games" src="https://plausible.haseebmajid.dev/js/script.file-downloads.hash.outbound-links.pageview-props.tagged-events.js"></script>
 		<script>window.plausible = window.plausible || function() { (window.plausible.q = window.plausible.q || []).push(arguments) }</script>
+		<script src="https://browser.sentry-cdn.com/7.60.0/bundle.min.js" crossorigin="anonymous"></script>
+		<script defer>
+            Sentry.init({
+              dsn: "https://20ecd16ec46048ea8b34720dac515c42@glitchtip.haseebmajid.dev/1",
+              // tracesSampleRate: 0.01,
+            });
+        </script>
 	</html>
 }

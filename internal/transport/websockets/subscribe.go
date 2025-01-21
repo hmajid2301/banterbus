@@ -26,7 +26,6 @@ import (
 	"go.opentelemetry.io/otel/trace"
 
 	"gitlab.com/hmajid2301/banterbus/internal/config"
-	"gitlab.com/hmajid2301/banterbus/internal/logging"
 	"gitlab.com/hmajid2301/banterbus/internal/telemetry"
 )
 
@@ -203,8 +202,8 @@ func (s *Subscriber) Subscribe(r *http.Request, w http.ResponseWriter) (err erro
 		// INFO: Send message to client.
 		case msg := <-client.messagesCh:
 			// TODO: only run when debug logging
-			cleanedMessage := logging.StripSVGData(msg.Payload)
-			s.logger.DebugContext(ctx, "sending message", slog.String("message", cleanedMessage))
+			// cleanedMessage := logging.StripSVGData(msg.Payload)
+			// s.logger.DebugContext(ctx, "sending message", slog.String("message", cleanedMessage))
 			err = wsutil.WriteServerText(connection, []byte(msg.Payload))
 			if err != nil {
 				s.logger.ErrorContext(ctx, "failed to write message", slog.Any("error", err))
