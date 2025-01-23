@@ -548,6 +548,7 @@ func (r *RoundService) GetQuestionState(ctx context.Context, playerID uuid.UUID)
 			Question:        g.Question.String,
 			IsAnswerReady:   g.IsAnswerReady,
 			PossibleAnswers: answers,
+			CurrentAnswer:   g.CurrentAnswer,
 		},
 	}
 
