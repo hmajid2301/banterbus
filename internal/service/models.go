@@ -39,6 +39,7 @@ type PlayerWithRole struct {
 	Question        string
 	IsAnswerReady   bool
 	PossibleAnswers []string
+	CurrentAnswer   string
 }
 
 // TODO: could just be a single player

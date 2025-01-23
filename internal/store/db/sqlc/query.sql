@@ -141,6 +141,7 @@ SELECT
     fpr.player_role AS role,
     qi.question AS question,
     p.avatar,
+    COALESCE(fia.answer, '') AS current_answer,
     COALESCE(fia.is_ready, FALSE) AS is_answer_ready
 FROM players p
 JOIN rooms_players rp ON p.id = rp.player_id

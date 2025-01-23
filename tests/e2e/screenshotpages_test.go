@@ -75,24 +75,23 @@ func TestE2EScreenshotPages(t *testing.T) {
 		votesText := hostPlayerPage.GetByText("Votes:")
 		expect.Locator(votesText).ToBeVisible()
 
-		// TODO: seems to intermittently fail here around here
-		// err = hostPlayerPage.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Submit Vote"}).Click()
-		// require.NoError(t, err)
-		//
-		// hostPlayerPage.Screenshot(playwright.PageScreenshotOptions{
-		// 	Path: playwright.String("votes.png"),
-		// })
-		//
-		// votedFor := hostPlayerPage.GetByText("You all voted for")
-		// playwright.Locator.WaitFor(votedFor)
-		// hostPlayerPage.Screenshot(playwright.PageScreenshotOptions{
-		// 	Path: playwright.String("reveal.png"),
-		// })
-		//
-		// scoring := hostPlayerPage.GetByText("100")
-		// playwright.Locator.WaitFor(scoring)
-		// hostPlayerPage.Screenshot(playwright.PageScreenshotOptions{
-		// 	Path: playwright.String("scoring.png"),
-		// })
+		err = hostPlayerPage.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Submit Vote"}).Click()
+		require.NoError(t, err)
+
+		hostPlayerPage.Screenshot(playwright.PageScreenshotOptions{
+			Path: playwright.String("votes.png"),
+		})
+
+		votedFor := hostPlayerPage.GetByText("You all voted for")
+		playwright.Locator.WaitFor(votedFor)
+		hostPlayerPage.Screenshot(playwright.PageScreenshotOptions{
+			Path: playwright.String("reveal.png"),
+		})
+
+		scoring := hostPlayerPage.GetByText("Scoreboard")
+		playwright.Locator.WaitFor(scoring)
+		hostPlayerPage.Screenshot(playwright.PageScreenshotOptions{
+			Path: playwright.String("scoring.png"),
+		})
 	})
 }

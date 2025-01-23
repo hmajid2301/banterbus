@@ -3,9 +3,10 @@ package components
 type ButtonProps struct {
 	TextColor       string
 	BackgroundColor string
+	Label           string
 }
 
-templ Button(button ButtonProps) {
+templ Button(button ButtonProps, attrs templ.Attributes) {
 	{{
 	if button.TextColor == "" {
 		button.TextColor = "text-text"
@@ -14,7 +15,7 @@ templ Button(button ButtonProps) {
 		button.BackgroundColor = "bg-surface2"
 	}
 	}}
-	<button class={ "flex flex-row p-3 text-3xl justify-center items-center w-full space-x-2 rounded-lg rounded-b-lg font-button shadow-custom-border fill-transparent", button.TextColor, button.BackgroundColor }>
+	<button aria-label={ button.Label } class={ "flex flex-row p-3 text-3xl justify-center items-center w-full space-x-2 rounded-lg rounded-b-lg font-button shadow-custom-border fill-transparent", button.TextColor, button.BackgroundColor } { attrs... }>
 		{ children... }
 	</button>
 }

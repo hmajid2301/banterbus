@@ -3,6 +3,7 @@ package e2e
 import (
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/playwright-community/playwright-go"
 	"github.com/stretchr/testify/require"
@@ -198,5 +199,7 @@ func TestE2ERounds(t *testing.T) {
 
 		scoreboardText = hostPlayerPage.GetByText("The winner is")
 		expect.Locator(scoreboardText).ToBeVisible()
+
+		time.Sleep(time.Second * 1)
 	})
 }
