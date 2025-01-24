@@ -7,8 +7,8 @@ import (
 	"gitlab.com/hmajid2301/banterbus/internal/views/layouts"
 )
 
-templ Join(languages map[string]string, roomCode string) {
-	@layouts.Base(languages) {
+templ Join(languages map[string]string, environment string, roomCode string) {
+	@layouts.Base(languages, environment) {
 		<div class="flex flex-col my-1">
 			<div>
 				<form ws-send hx-vals='{ "message_type": "join_lobby" }'>

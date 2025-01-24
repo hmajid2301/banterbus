@@ -12,7 +12,7 @@ import (
 	"gitlab.com/hmajid2301/banterbus/internal/views/components"
 )
 
-func Base(languages map[string]string) templ.Component {
+func Base(languages map[string]string, environment string) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -57,12 +57,49 @@ func Base(languages map[string]string) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</div></div></div></div></section><div id=\"error\"></div></div></body><script src=\"/static/js/htmx.min.js\"></script><script src=\"/static/js/htmx.ws.js\"></script><script src=\"/static/js/alpine.min.js\"></script><script defer>\n            htmx.on(\"htmx:wsBeforeMessage\", (evt) => {\n                try {\n                    const {message, type} = JSON.parse(event.detail.message);\n                    window.toast(message, type);\n                } catch (_) {}\n            });\n        </script><script defer data-domain=\"banterbus.games\" src=\"https://plausible.haseebmajid.dev/js/script.file-downloads.hash.outbound-links.pageview-props.tagged-events.js\"></script><script>window.plausible = window.plausible || function() { (window.plausible.q = window.plausible.q || []).push(arguments) }</script><script src=\"https://browser.sentry-cdn.com/7.60.0/bundle.min.js\" crossorigin=\"anonymous\"></script><script defer>\n            Sentry.init({\n              dsn: \"https://20ecd16ec46048ea8b34720dac515c42@glitchtip.haseebmajid.dev/1\",\n              // tracesSampleRate: 0.01,\n            });\n        </script></html>")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</div></div></div></div></section><div id=\"error\"></div></div></body><script src=\"/static/js/htmx.min.js\"></script><script src=\"/static/js/htmx.ws.js\"></script><script src=\"/static/js/alpine.min.js\"></script><script defer>\n            htmx.on(\"htmx:wsBeforeMessage\", (evt) => {\n                try {\n                    const {message, type} = JSON.parse(event.detail.message);\n                    window.toast(message, type);\n                } catch (_) {}\n            });\n        </script>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		if environment == "prod" {
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<script defer data-domain=\"banterbus.games\" src=\"https://plausible.haseebmajid.dev/js/script.file-downloads.hash.outbound-links.pageview-props.tagged-events.js\"></script>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+		} else {
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<script defer data-domain=\"dev.banterbus.games\" src=\"https://plausible.haseebmajid.dev/js/script.file-downloads.hash.outbound-links.pageview-props.tagged-events.js\"></script>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<script>window.plausible = window.plausible || function() { (window.plausible.q = window.plausible.q || []).push(arguments) }</script><script src=\"https://js.sentry-cdn.com/032c389ec88919d78c2f7b515d85401c.min.js\" crossorigin=\"anonymous\"></script>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = sentryLoad(environment).Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</html>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		return templ_7745c5c3_Err
 	})
+}
+
+func sentryLoad(environment string) templ.ComponentScript {
+	return templ.ComponentScript{
+		Name: `__templ_sentryLoad_c112`,
+		Function: `function __templ_sentryLoad_c112(environment){Sentry.onLoad(function() {
+    Sentry.init({
+        environment: environment,
+    });
+  });
+}`,
+		Call:       templ.SafeScript(`__templ_sentryLoad_c112`, environment),
+		CallInline: templ.SafeScriptInline(`__templ_sentryLoad_c112`, environment),
+	}
 }
 
 var _ = templruntime.GeneratedTemplate

@@ -7,8 +7,8 @@ import (
 	"gitlab.com/hmajid2301/banterbus/internal/views/layouts"
 )
 
-templ Index(languages map[string]string) {
-	@layouts.Base(languages) {
+templ Index(languages map[string]string, environment string) {
+	@layouts.Base(languages, environment) {
 		<div class="flex flex-col my-1">
 			<div x-data="{ action: '' }">
 				<form ws-send x-bind:hx-vals="action">
