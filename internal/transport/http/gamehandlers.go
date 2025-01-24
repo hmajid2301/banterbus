@@ -18,7 +18,7 @@ func (s *Server) indexHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	templ.Handler(pages.Index(languages)).ServeHTTP(w, r)
+	templ.Handler(pages.Index(languages, s.Config.Environment)).ServeHTTP(w, r)
 }
 
 func (s *Server) joinHandler(w http.ResponseWriter, r *http.Request) {
@@ -33,7 +33,7 @@ func (s *Server) joinHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	templ.Handler(pages.Join(languages, roomCode)).ServeHTTP(w, r)
+	templ.Handler(pages.Join(languages, s.Config.Environment, roomCode)).ServeHTTP(w, r)
 }
 
 func (s *Server) subscribeHandler(w http.ResponseWriter, r *http.Request) {

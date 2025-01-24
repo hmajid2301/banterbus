@@ -40,7 +40,7 @@ document.addEventListener("alpine:init", () => {
       // leave
       setTimeout(function () {
         that.remove(id);
-      }, 4000);
+      }, 5000);
     },
 
     globalInit() {

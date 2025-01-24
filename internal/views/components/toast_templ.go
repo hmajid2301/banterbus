@@ -8,6 +8,8 @@ package components
 import (
 	"github.com/a-h/templ"
 	templruntime "github.com/a-h/templ/runtime"
+
+	"gitlab.com/hmajid2301/banterbus/internal/views/icons"
 )
 
 func Toast() templ.Component {
@@ -31,7 +33,47 @@ func Toast() templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div x-data=\"toast\" x-init=\"globalInit($el)\"><template x-teleport=\"body\"><div class=\"block fixed right-0 bottom-0 mr-4 mb-4 space-y-2.5 z-[999]\" @add-toast.window=\"add\"><template x-for=\"toast in toasts\" :key=\"toast.id\"><div :id=\"toast.id\" x-init=\"toastInit($el)\" x-show=\"toast.show\" x-transition:enter=\"transition ease-out duration-300\" x-transition:enter-start=\"opacity-0 scale-90\" x-transition:enter-end=\"opacity-100 scale-100\" x-transition:leave=\"transition ease-in duration-300\" x-transition:leave-start=\"opacity-100 scale-100\" x-transition:leave-end=\"opacity-0 scale-90\" class=\"flex relative gap-2 items-center py-7 px-5 rounded-lg border shadow-sm border-border min-w-[384px]\"><button @click=\"dismiss(toast.id)\" class=\"absolute top-3 right-3\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"hover:text-black lucide lucide-x text-close\"><path d=\"M18 6 6 18\"></path><path d=\"m6 6 12 12\"></path></svg></button><template x-if=\"toast.type === &#39;info&#39;\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"lucide lucide-info text-info\"><circle cx=\"12\" cy=\"12\" r=\"10\"></circle><path d=\"M12 16v-4\"></path><path d=\"M12 8h.01\"></path></svg></template><template x-if=\"toast.type === &#39;warning&#39;\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"lucide lucide-triangle-alert text-warning\"><path d=\"m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3\"></path><path d=\"M12 9v4\"></path><path d=\"M12 17h.01\"></path></svg></template><p class=\"text-sm font-medium text-text\" x-text=\"toast.message\"></p></div></template></div></template></div><script type=\"text/javascript\" src=\"/static/js/toast.js\"></script>")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div x-data=\"toast\" x-init=\"globalInit($el)\"><template x-teleport=\"body\"><div class=\"block fixed right-0 bottom-0 mr-4 mb-4 space-y-2.5 z-[999]\" @add-toast.window=\"add\"><template x-for=\"toast in toasts\" :key=\"toast.id\"><div :id=\"toast.id\" x-init=\"toastInit($el)\" x-show=\"toast.show\" x-transition:enter=\"transition ease-out duration-300\" x-transition:enter-start=\"opacity-0 scale-90\" x-transition:enter-end=\"opacity-100 scale-100\" x-transition:leave=\"transition ease-in duration-300\" x-transition:leave-start=\"opacity-100 scale-100\" x-transition:leave-end=\"opacity-0 scale-90\" :class=\"toast.type === &#39;success&#39; ? &#39;bg-green&#39;: &#39;bg-red&#39;\" class=\"flex relative gap-2 items-center py-7 px-5 rounded-lg border shadow-sm border-border min-w-[384px]\"><button @click=\"dismiss(toast.id)\" class=\"absolute top-3 right-3\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = icons.Cross("").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</button><template x-if=\"toast.type === &#39;success&#39;\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = icons.CircleCheckmark("").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</template><template x-if=\"toast.type === &#39;info&#39;\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = icons.Info("").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</template><template x-if=\"toast.type === &#39;warning&#39;\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = icons.Warning("").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</template><template x-if=\"toast.type === &#39;failure&#39;\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = icons.CancelCircle("").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</template><p class=\"text-sm font-medium text-black\" x-text=\"toast.message\"></p></div></template></div></template></div><script type=\"text/javascript\" src=\"/static/js/toast.js\"></script>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

@@ -56,6 +56,11 @@ services:
     command: [ "-config.file=/etc/tempo.yaml" ]
     volumes:
       - ./docker/tempo.yaml:/etc/tempo.yaml
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'  # Limit to 50% of a single CPU core
+          memory: '512M'  # Limit to 512MB of memory
 
   loki:
     image: grafana/loki:3.2.1
