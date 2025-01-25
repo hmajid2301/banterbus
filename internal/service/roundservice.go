@@ -376,7 +376,12 @@ func (r *RoundService) getRevealState(
 		return RevealRoleState{}, err
 	}
 
-	reveal := RevealRoleState{Deadline: time.Until(deadline), Round: votingState.Round, ShouldReveal: false}
+	reveal := RevealRoleState{
+		Deadline:     time.Until(deadline),
+		Round:        votingState.Round,
+		RoundType:    round.RoundType,
+		ShouldReveal: false,
+	}
 	playerIDs := []uuid.UUID{}
 	playersLen := len(votingState.Players)
 

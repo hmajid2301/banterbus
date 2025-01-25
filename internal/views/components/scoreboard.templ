@@ -10,7 +10,7 @@ import (
 templ Scoreboard(players []service.PlayerWithScoring, maxScore int) {
 	<div class="space-y-4">
 		for i, p := range players {
-			<div class="flex items-center p-4 rounded-lg bg-surface0 shadow-custom-border">
+			<div class="flex items-center p-4 rounded-lg bg-surface1">
 				if i == 0 {
 					<div class="flex justify-center items-center mr-4 w-12 h-12">
 						@icons.FirstPlace("text-3xl  text-gold")
