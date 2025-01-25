@@ -12,9 +12,6 @@ module.exports = {
       backgroundImage: {
         background: "url('/static/images/background-pattern.svg')",
       },
-      boxShadow: {
-        "custom-border": "0 4px 0 0 #181825",
-      },
       colors: {
         rosewater: "#f5e0dc",
         flamingo: "#f2cdcd",
@@ -52,22 +49,7 @@ module.exports = {
   },
   plugins: [
     function ({ addUtilities }) {
-      addUtilities({
-        ".text-shadow-custom": {
-          "text-shadow": `
-              0px 10px 0px #181825,
-              0px 12px 0px #181825,
-              -4px -4px 0 #181825,
-              4px -4px 0 #181825,
-              -4px 4px 0 #181825,
-              4px 4px 0 #181825,
-              -4px -4px 0 #181825,
-              4px -4px 0 #181825,
-              -4px 4px 0 #181825,
-              4px 4px 0 #181825
-          `,
-        },
-      });
+      addUtilities({});
     },
   ],
 };

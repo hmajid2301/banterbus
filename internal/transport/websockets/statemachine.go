@@ -122,13 +122,21 @@ func (r *RevealState) Start(ctx context.Context) {
 
 	if finalRound || fibberFound {
 		nextState = db.FibbingItScoring
+		// TODO: turn this string into say ROUND_3
+		if revealState.RoundType == "most_likely" {
+			nextState = db.FibbingItWinner
+		}
 	}
 
 	time.Sleep(time.Until(deadline))
-	if nextState == db.FibbingItScoring {
+	switch nextState {
+	case db.FibbingItScoring:
 		s := &ScoringState{gameStateID: r.gameStateID, subscriber: r.subscriber}
 		go s.Start(ctx)
-	} else {
+	case db.FibbingItWinner:
+		w := &WinnerState{gameStateID: r.gameStateID, subscriber: r.subscriber}
+		go w.Start(ctx)
+	default:
 		q := &QuestionState{gameStateID: r.gameStateID, subscriber: r.subscriber, nextRound: false}
 		go q.Start(ctx)
 	}

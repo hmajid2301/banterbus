@@ -42,7 +42,7 @@ func Scoreboard(players []service.PlayerWithScoring, maxScore int) templ.Compone
 			return templ_7745c5c3_Err
 		}
 		for i, p := range players {
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div class=\"flex items-center p-4 rounded-lg bg-surface0 shadow-custom-border\">")
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div class=\"flex items-center p-4 rounded-lg bg-surface1\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

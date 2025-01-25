@@ -83,6 +83,7 @@ type RevealRoleState struct {
 	ShouldReveal           bool
 	Deadline               time.Duration
 	Round                  int
+	RoundType              string
 	PlayerIDs              []uuid.UUID
 }
 
