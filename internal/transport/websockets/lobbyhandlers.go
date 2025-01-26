@@ -26,7 +26,7 @@ type LobbyServicer interface {
 	GetRoomState(ctx context.Context, playerID uuid.UUID) (db.RoomState, error)
 }
 
-func (c *CreateRoom) Handle(ctx context.Context, client *client, sub *Subscriber) error {
+func (c *CreateRoom) Handle(ctx context.Context, client *Client, sub *Subscriber) error {
 	newPlayer := service.NewHostPlayer{
 		ID:       client.playerID,
 		Nickname: c.PlayerNickname,
@@ -42,7 +42,7 @@ func (c *CreateRoom) Handle(ctx context.Context, client *client, sub *Subscriber
 	return err
 }
 
-func (j *JoinLobby) Handle(ctx context.Context, client *client, sub *Subscriber) error {
+func (j *JoinLobby) Handle(ctx context.Context, client *Client, sub *Subscriber) error {
 	updatedRoom, err := sub.lobbyService.Join(ctx, j.RoomCode, client.playerID, j.PlayerNickname)
 	if err != nil {
 		if errors.Is(err, service.ErrPlayerAlreadyInRoom) {
@@ -65,7 +65,7 @@ func (j *JoinLobby) Handle(ctx context.Context, client *client, sub *Subscriber)
 	return err
 }
 
-func (s *StartGame) Handle(ctx context.Context, client *client, sub *Subscriber) error {
+func (s *StartGame) Handle(ctx context.Context, client *Client, sub *Subscriber) error {
 	deadline := time.Now().UTC().Add(sub.config.Timings.ShowQuestionScreenFor)
 	questionState, err := sub.lobbyService.Start(ctx, s.RoomCode, client.playerID, deadline)
 	if err != nil {
@@ -82,8 +82,8 @@ func (s *StartGame) Handle(ctx context.Context, client *client, sub *Subscriber)
 
 	go func() {
 		v := VotingState{
-			gameStateID: questionState.GameStateID,
-			subscriber:  *sub,
+			GameStateID: questionState.GameStateID,
+			Subscriber:  *sub,
 		}
 
 		deadline := time.Now().UTC().Add(sub.config.Timings.ShowQuestionScreenFor)
@@ -94,7 +94,7 @@ func (s *StartGame) Handle(ctx context.Context, client *client, sub *Subscriber)
 	return nil
 }
 
-func (k *KickPlayer) Handle(ctx context.Context, client *client, sub *Subscriber) error {
+func (k *KickPlayer) Handle(ctx context.Context, client *Client, sub *Subscriber) error {
 	updatedRoom, playerToKickID, err := sub.lobbyService.KickPlayer(
 		ctx,
 		k.RoomCode,

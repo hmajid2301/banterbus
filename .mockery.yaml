@@ -6,3 +6,9 @@ packages:
     interfaces:
       Storer: {}
       Randomizer: {}
+  gitlab.com/hmajid2301/banterbus/internal/transport/websockets:
+    interfaces:
+      RoundServicer: {}
+      LobbyServicer: {}
+      PlayerServicer: {}
+      Websocketer: {}
