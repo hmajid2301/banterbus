@@ -4,11 +4,14 @@ import (
 	"bytes"
 	"context"
 	"errors"
-	"log/slog"
 
 	"github.com/a-h/templ"
 	"github.com/google/uuid"
 	"github.com/mdobak/go-xerrors"
+	slogctx "github.com/veqryn/slog-context"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/trace"
 
 	"gitlab.com/hmajid2301/banterbus/internal/service"
 	"gitlab.com/hmajid2301/banterbus/internal/store/db"
@@ -18,18 +21,29 @@ import (
 const errStr = "failed to reconnect to game"
 
 func (s Subscriber) Reconnect(ctx context.Context, playerID uuid.UUID) (bytes.Buffer, error) {
-	s.logger.DebugContext(ctx, "attempting to reconnect player", slog.String("player_id", playerID.String()))
+	tracer := otel.Tracer("")
+	ctx = slogctx.Append(ctx, "player_id", playerID)
+	ctx, span := tracer.Start(
+		ctx,
+		"reconnect",
+		trace.WithSpanKind(trace.SpanKindServer),
+		trace.WithAttributes(attribute.String("player_id", playerID.String())),
+	)
+	s.logger.DebugContext(ctx, "attempting to reconnect player")
+
 	var buf bytes.Buffer
 	roomState, err := s.lobbyService.GetRoomState(ctx, playerID)
 	if err != nil {
 		return buf, err
 	}
+	span.AddEvent("room_state", trace.WithAttributes(attribute.String("room_state", roomState.String())))
 
 	buf, err = s.reconnectOnRoomState(ctx, roomState, playerID)
 	if err != nil {
 		return buf, err
 	}
 
+	span.AddEvent("trying_to_reconnect", trace.WithAttributes(attribute.Bool("reconnected", err == nil)))
 	return buf, err
 }
 

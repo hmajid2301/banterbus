@@ -43,7 +43,6 @@ type NewQuestion struct {
 
 func (s *Server) addQuestionHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	s.Logger.DebugContext(ctx, "addQuestionHandler called")
 
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
@@ -84,7 +83,6 @@ type NewQuestionTranslation struct {
 
 func (s *Server) addQuestionTranslationHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	s.Logger.DebugContext(ctx, "addQuestionTranslationHandler called")
 
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
@@ -135,7 +133,6 @@ type Question struct {
 
 func (s *Server) getQuestionsHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	s.Logger.DebugContext(ctx, "GetQuestionsHandler called")
 
 	// TODO: validate round_type and group_name
 	roundType := r.URL.Query().Get("round_type")
@@ -215,7 +212,6 @@ func (s *Server) getQuestionsHandler(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) disableQuestionHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	s.Logger.DebugContext(ctx, "disableQuestionHandler called")
 
 	id := r.PathValue("id")
 
@@ -238,7 +234,6 @@ func (s *Server) disableQuestionHandler(w http.ResponseWriter, r *http.Request) 
 
 func (s *Server) enableQuestionHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	s.Logger.DebugContext(ctx, "enableQuestionHandler called")
 
 	id := r.PathValue("id")
 
@@ -265,7 +260,6 @@ type NewGroup struct {
 
 func (s *Server) addGroupHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	s.Logger.DebugContext(ctx, "addGroupHandler called")
 
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
@@ -306,7 +300,6 @@ type Group struct {
 
 func (s *Server) getGroupsHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	s.Logger.DebugContext(ctx, "getGroupsHandler called")
 
 	groups, err := s.QuestionService.GetGroups(ctx)
 	if err != nil {

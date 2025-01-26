@@ -4,6 +4,7 @@ import (
 	"log/slog"
 	"net/http"
 	"runtime/debug"
+	"strings"
 	"time"
 )
 
@@ -35,11 +36,16 @@ func (rw *responseWriter) WriteHeader(code int) {
 
 func (m Middleware) Logging(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		path := r.URL.Path
+		if path == "/ws" || strings.HasPrefix(path, "/static") {
+			next.ServeHTTP(w, r)
+		}
+
 		defer func() {
 			if err := recover(); err != nil {
 				w.WriteHeader(http.StatusInternalServerError)
 				m.Logger.ErrorContext(r.Context(),
-					"",
+					"Request failed",
 					slog.Any("trace", debug.Stack()),
 				)
 			}
