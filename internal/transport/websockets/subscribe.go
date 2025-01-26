@@ -52,7 +52,7 @@ type message struct {
 }
 
 type WSHandler interface {
-	Handle(ctx context.Context, client *client, sub *Subscriber) error
+	Handle(ctx context.Context, client *Client, sub *Subscriber) error
 	Validate() error
 }
 
@@ -232,7 +232,7 @@ func setPlayerIDCookie() *http.Cookie {
 	return cookie
 }
 
-func (s *Subscriber) handleMessages(ctx context.Context, cancel context.CancelFunc, client *client) {
+func (s *Subscriber) handleMessages(ctx context.Context, cancel context.CancelFunc, client *Client) {
 	for {
 		select {
 		case <-ctx.Done():
@@ -259,7 +259,7 @@ func (s *Subscriber) handleMessages(ctx context.Context, cancel context.CancelFu
 	}
 }
 
-func (s *Subscriber) handleMessage(ctx context.Context, client *client) error {
+func (s *Subscriber) handleMessage(ctx context.Context, client *Client) error {
 	tracer := otel.Tracer("banterbus")
 	ctx, span := tracer.Start(ctx, "handleMessage", trace.WithSpanKind(trace.SpanKindServer))
 	defer span.End()

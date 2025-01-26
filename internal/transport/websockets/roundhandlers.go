@@ -48,7 +48,7 @@ type RoundServicer interface {
 	FinishGame(ctx context.Context, gameStateID uuid.UUID) error
 }
 
-func (s *SubmitAnswer) Handle(ctx context.Context, client *client, sub *Subscriber) error {
+func (s *SubmitAnswer) Handle(ctx context.Context, client *Client, sub *Subscriber) error {
 	err := sub.roundService.SubmitAnswer(ctx, client.playerID, s.Answer, time.Now().UTC())
 	if err != nil {
 		span := trace.SpanFromContext(ctx)
@@ -68,7 +68,7 @@ func (s *SubmitAnswer) Handle(ctx context.Context, client *client, sub *Subscrib
 	return err
 }
 
-func (t *ToggleAnswerIsReady) Handle(ctx context.Context, client *client, sub *Subscriber) error {
+func (t *ToggleAnswerIsReady) Handle(ctx context.Context, client *Client, sub *Subscriber) error {
 	allReady, err := sub.roundService.ToggleAnswerIsReady(ctx, client.playerID, time.Now().UTC())
 	if err != nil {
 		errStr := "failed to toggle you are ready, try again"
@@ -92,8 +92,8 @@ func (t *ToggleAnswerIsReady) Handle(ctx context.Context, client *client, sub *S
 
 	if allReady {
 		votingState := VotingState{
-			gameStateID: questionState.GameStateID,
-			subscriber:  *sub,
+			GameStateID: questionState.GameStateID,
+			Subscriber:  *sub,
 		}
 		go votingState.Start(ctx)
 	}
@@ -101,7 +101,7 @@ func (t *ToggleAnswerIsReady) Handle(ctx context.Context, client *client, sub *S
 	return nil
 }
 
-func (s *SubmitVote) Handle(ctx context.Context, client *client, sub *Subscriber) error {
+func (s *SubmitVote) Handle(ctx context.Context, client *Client, sub *Subscriber) error {
 	votingState, err := sub.roundService.SubmitVote(ctx, client.playerID, s.VotedPlayerNickname, time.Now())
 	if err != nil {
 		errStr := "failed to submit vote, try again"
@@ -117,7 +117,7 @@ func (s *SubmitVote) Handle(ctx context.Context, client *client, sub *Subscriber
 	return nil
 }
 
-func (t *ToggleVotingIsReady) Handle(ctx context.Context, client *client, sub *Subscriber) error {
+func (t *ToggleVotingIsReady) Handle(ctx context.Context, client *Client, sub *Subscriber) error {
 	allReady, err := sub.roundService.ToggleVotingIsReady(ctx, client.playerID, time.Now().UTC())
 	if err != nil {
 		errStr := "failed to toggle voting try again"
@@ -142,8 +142,8 @@ func (t *ToggleVotingIsReady) Handle(ctx context.Context, client *client, sub *S
 
 	if allReady {
 		revealState := RevealState{
-			gameStateID: votingState.GameStateID,
-			subscriber:  *sub,
+			GameStateID: votingState.GameStateID,
+			Subscriber:  *sub,
 		}
 		go revealState.Start(ctx)
 	}
