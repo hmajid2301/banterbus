@@ -260,8 +260,13 @@ func (s *Subscriber) handleMessages(ctx context.Context, cancel context.CancelFu
 }
 
 func (s *Subscriber) handleMessage(ctx context.Context, client *Client) error {
-	tracer := otel.Tracer("banterbus")
-	ctx, span := tracer.Start(ctx, "handleMessage", trace.WithSpanKind(trace.SpanKindServer))
+	tracer := otel.Tracer("")
+	ctx, span := tracer.Start(
+		ctx,
+		"handle_message",
+		trace.WithSpanKind(trace.SpanKindServer),
+		trace.WithAttributes(attribute.String("player_id", client.playerID.String())),
+	)
 	defer span.End()
 
 	ctx = slogctx.Append(ctx, "player_id", client.playerID)
@@ -276,13 +281,6 @@ func (s *Subscriber) handleMessage(ctx context.Context, client *Client) error {
 
 		return fmt.Errorf("failed to get next message: %w", err)
 	}
-
-	span.AddEvent(
-		"handling message",
-		trace.WithAttributes(
-			attribute.String("player_id", client.playerID.String()),
-		),
-	)
 
 	if hdr.OpCode == ws.OpClose {
 		return errConnectionClosed

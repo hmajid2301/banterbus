@@ -12,6 +12,9 @@ module.exports = {
       backgroundImage: {
         background: "url('/static/images/background-pattern.svg')",
       },
+      boxShadow: {
+        "custom-border": "0 4px 0 0 #181825",
+      },
       colors: {
         rosewater: "#f5e0dc",
         flamingo: "#f2cdcd",
