@@ -64,10 +64,6 @@ func mainLogic() error {
 	if err != nil {
 		return fmt.Errorf("failed to load config: %w", err)
 	}
-	hostname, err := os.Hostname()
-	if err != nil {
-		return fmt.Errorf("failed to fetch hostname: %w", err)
-	}
 
 	otelShutdown, err := telemetry.SetupOTelSDK(ctx, conf.App.Environment)
 	if err != nil {
@@ -80,9 +76,8 @@ func mainLogic() error {
 
 	// TODO: take these values from otel? instrument via otel?
 	logger := logging.New(conf.App.LogLevel, []slog.Attr{
-		slog.String("app_name", "banterbus"),
-		slog.String("node", hostname),
-		slog.String("environment", conf.App.Environment),
+		slog.String("service_name", "banterbus"),
+		slog.String("service_namespace", conf.App.Environment),
 	})
 
 	// TODO: refactor this

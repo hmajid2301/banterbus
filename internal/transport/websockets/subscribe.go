@@ -260,15 +260,6 @@ func (s *Subscriber) handleMessages(ctx context.Context, cancel context.CancelFu
 }
 
 func (s *Subscriber) handleMessage(ctx context.Context, client *Client) error {
-	tracer := otel.Tracer("")
-	ctx, span := tracer.Start(
-		ctx,
-		"handle_message",
-		trace.WithSpanKind(trace.SpanKindServer),
-		trace.WithAttributes(attribute.String("player_id", client.playerID.String())),
-	)
-	defer span.End()
-
 	ctx = slogctx.Append(ctx, "player_id", client.playerID)
 
 	hdr, r, err := wsutil.NextReader(client.connection, ws.StateServerSide)
@@ -285,6 +276,15 @@ func (s *Subscriber) handleMessage(ctx context.Context, client *Client) error {
 	if hdr.OpCode == ws.OpClose {
 		return errConnectionClosed
 	}
+
+	tracer := otel.Tracer("")
+	ctx, span := tracer.Start(
+		ctx,
+		"handle_message",
+		trace.WithSpanKind(trace.SpanKindServer),
+		trace.WithAttributes(attribute.String("player_id", client.playerID.String())),
+	)
+	defer span.End()
 
 	data, err := io.ReadAll(r)
 	if err != nil {
