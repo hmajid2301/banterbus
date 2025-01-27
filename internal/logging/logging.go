@@ -4,7 +4,6 @@ import (
 	"log/slog"
 	"os"
 	"path/filepath"
-	"regexp"
 	"time"
 
 	"github.com/lmittmann/tint"
@@ -41,11 +40,6 @@ func New(logLevel slog.Level, defaultAttrs []slog.Attr) *slog.Logger {
 	customHandler := slogctx.NewHandler(handler, nil)
 	logger := slog.New(slogotel.OtelHandler{Next: customHandler})
 	return logger
-}
-
-func StripSVGData(message string) string {
-	re := regexp.MustCompile(`data:image/svg\+xml;base64,[A-Za-z0-9+/=]+`)
-	return re.ReplaceAllString(message, "")
 }
 
 // Taken from this blog post https://betterstack.com/community/guides/logging/logging-in-go/#error-logging-with-slog

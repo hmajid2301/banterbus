@@ -43,6 +43,7 @@ func SetupOTelSDK(ctx context.Context, environment string) (shutdown func(contex
 			semconv.ServiceNamespaceKey.String(environment),
 			semconv.ServiceNameKey.String("banterbus"),
 		),
+		// resource.WithSchemaURL("https://gitlab.com/hmajid2301/banterbus"),
 	)
 	if err != nil {
 		handleErr(err)
@@ -65,6 +66,15 @@ func SetupOTelSDK(ctx context.Context, environment string) (shutdown func(contex
 
 	shutdownFuncs = append(shutdownFuncs, meterProvider.Shutdown)
 	otel.SetMeterProvider(meterProvider)
+	//
+	// logProvider, err := newLogProvider(ctx, res)
+	// if err != nil {
+	// 	handleErr(err)
+	// 	return shutdown, err
+	// }
+	//
+	// shutdownFuncs = append(shutdownFuncs, logProvider.Shutdown)
+	// global.SetLoggerProvider(logProvider)
 
 	return shutdown, err
 }
@@ -104,3 +114,17 @@ func newMeterProvider(ctx context.Context, res *resource.Resource) (*metric.Mete
 	otel.SetMeterProvider(meterProvider)
 	return meterProvider, nil
 }
+
+// TODO: enable when the slogotel logger has more control over say log level adding source etc
+// func newLogProvider(ctx context.Context, res *resource.Resource) (*log.LoggerProvider, error) {
+// 	logExporter, err := otlploghttp.New(ctx)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+//
+// 	loggerProvider := log.NewLoggerProvider(
+// 		log.WithProcessor(log.NewBatchProcessor(logExporter)),
+// 		log.WithResource(res),
+// 	)
+// 	return loggerProvider, nil
+// }

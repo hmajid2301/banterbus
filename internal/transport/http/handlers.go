@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	"net/http"
 	"net/http/pprof"
+	"strings"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -136,8 +137,8 @@ func (s *Server) setupHTTPRoutes(config ServerConfig, keyfunc jwt.Keyfunc, stati
 		return fmt.Sprintf("HTTP %s %s", r.Method, r.URL.Path)
 	}
 
-	healthFilter := func(r *http.Request) bool {
-		return r.URL.Path != "/health" && r.URL.Path != "/readiness"
+	otelFilters := func(r *http.Request) bool {
+		return r.URL.Path != "/health" && r.URL.Path != "/readiness" && strings.HasPrefix(r.URL.Path, "/static")
 	}
 
 	routes := m.Logging(mux)
@@ -145,7 +146,7 @@ func (s *Server) setupHTTPRoutes(config ServerConfig, keyfunc jwt.Keyfunc, stati
 	handler := otelhttp.NewHandler(
 		routes,
 		"/",
-		otelhttp.WithFilter(healthFilter),
+		otelhttp.WithFilter(otelFilters),
 		otelhttp.WithSpanNameFormatter(httpSpanName),
 	)
 	return handler

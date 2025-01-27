@@ -37,8 +37,9 @@ func (rw *responseWriter) WriteHeader(code int) {
 func (m Middleware) Logging(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		path := r.URL.Path
-		if path == "/ws" || strings.HasPrefix(path, "/static") {
+		if path == "/ws" || strings.HasPrefix(path, "/static") || path == "/readiness" || path == "/health" {
 			next.ServeHTTP(w, r)
+			return
 		}
 
 		defer func() {

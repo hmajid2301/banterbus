@@ -22,6 +22,7 @@ const errStr = "failed to reconnect to game"
 
 func (s Subscriber) Reconnect(ctx context.Context, playerID uuid.UUID) (bytes.Buffer, error) {
 	tracer := otel.Tracer("")
+	// TODO: share ctx attributes? use logs from otel
 	ctx = slogctx.Append(ctx, "player_id", playerID)
 	ctx, span := tracer.Start(
 		ctx,
