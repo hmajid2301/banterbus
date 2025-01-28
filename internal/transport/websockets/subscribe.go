@@ -97,6 +97,25 @@ func NewSubscriber(
 func (s *Subscriber) Subscribe(r *http.Request, w http.ResponseWriter) (err error) {
 	ctx := context.Background()
 	ctx, cancel := context.WithCancel(ctx)
+	start := time.Now()
+
+	telemetry.IncrementActiveConnections()
+	defer telemetry.DecrementActiveConnections()
+
+	defer func() {
+		latencyInSeconds := float64(time.Since(start).Seconds())
+		err = telemetry.RecordConnectionDuration(ctx, latencyInSeconds)
+		if err != nil {
+			s.logger.WarnContext(ctx, "failed to record connection time metric", slog.Any("error", err))
+		}
+	}()
+
+	tracer := otel.Tracer("")
+	ctx, span := tracer.Start(
+		ctx,
+		"subscribe",
+		trace.WithSpanKind(trace.SpanKindServer),
+	)
 
 	locale := "en-GB"
 	cookie, err := r.Cookie("locale")
@@ -104,8 +123,10 @@ func (s *Subscriber) Subscribe(r *http.Request, w http.ResponseWriter) (err erro
 		locale = cookie.Value
 	}
 
+	span.AddEvent("add_locale")
 	ctx, err = ctxi18n.WithLocale(ctx, locale)
 	if err != nil {
+		span.AddEvent("failed_to_set_locale")
 		s.logger.ErrorContext(
 			ctx,
 			"failed to set locale",
@@ -130,6 +151,7 @@ func (s *Subscriber) Subscribe(r *http.Request, w http.ResponseWriter) (err erro
 
 	cookie, err = r.Cookie("player_id")
 	if err != nil {
+		span.AddEvent("no_cookie_found")
 		cookie = setPlayerIDCookie()
 		http.SetCookie(w, cookie)
 	} else {
@@ -174,6 +196,12 @@ func (s *Subscriber) Subscribe(r *http.Request, w http.ResponseWriter) (err erro
 		cancel()
 		return err
 	}
+	span.SetAttributes(attribute.String("player_id", playerID.String()))
+	span.AddEvent("connection_upgraded_ws")
+	err = telemetry.IncrementSubscribers(ctx)
+	if err != nil {
+		s.logger.WarnContext(ctx, "failed to increment coutner", slog.Any("error", err))
+	}
 
 	subscribeCh := s.websocket.Subscribe(ctx, playerID)
 	client := newClient(connection, playerID, subscribeCh)
@@ -197,20 +225,21 @@ func (s *Subscriber) Subscribe(r *http.Request, w http.ResponseWriter) (err erro
 	// 	return err
 	// }
 
+	span.SetStatus(codes.Ok, "subscribed_successfully")
+	span.End()
+
 	for {
 		select {
 		// INFO: Send message to client.
 		case msg := <-client.messagesCh:
-			// TODO: only run when debug logging
-			// cleanedMessage := logging.StripSVGData(msg.Payload)
-			// s.logger.DebugContext(ctx, "sending message", slog.String("message", cleanedMessage))
+			s.logger.DebugContext(ctx, "sending message", slog.String("message", msg.Payload))
 			err = wsutil.WriteServerText(connection, []byte(msg.Payload))
 			if err != nil {
 				s.logger.ErrorContext(ctx, "failed to write message", slog.Any("error", err))
 				// return err
 			}
 		case <-ctx.Done():
-			s.logger.DebugContext(ctx, "context done")
+			s.logger.InfoContext(ctx, "subscribe context done")
 			cancel()
 			return ctx.Err()
 		}
@@ -240,7 +269,12 @@ func (s *Subscriber) handleMessages(ctx context.Context, cancel context.CancelFu
 		default:
 			err := s.handleMessage(ctx, client)
 			if err != nil {
-				s.logger.ErrorContext(ctx, "failed to handle message", slog.Any("error", err))
+				s.logger.ErrorContext(
+					ctx,
+					"failed to handle message",
+					slog.Any("error", err),
+					slog.String("player_id", client.playerID.String()),
+				)
 				err := telemetry.IncrementMessageReceivedError(ctx)
 				if err != nil {
 					s.logger.WarnContext(
@@ -260,6 +294,8 @@ func (s *Subscriber) handleMessages(ctx context.Context, cancel context.CancelFu
 }
 
 func (s *Subscriber) handleMessage(ctx context.Context, client *Client) error {
+	start := time.Now()
+	messageStatus := "success"
 	ctx = slogctx.Append(ctx, "player_id", client.playerID)
 
 	hdr, r, err := wsutil.NextReader(client.connection, ws.StateServerSide)
@@ -295,8 +331,17 @@ func (s *Subscriber) handleMessage(ctx context.Context, client *Client) error {
 	err = json.Unmarshal(data, &message)
 	s.logger.DebugContext(ctx, "received message", slog.Any("message", message))
 	if err != nil {
+		messageStatus = "fail_unmarshal_message"
 		return fmt.Errorf("failed to unmarshal message: %w", err)
 	}
+
+	defer func() {
+		latencyMs := float64(time.Since(start).Milliseconds())
+		err = telemetry.RecordRequestLatency(ctx, latencyMs, message.MessageType, messageStatus)
+		if err != nil {
+			s.logger.WarnContext(ctx, "failed to record latency metric", slog.Any("error", err))
+		}
+	}()
 
 	err = telemetry.IncrementMessageReceived(ctx, message.MessageType)
 	if err != nil {
@@ -307,26 +352,30 @@ func (s *Subscriber) handleMessage(ctx context.Context, client *Client) error {
 	s.logger.DebugContext(ctx, "handling message", slog.String("message_type", message.MessageType))
 	handler, ok := s.handlers[message.MessageType]
 	if !ok {
+		messageStatus = "fail_matching_handler"
 		return fmt.Errorf("handler not found for message type: %s", message.MessageType)
 	}
 
 	err = json.Unmarshal(data, &handler)
 	s.logger.DebugContext(ctx, "trying to unmarshal handler message", slog.Any("message", message))
 	if err != nil {
+		messageStatus = "fail_unmarshal_handler_message"
 		return fmt.Errorf("failed to unmarshal for handler: %w", err)
 	}
 
 	err = handler.Validate()
 	if err != nil {
+		messageStatus = "fail_validate"
 		return fmt.Errorf("error validating handler message: %w", err)
 	}
 
 	err = handler.Handle(ctx, client, s)
 	if err != nil {
+		messageStatus = "fail_handler"
 		return fmt.Errorf("error in handler function: %w", err)
 	}
 
 	s.logger.DebugContext(ctx, "finished handling request")
-	span.SetStatus(codes.Ok, "handled message successfully")
+	span.SetStatus(codes.Ok, "handle_message_successful")
 	return nil
 }
