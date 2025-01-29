@@ -161,6 +161,11 @@ func (s *Subscriber) Subscribe(r *http.Request, w http.ResponseWriter) (err erro
 			return err
 		}
 
+		err = telemetry.IncrementReconnectionCount(ctx)
+		if err != nil {
+			s.logger.WarnContext(ctx, "failed to increment reconnection count", slog.Any("error", err))
+		}
+
 		if s.config.App.AutoReconnect {
 			component, err = s.Reconnect(ctx, playerID)
 			if err != nil {
@@ -177,6 +182,7 @@ func (s *Subscriber) Subscribe(r *http.Request, w http.ResponseWriter) (err erro
 		return err
 	}
 
+	span.SetAttributes(attribute.String("player_id", playerID.String()))
 	err = s.playerService.UpdateLocale(ctx, playerID, locale)
 	if err != nil {
 		s.logger.WarnContext(
@@ -193,14 +199,19 @@ func (s *Subscriber) Subscribe(r *http.Request, w http.ResponseWriter) (err erro
 	}
 	connection, _, _, err := h.Upgrade(r, w)
 	if err != nil {
+		span.AddEvent("connection_ws_upgrade_failed")
+		err = telemetry.IncrementHandshakeFailures(ctx, err.Error())
+		if err != nil {
+			s.logger.WarnContext(ctx, "failed to increment handshake failure", slog.Any("error", err))
+		}
+
 		cancel()
 		return err
 	}
-	span.SetAttributes(attribute.String("player_id", playerID.String()))
-	span.AddEvent("connection_upgraded_ws")
+	span.AddEvent("connection_ws_upgraded")
 	err = telemetry.IncrementSubscribers(ctx)
 	if err != nil {
-		s.logger.WarnContext(ctx, "failed to increment coutner", slog.Any("error", err))
+		s.logger.WarnContext(ctx, "failed to increment counter", slog.Any("error", err))
 	}
 
 	subscribeCh := s.websocket.Subscribe(ctx, playerID)
@@ -232,11 +243,28 @@ func (s *Subscriber) Subscribe(r *http.Request, w http.ResponseWriter) (err erro
 		select {
 		// INFO: Send message to client.
 		case msg := <-client.messagesCh:
+			start := time.Now()
 			s.logger.DebugContext(ctx, "sending message", slog.String("message", msg.Payload))
 			err = wsutil.WriteServerText(connection, []byte(msg.Payload))
 			if err != nil {
 				s.logger.ErrorContext(ctx, "failed to write message", slog.Any("error", err))
+
+				err = telemetry.IncrementMessageSentError(ctx)
+				if err != nil {
+					s.logger.WarnContext(ctx, "failed to increment message sent err", slog.Any("error", err))
+				}
+				// TODO: do we need this?
 				// return err
+			} else {
+				err = telemetry.IncrementMessageSent(ctx)
+				if err != nil {
+					s.logger.WarnContext(ctx, "failed to increment message sent", slog.Any("error", err))
+				}
+
+				err = telemetry.RecordMessageSendLatency(ctx, time.Since(start).Seconds())
+				if err != nil {
+					s.logger.WarnContext(ctx, "failed to record send latency", slog.Any("error", err))
+				}
 			}
 		case <-ctx.Done():
 			s.logger.InfoContext(ctx, "subscribe context done")

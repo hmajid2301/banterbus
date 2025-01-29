@@ -1,6 +1,7 @@
 package websockets
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"time"
@@ -43,26 +44,28 @@ func (c *CreateRoom) Handle(ctx context.Context, client *Client, sub *Subscriber
 }
 
 func (j *JoinLobby) Handle(ctx context.Context, client *Client, sub *Subscriber) error {
+	var err error
+	var component bytes.Buffer
 	updatedRoom, err := sub.lobbyService.Join(ctx, j.RoomCode, client.playerID, j.PlayerNickname)
 	if err != nil {
 		if errors.Is(err, service.ErrPlayerAlreadyInRoom) {
-			component, err := sub.Reconnect(ctx, client.playerID)
-			// TODO: return error back to customer
+			component, err = sub.Reconnect(ctx, client.playerID)
 			if err == nil {
-				_ = sub.websocket.Publish(ctx, client.playerID, component.Bytes())
+				webSocketErr := sub.websocket.Publish(ctx, client.playerID, component.Bytes())
+				err = errors.Join(err, webSocketErr)
 			}
+		} else {
+			errStr := "failed to join room"
+			if err == service.ErrNicknameExists {
+				errStr = err.Error()
+			}
+			clientErr := sub.updateClientAboutErr(ctx, client.playerID, errStr)
+			return errors.Join(clientErr, err)
 		}
-
-		errStr := "failed to join room"
-		if err == service.ErrNicknameExists {
-			errStr = err.Error()
-		}
-		clientErr := sub.updateClientAboutErr(ctx, client.playerID, errStr)
-		return errors.Join(clientErr, err)
 	}
 
-	err = sub.updateClientsAboutLobby(ctx, updatedRoom)
-	return err
+	clientErr := sub.updateClientsAboutLobby(ctx, updatedRoom)
+	return errors.Join(clientErr, err)
 }
 
 func (s *StartGame) Handle(ctx context.Context, client *Client, sub *Subscriber) error {

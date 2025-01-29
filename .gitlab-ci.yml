@@ -80,18 +80,13 @@ stages:
   image:
     name: ghcr.io/fluxcd/flux-cli:v2.0.0
     entrypoint: ['']
-  timeout: 5m
+  timeout: 10m
   script:
     - IMAGE=$(cat image_name.txt)
+    - echo "Trying to deploy this image to pod" $IMAGE
     - kubectl config use-context hmajid2301/k3s-config:ms01
     - flux reconcile image repository banterbus
-    - |
-      echo "Waiting for deployment to update to image: $IMAGE"
-      until kubectl get deployment banterbus -n $NAMESPACE -o jsonpath="{.spec.template.spec.containers[0].image}" | grep -q "$IMAGE"; do
-        echo "Deployment not updated yet. Waiting..."
-        sleep 10
-      done
-      echo "Deployment updated to image: $IMAGE"
+    - kubectl wait --for=jsonpath='{.spec.template.spec.containers[0].image}'="$(cat image_name.txt)" deployment/banterbus -n $NAMESPACE --timeout=600s
     - kubectl wait --for=condition=available --timeout=600s deployment/banterbus -n $NAMESPACE
 
 
