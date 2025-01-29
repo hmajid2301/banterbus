@@ -57,7 +57,7 @@ func TestStateMachine(t *testing.T) {
 		p1 := uuid.Must(uuid.NewV7())
 		p2 := uuid.Must(uuid.NewV7())
 		roundService.EXPECT().
-			UpdateStateToQuestion(ctx, u, mock.AnythingOfType("time.Time"), false).
+			UpdateStateToQuestion(mock.Anything, u, mock.AnythingOfType("time.Time"), false).
 			Return(service.QuestionState{
 				Players: []service.PlayerWithRole{
 					{
@@ -72,11 +72,11 @@ func TestStateMachine(t *testing.T) {
 					},
 				},
 			}, nil)
-		websocketer.EXPECT().Publish(ctx, p1, mock.AnythingOfType("[]uint8")).Return(nil)
-		websocketer.EXPECT().Publish(ctx, p2, mock.AnythingOfType("[]uint8")).Return(nil)
+		websocketer.EXPECT().Publish(mock.Anything, p1, mock.AnythingOfType("[]uint8")).Return(nil)
+		websocketer.EXPECT().Publish(mock.Anything, p2, mock.AnythingOfType("[]uint8")).Return(nil)
 
 		roundService.EXPECT().
-			UpdateStateToVoting(ctx, u, mock.AnythingOfType("time.Time")).
+			UpdateStateToVoting(mock.Anything, u, mock.AnythingOfType("time.Time")).
 			Return(service.VotingState{}, fmt.Errorf("stop state machine here"))
 
 		q.Start(ctx)
@@ -91,7 +91,7 @@ func TestStateMachine(t *testing.T) {
 		}
 
 		roundService.EXPECT().
-			UpdateStateToQuestion(ctx, u, mock.AnythingOfType("time.Time"), false).
+			UpdateStateToQuestion(mock.Anything, u, mock.AnythingOfType("time.Time"), false).
 			Return(service.QuestionState{}, fmt.Errorf("failed to update state"))
 
 		q.Start(ctx)
@@ -107,7 +107,7 @@ func TestStateMachine(t *testing.T) {
 		p1 := uuid.Must(uuid.NewV7())
 		p2 := uuid.Must(uuid.NewV7())
 		roundService.EXPECT().
-			UpdateStateToVoting(ctx, u, mock.AnythingOfType("time.Time")).
+			UpdateStateToVoting(mock.Anything, u, mock.AnythingOfType("time.Time")).
 			Return(service.VotingState{
 				Players: []service.PlayerWithVoting{
 					{
@@ -120,11 +120,11 @@ func TestStateMachine(t *testing.T) {
 					},
 				},
 			}, nil)
-		websocketer.EXPECT().Publish(ctx, p1, mock.AnythingOfType("[]uint8")).Return(nil)
-		websocketer.EXPECT().Publish(ctx, p2, mock.AnythingOfType("[]uint8")).Return(nil)
+		websocketer.EXPECT().Publish(mock.Anything, p1, mock.AnythingOfType("[]uint8")).Return(nil)
+		websocketer.EXPECT().Publish(mock.Anything, p2, mock.AnythingOfType("[]uint8")).Return(nil)
 
 		roundService.EXPECT().
-			UpdateStateToReveal(ctx, u, mock.AnythingOfType("time.Time")).
+			UpdateStateToReveal(mock.Anything, u, mock.AnythingOfType("time.Time")).
 			Return(service.RevealRoleState{}, fmt.Errorf("stop state machine here"))
 
 		q.Start(ctx)
@@ -138,7 +138,7 @@ func TestStateMachine(t *testing.T) {
 		}
 
 		roundService.EXPECT().
-			UpdateStateToVoting(ctx, u, mock.AnythingOfType("time.Time")).
+			UpdateStateToVoting(mock.Anything, u, mock.AnythingOfType("time.Time")).
 			Return(service.VotingState{}, fmt.Errorf("failed to update state"))
 
 		q.Start(ctx)
@@ -154,17 +154,17 @@ func TestStateMachine(t *testing.T) {
 		p1 := uuid.Must(uuid.NewV7())
 		p2 := uuid.Must(uuid.NewV7())
 		roundService.EXPECT().
-			UpdateStateToReveal(ctx, u, mock.AnythingOfType("time.Time")).
+			UpdateStateToReveal(mock.Anything, u, mock.AnythingOfType("time.Time")).
 			Return(service.RevealRoleState{
 				PlayerIDs: []uuid.UUID{p1, p2},
 				Round:     1,
 				RoundType: "free_form",
 			}, nil)
-		websocketer.EXPECT().Publish(ctx, p1, mock.AnythingOfType("[]uint8")).Return(nil)
-		websocketer.EXPECT().Publish(ctx, p2, mock.AnythingOfType("[]uint8")).Return(nil)
+		websocketer.EXPECT().Publish(mock.Anything, p1, mock.AnythingOfType("[]uint8")).Return(nil)
+		websocketer.EXPECT().Publish(mock.Anything, p2, mock.AnythingOfType("[]uint8")).Return(nil)
 
 		roundService.EXPECT().
-			UpdateStateToQuestion(ctx, u, mock.AnythingOfType("time.Time"), false).
+			UpdateStateToQuestion(mock.Anything, u, mock.AnythingOfType("time.Time"), false).
 			Return(service.QuestionState{}, fmt.Errorf("stop state machine here"))
 
 		q.Start(ctx)
@@ -184,17 +184,17 @@ func TestStateMachine(t *testing.T) {
 			p1 := uuid.Must(uuid.NewV7())
 			p2 := uuid.Must(uuid.NewV7())
 			roundService.EXPECT().
-				UpdateStateToReveal(ctx, u, mock.AnythingOfType("time.Time")).
+				UpdateStateToReveal(mock.Anything, u, mock.AnythingOfType("time.Time")).
 				Return(service.RevealRoleState{
 					PlayerIDs: []uuid.UUID{p1, p2},
 					Round:     3,
 					RoundType: "free_form",
 				}, nil)
-			websocketer.EXPECT().Publish(ctx, p1, mock.AnythingOfType("[]uint8")).Return(nil)
-			websocketer.EXPECT().Publish(ctx, p2, mock.AnythingOfType("[]uint8")).Return(nil)
+			websocketer.EXPECT().Publish(mock.Anything, p1, mock.AnythingOfType("[]uint8")).Return(nil)
+			websocketer.EXPECT().Publish(mock.Anything, p2, mock.AnythingOfType("[]uint8")).Return(nil)
 
 			roundService.EXPECT().
-				UpdateStateToScore(ctx, u, mock.AnythingOfType("time.Time"), scoring).
+				UpdateStateToScore(mock.Anything, u, mock.AnythingOfType("time.Time"), scoring).
 				Return(service.ScoreState{}, fmt.Errorf("stop state machine here"))
 
 			q.Start(ctx)
@@ -215,7 +215,7 @@ func TestStateMachine(t *testing.T) {
 			p1 := uuid.Must(uuid.NewV7())
 			p2 := uuid.Must(uuid.NewV7())
 			roundService.EXPECT().
-				UpdateStateToReveal(ctx, u, mock.AnythingOfType("time.Time")).
+				UpdateStateToReveal(mock.Anything, u, mock.AnythingOfType("time.Time")).
 				Return(service.RevealRoleState{
 					PlayerIDs:          []uuid.UUID{p1, p2},
 					Round:              2,
@@ -223,11 +223,11 @@ func TestStateMachine(t *testing.T) {
 					VotedForPlayerRole: "fibber",
 					ShouldReveal:       true,
 				}, nil)
-			websocketer.EXPECT().Publish(ctx, p1, mock.AnythingOfType("[]uint8")).Return(nil)
-			websocketer.EXPECT().Publish(ctx, p2, mock.AnythingOfType("[]uint8")).Return(nil)
+			websocketer.EXPECT().Publish(mock.Anything, p1, mock.AnythingOfType("[]uint8")).Return(nil)
+			websocketer.EXPECT().Publish(mock.Anything, p2, mock.AnythingOfType("[]uint8")).Return(nil)
 
 			roundService.EXPECT().
-				UpdateStateToScore(ctx, u, mock.AnythingOfType("time.Time"), scoring).
+				UpdateStateToScore(mock.Anything, u, mock.AnythingOfType("time.Time"), scoring).
 				Return(service.ScoreState{}, fmt.Errorf("stop state machine here"))
 
 			q.Start(ctx)
@@ -248,7 +248,7 @@ func TestStateMachine(t *testing.T) {
 			p1 := uuid.Must(uuid.NewV7())
 			p2 := uuid.Must(uuid.NewV7())
 			roundService.EXPECT().
-				UpdateStateToReveal(ctx, u, mock.AnythingOfType("time.Time")).
+				UpdateStateToReveal(mock.Anything, u, mock.AnythingOfType("time.Time")).
 				Return(service.RevealRoleState{
 					PlayerIDs:          []uuid.UUID{p1, p2},
 					Round:              2,
@@ -256,11 +256,11 @@ func TestStateMachine(t *testing.T) {
 					VotedForPlayerRole: "fibber",
 					ShouldReveal:       true,
 				}, nil)
-			websocketer.EXPECT().Publish(ctx, p1, mock.AnythingOfType("[]uint8")).Return(nil)
-			websocketer.EXPECT().Publish(ctx, p2, mock.AnythingOfType("[]uint8")).Return(nil)
+			websocketer.EXPECT().Publish(mock.Anything, p1, mock.AnythingOfType("[]uint8")).Return(nil)
+			websocketer.EXPECT().Publish(mock.Anything, p2, mock.AnythingOfType("[]uint8")).Return(nil)
 
 			roundService.EXPECT().
-				UpdateStateToWinner(ctx, u, mock.AnythingOfType("time.Time")).
+				UpdateStateToWinner(mock.Anything, u, mock.AnythingOfType("time.Time")).
 				Return(service.WinnerState{}, fmt.Errorf("stop state machine here"))
 
 			q.Start(ctx)
@@ -281,18 +281,18 @@ func TestStateMachine(t *testing.T) {
 			p1 := uuid.Must(uuid.NewV7())
 			p2 := uuid.Must(uuid.NewV7())
 			roundService.EXPECT().
-				UpdateStateToReveal(ctx, u, mock.AnythingOfType("time.Time")).
+				UpdateStateToReveal(mock.Anything, u, mock.AnythingOfType("time.Time")).
 				Return(service.RevealRoleState{
 					PlayerIDs:    []uuid.UUID{p1, p2},
 					Round:        3,
 					RoundType:    "most_likely",
 					ShouldReveal: true,
 				}, nil)
-			websocketer.EXPECT().Publish(ctx, p1, mock.AnythingOfType("[]uint8")).Return(nil)
-			websocketer.EXPECT().Publish(ctx, p2, mock.AnythingOfType("[]uint8")).Return(nil)
+			websocketer.EXPECT().Publish(mock.Anything, p1, mock.AnythingOfType("[]uint8")).Return(nil)
+			websocketer.EXPECT().Publish(mock.Anything, p2, mock.AnythingOfType("[]uint8")).Return(nil)
 
 			roundService.EXPECT().
-				UpdateStateToWinner(ctx, u, mock.AnythingOfType("time.Time")).
+				UpdateStateToWinner(mock.Anything, u, mock.AnythingOfType("time.Time")).
 				Return(service.WinnerState{}, fmt.Errorf("stop state machine here"))
 
 			q.Start(ctx)
@@ -313,7 +313,7 @@ func TestStateMachine(t *testing.T) {
 			p1 := uuid.Must(uuid.NewV7())
 			p2 := uuid.Must(uuid.NewV7())
 			roundService.EXPECT().
-				UpdateStateToScore(ctx, u, mock.AnythingOfType("time.Time"), scoring).
+				UpdateStateToScore(mock.Anything, u, mock.AnythingOfType("time.Time"), scoring).
 				Return(service.ScoreState{
 					Players: []service.PlayerWithScoring{
 						{
@@ -324,11 +324,11 @@ func TestStateMachine(t *testing.T) {
 						},
 					},
 				}, nil)
-			websocketer.EXPECT().Publish(ctx, p1, mock.AnythingOfType("[]uint8")).Return(nil)
-			websocketer.EXPECT().Publish(ctx, p2, mock.AnythingOfType("[]uint8")).Return(nil)
+			websocketer.EXPECT().Publish(mock.Anything, p1, mock.AnythingOfType("[]uint8")).Return(nil)
+			websocketer.EXPECT().Publish(mock.Anything, p2, mock.AnythingOfType("[]uint8")).Return(nil)
 
 			roundService.EXPECT().
-				UpdateStateToQuestion(ctx, u, mock.AnythingOfType("time.Time"), true).
+				UpdateStateToQuestion(mock.Anything, u, mock.AnythingOfType("time.Time"), true).
 				Return(service.QuestionState{}, fmt.Errorf("stop state machine here"))
 
 			q.Start(ctx)
@@ -347,7 +347,7 @@ func TestStateMachine(t *testing.T) {
 			p1 := uuid.Must(uuid.NewV7())
 			p2 := uuid.Must(uuid.NewV7())
 			roundService.EXPECT().
-				UpdateStateToWinner(ctx, u, mock.AnythingOfType("time.Time")).
+				UpdateStateToWinner(mock.Anything, u, mock.AnythingOfType("time.Time")).
 				Return(service.WinnerState{
 					Players: []service.PlayerWithScoring{
 						{
@@ -358,10 +358,10 @@ func TestStateMachine(t *testing.T) {
 						},
 					},
 				}, nil)
-			websocketer.EXPECT().Publish(ctx, p1, mock.AnythingOfType("[]uint8")).Return(nil)
-			websocketer.EXPECT().Publish(ctx, p2, mock.AnythingOfType("[]uint8")).Return(nil)
+			websocketer.EXPECT().Publish(mock.Anything, p1, mock.AnythingOfType("[]uint8")).Return(nil)
+			websocketer.EXPECT().Publish(mock.Anything, p2, mock.AnythingOfType("[]uint8")).Return(nil)
+			roundService.EXPECT().FinishGame(mock.Anything, u).Return(nil)
 
-			roundService.EXPECT().FinishGame(ctx, u).Return(nil)
 			q.Start(ctx)
 		},
 	)
