@@ -15,20 +15,20 @@ func joinRoom(hostPlayerPage playwright.Page, otherPlayerPages []playwright.Page
 	}
 
 	locator := hostPlayerPage.Locator("input[name='room_code']")
-
 	// INFO: Retry mechanism to wait for the room code to be available
 	var code string
 	for i := 0; i < 5; i++ {
 		code, err = locator.InputValue()
 		if err != nil {
-			return err
+			fmt.Print("failed to get room code", err)
+			continue
 		}
 
 		if code != "" {
 			break
 		}
 
-		time.Sleep(100 * time.Millisecond)
+		time.Sleep(200 * time.Millisecond)
 	}
 
 	if code == "" {
@@ -84,25 +84,32 @@ func getPlayerRoles(
 	}
 
 	fibberFound := false
-	for _, player := range append(otherPlayerPages, hostPlayerPage) {
+	for i := 0; i < 3; i++ {
+		fibberFound = false
+		for _, player := range append(otherPlayerPages, hostPlayerPage) {
+			if fibberFound {
+				normals = append(normals, player)
+				continue
+			}
+
+			fibberText := player.GetByText("You are fibber")
+			isFibber, err := fibberText.IsVisible()
+			if err != nil {
+				return fibber, normals, err
+			}
+
+			if !isFibber {
+				normals = append(normals, player)
+				continue
+			}
+
+			fibber = player
+			fibberFound = true
+		}
+
 		if fibberFound {
-			normals = append(normals, player)
-			continue
+			break
 		}
-
-		fibberText := player.GetByText("You are fibber")
-		isFibber, err := fibberText.IsVisible()
-		if err != nil {
-			return fibber, normals, err
-		}
-
-		if !isFibber {
-			normals = append(normals, player)
-			continue
-		}
-
-		fibber = player
-		fibberFound = true
 	}
 
 	if !fibberFound {

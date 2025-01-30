@@ -8,7 +8,7 @@ default:
   interruptible: true
 
 variables:
-  IMAGE_TAG: v0.1.6
+  IMAGE_TAG: v0.1.7
   BANTERBUS_CI_IMAGE: $CI_REGISTRY_IMAGE/ci:$IMAGE_TAG
   POSTGRES_USER: banterbus
   POSTGRES_PASSWORD: banterbus
@@ -21,6 +21,7 @@ stages:
   - build
   - deploy
   - release
+  - post
 
 .task:
   stage: test
@@ -32,9 +33,9 @@ stages:
       - ${GOPATH}/pkg/mod
     policy: pull
   rules:
-    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
     - if: $CI_PIPELINE_SOURCE == "schedule"
       when: never
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
   before_script:
     # INFO: Used to create directory, needed for tests and linter
     - mkdir -p /tmp
@@ -47,10 +48,10 @@ stages:
      XDG_DATA_HOME: "/tmp/"
      GOTEST_EXTRA_ARGS: '-args -test.gocoverdir=$CI_PROJECT_DIR/coverage'
   rules:
-    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-    - if: $CI_COMMIT_BRANCH == "main"
     - if: $CI_PIPELINE_SOURCE == "schedule"
       when: never
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == "main"
   before_script:
     - mkdir -p $CI_PROJECT_DIR/coverage /tmp  $CI_PROJECT_DIR/e2e/screenshots
   artifacts:
@@ -78,7 +79,7 @@ stages:
 .deploy:
   stage: deploy
   image:
-    name: ghcr.io/fluxcd/flux-cli:v2.0.0
+    name: ghcr.io/fluxcd/flux-cli:v2.4.0
     entrypoint: ['']
   timeout: 10m
   script:
@@ -185,6 +186,8 @@ test:e2e:
     BANTERBUS_REDIS_ADDRESS: redis:6379
     BANTERBUS_DB_URI: postgresql://banterbus:banterbus@postgres:5432
     BANTERBUS_JWKS_URL: http://oauth2:8080/default/jwks
+    BANTERBUS_LOG_LEVEL: INFO
+    BANTERBUS_ENVIRONMENT: local
   script:
     - task tests:e2e -- ${GOTEST_EXTRA_ARGS}
   artifacts:
@@ -201,10 +204,10 @@ combine:coverage:
   extends:
     - .task
   rules:
-    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-    - if: $CI_COMMIT_BRANCH == "main"
     - if: $CI_PIPELINE_SOURCE == "schedule"
       when: never
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == "main"
   script:
     - task coverage
   coverage: /total:\s+\(statements\)\s+\d+.\d+%/
@@ -252,9 +255,9 @@ publish:prod:docker:
   extends:
     - .docker
   rules:
-    - if: $CI_COMMIT_TAG || $CI_COMMIT_BRANCH == "main"
     - if: $CI_PIPELINE_SOURCE == "schedule"
       when: never
+    - if: $CI_COMMIT_TAG || $CI_COMMIT_BRANCH == "main"
   before_script:
     - export IMAGE="$CI_REGISTRY_IMAGE:prod-$CI_COMMIT_SHA-$(date +%s)"
     - echo $IMAGE > image_name.txt
@@ -265,9 +268,9 @@ publish:prod:docker:
 check_deploy:prod:
   extends: .deploy
   rules:
-    - if: $CI_COMMIT_TAG || $CI_COMMIT_BRANCH == "main"
     - if: $CI_PIPELINE_SOURCE == "schedule"
       when: never
+    - if: $CI_COMMIT_TAG || $CI_COMMIT_BRANCH == "main"
   variables:
     NAMESPACE: prod
   dependencies:
@@ -287,13 +290,15 @@ release:
 smoke:tests:e2e:
   extends:
     - .test
+  stage: post
   variables:
     BANTERBUS_PLAYWRIGHT_URL: https://banterbus.games
   rules:
     - if: $CI_PIPELINE_SOURCE == "schedule"
       when: always
+    - if: $CI_COMMIT_TAG || $CI_COMMIT_BRANCH == "main"
   script:
-    - task tests:e2e -- ${GOTEST_EXTRA_ARGS}
+   - task tests:e2e -- -v -run 'TestE2ERound/Should_successfully_complete_an_entire_game_where_the_fibber_is_caught_first_time'
   after_script:
     - |
       if [ "$CI_JOB_STATUS" != "success" ]; then
@@ -302,3 +307,11 @@ smoke:tests:e2e:
             -F "title=Job Failed" \
             -F "message=The smoke:tests:e2e job has failed in the pipeline. Job URL: $CI_JOB_URL"
       fi
+  artifacts:
+    when: always
+    paths:
+      - coverage
+      - tests/e2e/videos/*
+      - tests/e2e/*.png
+  dependencies:
+    - check_deploy:prod
