@@ -3,7 +3,6 @@ package banterbustest
 import (
 	"context"
 	"fmt"
-	"io"
 	"log"
 	"log/slog"
 	"net/http"
@@ -20,6 +19,7 @@ import (
 	"github.com/mdobak/go-xerrors"
 
 	"gitlab.com/hmajid2301/banterbus/internal/config"
+	"gitlab.com/hmajid2301/banterbus/internal/logging"
 	"gitlab.com/hmajid2301/banterbus/internal/service"
 	"gitlab.com/hmajid2301/banterbus/internal/service/randomizer"
 	"gitlab.com/hmajid2301/banterbus/internal/store/db"
@@ -140,15 +140,6 @@ func setupLogger() *slog.Logger {
 		log.Fatalf("unknown log level: %s", logLevel)
 	}
 
-	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
-		Level: level,
-	}))
-
-	if os.Getenv("BANTERBUS_LOG_DISABLED") == "true" {
-		logger = slog.New(slog.NewTextHandler(io.Discard, &slog.HandlerOptions{
-			Level: level,
-		}))
-	}
-
+	logger := logging.New(level, []slog.Attr{})
 	return logger
 }
