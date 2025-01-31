@@ -4,8 +4,10 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 
 	"github.com/google/uuid"
+	"go.opentelemetry.io/otel/trace"
 
 	"gitlab.com/hmajid2301/banterbus/internal/service"
 	"gitlab.com/hmajid2301/banterbus/internal/views/sections"
@@ -36,7 +38,12 @@ func (s *Subscriber) updateClientsAboutLobby(ctx context.Context, lobby service.
 }
 
 func (s *Subscriber) updateClientAboutErr(ctx context.Context, playerID uuid.UUID, errStr string) error {
-	t := Toast{Message: errStr, Type: "failure"}
+	span := trace.SpanFromContext(ctx)
+	spanID := span.SpanContext().SpanID().String()
+
+	errWithID := fmt.Sprintf("%s. Correleation ID: %s", errStr, spanID)
+
+	t := Toast{Message: errWithID, Type: "failure"}
 	toastJSON, err := json.Marshal(t)
 	if err != nil {
 		return err
