@@ -75,6 +75,20 @@ func (q *QuestionState) Start(ctx context.Context) {
 			slog.String("game_state_id", q.GameStateID.String()),
 		)
 
+		playerIDs := []uuid.UUID{}
+		for _, player := range questionState.Players {
+			playerIDs = append(playerIDs, player.ID)
+		}
+		err = q.Subscriber.updateClientsAboutErr(ctx, playerIDs, "Failed to move to question page.")
+		if err != nil {
+			q.Subscriber.logger.ErrorContext(
+				ctx,
+				"failed to update clients",
+				slog.Any("error", err),
+				slog.String("game_state_id", q.GameStateID.String()),
+			)
+		}
+
 		_ = telemetry.IncrementStateOperationError(ctx, "question", "state_update")
 		return
 	}
@@ -157,6 +171,21 @@ func (v *VotingState) Start(ctx context.Context) {
 			slog.String("game_state_id", v.GameStateID.String()),
 		)
 
+		playerIDs := []uuid.UUID{}
+		for _, player := range votingState.Players {
+			playerIDs = append(playerIDs, player.ID)
+		}
+
+		err = v.Subscriber.updateClientsAboutErr(ctx, playerIDs, "Failed to move to voting page.")
+		if err != nil {
+			v.Subscriber.logger.ErrorContext(
+				ctx,
+				"failed to update clients",
+				slog.Any("error", err),
+				slog.String("game_state_id", v.GameStateID.String()),
+			)
+		}
+
 		_ = telemetry.IncrementStateOperationError(ctx, "voting", "state_update")
 		return
 	}
@@ -237,6 +266,16 @@ func (r *RevealState) Start(ctx context.Context) {
 			slog.Any("error", err),
 			slog.String("game_state_id", r.GameStateID.String()),
 		)
+
+		err = r.Subscriber.updateClientsAboutErr(ctx, revealState.PlayerIDs, "Failed to move to reveal page.")
+		if err != nil {
+			r.Subscriber.logger.ErrorContext(
+				ctx,
+				"failed to update clients",
+				slog.Any("error", err),
+				slog.String("game_state_id", r.GameStateID.String()),
+			)
+		}
 
 		_ = telemetry.IncrementStateOperationError(ctx, "reveal", "state_update")
 		return
@@ -354,6 +393,21 @@ func (r *ScoringState) Start(ctx context.Context) {
 			slog.String("game_state_id", r.GameStateID.String()),
 		)
 
+		playerIDs := []uuid.UUID{}
+		for _, player := range scoringState.Players {
+			playerIDs = append(playerIDs, player.ID)
+		}
+
+		err = r.Subscriber.updateClientsAboutErr(ctx, playerIDs, "Failed to move to scoring page.")
+		if err != nil {
+			r.Subscriber.logger.ErrorContext(
+				ctx,
+				"failed to update clients",
+				slog.Any("error", err),
+				slog.String("game_state_id", r.GameStateID.String()),
+			)
+		}
+
 		_ = telemetry.IncrementStateOperationError(ctx, "scoring", "state_update")
 		return
 	}
@@ -435,6 +489,21 @@ func (r *WinnerState) Start(ctx context.Context) {
 			slog.Any("error", err),
 			slog.String("game_state_id", r.GameStateID.String()),
 		)
+
+		playerIDs := []uuid.UUID{}
+		for _, player := range winnerState.Players {
+			playerIDs = append(playerIDs, player.ID)
+		}
+
+		err = r.Subscriber.updateClientsAboutErr(ctx, playerIDs, "Failed to move to winner reveal page.")
+		if err != nil {
+			r.Subscriber.logger.ErrorContext(
+				ctx,
+				"failed to update clients",
+				slog.Any("error", err),
+				slog.String("game_state_id", r.GameStateID.String()),
+			)
+		}
 
 		_ = telemetry.IncrementStateOperationError(ctx, "winner", "state_update")
 		return

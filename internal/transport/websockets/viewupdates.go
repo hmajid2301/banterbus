@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 
 	"github.com/google/uuid"
@@ -35,6 +36,16 @@ func (s *Subscriber) updateClientsAboutLobby(ctx context.Context, lobby service.
 	}
 
 	return nil
+}
+
+func (s *Subscriber) updateClientsAboutErr(ctx context.Context, playerIDs []uuid.UUID, errStr string) error {
+	var err error
+	for _, playerID := range playerIDs {
+		clientErr := s.updateClientAboutErr(ctx, playerID, errStr)
+		err = errors.Join(err, clientErr)
+	}
+
+	return err
 }
 
 func (s *Subscriber) updateClientAboutErr(ctx context.Context, playerID uuid.UUID, errStr string) error {
