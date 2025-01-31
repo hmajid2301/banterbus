@@ -20,8 +20,8 @@ func TestIntegrationRoundServiceSubmitAnswer(t *testing.T) {
 		pool, teardown := setupSubtest(t)
 		t.Cleanup(teardown)
 
-		str, err := db.NewDB(pool)
-		assert.NoError(t, err)
+		baseDelay := (time.Millisecond * 100)
+		str := db.NewDB(pool, 3, baseDelay)
 		randomizer := randomizer.NewUserRandomizer()
 
 		ctx, err := getI18nCtx()
@@ -50,8 +50,8 @@ func TestIntegrationRoundServiceSubmitAnswer(t *testing.T) {
 		pool, teardown := setupSubtest(t)
 		t.Cleanup(teardown)
 
-		str, err := db.NewDB(pool)
-		assert.NoError(t, err)
+		baseDelay := (time.Millisecond * 100)
+		str := db.NewDB(pool, 3, baseDelay)
 		randomizer := randomizer.NewUserRandomizer()
 
 		ctx, err := getI18nCtx()
@@ -77,8 +77,8 @@ func TestIntegrationRoundServiceSubmitAnswer(t *testing.T) {
 		pool, teardown := setupSubtest(t)
 		t.Cleanup(teardown)
 
-		str, err := db.NewDB(pool)
-		assert.NoError(t, err)
+		baseDelay := (time.Millisecond * 100)
+		str := db.NewDB(pool, 3, baseDelay)
 		randomizer := randomizer.NewUserRandomizer()
 
 		ctx, err := getI18nCtx()
@@ -101,8 +101,8 @@ func TestIntegrationRoundServiceToggleAnswerIsReady(t *testing.T) {
 		pool, teardown := setupSubtest(t)
 		t.Cleanup(teardown)
 
-		str, err := db.NewDB(pool)
-		assert.NoError(t, err)
+		baseDelay := (time.Millisecond * 100)
+		str := db.NewDB(pool, 3, baseDelay)
 		randomizer := randomizer.NewUserRandomizer()
 
 		ctx, err := getI18nCtx()
@@ -139,8 +139,8 @@ func TestIntegrationRoundServiceToggleAnswerIsReady(t *testing.T) {
 		pool, teardown := setupSubtest(t)
 		t.Cleanup(teardown)
 
-		str, err := db.NewDB(pool)
-		assert.NoError(t, err)
+		baseDelay := (time.Millisecond * 100)
+		str := db.NewDB(pool, 3, baseDelay)
 		randomizer := randomizer.NewUserRandomizer()
 
 		ctx, err := getI18nCtx()
@@ -174,8 +174,8 @@ func TestIntegrationRoundServiceUpdateStateToVoting(t *testing.T) {
 		pool, teardown := setupSubtest(t)
 		t.Cleanup(teardown)
 
-		str, err := db.NewDB(pool)
-		assert.NoError(t, err)
+		baseDelay := (time.Millisecond * 100)
+		str := db.NewDB(pool, 3, baseDelay)
 		randomizer := randomizer.NewUserRandomizer()
 
 		ctx, err := getI18nCtx()
@@ -250,8 +250,8 @@ func TestIntegrationRoundServiceUpdateStateToVoting(t *testing.T) {
 		pool, teardown := setupSubtest(t)
 		t.Cleanup(teardown)
 
-		str, err := db.NewDB(pool)
-		assert.NoError(t, err)
+		baseDelay := (time.Millisecond * 100)
+		str := db.NewDB(pool, 3, baseDelay)
 		randomizer := randomizer.NewUserRandomizer()
 
 		ctx, err := getI18nCtx()
@@ -289,8 +289,8 @@ func TestIntegrationRoundServiceSubmitVote(t *testing.T) {
 		pool, teardown := setupSubtest(t)
 		t.Cleanup(teardown)
 
-		str, err := db.NewDB(pool)
-		assert.NoError(t, err)
+		baseDelay := (time.Millisecond * 100)
+		str := db.NewDB(pool, 3, baseDelay)
 		randomizer := randomizer.NewUserRandomizer()
 
 		ctx, err := getI18nCtx()
@@ -317,8 +317,8 @@ func TestIntegrationRoundServiceSubmitVote(t *testing.T) {
 		pool, teardown := setupSubtest(t)
 		t.Cleanup(teardown)
 
-		str, err := db.NewDB(pool)
-		assert.NoError(t, err)
+		baseDelay := (time.Millisecond * 100)
+		str := db.NewDB(pool, 3, baseDelay)
 		randomizer := randomizer.NewUserRandomizer()
 
 		ctx, err := getI18nCtx()
@@ -344,8 +344,8 @@ func TestIntegrationRoundServiceSubmitVote(t *testing.T) {
 		pool, teardown := setupSubtest(t)
 		t.Cleanup(teardown)
 
-		str, err := db.NewDB(pool)
-		assert.NoError(t, err)
+		baseDelay := (time.Millisecond * 100)
+		str := db.NewDB(pool, 3, baseDelay)
 		randomizer := randomizer.NewUserRandomizer()
 
 		ctx, err := getI18nCtx()
@@ -371,8 +371,8 @@ func TestIntegrationRoundServiceSubmitVote(t *testing.T) {
 		pool, teardown := setupSubtest(t)
 		t.Cleanup(teardown)
 
-		str, err := db.NewDB(pool)
-		assert.NoError(t, err)
+		baseDelay := (time.Millisecond * 100)
+		str := db.NewDB(pool, 3, baseDelay)
 		randomizer := randomizer.NewUserRandomizer()
 
 		ctx, err := getI18nCtx()
@@ -398,8 +398,8 @@ func TestIntegrationRoundServiceSubmitVote(t *testing.T) {
 		pool, teardown := setupSubtest(t)
 		t.Cleanup(teardown)
 
-		str, err := db.NewDB(pool)
-		assert.NoError(t, err)
+		baseDelay := (time.Millisecond * 100)
+		str := db.NewDB(pool, 3, baseDelay)
 		randomizer := randomizer.NewUserRandomizer()
 
 		ctx, err := getI18nCtx()
@@ -427,8 +427,8 @@ func TestIntegrationRoundServiceGetVotingState(t *testing.T) {
 		pool, teardown := setupSubtest(t)
 		t.Cleanup(teardown)
 
-		str, err := db.NewDB(pool)
-		assert.NoError(t, err)
+		baseDelay := (time.Millisecond * 100)
+		str := db.NewDB(pool, 3, baseDelay)
 		randomizer := randomizer.NewUserRandomizer()
 
 		ctx, err := getI18nCtx()
@@ -453,8 +453,8 @@ func TestIntegrationRoundServiceGetVotingState(t *testing.T) {
 		pool, teardown := setupSubtest(t)
 		t.Cleanup(teardown)
 
-		str, err := db.NewDB(pool)
-		assert.NoError(t, err)
+		baseDelay := (time.Millisecond * 100)
+		str := db.NewDB(pool, 3, baseDelay)
 		randomizer := randomizer.NewUserRandomizer()
 
 		ctx, err := getI18nCtx()
@@ -477,8 +477,8 @@ func TestIntegrationRoundServiceToggleVotingIsReady(t *testing.T) {
 		pool, teardown := setupSubtest(t)
 		t.Cleanup(teardown)
 
-		str, err := db.NewDB(pool)
-		assert.NoError(t, err)
+		baseDelay := (time.Millisecond * 100)
+		str := db.NewDB(pool, 3, baseDelay)
 		randomizer := randomizer.NewUserRandomizer()
 
 		ctx, err := getI18nCtx()
@@ -517,8 +517,8 @@ func TestIntegrationRoundServiceToggleVotingIsReady(t *testing.T) {
 		pool, teardown := setupSubtest(t)
 		t.Cleanup(teardown)
 
-		str, err := db.NewDB(pool)
-		assert.NoError(t, err)
+		baseDelay := (time.Millisecond * 100)
+		str := db.NewDB(pool, 3, baseDelay)
 		randomizer := randomizer.NewUserRandomizer()
 
 		ctx, err := getI18nCtx()
@@ -539,8 +539,8 @@ func TestIntegrationRoundServiceToggleVotingIsReady(t *testing.T) {
 		pool, teardown := setupSubtest(t)
 		t.Cleanup(teardown)
 
-		str, err := db.NewDB(pool)
-		assert.NoError(t, err)
+		baseDelay := (time.Millisecond * 100)
+		str := db.NewDB(pool, 3, baseDelay)
 		randomizer := randomizer.NewUserRandomizer()
 
 		ctx, err := getI18nCtx()
@@ -574,8 +574,8 @@ func TestIntegrationRoundServiceToggleVotingIsReady(t *testing.T) {
 		pool, teardown := setupSubtest(t)
 		t.Cleanup(teardown)
 
-		str, err := db.NewDB(pool)
-		assert.NoError(t, err)
+		baseDelay := (time.Millisecond * 100)
+		str := db.NewDB(pool, 3, baseDelay)
 		randomizer := randomizer.NewUserRandomizer()
 
 		ctx, err := getI18nCtx()
@@ -615,8 +615,8 @@ func TestIntegrationRoundServiceUpdateStateToReveal(t *testing.T) {
 		pool, teardown := setupSubtest(t)
 		t.Cleanup(teardown)
 
-		str, err := db.NewDB(pool)
-		assert.NoError(t, err)
+		baseDelay := (time.Millisecond * 100)
+		str := db.NewDB(pool, 3, baseDelay)
 		randomizer := randomizer.NewUserRandomizer()
 
 		ctx, err := getI18nCtx()
@@ -663,8 +663,8 @@ func TestIntegrationRoundServiceGetRevealState(t *testing.T) {
 		pool, teardown := setupSubtest(t)
 		t.Cleanup(teardown)
 
-		str, err := db.NewDB(pool)
-		assert.NoError(t, err)
+		baseDelay := (time.Millisecond * 100)
+		str := db.NewDB(pool, 3, baseDelay)
 		randomizer := randomizer.NewUserRandomizer()
 
 		ctx, err := getI18nCtx()
@@ -707,8 +707,8 @@ func TestIntegrationRoundServiceUpdateStateToQuestion(t *testing.T) {
 		pool, teardown := setupSubtest(t)
 		t.Cleanup(teardown)
 
-		str, err := db.NewDB(pool)
-		assert.NoError(t, err)
+		baseDelay := (time.Millisecond * 100)
+		str := db.NewDB(pool, 3, baseDelay)
 		randomizer := randomizer.NewUserRandomizer()
 
 		ctx, err := getI18nCtx()
@@ -752,8 +752,8 @@ func TestIntegrationRoundServiceGetQuestionState(t *testing.T) {
 		pool, teardown := setupSubtest(t)
 		t.Cleanup(teardown)
 
-		str, err := db.NewDB(pool)
-		assert.NoError(t, err)
+		baseDelay := (time.Millisecond * 100)
+		str := db.NewDB(pool, 3, baseDelay)
 		randomizer := randomizer.NewUserRandomizer()
 
 		ctx, err := getI18nCtx()
@@ -795,8 +795,8 @@ func TestIntegrationRoundServiceGetGameState(t *testing.T) {
 		pool, teardown := setupSubtest(t)
 		t.Cleanup(teardown)
 
-		str, err := db.NewDB(pool)
-		assert.NoError(t, err)
+		baseDelay := (time.Millisecond * 100)
+		str := db.NewDB(pool, 3, baseDelay)
 		randomizer := randomizer.NewUserRandomizer()
 
 		ctx, err := getI18nCtx()
@@ -818,8 +818,8 @@ func TestIntegrationRoundServiceGetGameState(t *testing.T) {
 		pool, teardown := setupSubtest(t)
 		t.Cleanup(teardown)
 
-		str, err := db.NewDB(pool)
-		assert.NoError(t, err)
+		baseDelay := (time.Millisecond * 100)
+		str := db.NewDB(pool, 3, baseDelay)
 		randomizer := randomizer.NewUserRandomizer()
 
 		ctx, err := getI18nCtx()
@@ -843,8 +843,8 @@ func TestIntegrationRoundServiceUpdateStateToScoring(t *testing.T) {
 		pool, teardown := setupSubtest(t)
 		t.Cleanup(teardown)
 
-		str, err := db.NewDB(pool)
-		assert.NoError(t, err)
+		baseDelay := (time.Millisecond * 100)
+		str := db.NewDB(pool, 3, baseDelay)
 		randomizer := randomizer.NewUserRandomizer()
 
 		ctx, err := getI18nCtx()
@@ -903,8 +903,8 @@ func TestIntegrationRoundServiceGetScoringState(t *testing.T) {
 		pool, teardown := setupSubtest(t)
 		t.Cleanup(teardown)
 
-		str, err := db.NewDB(pool)
-		assert.NoError(t, err)
+		baseDelay := (time.Millisecond * 100)
+		str := db.NewDB(pool, 3, baseDelay)
 		randomizer := randomizer.NewUserRandomizer()
 
 		ctx, err := getI18nCtx()
@@ -948,8 +948,8 @@ func TestIntegrationRoundServiceUpdateStateToWinner(t *testing.T) {
 		pool, teardown := setupSubtest(t)
 		t.Cleanup(teardown)
 
-		str, err := db.NewDB(pool)
-		assert.NoError(t, err)
+		baseDelay := (time.Millisecond * 100)
+		str := db.NewDB(pool, 3, baseDelay)
 		randomizer := randomizer.NewUserRandomizer()
 
 		ctx, err := getI18nCtx()
@@ -1004,8 +1004,8 @@ func TestIntegrationRoundServiceGetWinnerState(t *testing.T) {
 		pool, teardown := setupSubtest(t)
 		t.Cleanup(teardown)
 
-		str, err := db.NewDB(pool)
-		assert.NoError(t, err)
+		baseDelay := (time.Millisecond * 100)
+		str := db.NewDB(pool, 3, baseDelay)
 		randomizer := randomizer.NewUserRandomizer()
 
 		ctx, err := getI18nCtx()
@@ -1065,8 +1065,8 @@ func TestIntegrationRoundServiceFinsishGame(t *testing.T) {
 		pool, teardown := setupSubtest(t)
 		t.Cleanup(teardown)
 
-		str, err := db.NewDB(pool)
-		assert.NoError(t, err)
+		baseDelay := (time.Millisecond * 100)
+		str := db.NewDB(pool, 3, baseDelay)
 		randomizer := randomizer.NewUserRandomizer()
 
 		ctx, err := getI18nCtx()

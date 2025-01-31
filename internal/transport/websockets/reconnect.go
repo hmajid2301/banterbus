@@ -18,7 +18,7 @@ import (
 	"gitlab.com/hmajid2301/banterbus/internal/views/sections"
 )
 
-const errStr = "failed to reconnect to game"
+const errStr = "Faled to reconnect to game"
 
 func (s Subscriber) Reconnect(ctx context.Context, playerID uuid.UUID) (bytes.Buffer, error) {
 	tracer := otel.Tracer("")

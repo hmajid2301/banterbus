@@ -54,6 +54,11 @@ templ Base(languages map[string]string, environment string) {
                     window.toast(message, type);
                     if (type === "failure") {
                         console.log(message);
+                        Sentry.captureException(message, {
+                           extra: {
+                             context: "User action failed",
+                           },
+                       });
                     }
                 } catch (err) {
                   Sentry.captureException(err, {

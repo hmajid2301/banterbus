@@ -23,6 +23,8 @@ func TestLoadConfig(t *testing.T) {
 				Environment:   "production",
 				LogLevel:      slog.LevelInfo,
 				DefaultLocale: "en-GB",
+				BaseDelay:     100 * time.Millisecond,
+				Retries:       3,
 			},
 			Server: config.Server{
 				Host: "0.0.0.0",
