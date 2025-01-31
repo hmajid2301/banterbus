@@ -57,7 +57,15 @@ func Base(languages map[string]string, environment string) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</div></div></div></div></section><div id=\"error\"></div></div></body><script src=\"/static/js/htmx.min.js\"></script><script src=\"/static/js/htmx.ws.js\"></script><script src=\"/static/js/alpine.min.js\"></script><script defer>\n            htmx.on(\"htmx:wsBeforeMessage\", (evt) => {\n                try {\n                    const {message, type} = JSON.parse(event.detail.message);\n                    window.toast(message, type);\n                } catch (_) {}\n            });\n        </script>")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</div></div></div></div></section><div id=\"error\"></div></div></body><script src=\"/static/js/htmx.min.js\"></script><script src=\"/static/js/htmx.ws.js\"></script><script src=\"/static/js/alpine.min.js\"></script><script src=\"https://js.sentry-cdn.com/032c389ec88919d78c2f7b515d85401c.min.js\" crossorigin=\"anonymous\"></script>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = sentryLoad(environment).Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<script defer>\n            htmx.on(\"htmx:wsBeforeMessage\", (evt) => {\n                try {\n                    const {message, type} = JSON.parse(event.detail.message);\n                    window.toast(message, type);\n                    if (type === \"failure\") {\n                        console.log(message);\n                    }\n                } catch (err) {\n                  Sentry.captureException(err, {\n                     extra: {\n                       context: \"Failed to parse or handle message\",\n                       rawMessage: event.detail.message,\n                     },\n                  });\n                }\n            });\n        </script>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -72,15 +80,7 @@ func Base(languages map[string]string, environment string) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<script>window.plausible = window.plausible || function() { (window.plausible.q = window.plausible.q || []).push(arguments) }</script><script src=\"https://js.sentry-cdn.com/032c389ec88919d78c2f7b515d85401c.min.js\" crossorigin=\"anonymous\"></script>")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = sentryLoad(environment).Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</html>")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<script>window.plausible = window.plausible || function() { (window.plausible.q = window.plausible.q || []).push(arguments) }</script></html>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

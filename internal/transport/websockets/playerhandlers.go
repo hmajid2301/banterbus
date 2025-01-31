@@ -19,7 +19,7 @@ type PlayerServicer interface {
 func (u *UpdateNickname) Handle(ctx context.Context, client *Client, sub *Subscriber) error {
 	updatedRoom, err := sub.playerService.UpdateNickname(ctx, u.PlayerNickname, client.playerID)
 	if err != nil {
-		errStr := "failed to update nickname"
+		errStr := "Failed to update nickname"
 		if err == service.ErrNicknameExists {
 			errStr = err.Error()
 		}
@@ -34,7 +34,7 @@ func (u *UpdateNickname) Handle(ctx context.Context, client *Client, sub *Subscr
 func (g *GenerateNewAvatar) Handle(ctx context.Context, client *Client, sub *Subscriber) error {
 	updatedRoom, err := sub.playerService.GenerateNewAvatar(ctx, client.playerID)
 	if err != nil {
-		errStr := "failed to generate new avatar"
+		errStr := "Failed to generate new avatar"
 		clientErr := sub.updateClientAboutErr(ctx, client.playerID, errStr)
 		return errors.Join(clientErr, err)
 	}
@@ -47,7 +47,7 @@ func (g *GenerateNewAvatar) Handle(ctx context.Context, client *Client, sub *Sub
 func (t *TogglePlayerIsReady) Handle(ctx context.Context, client *Client, sub *Subscriber) error {
 	updatedRoom, err := sub.playerService.TogglePlayerIsReady(ctx, client.playerID)
 	if err != nil {
-		errStr := "failed to update ready status"
+		errStr := "Failed to toggle ready status"
 		clientErr := sub.updateClientAboutErr(ctx, client.playerID, errStr)
 		return errors.Join(clientErr, err)
 	}

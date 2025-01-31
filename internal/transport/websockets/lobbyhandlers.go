@@ -34,7 +34,7 @@ func (c *CreateRoom) Handle(ctx context.Context, client *Client, sub *Subscriber
 	}
 	lobby, err := sub.lobbyService.Create(ctx, c.GameName, newPlayer)
 	if err != nil {
-		errStr := "failed to create room"
+		errStr := "Failed to create room"
 		clientErr := sub.updateClientAboutErr(ctx, client.playerID, errStr)
 		return errors.Join(clientErr, err)
 	}
@@ -55,7 +55,7 @@ func (j *JoinLobby) Handle(ctx context.Context, client *Client, sub *Subscriber)
 				err = errors.Join(err, webSocketErr)
 			}
 		} else {
-			errStr := "failed to join room"
+			errStr := "Failed to join room"
 			if err == service.ErrNicknameExists {
 				errStr = err.Error()
 			}
@@ -72,7 +72,7 @@ func (s *StartGame) Handle(ctx context.Context, client *Client, sub *Subscriber)
 	deadline := time.Now().UTC().Add(sub.config.Timings.ShowQuestionScreenFor)
 	questionState, err := sub.lobbyService.Start(ctx, s.RoomCode, client.playerID, deadline)
 	if err != nil {
-		errStr := "failed to start game"
+		errStr := "Failed to start game"
 		clientErr := sub.updateClientAboutErr(ctx, client.playerID, errStr)
 		return xerrors.Append(clientErr, err)
 	}
@@ -105,7 +105,7 @@ func (k *KickPlayer) Handle(ctx context.Context, client *Client, sub *Subscriber
 		k.PlayerNicknameToKick,
 	)
 	if err != nil {
-		errStr := "failed to kick player"
+		errStr := "Faled to kick player"
 		clientErr := sub.updateClientAboutErr(ctx, client.playerID, errStr)
 		return errors.Join(clientErr, err)
 	}
@@ -116,6 +116,6 @@ func (k *KickPlayer) Handle(ctx context.Context, client *Client, sub *Subscriber
 	}
 
 	// TODO: take user back to home page instead of just an error
-	err = sub.updateClientAboutErr(ctx, playerToKickID, "you have been kicked from the room")
+	err = sub.updateClientAboutErr(ctx, playerToKickID, "You have been kicked from the room")
 	return err
 }
