@@ -14,29 +14,31 @@ import (
 
 type DB struct {
 	*Queries
-	pool *pgxpool.Pool
+	pool       *pgxpool.Pool
+	maxRetries int
+	baseDelay  time.Duration
 }
 
 func NewDB(pool *pgxpool.Pool, maxRetries int, baseDelay time.Duration) *DB {
 	retryingDB := NewRetryingDBTX(pool, maxRetries, baseDelay)
 
 	return &DB{
-		Queries: New(retryingDB),
-		pool:    pool,
+		Queries:    New(retryingDB),
+		pool:       pool,
+		maxRetries: maxRetries,
+		baseDelay:  baseDelay,
 	}
 }
 
-// TODO: Deal with transactions instead of retrying each query
-
 type RetryingDBTX struct {
-	pool       *pgxpool.Pool
+	db         DBTX
 	maxRetries int
 	baseDelay  time.Duration
 }
 
-func NewRetryingDBTX(pool *pgxpool.Pool, maxRetries int, baseDelay time.Duration) *RetryingDBTX {
+func NewRetryingDBTX(db DBTX, maxRetries int, baseDelay time.Duration) *RetryingDBTX {
 	return &RetryingDBTX{
-		pool:       pool,
+		db:         db,
 		maxRetries: maxRetries,
 		baseDelay:  baseDelay,
 	}
@@ -44,54 +46,59 @@ func NewRetryingDBTX(pool *pgxpool.Pool, maxRetries int, baseDelay time.Duration
 
 func (r *RetryingDBTX) Exec(ctx context.Context, sql string, args ...any) (pgconn.CommandTag, error) {
 	var result pgconn.CommandTag
-	err := r.retry(ctx, func() error {
-		var innerErr error
-		result, innerErr = r.pool.Exec(ctx, sql, args...)
-		return innerErr
-	})
+	var err error
+
+	for attempt := 1; attempt <= r.maxRetries; attempt++ {
+		result, err = r.db.Exec(ctx, sql, args...)
+		if err == nil || !isRetryableErr(err) || ctx.Err() != nil {
+			break
+		}
+		sleepWithBackoff(ctx, attempt, r.baseDelay)
+	}
+
 	return result, err
 }
 
 func (r *RetryingDBTX) Query(ctx context.Context, sql string, args ...any) (pgx.Rows, error) {
 	var rows pgx.Rows
-	err := r.retry(ctx, func() error {
-		var innerErr error
-		rows, innerErr = r.pool.Query(ctx, sql, args...)
-		return innerErr
-	})
+	var err error
+
+	for attempt := 1; attempt <= r.maxRetries; attempt++ {
+		rows, err = r.db.Query(ctx, sql, args...)
+		if err == nil || !isRetryableErr(err) || ctx.Err() != nil {
+			break
+		}
+		sleepWithBackoff(ctx, attempt, r.baseDelay)
+	}
+
 	return rows, err
 }
 
 func (r *RetryingDBTX) QueryRow(ctx context.Context, sql string, args ...any) pgx.Row {
-	var rows pgx.Row
-	_ = r.retry(ctx, func() error {
-		rows = r.pool.QueryRow(ctx, sql, args...)
-		return nil
-	})
-	return rows
+	return r.db.QueryRow(ctx, sql, args...)
 }
 
-func (r *RetryingDBTX) retry(ctx context.Context, fn func() error) error {
-	for attempt := 1; attempt <= r.maxRetries; attempt++ {
-		err := fn()
+func (db *DB) TransactionWithRetry(ctx context.Context, fn func(*Queries) error) error {
+	var err error
+
+	for attempt := 1; attempt <= db.maxRetries; attempt++ {
+		err = pgx.BeginFunc(ctx, db.pool, func(tx pgx.Tx) error {
+			retryingTx := NewRetryingDBTX(tx, db.maxRetries, db.baseDelay)
+			return fn(New(retryingTx))
+		})
+
 		if err == nil {
 			return nil
 		}
+
 		if !isRetryableErr(err) || ctx.Err() != nil {
-			return err
+			break
 		}
 
-		delay := r.baseDelay * time.Duration(1<<(attempt-1))
-		jitter := time.Duration(rand.Int63n(int64(delay / 2)))
-
-		select {
-		case <-time.After(delay + jitter):
-		case <-ctx.Done():
-			return ctx.Err()
-		}
+		sleepWithBackoff(ctx, attempt, db.baseDelay)
 	}
 
-	return nil
+	return err
 }
 
 func isRetryableErr(err error) bool {
@@ -108,4 +115,13 @@ func isRetryableErr(err error) bool {
 
 	var netErr net.Error
 	return errors.As(err, &netErr) && netErr.Timeout()
+}
+
+func sleepWithBackoff(ctx context.Context, attempt int, baseDelay time.Duration) {
+	delay := baseDelay * time.Duration(1<<(attempt-1))
+	jitter := time.Duration(rand.Int63n(int64(delay / 2)))
+	select {
+	case <-time.After(delay + jitter):
+	case <-ctx.Done():
+	}
 }
