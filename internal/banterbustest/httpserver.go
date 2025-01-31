@@ -52,7 +52,7 @@ func NewTestServer() (*httptest.Server, error) {
 		redisAddr = "localhost:6379"
 	}
 
-	redisClient, err := pubsub.NewRedisClient(redisAddr)
+	redisClient, err := pubsub.NewRedisClient(redisAddr, retries)
 	if err != nil {
 		return nil, err
 	}

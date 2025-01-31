@@ -14,11 +14,12 @@ type Client struct {
 	Subscribers map[string]*redis.PubSub
 }
 
-func NewRedisClient(address string) (Client, error) {
+func NewRedisClient(address string, retries int) (Client, error) {
 	r := redis.NewClient(&redis.Options{
-		Addr:     address,
-		Password: "",
-		DB:       0,
+		Addr:       address,
+		Password:   "",
+		DB:         0,
+		MaxRetries: retries,
 	})
 
 	if err := redisotel.InstrumentTracing(r); err != nil {
