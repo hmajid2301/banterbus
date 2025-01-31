@@ -123,7 +123,7 @@ func mainLogic() error {
 		return fmt.Errorf("failed to create embed file system: %w", err)
 	}
 
-	redisClient, err := pubsub.NewRedisClient(conf.Redis.Address)
+	redisClient, err := pubsub.NewRedisClient(conf.Redis.Address, conf.App.Retries)
 	if err != nil {
 		return fmt.Errorf("failed to create redis client: %w", err)
 	}
