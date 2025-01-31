@@ -77,3 +77,16 @@ issues:
         - dupl
         - gosec
         - funlen
+        - mnd
+    - path: banterbustest
+      linters:
+        - gocyclo
+        - errcheck
+        - dupl
+        - gosec
+        - funlen
+        - mnd
+    - path: "internal/store/db/pgx.go"
+      text: "Magic number: 2"
+      linters:
+        - mnd

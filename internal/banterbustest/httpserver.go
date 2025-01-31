@@ -36,10 +36,9 @@ func NewTestServer() (*httptest.Server, error) {
 		return nil, err
 	}
 
-	myStore, err := db.NewDB(pool)
-	if err != nil {
-		return nil, err
-	}
+	baseDelay := time.Millisecond * 100
+	retries := 3
+	myStore := db.NewDB(pool, retries, baseDelay)
 
 	userRandomizer := randomizer.NewUserRandomizer()
 	lobbyServicer := service.NewLobbyService(myStore, userRandomizer, "en-GB")

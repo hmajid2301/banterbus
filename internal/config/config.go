@@ -46,6 +46,8 @@ type App struct {
 	LogLevel      slog.Level
 	DefaultLocale i18n.Code
 	AutoReconnect bool
+	Retries       int
+	BaseDelay     time.Duration
 }
 
 type Timings struct {
@@ -63,12 +65,16 @@ type Scoring struct {
 }
 
 type In struct {
-	DBUsername   string `env:"BANTERBUS_DB_USERNAME"`
-	DBPassword   string `env:"BANTERBUS_DB_PASSWORD"`
-	DBHost       string `env:"BANTERBUS_DB_HOST"`
-	DBPort       string `env:"BANTERBUS_DB_PORT, default=5432"`
-	DBName       string `env:"BANTERBUS_DB_NAME, default=banterbus"`
+	DBUsername string `env:"BANTERBUS_DB_USERNAME"`
+	DBPassword string `env:"BANTERBUS_DB_PASSWORD"`
+	DBHost     string `env:"BANTERBUS_DB_HOST"`
+	DBPort     string `env:"BANTERBUS_DB_PORT, default=5432"`
+	DBName     string `env:"BANTERBUS_DB_NAME, default=banterbus"`
+
 	RedisAddress string `env:"BANTERBUS_REDIS_ADDRESS"`
+
+	Retries   int `env:"BANTERBUS_RETRIES, default=3"`
+	BaseDelay int `env:"BANTERBUS_BASE_DELAY_IN_MS, default=100"`
 
 	Environment   string `env:"BANTERBUS_ENVIRONMENT, default=production"`
 	LogLevel      string `env:"BANTERBUS_LOG_LEVEL, default=info"`
@@ -131,6 +137,8 @@ func LoadConfig(ctx context.Context) (Config, error) {
 			LogLevel:      parseLogLevel(input.LogLevel),
 			DefaultLocale: i18n.Code(input.DefaultLocale),
 			AutoReconnect: input.AutoReconnect,
+			BaseDelay:     time.Millisecond * time.Duration(input.BaseDelay),
+			Retries:       input.Retries,
 		},
 		Timings: Timings{
 			ShowQuestionScreenFor:   input.ShowQuestionScreenFor,

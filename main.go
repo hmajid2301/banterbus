@@ -105,10 +105,7 @@ func mainLogic() error {
 		return fmt.Errorf("failed to run migrations: %w", err)
 	}
 
-	str, err := db.NewDB(pool)
-	if err != nil {
-		return fmt.Errorf("failed to setup store: %w", err)
-	}
+	database := db.NewDB(pool, conf.App.Retries, conf.App.BaseDelay)
 
 	err = ctxi18n.LoadWithDefault(views.Locales, conf.App.DefaultLocale)
 	if err != nil {
@@ -116,10 +113,10 @@ func mainLogic() error {
 	}
 
 	userRandomizer := randomizer.NewUserRandomizer()
-	lobbyService := service.NewLobbyService(str, userRandomizer, conf.App.DefaultLocale.String())
-	playerService := service.NewPlayerService(str, userRandomizer)
-	roundService := service.NewRoundService(str, userRandomizer, conf.App.DefaultLocale.String())
-	questionService := service.NewQuestionService(str, userRandomizer, conf.App.DefaultLocale.String())
+	lobbyService := service.NewLobbyService(database, userRandomizer, conf.App.DefaultLocale.String())
+	playerService := service.NewPlayerService(database, userRandomizer)
+	roundService := service.NewRoundService(database, userRandomizer, conf.App.DefaultLocale.String())
+	questionService := service.NewQuestionService(database, userRandomizer, conf.App.DefaultLocale.String())
 
 	fsys, err := fs.Sub(staticFiles, "static")
 	if err != nil {

@@ -24,8 +24,8 @@ func TestIntegrationLobbyCreate(t *testing.T) {
 		pool, teardown := setupSubtest(t)
 		t.Cleanup(teardown)
 
-		str, err := db.NewDB(pool)
-		assert.NoError(t, err)
+		baseDelay := (time.Millisecond * 100)
+		str := db.NewDB(pool, 3, baseDelay)
 		randomizer := randomizer.NewUserRandomizer()
 
 		id := uuid.New()
@@ -52,8 +52,8 @@ func TestIntegrationLobbyCreate(t *testing.T) {
 		pool, teardown := setupSubtest(t)
 		t.Cleanup(teardown)
 
-		str, err := db.NewDB(pool)
-		assert.NoError(t, err)
+		baseDelay := (time.Millisecond * 100)
+		str := db.NewDB(pool, 3, baseDelay)
 		randomizer := randomizer.NewUserRandomizer()
 
 		id := uuid.New()
@@ -79,8 +79,8 @@ func TestIntegrationLobbyJoin(t *testing.T) {
 		pool, teardown := setupSubtest(t)
 		t.Cleanup(teardown)
 
-		str, err := db.NewDB(pool)
-		assert.NoError(t, err)
+		baseDelay := (time.Millisecond * 100)
+		str := db.NewDB(pool, 3, baseDelay)
 		randomizer := randomizer.NewUserRandomizer()
 
 		ctx, err := getI18nCtx()
@@ -111,8 +111,8 @@ func TestIntegrationLobbyJoin(t *testing.T) {
 		pool, teardown := setupSubtest(t)
 		t.Cleanup(teardown)
 
-		str, err := db.NewDB(pool)
-		assert.NoError(t, err)
+		baseDelay := (time.Millisecond * 100)
+		str := db.NewDB(pool, 3, baseDelay)
 		randomizer := randomizer.NewUserRandomizer()
 
 		ctx, err := getI18nCtx()
@@ -134,8 +134,8 @@ func TestIntegrationLobbyJoin(t *testing.T) {
 		pool, teardown := setupSubtest(t)
 		t.Cleanup(teardown)
 
-		str, err := db.NewDB(pool)
-		assert.NoError(t, err)
+		baseDelay := (time.Millisecond * 100)
+		str := db.NewDB(pool, 3, baseDelay)
 		randomizer := randomizer.NewUserRandomizer()
 
 		ctx, err := getI18nCtx()
@@ -153,8 +153,8 @@ func TestIntegrationLobbyJoin(t *testing.T) {
 		pool, teardown := setupSubtest(t)
 		t.Cleanup(teardown)
 
-		str, err := db.NewDB(pool)
-		assert.NoError(t, err)
+		baseDelay := (time.Millisecond * 100)
+		str := db.NewDB(pool, 3, baseDelay)
 		randomizer := randomizer.NewUserRandomizer()
 
 		ctx, err := getI18nCtx()
@@ -181,8 +181,8 @@ func TestIntegrationLobbyKickPlayer(t *testing.T) {
 		pool, teardown := setupSubtest(t)
 		t.Cleanup(teardown)
 
-		str, err := db.NewDB(pool)
-		assert.NoError(t, err)
+		baseDelay := (time.Millisecond * 100)
+		str := db.NewDB(pool, 3, baseDelay)
 		randomizer := randomizer.NewUserRandomizer()
 
 		ctx, err := getI18nCtx()
@@ -203,8 +203,8 @@ func TestIntegrationLobbyKickPlayer(t *testing.T) {
 		pool, teardown := setupSubtest(t)
 		t.Cleanup(teardown)
 
-		str, err := db.NewDB(pool)
-		assert.NoError(t, err)
+		baseDelay := (time.Millisecond * 100)
+		str := db.NewDB(pool, 3, baseDelay)
 		randomizer := randomizer.NewUserRandomizer()
 
 		ctx, err := getI18nCtx()
@@ -222,8 +222,8 @@ func TestIntegrationLobbyKickPlayer(t *testing.T) {
 		pool, teardown := setupSubtest(t)
 		t.Cleanup(teardown)
 
-		str, err := db.NewDB(pool)
-		assert.NoError(t, err)
+		baseDelay := (time.Millisecond * 100)
+		str := db.NewDB(pool, 3, baseDelay)
 		randomizer := randomizer.NewUserRandomizer()
 
 		ctx, err := getI18nCtx()
@@ -241,8 +241,8 @@ func TestIntegrationLobbyKickPlayer(t *testing.T) {
 		pool, teardown := setupSubtest(t)
 		t.Cleanup(teardown)
 
-		str, err := db.NewDB(pool)
-		assert.NoError(t, err)
+		baseDelay := (time.Millisecond * 100)
+		str := db.NewDB(pool, 3, baseDelay)
 		randomizer := randomizer.NewUserRandomizer()
 
 		ctx, err := getI18nCtx()
@@ -267,8 +267,8 @@ func TestIntegrationLobbyKickPlayer(t *testing.T) {
 		pool, teardown := setupSubtest(t)
 		t.Cleanup(teardown)
 
-		str, err := db.NewDB(pool)
-		assert.NoError(t, err)
+		baseDelay := (time.Millisecond * 100)
+		str := db.NewDB(pool, 3, baseDelay)
 		randomizer := randomizer.NewUserRandomizer()
 
 		ctx, err := getI18nCtx()
@@ -288,8 +288,8 @@ func TestIntegrationLobbyStart(t *testing.T) {
 		pool, teardown := setupSubtest(t)
 		t.Cleanup(teardown)
 
-		str, err := db.NewDB(pool)
-		assert.NoError(t, err)
+		baseDelay := (time.Millisecond * 100)
+		str := db.NewDB(pool, 3, baseDelay)
 		randomizer := randomizer.NewUserRandomizer()
 
 		ctx, err := getI18nCtx()
@@ -339,8 +339,8 @@ func TestIntegrationLobbyStart(t *testing.T) {
 		pool, teardown := setupSubtest(t)
 		t.Cleanup(teardown)
 
-		str, err := db.NewDB(pool)
-		assert.NoError(t, err)
+		baseDelay := (time.Millisecond * 100)
+		str := db.NewDB(pool, 3, baseDelay)
 		randomizer := randomizer.NewUserRandomizer()
 
 		ctx, err := getI18nCtx()
@@ -365,8 +365,8 @@ func TestIntegrationLobbyStart(t *testing.T) {
 		pool, teardown := setupSubtest(t)
 		t.Cleanup(teardown)
 
-		str, err := db.NewDB(pool)
-		assert.NoError(t, err)
+		baseDelay := (time.Millisecond * 100)
+		str := db.NewDB(pool, 3, baseDelay)
 		randomizer := randomizer.NewUserRandomizer()
 
 		ctx, err := getI18nCtx()
@@ -391,8 +391,8 @@ func TestIntegrationLobbyStart(t *testing.T) {
 		pool, teardown := setupSubtest(t)
 		t.Cleanup(teardown)
 
-		str, err := db.NewDB(pool)
-		assert.NoError(t, err)
+		baseDelay := (time.Millisecond * 100)
+		str := db.NewDB(pool, 3, baseDelay)
 		randomizer := randomizer.NewUserRandomizer()
 
 		ctx, err := getI18nCtx()
@@ -424,8 +424,8 @@ func TestIntegrationLobbyStart(t *testing.T) {
 		pool, teardown := setupSubtest(t)
 		t.Cleanup(teardown)
 
-		str, err := db.NewDB(pool)
-		assert.NoError(t, err)
+		baseDelay := (time.Millisecond * 100)
+		str := db.NewDB(pool, 3, baseDelay)
 		randomizer := randomizer.NewUserRandomizer()
 
 		ctx, err := getI18nCtx()
@@ -444,8 +444,8 @@ func TestIntegrationLobbyStart(t *testing.T) {
 		pool, teardown := setupSubtest(t)
 		t.Cleanup(teardown)
 
-		str, err := db.NewDB(pool)
-		assert.NoError(t, err)
+		baseDelay := (time.Millisecond * 100)
+		str := db.NewDB(pool, 3, baseDelay)
 		randomizer := randomizer.NewUserRandomizer()
 
 		ctx, err := getI18nCtx()
@@ -470,8 +470,8 @@ func TestIntegrationLobbyGetRoomState(t *testing.T) {
 		pool, teardown := setupSubtest(t)
 		t.Cleanup(teardown)
 
-		str, err := db.NewDB(pool)
-		assert.NoError(t, err)
+		baseDelay := (time.Millisecond * 100)
+		str := db.NewDB(pool, 3, baseDelay)
 		randomizer := randomizer.NewUserRandomizer()
 
 		id := uuid.New()
@@ -495,8 +495,8 @@ func TestIntegrationLobbyGetRoomState(t *testing.T) {
 		pool, teardown := setupSubtest(t)
 		t.Cleanup(teardown)
 
-		str, err := db.NewDB(pool)
-		assert.NoError(t, err)
+		baseDelay := (time.Millisecond * 100)
+		str := db.NewDB(pool, 3, baseDelay)
 		randomizer := randomizer.NewUserRandomizer()
 
 		id := uuid.New()
@@ -521,8 +521,8 @@ func TestIntegrationLobbyGetLobby(t *testing.T) {
 		pool, teardown := setupSubtest(t)
 		t.Cleanup(teardown)
 
-		str, err := db.NewDB(pool)
-		assert.NoError(t, err)
+		baseDelay := (time.Millisecond * 100)
+		str := db.NewDB(pool, 3, baseDelay)
 		randomizer := randomizer.NewUserRandomizer()
 		lobbyService := service.NewLobbyService(str, randomizer, "en-GB")
 

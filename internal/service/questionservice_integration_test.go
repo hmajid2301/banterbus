@@ -2,6 +2,7 @@ package service_test
 
 import (
 	"testing"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
@@ -21,8 +22,8 @@ func TestIntegrationQuestionServiceAdd(t *testing.T) {
 		pool, teardown := setupSubtest(t)
 		t.Cleanup(teardown)
 
-		str, err := db.NewDB(pool)
-		assert.NoError(t, err)
+		baseDelay := (time.Millisecond * 100)
+		str := db.NewDB(pool, 3, baseDelay)
 		randomizer := randomizer.NewUserRandomizer()
 
 		ctx, err := getI18nCtx()
@@ -82,8 +83,8 @@ func TestIntegrationQuestionGetGroupNames(t *testing.T) {
 		pool, teardown := setupSubtest(t)
 		t.Cleanup(teardown)
 
-		str, err := db.NewDB(pool)
-		assert.NoError(t, err)
+		baseDelay := (time.Millisecond * 100)
+		str := db.NewDB(pool, 3, baseDelay)
 		randomizer := randomizer.NewUserRandomizer()
 
 		ctx, err := getI18nCtx()
@@ -113,8 +114,8 @@ func TestIntegrationQuestionGetQuestions(t *testing.T) {
 		pool, teardown := setupSubtest(t)
 		t.Cleanup(teardown)
 
-		str, err := db.NewDB(pool)
-		assert.NoError(t, err)
+		baseDelay := (time.Millisecond * 100)
+		str := db.NewDB(pool, 3, baseDelay)
 		randomizer := randomizer.NewUserRandomizer()
 
 		ctx, err := getI18nCtx()
@@ -271,8 +272,8 @@ func TestIntegrationQuestionGetQuestions(t *testing.T) {
 		pool, teardown := setupSubtest(t)
 		t.Cleanup(teardown)
 
-		str, err := db.NewDB(pool)
-		assert.NoError(t, err)
+		baseDelay := (time.Millisecond * 100)
+		str := db.NewDB(pool, 3, baseDelay)
 		randomizer := randomizer.NewUserRandomizer()
 
 		ctx, err := getI18nCtx()
@@ -311,8 +312,8 @@ func TestIntegrationQuestionGetQuestions(t *testing.T) {
 		pool, teardown := setupSubtest(t)
 		t.Cleanup(teardown)
 
-		str, err := db.NewDB(pool)
-		assert.NoError(t, err)
+		baseDelay := (time.Millisecond * 100)
+		str := db.NewDB(pool, 3, baseDelay)
 		randomizer := randomizer.NewUserRandomizer()
 
 		ctx, err := getI18nCtx()
@@ -407,8 +408,8 @@ func TestIntegrationQuestionGetQuestions(t *testing.T) {
 		pool, teardown := setupSubtest(t)
 		t.Cleanup(teardown)
 
-		str, err := db.NewDB(pool)
-		assert.NoError(t, err)
+		baseDelay := (time.Millisecond * 100)
+		str := db.NewDB(pool, 3, baseDelay)
 		randomizer := randomizer.NewUserRandomizer()
 
 		ctx, err := getI18nCtx()
@@ -464,8 +465,8 @@ func TestIntegrationQuestionGetQuestions(t *testing.T) {
 		pool, teardown := setupSubtest(t)
 		t.Cleanup(teardown)
 
-		str, err := db.NewDB(pool)
-		assert.NoError(t, err)
+		baseDelay := (time.Millisecond * 100)
+		str := db.NewDB(pool, 3, baseDelay)
 		randomizer := randomizer.NewUserRandomizer()
 
 		ctx, err := getI18nCtx()
@@ -524,8 +525,8 @@ func TestIntegrationQuestionAddGroup(t *testing.T) {
 		pool, teardown := setupSubtest(t)
 		t.Cleanup(teardown)
 
-		str, err := db.NewDB(pool)
-		assert.NoError(t, err)
+		baseDelay := (time.Millisecond * 100)
+		str := db.NewDB(pool, 3, baseDelay)
 		randomizer := randomizer.NewUserRandomizer()
 
 		ctx, err := getI18nCtx()
@@ -548,8 +549,8 @@ func TestIntegrationQuestionDisableQuestion(t *testing.T) {
 		pool, teardown := setupSubtest(t)
 		t.Cleanup(teardown)
 
-		str, err := db.NewDB(pool)
-		assert.NoError(t, err)
+		baseDelay := (time.Millisecond * 100)
+		str := db.NewDB(pool, 3, baseDelay)
 		randomizer := randomizer.NewUserRandomizer()
 
 		ctx, err := getI18nCtx()
@@ -574,8 +575,8 @@ func TestIntegrationQuestionEnableQuestion(t *testing.T) {
 		pool, teardown := setupSubtest(t)
 		t.Cleanup(teardown)
 
-		str, err := db.NewDB(pool)
-		assert.NoError(t, err)
+		baseDelay := (time.Millisecond * 100)
+		str := db.NewDB(pool, 3, baseDelay)
 		randomizer := randomizer.NewUserRandomizer()
 
 		ctx, err := getI18nCtx()
