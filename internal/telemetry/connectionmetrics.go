@@ -14,7 +14,6 @@ var activeConnectionsCount int64
 func IncrementSubscribers(ctx context.Context) error {
 	m := otel.Meter("gitlab.com/hmajid2301/banterbus")
 
-	// TODO: rename all metrics properly so they match
 	counter, err := m.Int64Counter("websocket.connections.total",
 		metric.WithDescription("Total number of WebSocket connections established"),
 		metric.WithUnit("{call}"),
