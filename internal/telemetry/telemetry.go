@@ -112,7 +112,7 @@ func newMeterProvider(ctx context.Context, res *resource.Resource) (*metric.Mete
 		return nil, err
 	}
 
-	reader := metric.NewPeriodicReader(metricExporter)
+	reader := metric.NewPeriodicReader(metricExporter, metric.WithProducer(runtimeMetrics.NewProducer()))
 	meterProvider := metric.NewMeterProvider(metric.WithReader(reader), metric.WithResource(res))
 
 	if err = runtimeMetrics.Start(runtimeMetrics.WithMeterProvider(meterProvider)); err != nil {
