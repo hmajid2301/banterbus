@@ -25,6 +25,9 @@ schema = 3
   [mod."github.com/dgryski/go-rendezvous"]
     version = "v0.0.0-20200823014737-9f7001d12a5f"
     hash = "sha256-n/7xo5CQqo4yLaWMSzSN1Muk/oqK6O5dgDOFWapeDUI="
+  [mod."github.com/ebitengine/purego"]
+    version = "v0.8.2"
+    hash = "sha256-f3Q8KVX+RkHa1EsGF+U8E9MHHOCZ9j2jtMJOTPCZw08="
   [mod."github.com/exaring/otelpgx"]
     version = "v0.7.0"
     hash = "sha256-HCenlYqPcXVb9zqBQGZhtWOq+tX2xwGlCIDlKCxzXws="
@@ -43,6 +46,9 @@ schema = 3
   [mod."github.com/go-logr/stdr"]
     version = "v1.2.2"
     hash = "sha256-rRweAP7XIb4egtT1f2gkz4sYOu7LDHmcJ5iNsJUd0sE="
+  [mod."github.com/go-ole/go-ole"]
+    version = "v1.3.0"
+    hash = "sha256-tF8t3VcV71jQ4jbPL91BwR59AKDpUAFV1waIKzkXJu8="
   [mod."github.com/go-playground/locales"]
     version = "v0.14.1"
     hash = "sha256-BMJGAexq96waZn60DJXZfByRHb8zA/JP/i6f/YrW9oQ="
@@ -100,6 +106,9 @@ schema = 3
   [mod."github.com/lmittmann/tint"]
     version = "v1.0.6"
     hash = "sha256-toT4YdhajyOXWzOHFxpMLbx9uJyCBEP36BR0FWy1H0A="
+  [mod."github.com/lufia/plan9stats"]
+    version = "v0.0.0-20240909124753-873cd0166683"
+    hash = "sha256-/SDtTolLkCiDQnF22rRFCiHUdrz8ND37lCxLoOcVQKk="
   [mod."github.com/mdobak/go-xerrors"]
     version = "v0.3.1"
     hash = "sha256-/RkHFCPT8CoQtgy3FDu9JZwVFRH1fnPdMW5dbqVWqAM="
@@ -112,6 +121,9 @@ schema = 3
   [mod."github.com/pmezard/go-difflib"]
     version = "v1.0.0"
     hash = "sha256-/FtmHnaGjdvEIKAJtrUfEhV7EVo5A/eYrtdnUkuxLDA="
+  [mod."github.com/power-devops/perfstat"]
+    version = "v0.0.0-20240221224432-82ca36839d55"
+    hash = "sha256-ujzuJ1ttQgjHQJEij4O/2+I8DZaUVZQCQgA4ysfqulI="
   [mod."github.com/pressly/goose/v3"]
     version = "v3.24.0"
     hash = "sha256-KT1Q4eeQLv1j3uBQOmM90ufWeBuZ7SFqyheiNmxuxnk="
@@ -133,12 +145,21 @@ schema = 3
   [mod."github.com/sethvargo/go-retry"]
     version = "v0.3.0"
     hash = "sha256-1ZnFRHAaQjralGKVRoCbiwCXXB3w4kS3f+2hK9S8lbU="
+  [mod."github.com/shirou/gopsutil/v4"]
+    version = "v4.24.12"
+    hash = "sha256-qex9pGk24WXfgv2fKVJudFgEGLrweSePkiwO1Mz9/Os="
   [mod."github.com/stretchr/objx"]
     version = "v0.5.2"
     hash = "sha256-VKYxrrFb1nkX6Wu3tE5DoP9+fCttwSl9pgLN6567nck="
   [mod."github.com/stretchr/testify"]
     version = "v1.10.0"
     hash = "sha256-fJ4gnPr0vnrOhjQYQwJ3ARDKPsOtA7d4olQmQWR+wpI="
+  [mod."github.com/tklauser/go-sysconf"]
+    version = "v0.3.14"
+    hash = "sha256-DF4NKSQTv5Z0T89MGqao7GIABcYIazZXTIUHpKIud04="
+  [mod."github.com/tklauser/numcpus"]
+    version = "v0.9.0"
+    hash = "sha256-YtdVe4wM/ggngdCewyCuWugkFpgXxtPvFlqBzNpJ+TI="
   [mod."github.com/veqryn/slog-context"]
     version = "v0.7.0"
     hash = "sha256-eCdqk/nS9o/Zsgi2q9425dRyrXCWKHNS8VG1hI352mU="
@@ -148,12 +169,21 @@ schema = 3
   [mod."github.com/yuin/goldmark"]
     version = "v1.7.8"
     hash = "sha256-SNJMPPiXkRDLVOldrHN0ErC3bUB2VoWaLDkd9zmMATw="
+  [mod."github.com/yusufpapurcu/wmi"]
+    version = "v1.2.4"
+    hash = "sha256-N+YDBjOW59YOsZ2lRBVtFsEEi48KhNQRb63/0ZSU3bA="
   [mod."go.opentelemetry.io/auto/sdk"]
     version = "v1.1.0"
     hash = "sha256-cA9qCCu8P1NSJRxgmpfkfa5rKyn9X+Y/9FSmSd5xjyo="
+  [mod."go.opentelemetry.io/contrib/instrumentation/host"]
+    version = "v0.59.0"
+    hash = "sha256-JPgReJq8OXSgoo+heOXSNGHmSpIGbyqybkacWqsaykE="
   [mod."go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"]
     version = "v0.58.0"
     hash = "sha256-iqTPHfR1wXZY/yVTWtRBMjWlZkRxasaBGNhsNWHYxGw="
+  [mod."go.opentelemetry.io/contrib/instrumentation/runtime"]
+    version = "v0.59.0"
+    hash = "sha256-Qqf3x+qaqw9n4f3H0RBRFwA+H0Z6dMbnLNCHeAJM2Q8="
   [mod."go.opentelemetry.io/otel"]
     version = "v1.34.0"
     hash = "sha256-hnuuTSxaf9yMO/23xWdcTGNzvnnJiqUiL4nzYwUV5bc="
@@ -173,8 +203,8 @@ schema = 3
     version = "v1.34.0"
     hash = "sha256-Af0INyxxGvtDRMt2szun/m56z6Rzwnxw/ckk7b/hR3M="
   [mod."go.opentelemetry.io/otel/sdk/metric"]
-    version = "v1.33.0"
-    hash = "sha256-WUNznTdJUw9yy9GY/mKrqmOWaGw0YYIpyuZcd53kdUE="
+    version = "v1.34.0"
+    hash = "sha256-jToGqaCoNGfypXaCgjl527zXyOrpACvhERcCqD8ogK4="
   [mod."go.opentelemetry.io/otel/trace"]
     version = "v1.34.0"
     hash = "sha256-u11KJ4WTDtcb0tVv7d/HOdhq8Ea+c1QPBO8MbsCQu9Q="

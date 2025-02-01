@@ -3,8 +3,11 @@ package telemetry
 import (
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
+	hostMetrics "go.opentelemetry.io/contrib/instrumentation/host"
+	runtimeMetrics "go.opentelemetry.io/contrib/instrumentation/runtime"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetrichttp"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
@@ -111,6 +114,15 @@ func newMeterProvider(ctx context.Context, res *resource.Resource) (*metric.Mete
 
 	reader := metric.NewPeriodicReader(metricExporter)
 	meterProvider := metric.NewMeterProvider(metric.WithReader(reader), metric.WithResource(res))
+
+	if err = runtimeMetrics.Start(runtimeMetrics.WithMeterProvider(meterProvider)); err != nil {
+		return nil, fmt.Errorf("failed to start runtime metrics: %v", err)
+	}
+
+	if err = hostMetrics.Start(hostMetrics.WithMeterProvider(meterProvider)); err != nil {
+		return nil, fmt.Errorf("failed to start host metrics: %v", err)
+	}
+
 	otel.SetMeterProvider(meterProvider)
 	return meterProvider, nil
 }
