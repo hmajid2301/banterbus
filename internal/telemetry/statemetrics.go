@@ -11,7 +11,7 @@ import (
 func IncrementStateCount(ctx context.Context, state string) error {
 	m := otel.Meter("gitlab.com/hmajid2301/banterbus")
 
-	counter, err := m.Int64Counter("total_state_count",
+	counter, err := m.Int64Counter("state.count.total",
 		metric.WithDescription("Total number of time this state was started."),
 		metric.WithUnit("{call}"),
 	)
