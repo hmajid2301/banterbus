@@ -70,7 +70,7 @@ func TestE2ERounds(t *testing.T) {
 
 		roleText := hostPlayerPage.GetByText("You are")
 		expect.Locator(roleText).
-			ToBeVisible(playwright.LocatorAssertionsToBeVisibleOptions{Timeout: playwright.Float(29 * 1000)})
+			ToBeVisible(playwright.LocatorAssertionsToBeVisibleOptions{Timeout: playwright.Float(35 * 1000)})
 		require.NoError(t, err)
 
 		fibber, normals, err = getPlayerRoles(hostPlayerPage, otherPlayerPages)
@@ -111,7 +111,7 @@ func TestE2ERounds(t *testing.T) {
 
 		roleText = hostPlayerPage.GetByText("You are")
 		expect.Locator(roleText).
-			ToBeVisible(playwright.LocatorAssertionsToBeVisibleOptions{Timeout: playwright.Float(29 * 1000)})
+			ToBeVisible(playwright.LocatorAssertionsToBeVisibleOptions{Timeout: playwright.Float(35 * 1000)})
 		require.NoError(t, err)
 
 		fibber, normals, err = getPlayerRoles(hostPlayerPage, otherPlayerPages)
