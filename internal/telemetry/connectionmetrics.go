@@ -97,7 +97,7 @@ func RecordRequestLatency(ctx context.Context, latency float64, messageType stri
 func RecordMessageSendLatency(ctx context.Context, latency float64) error {
 	m := otel.Meter("gitlab.com/hmajid2301/banterbus")
 
-	histogram, err := m.Float64Histogram("message.send.duration",
+	histogram, err := m.Float64Histogram("message.sent.duration",
 		metric.WithDescription("Time taken to send message from client."),
 		metric.WithUnit("ms"),
 		metric.WithExplicitBucketBoundaries([]float64{0.1, 0.5, 1, 2, 5}...),

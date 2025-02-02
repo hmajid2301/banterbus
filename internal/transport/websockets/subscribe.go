@@ -267,7 +267,7 @@ func (s *Subscriber) Subscribe(r *http.Request, w http.ResponseWriter) (err erro
 				}
 			}
 		case <-ctx.Done():
-			s.logger.InfoContext(ctx, "subscribe context done")
+			s.logger.InfoContext(ctx, "subscribe context done", slog.String("player_id", playerID.String()))
 			cancel()
 			return ctx.Err()
 		}
