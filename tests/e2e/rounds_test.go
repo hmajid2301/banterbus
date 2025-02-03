@@ -131,18 +131,27 @@ func TestE2ERounds(t *testing.T) {
 		require.NoError(t, err)
 
 		for _, normal := range normals {
+			answer, err := normal.GetByRole("button").Nth(6).InnerText()
+			require.NoError(t, err)
+
+			// INFO: The ordering of answers will vary a bit between players, so if we pick the same one as fibber player
+			// as normal, force us to pick another answer instead. So we can tell which player is a fibber.
 			err = normal.GetByRole("button").Nth(6).Click()
 			require.NoError(t, err)
+			if answer == fibberPlayerVotedName {
+				err = normal.GetByRole("button").Nth(4).Click()
+				require.NoError(t, err)
+			}
+
 			err = normal.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Not Ready"}).Click()
 			require.NoError(t, err)
 		}
 
-		fibberTest = hostPlayerPage.GetByText("Answer " + fibberPlayerVotedName)
+		searchText := fmt.Sprintf("Answer %s", fibberPlayerVotedName)
+		fibberTest = hostPlayerPage.GetByText(searchText)
 		expect.Locator(fibberTest).ToBeVisible()
 		for _, normal := range normals {
-			err = normal.GetByText(
-				"Answer "+fibberPlayerVotedName,
-				playwright.PageGetByTextOptions{Exact: playwright.Bool(true)}).Click()
+			err = normal.GetByText(searchText, playwright.PageGetByTextOptions{Exact: playwright.Bool(true)}).Click()
 			require.NoError(t, err)
 		}
 

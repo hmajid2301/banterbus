@@ -15,7 +15,9 @@ func TestE2EReconnect(t *testing.T) {
 		t.Cleanup(func() { teardown(playerPages) })
 		hostPlayerPage := playerPages[0]
 
-		err := hostPlayerPage.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Start"}).Click()
+		err := hostPlayerPage.GetByPlaceholder("Enter your nickname").Fill("HostPlayer")
+		require.NoError(t, err)
+		err = hostPlayerPage.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Start"}).Click()
 		require.NoError(t, err)
 
 		nickname, err := hostPlayerPage.Locator("#update_nickname_form").
@@ -28,6 +30,8 @@ func TestE2EReconnect(t *testing.T) {
 		_, err = hostPlayerPage.Reload()
 		require.NoError(t, err)
 
+		err = hostPlayerPage.GetByPlaceholder("Enter your nickname").Fill("HostPlayer")
+		require.NoError(t, err)
 		err = hostPlayerPage.GetByPlaceholder("ABC12").Fill(code)
 		require.NoError(t, err)
 		err = hostPlayerPage.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Join"}).Click()
@@ -67,6 +71,8 @@ func TestE2EReconnect(t *testing.T) {
 		require.NoError(t, err)
 
 		// TODO: maybe refactor this connect code
+		err = hostPlayerPage.GetByPlaceholder("Enter your nickname").Fill("HostPlayer")
+		require.NoError(t, err)
 		err = hostPlayerPage.GetByPlaceholder("ABC12").Fill(code)
 		require.NoError(t, err)
 		err = hostPlayerPage.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Join"}).Click()

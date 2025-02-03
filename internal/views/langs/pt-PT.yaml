@@ -9,7 +9,7 @@ pt-PT:
     normal: "normal"
   home:
     nickname_placeholder: "Insira o seu apelido"
-    nickname_label: "apelido"
+    nickname_label: "Apelido"
     roomcode_placeholder: "ABC12"
     start_button_label: "Iniciar"
     join_button_label: "Entrar"

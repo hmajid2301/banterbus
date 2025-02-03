@@ -342,15 +342,10 @@ func (r *LobbyService) GetLobby(ctx context.Context, playerID uuid.UUID) (Lobby,
 }
 
 func (r *LobbyService) getNewPlayer(playerNickname string, playerID uuid.UUID) NewPlayer {
-	nickname := playerNickname
-	if playerNickname == "" {
-		nickname = r.randomizer.GetNickname()
-	}
-
-	avatar := r.randomizer.GetAvatar(nickname)
+	avatar := r.randomizer.GetAvatar(playerNickname)
 	newPlayer := NewPlayer{
 		ID:       playerID,
-		Nickname: nickname,
+		Nickname: playerNickname,
 		Avatar:   avatar,
 	}
 	return newPlayer

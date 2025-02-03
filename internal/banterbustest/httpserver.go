@@ -3,6 +3,7 @@ package banterbustest
 import (
 	"context"
 	"fmt"
+	"io"
 	"log"
 	"log/slog"
 	"net/http"
@@ -137,6 +138,11 @@ func setupLogger() *slog.Logger {
 		level = slog.LevelError
 	default:
 		log.Fatalf("unknown log level: %s", logLevel)
+	}
+
+	if _, ok := os.LookupEnv("BANTERBUS_LOG_DISABLED"); ok {
+		handler := slog.NewJSONHandler(io.Discard, nil)
+		return slog.New(handler)
 	}
 
 	logger := logging.New(level, []slog.Attr{})

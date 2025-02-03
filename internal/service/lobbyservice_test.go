@@ -27,12 +27,13 @@ var hostPlayerID = uuid.MustParse("0193a623-8423-74b3-b991-896d7c6df52a")
 
 func TestLobbyServiceCreate(t *testing.T) {
 	defaultNewHostPlayer := service.NewHostPlayer{
-		ID: uuid.MustParse("0193a626-2586-7784-9b5b-104d927d64ca"),
+		ID:       uuid.MustParse("0193a626-2586-7784-9b5b-104d927d64ca"),
+		Nickname: "Majiy00",
 	}
 
 	defaultNewPlayer := service.NewPlayer{
 		ID:       defaultNewHostPlayer.ID,
-		Nickname: "Majiy00",
+		Nickname: defaultNewHostPlayer.Nickname,
 		Avatar:   "https://api.dicebear.com/9.x/bottts-neutral/svg?radius=20&seed=Majiy00",
 	}
 
@@ -44,7 +45,6 @@ func TestLobbyServiceCreate(t *testing.T) {
 		ctx, err := getI18nCtx()
 		require.NoError(t, err)
 
-		mockRandom.EXPECT().GetNickname().Return(defaultNewPlayer.Nickname)
 		mockRandom.EXPECT().GetAvatar(defaultNewPlayer.Nickname).Return(defaultNewPlayer.Avatar)
 		mockRandom.EXPECT().GetRoomCode().Return(roomCode)
 		mockStore.EXPECT().GetRoomByCode(ctx, roomCode).Return(db.Room{}, sql.ErrNoRows)
@@ -124,7 +124,6 @@ func TestLobbyServiceCreate(t *testing.T) {
 		ctx, err := getI18nCtx()
 		require.NoError(t, err)
 
-		mockRandom.EXPECT().GetNickname().Return(defaultNewPlayer.Nickname)
 		mockRandom.EXPECT().GetAvatar(defaultNewPlayer.Nickname).Return(defaultNewPlayer.Avatar)
 		mockRandom.EXPECT().GetRoomCode().Return(roomCode)
 		mockStore.EXPECT().
@@ -166,7 +165,6 @@ func TestLobbyServiceCreate(t *testing.T) {
 		ctx, err := getI18nCtx()
 		require.NoError(t, err)
 
-		mockRandom.EXPECT().GetNickname().Return(defaultNewPlayer.Nickname)
 		mockRandom.EXPECT().GetAvatar(defaultNewPlayer.Nickname).Return(defaultNewPlayer.Avatar)
 		mockRandom.EXPECT().GetRoomCode().Return(roomCode)
 		mockStore.EXPECT().
@@ -185,7 +183,6 @@ func TestLobbyServiceCreate(t *testing.T) {
 		ctx, err := getI18nCtx()
 		require.NoError(t, err)
 
-		mockRandom.EXPECT().GetNickname().Return(defaultNewPlayer.Nickname)
 		mockRandom.EXPECT().GetAvatar(defaultNewPlayer.Nickname).Return(defaultNewPlayer.Avatar)
 		mockRandom.EXPECT().GetRoomCode().Return(roomCode)
 		mockStore.EXPECT().GetRoomByCode(ctx, roomCode).Return(db.Room{}, sql.ErrNoRows).Times(1)
@@ -244,7 +241,6 @@ func TestLobbyServiceJoin(t *testing.T) {
 		mockStore.EXPECT().
 			GetRoomByPlayerID(ctx, defaultNewPlayer.ID).
 			Return(db.Room{}, xerrors.New("failed to get room by player ID"))
-		mockRandom.EXPECT().GetNickname().Return(defaultNewPlayer.Nickname)
 		mockRandom.EXPECT().GetAvatar(defaultNewPlayer.Nickname).Return(defaultNewPlayer.Avatar)
 		mockStore.EXPECT().
 			GetRoomByCode(ctx, roomCode).
@@ -403,7 +399,6 @@ func TestLobbyServiceJoin(t *testing.T) {
 		mockStore.EXPECT().
 			GetRoomByPlayerID(ctx, defaultNewPlayer.ID).
 			Return(db.Room{}, xerrors.New("failed to get room by player ID"))
-		mockRandom.EXPECT().GetNickname().Return(defaultNewPlayer.Nickname)
 		mockRandom.EXPECT().GetAvatar(defaultNewPlayer.Nickname).Return(defaultNewPlayer.Avatar)
 		mockStore.EXPECT().
 			GetRoomByCode(ctx, roomCode).
@@ -461,7 +456,6 @@ func TestLobbyServiceJoin(t *testing.T) {
 		mockStore.EXPECT().
 			GetRoomByPlayerID(ctx, defaultNewPlayer.ID).
 			Return(db.Room{}, xerrors.New("failed to get room by player ID"))
-		mockRandom.EXPECT().GetNickname().Return(defaultNewPlayer.Nickname)
 		mockRandom.EXPECT().GetAvatar(defaultNewPlayer.Nickname).Return(defaultNewPlayer.Avatar)
 		mockStore.EXPECT().
 			GetRoomByCode(ctx, roomCode).
@@ -505,7 +499,6 @@ func TestLobbyServiceJoin(t *testing.T) {
 		mockStore.EXPECT().
 			GetRoomByPlayerID(ctx, defaultNewPlayer.ID).
 			Return(db.Room{}, xerrors.New("failed to get room by player ID"))
-		mockRandom.EXPECT().GetNickname().Return(defaultNewPlayer.Nickname)
 		mockRandom.EXPECT().GetAvatar(defaultNewPlayer.Nickname).Return(defaultNewPlayer.Avatar)
 		mockStore.EXPECT().
 			GetRoomByCode(ctx, roomCode).

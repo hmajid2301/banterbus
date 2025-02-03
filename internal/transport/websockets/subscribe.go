@@ -393,6 +393,11 @@ func (s *Subscriber) handleMessage(ctx context.Context, client *Client) error {
 
 	err = handler.Validate()
 	if err != nil {
+		webSocketErr := s.updateClientAboutErr(ctx, client.playerID, err.Error())
+		if webSocketErr != nil {
+			return errors.Join(err, webSocketErr)
+		}
+
 		messageStatus = "fail_validate"
 		return fmt.Errorf("error validating handler message: %w", err)
 	}

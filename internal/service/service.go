@@ -19,7 +19,6 @@ type Storer interface {
 }
 
 type Randomizer interface {
-	GetNickname() string
 	GetAvatar(nickname string) string
 	GetRoomCode() string
 	GetID() uuid.UUID
