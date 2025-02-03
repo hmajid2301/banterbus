@@ -8,7 +8,7 @@ de-DE:
     fibber: "Flunkerer"
     normal: "normal"
   home:
-    nickname_label: "spitzname"
+    nickname_label: "Spitzname"
     nickname_placeholder: "Gib deinen Spitznamen ein"
     roomcode_placeholder: "ABC12"
     start_button_label: "Starten"

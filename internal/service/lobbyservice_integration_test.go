@@ -20,35 +20,7 @@ const defaultHostNickname = "host_player"
 const defaultOtherPlayerNickname = "another_player"
 
 func TestIntegrationLobbyCreate(t *testing.T) {
-	t.Run("Should successfully create room", func(t *testing.T) {
-		pool, teardown := setupSubtest(t)
-		t.Cleanup(teardown)
-
-		baseDelay := (time.Millisecond * 100)
-		str := db.NewDB(pool, 3, baseDelay)
-		randomizer := randomizer.NewUserRandomizer()
-
-		id := uuid.New()
-		newPlayer := service.NewHostPlayer{
-			ID: id,
-		}
-
-		ctx, err := getI18nCtx()
-		require.NoError(t, err)
-
-		srv := service.NewLobbyService(str, randomizer, "en-GB")
-		lobby, err := srv.Create(ctx, "fibbing_it", newPlayer)
-
-		assert.NoError(t, err)
-		assert.Len(t, roomCode, 5)
-		assert.Len(t, lobby.Players, 1, "There should be 1 player in the room when it is created")
-		assert.Equal(t, id, lobby.Players[0].ID, "Player ID should match the ID of player who created the room")
-		assert.NotEmpty(t, lobby.Players[0].Nickname)
-		assert.True(t, lobby.Players[0].IsHost, "Player should be the host")
-		assert.False(t, lobby.Players[0].IsReady, "Player should not be ready when room is created")
-	})
-
-	t.Run("Should create room successfully, when player specifies their own nickname", func(t *testing.T) {
+	t.Run("Should create room successfully", func(t *testing.T) {
 		pool, teardown := setupSubtest(t)
 		t.Cleanup(teardown)
 
@@ -76,38 +48,6 @@ func TestIntegrationLobbyCreate(t *testing.T) {
 
 func TestIntegrationLobbyJoin(t *testing.T) {
 	t.Run("Should successfully join room", func(t *testing.T) {
-		pool, teardown := setupSubtest(t)
-		t.Cleanup(teardown)
-
-		baseDelay := (time.Millisecond * 100)
-		str := db.NewDB(pool, 3, baseDelay)
-		randomizer := randomizer.NewUserRandomizer()
-
-		ctx, err := getI18nCtx()
-		require.NoError(t, err)
-
-		srv := service.NewLobbyService(str, randomizer, "en-GB")
-		lobby, err := createRoom(ctx, srv)
-		assert.NoError(t, err)
-
-		lobby, err = srv.Join(ctx, lobby.Code, defaultOtherPlayerID, "")
-		assert.NoError(t, err)
-
-		joinedPlayer := lobby.Players[1]
-
-		assert.Len(t, lobby.Players, 2)
-		assert.Equal(
-			t,
-			defaultOtherPlayerID,
-			joinedPlayer.ID,
-			"Player ID should match the ID of player who joined the room",
-		)
-		assert.NotEmpty(t, joinedPlayer.Nickname)
-		assert.False(t, joinedPlayer.IsHost, "Player who joined should not be the host")
-		assert.False(t, joinedPlayer.IsReady, "Player who joined should not be ready")
-	})
-
-	t.Run("Should successfully join room, with nickname", func(t *testing.T) {
 		pool, teardown := setupSubtest(t)
 		t.Cleanup(teardown)
 

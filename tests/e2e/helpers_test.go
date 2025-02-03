@@ -9,7 +9,12 @@ import (
 )
 
 func joinRoom(hostPlayerPage playwright.Page, otherPlayerPages []playwright.Page) error {
-	err := hostPlayerPage.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Start"}).Click()
+	err := hostPlayerPage.GetByPlaceholder("Enter your nickname").Fill("HostPlayer")
+	if err != nil {
+		return err
+	}
+
+	err = hostPlayerPage.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Start"}).Click()
 	if err != nil {
 		return err
 	}
@@ -35,7 +40,12 @@ func joinRoom(hostPlayerPage playwright.Page, otherPlayerPages []playwright.Page
 		return xerrors.New("room code is empty")
 	}
 
-	for _, player := range otherPlayerPages {
+	for i, player := range otherPlayerPages {
+		err := player.GetByPlaceholder("Enter your nickname").Fill(fmt.Sprintf("OtherPlayer%d", i))
+		if err != nil {
+			return err
+		}
+
 		err = player.GetByPlaceholder("ABC12").Fill(code)
 		if err != nil {
 			return err

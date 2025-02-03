@@ -8,7 +8,7 @@ en-GB:
     fibber: "fibber"
     normal: "normal"
   home:
-    nickname_label: "nickname"
+    nickname_label: "Nickname"
     nickname_placeholder: "Enter your nickname"
     roomcode_placeholder: "ABC12"
     start_button_label: "Start"

@@ -17,7 +17,11 @@ func TestE2ELobby(t *testing.T) {
 		hostPlayerPage := playerPages[0]
 		otherPlayerPage := playerPages[1]
 
-		err := hostPlayerPage.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Start"}).Click()
+		err := hostPlayerPage.GetByPlaceholder("Enter your nickname").Fill("HostPlayer")
+		require.NoError(t, err)
+		err = hostPlayerPage.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Start"}).Click()
+		require.NoError(t, err)
+		err = otherPlayerPage.GetByPlaceholder("Enter your nickname").Fill("OtherPlayer")
 		require.NoError(t, err)
 		err = otherPlayerPage.GetByPlaceholder("ABC12").Fill("FAKE_CODE")
 		require.NoError(t, err)
@@ -34,7 +38,9 @@ func TestE2ELobby(t *testing.T) {
 		hostPlayerPage := playerPages[0]
 		otherPlayerPage := playerPages[1]
 
-		err := hostPlayerPage.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Start"}).Click()
+		err := hostPlayerPage.GetByPlaceholder("Enter your nickname").Fill("HostPlayer")
+		require.NoError(t, err)
+		err = hostPlayerPage.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Start"}).Click()
 		require.NoError(t, err)
 		err = hostPlayerPage.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Copy Join Link"}).Click()
 		require.NoError(t, err)
@@ -50,6 +56,9 @@ func TestE2ELobby(t *testing.T) {
 		assert.Equal(t, expectedURL, url)
 
 		_, err = otherPlayerPage.Goto(expectedURL)
+		require.NoError(t, err)
+
+		err = otherPlayerPage.GetByPlaceholder("Enter your nickname").Fill("OtherPlayer")
 		require.NoError(t, err)
 
 		err = otherPlayerPage.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Join"}).Click()
