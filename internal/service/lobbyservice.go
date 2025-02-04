@@ -244,20 +244,9 @@ func (r *LobbyService) Start(
 		}
 	}
 
-	normalsQuestions, err := r.store.GetRandomQuestionByRound(ctx, db.GetRandomQuestionByRoundParams{
-		GameName:  room.GameName,
-		RoundType: "free_form",
-	})
+	normalsQuestions, fibberQuestions, err := getQuestions(ctx, r.store, room.GameName, "free_form")
 	if err != nil {
-		return QuestionState{}, err
-	}
-
-	fibberQuestions, err := r.store.GetRandomQuestionInGroup(ctx, db.GetRandomQuestionInGroupParams{
-		GroupID: normalsQuestions[0].GroupID,
-		ID:      normalsQuestions[0].QuestionID,
-	})
-	if err != nil {
-		return QuestionState{}, err
+		return QuestionState{}, xerrors.New(err.Error())
 	}
 
 	randomFibberLoc := r.randomizer.GetFibberIndex(len(playersInRoom))
@@ -349,4 +338,69 @@ func (r *LobbyService) getNewPlayer(playerNickname string, playerID uuid.UUID) N
 		Avatar:   avatar,
 	}
 	return newPlayer
+}
+
+// TODO: add unit tests for this
+func getQuestions(
+	ctx context.Context,
+	store Storer,
+	gameName string,
+	roundType string,
+) ([]db.GetRandomQuestionByRoundRow, []db.GetRandomQuestionInGroupRow, error) {
+	maxRetries := 3
+
+	normalsQuestions, err := store.GetRandomQuestionByRound(ctx, db.GetRandomQuestionByRoundParams{
+		GameName:  gameName,
+		RoundType: roundType,
+	})
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to get normal questions: %w", err)
+	}
+
+	if len(normalsQuestions) == 0 {
+		return nil, nil, fmt.Errorf("no normal questions found")
+	}
+
+	fibberQuestions, err := store.GetRandomQuestionInGroup(ctx, db.GetRandomQuestionInGroupParams{
+		GroupID: normalsQuestions[0].GroupID,
+		ID:      normalsQuestions[0].QuestionID,
+	})
+
+	if err == sql.ErrNoRows {
+		for i := 0; i < maxRetries; i++ {
+			newNormals, err := store.GetRandomQuestionByRound(ctx, db.GetRandomQuestionByRoundParams{
+				GameName:  gameName,
+				RoundType: "free_form",
+			})
+			if err != nil {
+				return nil, nil, fmt.Errorf("retry %d: failed to get normal questions: %w", i+1, err)
+			}
+			if len(newNormals) == 0 {
+				continue
+			}
+
+			newFibber, err := store.GetRandomQuestionInGroup(ctx, db.GetRandomQuestionInGroupParams{
+				GroupID: newNormals[0].GroupID,
+				ID:      newNormals[0].QuestionID,
+			})
+
+			if err == nil {
+				normalsQuestions = newNormals
+				fibberQuestions = newFibber
+				break
+			} else if err == sql.ErrNoRows {
+				continue
+			}
+
+			return nil, nil, fmt.Errorf("retry %d: failed to get fibber questions: %w", i+1, err)
+		}
+
+		if len(fibberQuestions) == 0 {
+			return nil, nil, fmt.Errorf("no fibber questions found after %d retries", maxRetries)
+		}
+	} else if err != nil {
+		return nil, nil, fmt.Errorf("initial fibber question fetch failed: %w", err)
+	}
+
+	return normalsQuestions, fibberQuestions, nil
 }

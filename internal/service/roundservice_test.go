@@ -1457,7 +1457,7 @@ func TestRoundServiceUpdateStateToQuestion(t *testing.T) {
 			}, nil)
 			mockStore.EXPECT().GetRandomQuestionInGroup(ctx, db.GetRandomQuestionInGroupParams{
 				GroupID: groupID,
-				ID:      uuid.MustParse("0193ea48-c27f-74bd-8a17-523f69350aca"),
+				ID:      uuid.MustParse("0193a629-7dcc-78ad-822f-fd5d83c89ae7"),
 			}).Return([]db.GetRandomQuestionInGroupRow{
 				{
 					QuestionID: uuid.MustParse("0193a629-a9ac-7fc4-828c-a1334c282e0f"),
@@ -1696,10 +1696,11 @@ func TestRoundServiceUpdateStateToQuestion(t *testing.T) {
 			RoundType: "free_form",
 		}).Return([]db.GetRandomQuestionByRoundRow{
 			{
-				ID:       uuid.MustParse("0193a629-7dcc-78ad-822f-fd5d83c89ae7"),
-				Question: "What is the capital of France?",
-				Locale:   "en-GB",
-				GroupID:  groupID,
+				ID:         uuid.MustParse("0193a629-7dcc-78ad-822f-fd5d83c89ae8"),
+				QuestionID: uuid.MustParse("0193a629-7dcc-78ad-822f-fd5d83c89ae7"),
+				Question:   "What is the capital of France?",
+				Locale:     "en-GB",
+				GroupID:    groupID,
 			},
 		}, nil)
 		mockStore.EXPECT().GetRandomQuestionInGroup(ctx, db.GetRandomQuestionInGroupParams{
@@ -1760,7 +1761,7 @@ func TestRoundServiceUpdateStateToQuestion(t *testing.T) {
 		}, nil)
 		mockStore.EXPECT().GetRandomQuestionInGroup(ctx, db.GetRandomQuestionInGroupParams{
 			GroupID: groupID,
-			ID:      uuid.MustParse("0193ea48-c27f-74bd-8a17-523f69350aca"),
+			ID:      uuid.MustParse("0193a629-7dcc-78ad-822f-fd5d83c89ae7"),
 		}).Return([]db.GetRandomQuestionInGroupRow{
 			{
 				QuestionID: uuid.MustParse("0193a629-a9ac-7fc4-828c-a1334c282e0f"),

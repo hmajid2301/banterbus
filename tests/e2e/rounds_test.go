@@ -139,7 +139,8 @@ func TestE2ERounds(t *testing.T) {
 			err = normal.GetByRole("button").Nth(6).Click()
 			require.NoError(t, err)
 			if answer == fibberPlayerVotedName {
-				err = normal.GetByRole("button").Nth(4).Click()
+				t.Log("changing my vote")
+				err = normal.GetByRole("button").Nth(1).Click()
 				require.NoError(t, err)
 			}
 

@@ -446,20 +446,9 @@ func (r *RoundService) UpdateStateToQuestion(
 		roundNumber = 1
 	}
 
-	normalsQuestions, err := r.store.GetRandomQuestionByRound(ctx, db.GetRandomQuestionByRoundParams{
-		GameName:  "fibbing_it",
-		RoundType: roundType,
-	})
+	normalsQuestions, fibberQuestions, err := getQuestions(ctx, r.store, "fibbing_it", roundType)
 	if err != nil {
-		return QuestionState{}, err
-	}
-
-	fibberQuestions, err := r.store.GetRandomQuestionInGroup(ctx, db.GetRandomQuestionInGroupParams{
-		GroupID: normalsQuestions[0].GroupID,
-		ID:      normalsQuestions[0].ID,
-	})
-	if err != nil {
-		return QuestionState{}, err
+		return QuestionState{}, xerrors.New(err.Error())
 	}
 
 	randomFibberLoc := r.randomizer.GetFibberIndex(len(players))
