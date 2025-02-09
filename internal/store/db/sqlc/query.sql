@@ -156,6 +156,9 @@ WHERE p.id = $1
 ORDER BY fr.round DESC
 LIMIT 1;
 
+-- name: GetFibberByRoundID :one
+SELECT * FROM fibbing_it_player_roles WHERE round_id=$1 and player_role='fibber';
+
 -- name: GetVotingState :many
 SELECT
     fir.round AS round,

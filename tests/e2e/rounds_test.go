@@ -151,4 +151,61 @@ func TestE2ERounds(t *testing.T) {
 
 		time.Sleep(time.Second * 1)
 	})
+
+	t.Run("Should successfully complete an entire round without guessing the fibber", func(t *testing.T) {
+		playerPages, teardown := setupTest(playerNum)
+		t.Cleanup(func() { teardown(playerPages) })
+
+		hostPlayerPage := playerPages[0]
+		otherPlayerPages := playerPages[1:]
+
+		err := startGame(hostPlayerPage, otherPlayerPages)
+		require.NoError(t, err)
+
+		fibber, normals, err := getPlayerRoles(hostPlayerPage, otherPlayerPages)
+		require.NoError(t, err)
+
+		for _, player := range playerPages {
+			err = player.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Close"}).Click()
+			require.NoError(t, err)
+		}
+
+		for i := 0; i < 2; i++ {
+			err = fibber.Locator("#submit_answer_form").Locator(`input[name="answer"]`).Fill("I am not a fibber")
+			require.NoError(t, err)
+
+			err = fibber.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Submit Answer"}).Click()
+			require.NoError(t, err)
+
+			err = fibber.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Ready"}).Click()
+			require.NoError(t, err)
+
+			for i, normal := range normals {
+				err = normal.Locator("#submit_answer_form").
+					Locator(`input[name="answer"]`).
+					Fill(fmt.Sprintf("I am a normal player %d", i))
+				require.NoError(t, err)
+
+				err = normal.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Submit Answer"}).Click()
+				require.NoError(t, err)
+
+				err = normal.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Ready"}).Click()
+				require.NoError(t, err)
+			}
+
+			fibberTest := hostPlayerPage.GetByText("I am not a fibber")
+			expect.Locator(fibberTest).ToBeVisible()
+			for _, normal := range normals {
+				err = normal.GetByText("I am a normal player 1").Click()
+				require.NoError(t, err)
+			}
+
+			for _, player := range append(normals, fibber) {
+				notCaught := player.GetByText("You failed to vote for a single player ...")
+				expect.Locator(notCaught).ToBeVisible()
+			}
+
+			time.Sleep(time.Second * 1)
+		}
+	})
 }

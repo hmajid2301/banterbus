@@ -31,6 +31,7 @@ type Querier interface {
 	GetAllPlayersVotingIsReady(ctx context.Context, playerID uuid.UUID) (bool, error)
 	GetAllVotesForRoundByGameStateID(ctx context.Context, gameStateID uuid.UUID) ([]GetAllVotesForRoundByGameStateIDRow, error)
 	GetCurrentQuestionByPlayerID(ctx context.Context, id uuid.UUID) (GetCurrentQuestionByPlayerIDRow, error)
+	GetFibberByRoundID(ctx context.Context, roundID uuid.UUID) (FibbingItPlayerRole, error)
 	GetGameState(ctx context.Context, id uuid.UUID) (GameState, error)
 	GetGameStateByPlayerID(ctx context.Context, playerID uuid.UUID) (GameState, error)
 	GetGroupByName(ctx context.Context, groupName string) (QuestionsGroup, error)
