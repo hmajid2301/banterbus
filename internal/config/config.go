@@ -86,10 +86,10 @@ type In struct {
 	JWKSURL    string `env:"BANTERBUS_JWKS_URL"`
 	AdminGroup string `env:"BANTERBUS_JWT_ADMIN_GROUP"`
 
-	ShowQuestionScreenFor   time.Duration `env:"SHOW_QUESTION_SCREEN_FOR, default=61s"`
-	ShowVotingScreenFor     time.Duration `env:"SHOW_VOTING_SCREEN_FOR, default=31s"`
+	ShowQuestionScreenFor   time.Duration `env:"SHOW_QUESTION_SCREEN_FOR, default=15s"`
+	ShowVotingScreenFor     time.Duration `env:"SHOW_VOTING_SCREEN_FOR, default=120s"`
 	AllReadyToNextScreenFor time.Duration `env:"ALL_READY_TO_NEXT_SCREEN_FOR, default=2s"`
-	ShowRevealScreenFor     time.Duration `env:"SHOW_REVEAL_SCREEN_FOR, default=16s"`
+	ShowRevealScreenFor     time.Duration `env:"SHOW_REVEAL_SCREEN_FOR, default=15s"`
 	ShowScoreScreenFor      time.Duration `env:"SHOW_SCORE_SCREEN_FOR, default=15s"`
 	ShowWinnerScoreFor      time.Duration `env:"SHOW_SCORE_SCREEN_FOR, default=15s"`
 

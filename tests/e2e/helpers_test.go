@@ -87,7 +87,7 @@ func getPlayerRoles(
 	var fibber playwright.Page
 	normals := []playwright.Page{}
 
-	submitButton := hostPlayerPage.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Not Ready"})
+	submitButton := hostPlayerPage.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Ready"})
 	err := submitButton.WaitFor()
 	if err != nil {
 		return fibber, normals, fmt.Errorf("failed to find 'Submit Answer' button: %w", err)

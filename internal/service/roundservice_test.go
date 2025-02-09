@@ -504,16 +504,16 @@ func TestRoundServiceUpdateStateToVoting(t *testing.T) {
 			Round:       1,
 			Players: []service.PlayerWithVoting{
 				{
-					ID:       defaultHostPlayerID,
-					Nickname: "Player 1",
-					Avatar:   "https://api.dicebear.com/9.x/bottts-neutral/svg?radius=20&seed=Player+1",
+					ID:       defaultOtherPlayerID,
+					Nickname: "Player 2",
+					Avatar:   "https://api.dicebear.com/9.x/bottts-neutral/svg?radius=20&seed=Player+2",
 					Votes:    0,
 					IsReady:  false,
 				},
 				{
-					ID:       defaultOtherPlayerID,
-					Nickname: "Player 2",
-					Avatar:   "https://api.dicebear.com/9.x/bottts-neutral/svg?radius=20&seed=Player+2",
+					ID:       defaultHostPlayerID,
+					Nickname: "Player 1",
+					Avatar:   "https://api.dicebear.com/9.x/bottts-neutral/svg?radius=20&seed=Player+1",
 					Votes:    0,
 					IsReady:  false,
 				},
@@ -1227,8 +1227,8 @@ func TestRoundServiceUpdateStateToReveal(t *testing.T) {
 				ShouldReveal:           tt.expectedShouldReveal,
 				Deadline:               time.Until(now),
 				PlayerIDs: []uuid.UUID{
-					defaultHostPlayerID,
 					defaultOtherPlayerID,
+					defaultHostPlayerID,
 				},
 			}
 
@@ -1363,48 +1363,44 @@ func TestRoundServiceUpdateStateToQuestion(t *testing.T) {
 	groupID := uuid.MustParse("0193a629-1fcf-79dd-ac70-760bedbdffa9")
 
 	tests := []struct {
-		name                    string
-		roundNumber             int32
-		roundType               string
-		expectedRound           int32
-		expectedType            string
-		expectedAnswerPlayerOne []string
-		expectedAnswerPlayerTwo []string
-		normalQuestion          string
-		fibberQuestion          string
+		name            string
+		roundNumber     int32
+		roundType       string
+		expectedRound   int32
+		expectedType    string
+		expectedAnswers []string
+		normalQuestion  string
+		fibberQuestion  string
 	}{
 		{
-			name:                    "Should update state to question state successfully with round 2 and free_form",
-			roundNumber:             1,
-			roundType:               "free_form",
-			expectedRound:           2,
-			expectedType:            "free_form",
-			expectedAnswerPlayerOne: []string{},
-			expectedAnswerPlayerTwo: []string{},
-			normalQuestion:          "What if your favourite city",
-			fibberQuestion:          "What is your favourite hotel",
+			name:            "Should update state to question state successfully with round 2 and free_form",
+			roundNumber:     1,
+			roundType:       "free_form",
+			expectedRound:   2,
+			expectedType:    "free_form",
+			expectedAnswers: []string{},
+			normalQuestion:  "What if your favourite city",
+			fibberQuestion:  "What is your favourite hotel",
 		},
 		{
-			name:                    "Should update state to question state successfully with round 1 and multiple_choice",
-			roundNumber:             3,
-			roundType:               "free_form",
-			expectedRound:           1,
-			expectedType:            "multiple_choice",
-			expectedAnswerPlayerOne: []string{"Strongly Agree", "Agree", "Neutral", "Disagree", "Strongly Disagree"},
-			expectedAnswerPlayerTwo: []string{"Strongly Agree", "Agree", "Neutral", "Disagree", "Strongly Disagree"},
-			normalQuestion:          "I love pizza",
-			fibberQuestion:          "I love burgers",
+			name:            "Should update state to question state successfully with round 1 and multiple_choice",
+			roundNumber:     3,
+			roundType:       "free_form",
+			expectedRound:   1,
+			expectedType:    "multiple_choice",
+			expectedAnswers: []string{"Strongly Agree", "Agree", "Neutral", "Disagree", "Strongly Disagree"},
+			normalQuestion:  "I love pizza",
+			fibberQuestion:  "I love burgers",
 		},
 		{
-			name:                    "Should update state to question state successfully with round 1 and most_likely",
-			roundNumber:             3,
-			roundType:               "multiple_choice",
-			expectedRound:           1,
-			expectedType:            "most_likely",
-			expectedAnswerPlayerOne: []string{"Player 2"},
-			expectedAnswerPlayerTwo: []string{"Player 1"},
-			normalQuestion:          "go to prison",
-			fibberQuestion:          "go to a bank",
+			name:            "Should update state to question state successfully with round 1 and most_likely",
+			roundNumber:     3,
+			roundType:       "multiple_choice",
+			expectedRound:   1,
+			expectedType:    "most_likely",
+			expectedAnswers: []string{"Player 1", "Player 2"},
+			normalQuestion:  "go to prison",
+			fibberQuestion:  "go to a bank",
 		},
 	}
 
@@ -1494,13 +1490,13 @@ func TestRoundServiceUpdateStateToQuestion(t *testing.T) {
 						ID:              defaultHostPlayerID,
 						Role:            "normal",
 						Question:        tt.normalQuestion,
-						PossibleAnswers: tt.expectedAnswerPlayerOne,
+						PossibleAnswers: tt.expectedAnswers,
 					},
 					{
 						ID:              defaultOtherPlayerID,
 						Role:            "fibber",
 						Question:        tt.fibberQuestion,
-						PossibleAnswers: tt.expectedAnswerPlayerTwo,
+						PossibleAnswers: tt.expectedAnswers,
 					},
 				},
 				Round:     int(tt.expectedRound),

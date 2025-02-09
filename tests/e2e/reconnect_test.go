@@ -37,7 +37,7 @@ func TestE2EReconnect(t *testing.T) {
 		err = hostPlayerPage.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Join"}).Click()
 		require.NoError(t, err)
 
-		notReady := hostPlayerPage.GetByText("Not Ready")
+		notReady := hostPlayerPage.GetByText("Ready")
 		err = expect.Locator(notReady).ToBeVisible()
 		assert.NoError(t, err)
 

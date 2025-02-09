@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"slices"
 	"sort"
 	"time"
 
@@ -277,6 +278,10 @@ func (r *RoundService) getVotingState(ctx context.Context, roundID uuid.UUID, ro
 		})
 	}
 
+	sort.Slice(votingPlayers, func(i, j int) bool {
+		return votingPlayers[i].Nickname > votingPlayers[j].Nickname
+	})
+
 	if len(votingPlayers) == 0 {
 		return VotingState{}, xerrors.New("no players in room")
 	}
@@ -497,10 +502,9 @@ func (r *RoundService) UpdateStateToQuestion(
 			answers = []string{"Strongly Agree", "Agree", "Neutral", "Disagree", "Strongly Disagree"}
 		} else if roundType == "most_likely" {
 			for _, p := range players {
-				if p.ID != player.ID {
-					answers = append(answers, p.Nickname)
-				}
+				answers = append(answers, p.Nickname)
 			}
+			slices.Sort(answers)
 		}
 
 		playersWithRole = append(playersWithRole, PlayerWithRole{

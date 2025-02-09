@@ -37,7 +37,7 @@ func TestE2ERounds(t *testing.T) {
 		err = fibber.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Submit Answer"}).Click()
 		require.NoError(t, err)
 
-		err = fibber.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Not Ready"}).Click()
+		err = fibber.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Ready"}).Click()
 		require.NoError(t, err)
 
 		for i, normal := range normals {
@@ -49,7 +49,7 @@ func TestE2ERounds(t *testing.T) {
 			err = normal.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Submit Answer"}).Click()
 			require.NoError(t, err)
 
-			err = normal.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Not Ready"}).Click()
+			err = normal.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Ready"}).Click()
 			require.NoError(t, err)
 		}
 
@@ -84,14 +84,14 @@ func TestE2ERounds(t *testing.T) {
 		for _, normal := range normals {
 			err = normal.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Strongly Agree"}).Click()
 			require.NoError(t, err)
-			err = normal.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Not Ready"}).Click()
+			err = normal.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Ready"}).Click()
 			require.NoError(t, err)
 		}
 
 		err = fibber.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Strongly Disagree"}).Click()
 		require.NoError(t, err)
 
-		err = fibber.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Not Ready"}).Click()
+		err = fibber.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Ready"}).Click()
 		require.NoError(t, err)
 
 		fibberTest = hostPlayerPage.GetByText("Strongly Disagree")
@@ -127,24 +127,14 @@ func TestE2ERounds(t *testing.T) {
 		require.NoError(t, err)
 		err = submitAnswer.Click()
 		require.NoError(t, err)
-		err = fibber.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Not Ready"}).Click()
+		err = fibber.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Ready"}).Click()
 		require.NoError(t, err)
 
 		for _, normal := range normals {
-			answer, err := normal.GetByRole("button").Nth(6).InnerText()
-			require.NoError(t, err)
-
-			// INFO: The ordering of answers will vary a bit between players, so if we pick the same one as fibber player
-			// as normal, force us to pick another answer instead. So we can tell which player is a fibber.
 			err = normal.GetByRole("button").Nth(6).Click()
 			require.NoError(t, err)
-			if answer == fibberPlayerVotedName {
-				t.Log("changing my vote")
-				err = normal.GetByRole("button").Nth(1).Click()
-				require.NoError(t, err)
-			}
 
-			err = normal.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Not Ready"}).Click()
+			err = normal.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Ready"}).Click()
 			require.NoError(t, err)
 		}
 

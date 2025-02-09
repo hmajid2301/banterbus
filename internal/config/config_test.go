@@ -38,10 +38,10 @@ func TestLoadConfig(t *testing.T) {
 				AdminGroup: "",
 			},
 			Timings: config.Timings{
-				ShowQuestionScreenFor:   time.Second * 61,
-				ShowVotingScreenFor:     time.Second * 31,
+				ShowQuestionScreenFor:   time.Second * 15,
+				ShowVotingScreenFor:     time.Second * 120,
 				AllReadyToNextScreenFor: time.Second * 2,
-				ShowRevealScreenFor:     time.Second * 16,
+				ShowRevealScreenFor:     time.Second * 15,
 				ShowScoreScreenFor:      time.Second * 15,
 				ShowWinnerScreenFor:     time.Second * 15,
 			},

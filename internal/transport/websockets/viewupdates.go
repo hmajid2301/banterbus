@@ -50,9 +50,9 @@ func (s *Subscriber) updateClientsAboutErr(ctx context.Context, playerIDs []uuid
 
 func (s *Subscriber) updateClientAboutErr(ctx context.Context, playerID uuid.UUID, errStr string) error {
 	span := trace.SpanFromContext(ctx)
-	spanID := span.SpanContext().SpanID().String()
+	traceID := span.SpanContext().TraceID().String()
 
-	errWithID := fmt.Sprintf("%s. Correleation ID: %s", errStr, spanID)
+	errWithID := fmt.Sprintf("%s. Correleation ID: %s", errStr, traceID)
 
 	t := Toast{Message: errWithID, Type: "failure"}
 	toastJSON, err := json.Marshal(t)

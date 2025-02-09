@@ -50,7 +50,7 @@ type RoundServicer interface {
 func (s *SubmitAnswer) Handle(ctx context.Context, client *Client, sub *Subscriber) error {
 	err := sub.roundService.SubmitAnswer(ctx, client.playerID, s.Answer, time.Now().UTC())
 	if err != nil {
-		errStr := "Failed to submit answer."
+		errStr := "Failed to submit answer"
 		clientErr := sub.updateClientAboutErr(ctx, client.playerID, errStr)
 		return errors.Join(clientErr, err)
 	}
@@ -111,7 +111,14 @@ func (s *SubmitVote) Handle(ctx context.Context, client *Client, sub *Subscriber
 		sub.logger.ErrorContext(ctx, "failed to update clients", slog.Any("error", err))
 	}
 
-	return nil
+	t := Toast{Message: "Vote Submitted", Type: "success"}
+	toastJSON, err := json.Marshal(t)
+	if err != nil {
+		return err
+	}
+
+	err = sub.websocket.Publish(ctx, client.playerID, toastJSON)
+	return err
 }
 
 func (t *ToggleVotingIsReady) Handle(ctx context.Context, client *Client, sub *Subscriber) error {
