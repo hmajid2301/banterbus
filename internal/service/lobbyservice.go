@@ -78,7 +78,7 @@ func (r *LobbyService) Create(ctx context.Context, gameName string, newHostPlaye
 
 	err := r.store.CreateRoom(ctx, createRoom)
 	if err != nil {
-		return Lobby{}, err
+		return Lobby{}, xerrors.Append(fmt.Errorf("failed to create room"), err)
 	}
 
 	lobby := Lobby{

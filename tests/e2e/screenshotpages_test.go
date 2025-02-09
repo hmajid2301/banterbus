@@ -55,7 +55,7 @@ func TestE2EScreenshotPages(t *testing.T) {
 		err = hostPlayerPage.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Submit Answer"}).Click()
 		require.NoError(t, err)
 
-		err = hostPlayerPage.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Not Ready"}).Click()
+		err = hostPlayerPage.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Ready"}).Click()
 		require.NoError(t, err)
 
 		err = otherPlayerPage.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Close"}).Click()
@@ -69,7 +69,7 @@ func TestE2EScreenshotPages(t *testing.T) {
 		err = otherPlayerPage.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Submit Answer"}).Click()
 		require.NoError(t, err)
 
-		err = otherPlayerPage.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Not Ready"}).Click()
+		err = otherPlayerPage.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Ready"}).Click()
 		require.NoError(t, err)
 
 		votesText := hostPlayerPage.GetByText("Votes:")

@@ -226,6 +226,9 @@ func (s *Subscriber) Subscribe(r *http.Request, w http.ResponseWriter) (err erro
 		err = connection.Close()
 	}()
 
+	span.SetStatus(codes.Ok, "subscribed_successfully")
+	span.End()
+
 	go s.handleMessages(ctx, cancel, client)
 
 	// TODO: workout what to do with this?
@@ -235,9 +238,6 @@ func (s *Subscriber) Subscribe(r *http.Request, w http.ResponseWriter) (err erro
 	// 	s.logger.ErrorContext(ctx, "failed to set timeout", slog.Any("error", err))
 	// 	return err
 	// }
-
-	span.SetStatus(codes.Ok, "subscribed_successfully")
-	span.End()
 
 	for {
 		select {

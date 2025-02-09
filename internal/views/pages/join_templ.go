@@ -55,7 +55,7 @@ func Join(languages map[string]string, environment string, roomCode string) temp
 			templ_7745c5c3_Err = components.TextInput(
 				components.TextInputProps{
 					LabelName:   i18n.T(ctx, "home.nickname_label"),
-					InputName:   "nickname",
+					InputName:   "player_nickname",
 					Placeholder: i18n.T(ctx, "home.nickname_placeholder"),
 				},
 				templ.Attributes{},
