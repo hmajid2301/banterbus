@@ -444,11 +444,27 @@ func (r *RoundService) UpdateStateToQuestion(
 
 	roundType := round.RoundType
 	roundNumber := round.Round + 1
+	fibberLoc := -1
+
+	// INFO: If we next round means that we need to find the next fibber
+	// Else it should be the same fibber player used, so find the current fibber in the player slice.
 	// TODO: move to config
 	var maxRounds int32 = 3
 	if roundNumber == maxRounds+1 || nextRound {
 		roundType = getNextRoundType(roundType)
 		roundNumber = 1
+		fibberLoc = r.randomizer.GetFibberIndex(len(players))
+	} else {
+		fibber, err := r.store.GetFibberByRoundID(ctx, round.ID)
+		if err != nil {
+			return QuestionState{}, xerrors.Append(fmt.Errorf("failed to get fibber in round"), err)
+		}
+
+		for i, player := range players {
+			if player.ID == fibber.PlayerID {
+				fibberLoc = i
+			}
+		}
 	}
 
 	normalsQuestions, fibberQuestions, err := getQuestions(ctx, r.store, "fibbing_it", roundType)
@@ -456,7 +472,10 @@ func (r *RoundService) UpdateStateToQuestion(
 		return QuestionState{}, xerrors.New(err.Error())
 	}
 
-	randomFibberLoc := r.randomizer.GetFibberIndex(len(players))
+	if fibberLoc == -1 {
+		return QuestionState{}, xerrors.New("failed to set fibber location in players slice")
+	}
+
 	newRound := db.NewRoundArgs{
 		GameStateID:       gameStateID,
 		NormalsQuestionID: normalsQuestions[0].QuestionID,
@@ -464,7 +483,7 @@ func (r *RoundService) UpdateStateToQuestion(
 		RoundType:         roundType,
 		Round:             roundNumber,
 		Players:           players,
-		FibberLoc:         randomFibberLoc,
+		FibberLoc:         fibberLoc,
 	}
 
 	err = r.store.NewRound(ctx, newRound)
@@ -485,7 +504,7 @@ func (r *RoundService) UpdateStateToQuestion(
 			}
 		}
 
-		if i == randomFibberLoc {
+		if i == fibberLoc {
 			role = FibberRole
 			question = ""
 			for _, localeQuestion := range fibberQuestions {

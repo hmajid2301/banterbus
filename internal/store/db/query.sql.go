@@ -717,6 +717,24 @@ func (q *Queries) GetCurrentQuestionByPlayerID(ctx context.Context, id uuid.UUID
 	return i, err
 }
 
+const getFibberByRoundID = `-- name: GetFibberByRoundID :one
+SELECT id, created_at, updated_at, player_role, round_id, player_id FROM fibbing_it_player_roles WHERE round_id=$1 and player_role='fibber'
+`
+
+func (q *Queries) GetFibberByRoundID(ctx context.Context, roundID uuid.UUID) (FibbingItPlayerRole, error) {
+	row := q.db.QueryRow(ctx, getFibberByRoundID, roundID)
+	var i FibbingItPlayerRole
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.PlayerRole,
+		&i.RoundID,
+		&i.PlayerID,
+	)
+	return i, err
+}
+
 const getGameState = `-- name: GetGameState :one
 SELECT
     gs.id,

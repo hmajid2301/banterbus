@@ -1436,6 +1436,7 @@ func TestRoundServiceUpdateStateToQuestion(t *testing.T) {
 				nil,
 			)
 			mockStore.EXPECT().GetLatestRoundByGameStateID(ctx, gameStateID).Return(db.GetLatestRoundByGameStateIDRow{
+				ID:        uuid.MustParse("0193ea48-c27f-74bd-8a17-523f69350aff"),
 				RoundType: tt.roundType,
 				Round:     tt.roundNumber,
 			}, nil)
@@ -1461,7 +1462,17 @@ func TestRoundServiceUpdateStateToQuestion(t *testing.T) {
 				},
 			}, nil)
 
-			mockRandom.EXPECT().GetFibberIndex(2).Return(1)
+			if tt.roundNumber == 3 {
+				mockRandom.EXPECT().GetFibberIndex(2).Return(1)
+			} else {
+				mockStore.EXPECT().GetFibberByRoundID(ctx, uuid.MustParse("0193ea48-c27f-74bd-8a17-523f69350aff")).Return(
+					db.FibbingItPlayerRole{
+						PlayerID: defaultOtherPlayerID,
+					},
+					nil,
+				)
+			}
+
 			mockStore.EXPECT().NewRound(ctx, db.NewRoundArgs{
 				GameStateID:       gameStateID,
 				NormalsQuestionID: uuid.MustParse("0193a629-7dcc-78ad-822f-fd5d83c89ae7"),
@@ -1608,6 +1619,52 @@ func TestRoundServiceUpdateStateToQuestion(t *testing.T) {
 	})
 
 	t.Run(
+		"Should fail to update state to question because we fail to get fibber from round id",
+		func(t *testing.T) {
+			mockStore := mockService.NewMockStorer(t)
+			mockRandom := mockService.NewMockRandomizer(t)
+			srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
+
+			ctx := context.Background()
+			deadline := time.Now().Add(5 * time.Second).UTC()
+
+			mockStore.EXPECT().GetGameState(ctx, gameStateID).Return(db.GameState{
+				State: db.FibbingItRevealRole.String(),
+			}, nil)
+			mockStore.EXPECT().UpdateGameState(ctx, db.UpdateGameStateParams{
+				ID:             gameStateID,
+				SubmitDeadline: pgtype.Timestamp{Time: deadline, Valid: true},
+				State:          db.FibbingITQuestion.String(),
+			}).Return(db.GameState{}, nil)
+			mockStore.EXPECT().GetAllPlayersByGameStateID(ctx, gameStateID).Return(
+				[]db.GetAllPlayersByGameStateIDRow{
+					{
+						ID:       defaultHostPlayerID,
+						Nickname: "Player 1",
+					},
+					{
+						ID:       defaultOtherPlayerID,
+						Nickname: "Player 2",
+					},
+				},
+				nil,
+			)
+			roundID := uuid.MustParse("0193ea48-c27f-74bd-8a17-523f69350aff")
+			mockStore.EXPECT().GetLatestRoundByGameStateID(ctx, gameStateID).Return(db.GetLatestRoundByGameStateIDRow{
+				ID:        roundID,
+				RoundType: "free_form",
+				Round:     1,
+			}, nil)
+			mockStore.EXPECT().
+				GetFibberByRoundID(ctx, roundID).
+				Return(db.FibbingItPlayerRole{}, fmt.Errorf("failed to access DB"))
+
+			_, err := srv.UpdateStateToQuestion(ctx, gameStateID, deadline, false)
+			assert.ErrorContains(t, err, "failed to get fibber in round")
+		},
+	)
+
+	t.Run(
 		"Should fail to update state to question because we fail to get random question by round",
 		func(t *testing.T) {
 			mockStore := mockService.NewMockStorer(t)
@@ -1639,10 +1696,15 @@ func TestRoundServiceUpdateStateToQuestion(t *testing.T) {
 				},
 				nil,
 			)
+			roundID := uuid.MustParse("0193ea48-c27f-74bd-8a17-523f69350aff")
 			mockStore.EXPECT().GetLatestRoundByGameStateID(ctx, gameStateID).Return(db.GetLatestRoundByGameStateIDRow{
+				ID:        roundID,
 				RoundType: "free_form",
 				Round:     1,
 			}, nil)
+			mockStore.EXPECT().
+				GetFibberByRoundID(ctx, roundID).
+				Return(db.FibbingItPlayerRole{PlayerID: defaultOtherPlayerID}, nil)
 			mockStore.EXPECT().GetRandomQuestionByRound(ctx, db.GetRandomQuestionByRoundParams{
 				GameName:  gameName,
 				RoundType: "free_form",
@@ -1683,10 +1745,15 @@ func TestRoundServiceUpdateStateToQuestion(t *testing.T) {
 			},
 			nil,
 		)
+		roundID := uuid.MustParse("0193ea48-c27f-74bd-8a17-523f69350aff")
 		mockStore.EXPECT().GetLatestRoundByGameStateID(ctx, gameStateID).Return(db.GetLatestRoundByGameStateIDRow{
+			ID:        roundID,
 			RoundType: "free_form",
 			Round:     1,
 		}, nil)
+		mockStore.EXPECT().
+			GetFibberByRoundID(ctx, roundID).
+			Return(db.FibbingItPlayerRole{PlayerID: defaultOtherPlayerID}, nil)
 		mockStore.EXPECT().GetRandomQuestionByRound(ctx, db.GetRandomQuestionByRoundParams{
 			GameName:  gameName,
 			RoundType: "free_form",
@@ -1739,10 +1806,15 @@ func TestRoundServiceUpdateStateToQuestion(t *testing.T) {
 			},
 			nil,
 		)
+		roundID := uuid.MustParse("0193ea48-c27f-74bd-8a17-523f69350aff")
 		mockStore.EXPECT().GetLatestRoundByGameStateID(ctx, gameStateID).Return(db.GetLatestRoundByGameStateIDRow{
+			ID:        roundID,
 			RoundType: "free_form",
 			Round:     1,
 		}, nil)
+		mockStore.EXPECT().
+			GetFibberByRoundID(ctx, roundID).
+			Return(db.FibbingItPlayerRole{PlayerID: defaultOtherPlayerID}, nil)
 		mockStore.EXPECT().GetRandomQuestionByRound(ctx, db.GetRandomQuestionByRoundParams{
 			GameName:  gameName,
 			RoundType: "free_form",
@@ -1764,7 +1836,6 @@ func TestRoundServiceUpdateStateToQuestion(t *testing.T) {
 				Question:   "I love dogs",
 			},
 		}, nil)
-		mockRandom.EXPECT().GetFibberIndex(2).Return(1)
 		mockStore.EXPECT().NewRound(ctx, db.NewRoundArgs{
 			GameStateID:       gameStateID,
 			NormalsQuestionID: uuid.MustParse("0193a629-7dcc-78ad-822f-fd5d83c89ae7"),

@@ -93,7 +93,7 @@ func (q *QuestionState) Start(ctx context.Context) {
 		return
 	}
 
-	showModal := true
+	showModal := q.NextRound
 	if err := q.Subscriber.updateClientsAboutQuestion(ctx, questionState, showModal); err != nil {
 		span.SetStatus(codes.Error, "client update failed")
 		span.RecordError(err, trace.WithAttributes(
