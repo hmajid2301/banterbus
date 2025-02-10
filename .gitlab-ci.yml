@@ -8,7 +8,7 @@ default:
   interruptible: true
 
 variables:
-  IMAGE_TAG: v0.1.7
+  IMAGE_TAG: v0.1.7.1
   BANTERBUS_CI_IMAGE: $CI_REGISTRY_IMAGE/ci:$IMAGE_TAG
   POSTGRES_USER: banterbus
   POSTGRES_PASSWORD: banterbus

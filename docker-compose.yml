@@ -24,7 +24,7 @@ services:
       - "9090:8080"
 
   otel-collector:
-    image: otel/opentelemetry-collector:0.111.0
+    image: otel/opentelemetry-collector:0.116.1
     ports:
       - 4317:4317
       - 4318:4318
@@ -37,7 +37,7 @@ services:
       - tempo
 
   prometheus:
-    image: prom/prometheus:v3.0.0
+    image: prom/prometheus:v3.1.0
     volumes:
       - ./docker/prometheus.yaml:/etc/prometheus/prometheus.yml
 
@@ -63,7 +63,7 @@ services:
           memory: '512M'  # Limit to 512MB of memory
 
   loki:
-    image: grafana/loki:3.2.1
+    image: grafana/loki:3.3.2
     command: [ "-config.file=/etc/loki/loki-config.yaml" ]
     volumes:
       - ./docker/loki.yaml:/etc/loki/loki-config.yaml

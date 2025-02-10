@@ -8,7 +8,6 @@ import (
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
-	"net/url"
 	"os"
 	"strings"
 	"time"
@@ -98,12 +97,7 @@ func NewTestServer() (*httptest.Server, error) {
 		AuthDisabled:  true,
 	}
 
-	u, err := url.Parse(conf.JWT.JWKSURL)
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse jwks URL: %w", err)
-	}
-
-	storage, err := jwkset.NewStorageFromHTTP(u, jwkset.HTTPClientStorageOptions{Ctx: ctx})
+	storage, err := jwkset.NewStorageFromHTTP(conf.JWT.JWKSURL, jwkset.HTTPClientStorageOptions{Ctx: ctx})
 	if err != nil {
 		return nil, fmt.Errorf("failed to jwkset storage: %w", err)
 	}
