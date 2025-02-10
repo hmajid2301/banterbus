@@ -73,7 +73,7 @@ func (r *RoundService) SubmitAnswer(
 		}
 	}
 
-	_, err = r.store.AddFibbingItAnswer(ctx, db.AddFibbingItAnswerParams{
+	_, err = r.store.UpsertFibbingItAnswer(ctx, db.UpsertFibbingItAnswerParams{
 		ID:       r.randomizer.GetID(),
 		RoundID:  round.ID,
 		PlayerID: playerID,

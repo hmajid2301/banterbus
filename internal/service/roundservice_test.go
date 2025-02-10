@@ -42,7 +42,7 @@ func TestRoundServiceSubmitAnswer(t *testing.T) {
 
 		u := uuid.Must(uuid.NewV7())
 		mockRandom.EXPECT().GetID().Return(u)
-		mockStore.EXPECT().AddFibbingItAnswer(ctx, db.AddFibbingItAnswerParams{
+		mockStore.EXPECT().UpsertFibbingItAnswer(ctx, db.UpsertFibbingItAnswerParams{
 			ID:       u,
 			RoundID:  roundID,
 			PlayerID: playerID,
@@ -85,7 +85,7 @@ func TestRoundServiceSubmitAnswer(t *testing.T) {
 
 		u := uuid.Must(uuid.NewV7())
 		mockRandom.EXPECT().GetID().Return(u)
-		mockStore.EXPECT().AddFibbingItAnswer(ctx, db.AddFibbingItAnswerParams{
+		mockStore.EXPECT().UpsertFibbingItAnswer(ctx, db.UpsertFibbingItAnswerParams{
 			ID:       u,
 			RoundID:  roundID,
 			PlayerID: playerID,
@@ -117,7 +117,7 @@ func TestRoundServiceSubmitAnswer(t *testing.T) {
 
 		u := uuid.Must(uuid.NewV7())
 		mockRandom.EXPECT().GetID().Return(u)
-		mockStore.EXPECT().AddFibbingItAnswer(ctx, db.AddFibbingItAnswerParams{
+		mockStore.EXPECT().UpsertFibbingItAnswer(ctx, db.UpsertFibbingItAnswerParams{
 			ID:       u,
 			RoundID:  roundID,
 			PlayerID: playerID,
@@ -222,7 +222,7 @@ func TestRoundServiceSubmitAnswer(t *testing.T) {
 			}, nil)
 
 		mockRandom.EXPECT().GetID().Return(defaultHostPlayerID)
-		mockStore.EXPECT().AddFibbingItAnswer(ctx, db.AddFibbingItAnswerParams{
+		mockStore.EXPECT().UpsertFibbingItAnswer(ctx, db.UpsertFibbingItAnswerParams{
 			ID:       defaultHostPlayerID,
 			RoundID:  roundID,
 			PlayerID: playerID,

@@ -95,7 +95,8 @@ CREATE TABLE fibbing_it_answers (
     round_id UUID NOT NULL,
     is_ready BOOLEAN DEFAULT FALSE,
     FOREIGN KEY (round_id) REFERENCES fibbing_it_rounds (id),
-    FOREIGN KEY (player_id) REFERENCES players (id)
+    FOREIGN KEY (player_id) REFERENCES players (id),
+    UNIQUE (player_id, round_id)
 );
 
 CREATE TABLE fibbing_it_player_roles (

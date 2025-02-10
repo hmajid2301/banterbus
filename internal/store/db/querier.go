@@ -11,7 +11,6 @@ import (
 )
 
 type Querier interface {
-	AddFibbingItAnswer(ctx context.Context, arg AddFibbingItAnswerParams) (FibbingItAnswer, error)
 	AddFibbingItRole(ctx context.Context, arg AddFibbingItRoleParams) (FibbingItPlayerRole, error)
 	AddFibbingItRound(ctx context.Context, arg AddFibbingItRoundParams) (FibbingItRound, error)
 	AddFibbingItScore(ctx context.Context, arg AddFibbingItScoreParams) (FibbingItScore, error)
@@ -55,6 +54,7 @@ type Querier interface {
 	UpdateLocale(ctx context.Context, arg UpdateLocaleParams) (Player, error)
 	UpdateNickname(ctx context.Context, arg UpdateNicknameParams) (Player, error)
 	UpdateRoomState(ctx context.Context, arg UpdateRoomStateParams) (Room, error)
+	UpsertFibbingItAnswer(ctx context.Context, arg UpsertFibbingItAnswerParams) (FibbingItAnswer, error)
 	UpsertFibbingItVote(ctx context.Context, arg UpsertFibbingItVoteParams) error
 }
 

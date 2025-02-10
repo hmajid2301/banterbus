@@ -38,7 +38,7 @@ in
       export PLAYWRIGHT_BROWSERS_PATH="${pkgs.playwright-driver.browsers}"
       export PLAYWRIGHT_NODEJS_PATH="${pkgs.nodejs}/bin/node"
       export PLAYWRIGHT_DRIVER_PATH="${pkgs.playwright-driver}"
-      export GOOSE_MIGRATION_DIR="./db/migrations"
+      export GOOSE_MIGRATION_DIR="./internal/store/db/sqlc/migrations"
       export TEMPL_EXPERIMENT=rawgo
       export BANTERBUS_LOG_LEVEL=debug
       export BANTERBUS_DB_HOST=localhost
