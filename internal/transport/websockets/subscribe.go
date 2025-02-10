@@ -295,6 +295,13 @@ func (s *Subscriber) handleMessages(ctx context.Context, cancel context.CancelFu
 		case <-ctx.Done():
 			return
 		default:
+			tracer := otel.Tracer("")
+			ctx, _ := tracer.Start(
+				ctx,
+				"handle_message",
+				trace.WithSpanKind(trace.SpanKindServer),
+				trace.WithAttributes(attribute.String("player_id", client.playerID.String())),
+			)
 			err := s.handleMessage(ctx, client)
 			if err != nil {
 				s.logger.ErrorContext(
@@ -341,13 +348,7 @@ func (s *Subscriber) handleMessage(ctx context.Context, client *Client) error {
 		return errConnectionClosed
 	}
 
-	tracer := otel.Tracer("")
-	ctx, span := tracer.Start(
-		ctx,
-		"handle_message",
-		trace.WithSpanKind(trace.SpanKindServer),
-		trace.WithAttributes(attribute.String("player_id", client.playerID.String())),
-	)
+	span := trace.SpanFromContext(ctx)
 	defer span.End()
 
 	data, err := io.ReadAll(r)

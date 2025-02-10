@@ -25,63 +25,6 @@ func (_m *MockStorer) EXPECT() *MockStorer_Expecter {
 	return &MockStorer_Expecter{mock: &_m.Mock}
 }
 
-// AddFibbingItAnswer provides a mock function with given fields: ctx, arg
-func (_m *MockStorer) AddFibbingItAnswer(ctx context.Context, arg db.AddFibbingItAnswerParams) (db.FibbingItAnswer, error) {
-	ret := _m.Called(ctx, arg)
-
-	if len(ret) == 0 {
-		panic("no return value specified for AddFibbingItAnswer")
-	}
-
-	var r0 db.FibbingItAnswer
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, db.AddFibbingItAnswerParams) (db.FibbingItAnswer, error)); ok {
-		return rf(ctx, arg)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, db.AddFibbingItAnswerParams) db.FibbingItAnswer); ok {
-		r0 = rf(ctx, arg)
-	} else {
-		r0 = ret.Get(0).(db.FibbingItAnswer)
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context, db.AddFibbingItAnswerParams) error); ok {
-		r1 = rf(ctx, arg)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// MockStorer_AddFibbingItAnswer_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'AddFibbingItAnswer'
-type MockStorer_AddFibbingItAnswer_Call struct {
-	*mock.Call
-}
-
-// AddFibbingItAnswer is a helper method to define mock.On call
-//   - ctx context.Context
-//   - arg db.AddFibbingItAnswerParams
-func (_e *MockStorer_Expecter) AddFibbingItAnswer(ctx interface{}, arg interface{}) *MockStorer_AddFibbingItAnswer_Call {
-	return &MockStorer_AddFibbingItAnswer_Call{Call: _e.mock.On("AddFibbingItAnswer", ctx, arg)}
-}
-
-func (_c *MockStorer_AddFibbingItAnswer_Call) Run(run func(ctx context.Context, arg db.AddFibbingItAnswerParams)) *MockStorer_AddFibbingItAnswer_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(db.AddFibbingItAnswerParams))
-	})
-	return _c
-}
-
-func (_c *MockStorer_AddFibbingItAnswer_Call) Return(_a0 db.FibbingItAnswer, _a1 error) *MockStorer_AddFibbingItAnswer_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *MockStorer_AddFibbingItAnswer_Call) RunAndReturn(run func(context.Context, db.AddFibbingItAnswerParams) (db.FibbingItAnswer, error)) *MockStorer_AddFibbingItAnswer_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // AddFibbingItRole provides a mock function with given fields: ctx, arg
 func (_m *MockStorer) AddFibbingItRole(ctx context.Context, arg db.AddFibbingItRoleParams) (db.FibbingItPlayerRole, error) {
 	ret := _m.Called(ctx, arg)
@@ -2842,6 +2785,63 @@ func (_c *MockStorer_UpdateRoomState_Call) Return(_a0 db.Room, _a1 error) *MockS
 }
 
 func (_c *MockStorer_UpdateRoomState_Call) RunAndReturn(run func(context.Context, db.UpdateRoomStateParams) (db.Room, error)) *MockStorer_UpdateRoomState_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// UpsertFibbingItAnswer provides a mock function with given fields: ctx, arg
+func (_m *MockStorer) UpsertFibbingItAnswer(ctx context.Context, arg db.UpsertFibbingItAnswerParams) (db.FibbingItAnswer, error) {
+	ret := _m.Called(ctx, arg)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpsertFibbingItAnswer")
+	}
+
+	var r0 db.FibbingItAnswer
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, db.UpsertFibbingItAnswerParams) (db.FibbingItAnswer, error)); ok {
+		return rf(ctx, arg)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, db.UpsertFibbingItAnswerParams) db.FibbingItAnswer); ok {
+		r0 = rf(ctx, arg)
+	} else {
+		r0 = ret.Get(0).(db.FibbingItAnswer)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, db.UpsertFibbingItAnswerParams) error); ok {
+		r1 = rf(ctx, arg)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockStorer_UpsertFibbingItAnswer_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpsertFibbingItAnswer'
+type MockStorer_UpsertFibbingItAnswer_Call struct {
+	*mock.Call
+}
+
+// UpsertFibbingItAnswer is a helper method to define mock.On call
+//   - ctx context.Context
+//   - arg db.UpsertFibbingItAnswerParams
+func (_e *MockStorer_Expecter) UpsertFibbingItAnswer(ctx interface{}, arg interface{}) *MockStorer_UpsertFibbingItAnswer_Call {
+	return &MockStorer_UpsertFibbingItAnswer_Call{Call: _e.mock.On("UpsertFibbingItAnswer", ctx, arg)}
+}
+
+func (_c *MockStorer_UpsertFibbingItAnswer_Call) Run(run func(ctx context.Context, arg db.UpsertFibbingItAnswerParams)) *MockStorer_UpsertFibbingItAnswer_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(db.UpsertFibbingItAnswerParams))
+	})
+	return _c
+}
+
+func (_c *MockStorer_UpsertFibbingItAnswer_Call) Return(_a0 db.FibbingItAnswer, _a1 error) *MockStorer_UpsertFibbingItAnswer_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockStorer_UpsertFibbingItAnswer_Call) RunAndReturn(run func(context.Context, db.UpsertFibbingItAnswerParams) (db.FibbingItAnswer, error)) *MockStorer_UpsertFibbingItAnswer_Call {
 	_c.Call.Return(run)
 	return _c
 }

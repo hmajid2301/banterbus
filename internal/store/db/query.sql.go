@@ -12,37 +12,6 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-const addFibbingItAnswer = `-- name: AddFibbingItAnswer :one
-INSERT INTO fibbing_it_answers (id, answer, round_id, player_id) VALUES ($1, $2, $3, $4) RETURNING id, created_at, updated_at, answer, player_id, round_id, is_ready
-`
-
-type AddFibbingItAnswerParams struct {
-	ID       uuid.UUID
-	Answer   string
-	RoundID  uuid.UUID
-	PlayerID uuid.UUID
-}
-
-func (q *Queries) AddFibbingItAnswer(ctx context.Context, arg AddFibbingItAnswerParams) (FibbingItAnswer, error) {
-	row := q.db.QueryRow(ctx, addFibbingItAnswer,
-		arg.ID,
-		arg.Answer,
-		arg.RoundID,
-		arg.PlayerID,
-	)
-	var i FibbingItAnswer
-	err := row.Scan(
-		&i.ID,
-		&i.CreatedAt,
-		&i.UpdatedAt,
-		&i.Answer,
-		&i.PlayerID,
-		&i.RoundID,
-		&i.IsReady,
-	)
-	return i, err
-}
-
 const addFibbingItRole = `-- name: AddFibbingItRole :one
 INSERT INTO fibbing_it_player_roles (id, player_role, round_id, player_id) VALUES ($1, $2, $3, $4) RETURNING id, created_at, updated_at, player_role, round_id, player_id
 `
@@ -1511,11 +1480,47 @@ func (q *Queries) UpdateRoomState(ctx context.Context, arg UpdateRoomStateParams
 	return i, err
 }
 
+const upsertFibbingItAnswer = `-- name: UpsertFibbingItAnswer :one
+INSERT INTO fibbing_it_answers (id, answer, round_id, player_id)
+VALUES ($1, $2, $3, $4)
+ON CONFLICT (player_id, round_id) DO UPDATE SET
+    answer = EXCLUDED.answer,
+    updated_at = CURRENT_TIMESTAMP
+RETURNING id, created_at, updated_at, answer, player_id, round_id, is_ready
+`
+
+type UpsertFibbingItAnswerParams struct {
+	ID       uuid.UUID
+	Answer   string
+	RoundID  uuid.UUID
+	PlayerID uuid.UUID
+}
+
+func (q *Queries) UpsertFibbingItAnswer(ctx context.Context, arg UpsertFibbingItAnswerParams) (FibbingItAnswer, error) {
+	row := q.db.QueryRow(ctx, upsertFibbingItAnswer,
+		arg.ID,
+		arg.Answer,
+		arg.RoundID,
+		arg.PlayerID,
+	)
+	var i FibbingItAnswer
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.Answer,
+		&i.PlayerID,
+		&i.RoundID,
+		&i.IsReady,
+	)
+	return i, err
+}
+
 const upsertFibbingItVote = `-- name: UpsertFibbingItVote :exec
 INSERT INTO fibbing_it_votes (id, player_id, voted_for_player_id, round_id)
 VALUES ($1, $2, $3, $4)
 ON CONFLICT(player_id, round_id) DO UPDATE SET
-    updated_at = EXCLUDED.updated_at,
+    updated_at = CURRENT_TIMESTAMP,
     player_id = EXCLUDED.player_id,
     voted_for_player_id = EXCLUDED.voted_for_player_id,
     round_id = EXCLUDED.round_id

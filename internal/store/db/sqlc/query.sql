@@ -37,8 +37,13 @@ INSERT INTO game_state (id, room_id, submit_deadline, state) VALUES ($1, $2, $3,
 -- name: UpdateGameState :one
 UPDATE game_state SET state = $1, submit_deadline = $2 WHERE id = $3 RETURNING *;
 
--- name: AddFibbingItAnswer :one
-INSERT INTO fibbing_it_answers (id, answer, round_id, player_id) VALUES ($1, $2, $3, $4) RETURNING *;
+-- name: UpsertFibbingItAnswer :one
+INSERT INTO fibbing_it_answers (id, answer, round_id, player_id)
+VALUES ($1, $2, $3, $4)
+ON CONFLICT (player_id, round_id) DO UPDATE SET
+    answer = EXCLUDED.answer,
+    updated_at = CURRENT_TIMESTAMP
+RETURNING *;
 
 -- name: AddFibbingItRole :one
 INSERT INTO fibbing_it_player_roles (id, player_role, round_id, player_id) VALUES ($1, $2, $3, $4) RETURNING *;
@@ -47,7 +52,7 @@ INSERT INTO fibbing_it_player_roles (id, player_role, round_id, player_id) VALUE
 INSERT INTO fibbing_it_votes (id, player_id, voted_for_player_id, round_id)
 VALUES ($1, $2, $3, $4)
 ON CONFLICT(player_id, round_id) DO UPDATE SET
-    updated_at = EXCLUDED.updated_at,
+    updated_at = CURRENT_TIMESTAMP,
     player_id = EXCLUDED.player_id,
     voted_for_player_id = EXCLUDED.voted_for_player_id,
     round_id = EXCLUDED.round_id
