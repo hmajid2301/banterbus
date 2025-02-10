@@ -9,7 +9,6 @@ import (
 	"io/fs"
 	"log/slog"
 	"net/http"
-	"net/url"
 	"os"
 	"os/signal"
 	"syscall"
@@ -134,13 +133,9 @@ func mainLogic() error {
 	}
 
 	subscriber := websockets.NewSubscriber(lobbyService, playerService, roundService, logger, redisClient, conf, rules)
-	u, err := url.Parse(conf.JWT.JWKSURL)
-	if err != nil {
-		return fmt.Errorf("failed to parse jwks URL: %w", err)
-	}
 
 	// TODO: should we stop startup if this is failing?
-	storage, err := jwkset.NewStorageFromHTTP(u, jwkset.HTTPClientStorageOptions{Ctx: ctx})
+	storage, err := jwkset.NewStorageFromHTTP(conf.JWT.JWKSURL, jwkset.HTTPClientStorageOptions{Ctx: ctx})
 	if err != nil {
 		return fmt.Errorf("failed to jwkset storage: %w", err)
 	}

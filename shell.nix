@@ -52,9 +52,11 @@ in
       export BANTERBUS_JWKS_URL=http://localhost:9090/default/jwks
       export CGO_ENABLED=0
       export OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4317
+      export GO_NO_VENDOR_CHECKS=1
 
       ${pre-commit-check.shellHook}
     '';
+
     buildInputs = pre-commit-check.enabledPackages;
     packages = devShellPackages ++ [goEnv gomod2nix pkgs.gitlab-ci-local];
   }

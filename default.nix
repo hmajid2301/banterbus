@@ -15,7 +15,6 @@
 buildGoApplication {
   pname = "banterbus";
   version = "0.0.1";
-  go = pkgs.go_1_22;
   pwd = ./.;
   src = ./.;
   modules = ./gomod2nix.toml;
