@@ -69,7 +69,8 @@ func (r *RoundService) SubmitAnswer(
 		}
 
 		if !isAnswerValid {
-			return xerrors.New("answer must be one of", answers)
+			msg := fmt.Sprintf("answer received %s must be one of %s", answer, answers)
+			return xerrors.New(msg)
 		}
 	}
 
@@ -858,10 +859,9 @@ func (r RoundService) getValidAnswers(ctx context.Context, roundType string, pla
 		if err != nil {
 			return nil, err
 		}
+
 		for _, player := range players {
-			if player.ID != playerID {
-				answers = append(answers, player.Nickname)
-			}
+			answers = append(answers, player.Nickname)
 		}
 	}
 	return answers, nil

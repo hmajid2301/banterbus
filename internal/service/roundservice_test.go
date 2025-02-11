@@ -264,7 +264,7 @@ func TestRoundServiceSubmitAnswer(t *testing.T) {
 			}, nil)
 
 		err := srv.SubmitAnswer(ctx, playerID, "player_not_found", now)
-		assert.ErrorContains(t, err, "answer must be one of")
+		assert.ErrorContains(t, err, "must be one of")
 	})
 
 	t.Run("Should fail to submit answer in most_likely round, db call fails", func(t *testing.T) {
@@ -312,7 +312,7 @@ func TestRoundServiceSubmitAnswer(t *testing.T) {
 			}, nil)
 
 		err := srv.SubmitAnswer(ctx, playerID, "invalid answer", now)
-		assert.ErrorContains(t, err, "answer must be one of")
+		assert.ErrorContains(t, err, "must be one of")
 	})
 }
 
@@ -1453,8 +1453,9 @@ func TestRoundServiceUpdateStateToQuestion(t *testing.T) {
 				},
 			}, nil)
 			mockStore.EXPECT().GetRandomQuestionInGroup(ctx, db.GetRandomQuestionInGroupParams{
-				GroupID: groupID,
-				ID:      uuid.MustParse("0193a629-7dcc-78ad-822f-fd5d83c89ae7"),
+				GroupID:   groupID,
+				ID:        uuid.MustParse("0193a629-7dcc-78ad-822f-fd5d83c89ae7"),
+				RoundType: tt.expectedType,
 			}).Return([]db.GetRandomQuestionInGroupRow{
 				{
 					QuestionID: uuid.MustParse("0193a629-a9ac-7fc4-828c-a1334c282e0f"),
@@ -1767,8 +1768,9 @@ func TestRoundServiceUpdateStateToQuestion(t *testing.T) {
 			},
 		}, nil)
 		mockStore.EXPECT().GetRandomQuestionInGroup(ctx, db.GetRandomQuestionInGroupParams{
-			GroupID: groupID,
-			ID:      uuid.MustParse("0193a629-7dcc-78ad-822f-fd5d83c89ae7"),
+			GroupID:   groupID,
+			ID:        uuid.MustParse("0193a629-7dcc-78ad-822f-fd5d83c89ae7"),
+			RoundType: "free_form",
 		}).Return([]db.GetRandomQuestionInGroupRow{
 			{},
 		}, xerrors.New("failed to get random question in group"))
@@ -1828,8 +1830,9 @@ func TestRoundServiceUpdateStateToQuestion(t *testing.T) {
 			},
 		}, nil)
 		mockStore.EXPECT().GetRandomQuestionInGroup(ctx, db.GetRandomQuestionInGroupParams{
-			GroupID: groupID,
-			ID:      uuid.MustParse("0193a629-7dcc-78ad-822f-fd5d83c89ae7"),
+			GroupID:   groupID,
+			ID:        uuid.MustParse("0193a629-7dcc-78ad-822f-fd5d83c89ae7"),
+			RoundType: "free_form",
 		}).Return([]db.GetRandomQuestionInGroupRow{
 			{
 				QuestionID: uuid.MustParse("0193a629-a9ac-7fc4-828c-a1334c282e0f"),

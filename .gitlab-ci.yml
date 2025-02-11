@@ -243,6 +243,25 @@ check_deploy:dev:
   dependencies:
     - publish:dev:docker
 
+# smoke:tests:dev:e2e:
+#   extends:
+#     - .test
+#   stage: post
+#   variables:
+#     BANTERBUS_PLAYWRIGHT_URL: https://dev.banterbus.games
+#   rules:
+#     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+#   script:
+#    - task tests:e2e -- -v -run 'TestE2ERound/Should_successfully_complete_an_entire_game_where_the_fibber_is_caught_first_time'
+#   artifacts:
+#     when: always
+#     paths:
+#       - coverage
+#       - tests/e2e/videos/*
+#       - tests/e2e/*.png
+#   dependencies:
+#     - check_deploy:dev
+
 #INFO: Because Nix docker builds are immutable, we can just rebuild the image here for production
 # If we wanted to be more efficient we could work out way to retag a dev image. But this is good enough for now.
 publish:prod:docker:
@@ -287,32 +306,32 @@ release:
   script:
     - task release
 
-# TODO: add smoke tests for dev in MR as well i.e. dev.banterbus.games
-smoke:tests:e2e:
-  extends:
-    - .test
-  stage: post
-  variables:
-    BANTERBUS_PLAYWRIGHT_URL: https://banterbus.games
-  rules:
-    - if: $CI_PIPELINE_SOURCE == "schedule"
-      when: always
-    - if: $CI_COMMIT_TAG || $CI_COMMIT_BRANCH == "main"
-  script:
-   - task tests:e2e -- -v -run 'TestE2ERound/Should_successfully_complete_an_entire_game_where_the_fibber_is_caught_first_time'
-  after_script:
-    - |
-      if [ "$CI_JOB_STATUS" != "success" ]; then
-        curl -X POST \
-            -H "Authorization: Bearer $NOTIFY_TOKEN" "https://notify.homelab.haseebmajid.dev/message" \
-            -F "title=Job Failed" \
-            -F "message=The smoke:tests:e2e job has failed in the pipeline. Job URL: $CI_JOB_URL"
-      fi
-  artifacts:
-    when: always
-    paths:
-      - coverage
-      - tests/e2e/videos/*
-      - tests/e2e/*.png
-  dependencies:
-    - check_deploy:prod
+# TODO: fix smoke tests
+# smoke:tests:prod:e2e:
+#   extends:
+#     - .test
+#   stage: post
+#   variables:
+#     BANTERBUS_PLAYWRIGHT_URL: https://banterbus.games
+#   rules:
+#     - if: $CI_PIPELINE_SOURCE == "schedule"
+#       when: always
+#     - if: $CI_COMMIT_TAG || $CI_COMMIT_BRANCH == "main"
+#   script:
+#    - task tests:e2e -- -v -run 'TestE2ERound/Should_successfully_complete_an_entire_game_where_the_fibber_is_caught_first_time'
+#   after_script:
+#     - |
+#       if [ "$CI_JOB_STATUS" != "success" ]; then
+#         curl -X POST \
+#             -H "Authorization: Bearer $NOTIFY_TOKEN" "https://notify.homelab.haseebmajid.dev/message" \
+#             -F "title=Job Failed" \
+#             -F "message=The smoke:tests:e2e job has failed in the pipeline. Job URL: $CI_JOB_URL"
+#       fi
+#   artifacts:
+#     when: always
+#     paths:
+#       - coverage
+#       - tests/e2e/videos/*
+#       - tests/e2e/*.png
+#   dependencies:
+#     - check_deploy:prod

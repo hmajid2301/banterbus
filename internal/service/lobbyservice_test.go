@@ -741,8 +741,9 @@ func TestLobbyServiceStart(t *testing.T) {
 			},
 		}, nil)
 		mockStore.EXPECT().GetRandomQuestionInGroup(ctx, db.GetRandomQuestionInGroupParams{
-			GroupID: groupID,
-			ID:      uuid.MustParse("0193a629-7dcc-78ad-822f-fd5d83c89ae7"),
+			GroupID:   groupID,
+			ID:        uuid.MustParse("0193a629-7dcc-78ad-822f-fd5d83c89ae7"),
+			RoundType: "free_form",
 		}).Return([]db.GetRandomQuestionInGroupRow{
 			{
 				QuestionID: uuid.MustParse("0193a629-a9ac-7fc4-828c-a1334c282e0f"),
@@ -1025,8 +1026,9 @@ func TestLobbyServiceStart(t *testing.T) {
 			},
 		}, nil)
 		mockStore.EXPECT().GetRandomQuestionInGroup(ctx, db.GetRandomQuestionInGroupParams{
-			GroupID: groupID,
-			ID:      uuid.MustParse("0193a629-7dcc-78ad-822f-fd5d83c89ae7"),
+			GroupID:   groupID,
+			ID:        uuid.MustParse("0193a629-7dcc-78ad-822f-fd5d83c89ae7"),
+			RoundType: "free_form",
 		}).Return([]db.GetRandomQuestionInGroupRow{}, xerrors.New("failed to get random question for fibber"))
 
 		deadline := time.Now().Add(5 * time.Second)
@@ -1079,8 +1081,9 @@ func TestLobbyServiceStart(t *testing.T) {
 			},
 		}, nil)
 		mockStore.EXPECT().GetRandomQuestionInGroup(ctx, db.GetRandomQuestionInGroupParams{
-			GroupID: groupID,
-			ID:      uuid.MustParse("0193a629-7dcc-78ad-822f-fd5d83c89ae7"),
+			GroupID:   groupID,
+			ID:        uuid.MustParse("0193a629-7dcc-78ad-822f-fd5d83c89ae7"),
+			RoundType: "free_form",
 		}).Return([]db.GetRandomQuestionInGroupRow{
 			{
 				QuestionID: uuid.MustParse("0193a629-a9ac-7fc4-828c-a1334c282e0f"),
