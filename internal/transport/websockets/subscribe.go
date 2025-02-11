@@ -244,7 +244,6 @@ func (s *Subscriber) Subscribe(r *http.Request, w http.ResponseWriter) (err erro
 		// INFO: Send message to client.
 		case msg := <-client.messagesCh:
 			start := time.Now()
-			s.logger.DebugContext(ctx, "sending message", slog.String("message", msg.Payload))
 			err = wsutil.WriteServerText(connection, []byte(msg.Payload))
 			if err != nil {
 				s.logger.ErrorContext(ctx, "failed to write message", slog.Any("error", err))

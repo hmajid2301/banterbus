@@ -1059,14 +1059,16 @@ JOIN (
       AND q.group_id = $1
       AND q.enabled = TRUE
       AND q.id != $2
+      AND q.round_type = $3
     ORDER BY RANDOM()
     LIMIT 1
 ) random_question ON qi.question_id = random_question.id
 `
 
 type GetRandomQuestionInGroupParams struct {
-	GroupID uuid.UUID
-	ID      uuid.UUID
+	GroupID   uuid.UUID
+	ID        uuid.UUID
+	RoundType string
 }
 
 type GetRandomQuestionInGroupRow struct {
@@ -1080,7 +1082,7 @@ type GetRandomQuestionInGroupRow struct {
 }
 
 func (q *Queries) GetRandomQuestionInGroup(ctx context.Context, arg GetRandomQuestionInGroupParams) ([]GetRandomQuestionInGroupRow, error) {
-	rows, err := q.db.Query(ctx, getRandomQuestionInGroup, arg.GroupID, arg.ID)
+	rows, err := q.db.Query(ctx, getRandomQuestionInGroup, arg.GroupID, arg.ID, arg.RoundType)
 	if err != nil {
 		return nil, err
 	}

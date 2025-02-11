@@ -57,7 +57,7 @@ func TestE2EReconnect(t *testing.T) {
 		err := joinRoom(hostPlayerPage, playerPages[1:])
 		require.NoError(t, err)
 
-		code, err := hostPlayerPage.Locator("input[name='room_code']").InputValue()
+		code, err := hostPlayerPage.Locator("input[name='room_code']").First().InputValue()
 		require.NoError(t, err)
 
 		err = otherPlayerPage.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Ready"}).Click()

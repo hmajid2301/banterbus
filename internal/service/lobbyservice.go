@@ -362,15 +362,16 @@ func getQuestions(
 	}
 
 	fibberQuestions, err := store.GetRandomQuestionInGroup(ctx, db.GetRandomQuestionInGroupParams{
-		GroupID: normalsQuestions[0].GroupID,
-		ID:      normalsQuestions[0].QuestionID,
+		GroupID:   normalsQuestions[0].GroupID,
+		ID:        normalsQuestions[0].QuestionID,
+		RoundType: roundType,
 	})
 
 	if err == sql.ErrNoRows {
 		for i := 0; i < maxRetries; i++ {
 			newNormals, err := store.GetRandomQuestionByRound(ctx, db.GetRandomQuestionByRoundParams{
 				GameName:  gameName,
-				RoundType: "free_form",
+				RoundType: roundType,
 			})
 			if err != nil {
 				return nil, nil, fmt.Errorf("retry %d: failed to get normal questions: %w", i+1, err)
@@ -380,8 +381,9 @@ func getQuestions(
 			}
 
 			newFibber, err := store.GetRandomQuestionInGroup(ctx, db.GetRandomQuestionInGroupParams{
-				GroupID: newNormals[0].GroupID,
-				ID:      newNormals[0].QuestionID,
+				GroupID:   newNormals[0].GroupID,
+				ID:        newNormals[0].QuestionID,
+				RoundType: roundType,
 			})
 
 			if err == nil {

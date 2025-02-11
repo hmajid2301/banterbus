@@ -337,6 +337,7 @@ JOIN (
       AND q.group_id = $1
       AND q.enabled = TRUE
       AND q.id != $2
+      AND q.round_type = $3
     ORDER BY RANDOM()
     LIMIT 1
 ) random_question ON qi.question_id = random_question.id;
