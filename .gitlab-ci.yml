@@ -270,7 +270,7 @@ publish:prod:docker:
     FLAKE_TARGET: container
     LOCAL_IMAGE: banterbus
   services:
-    - docker:27-dind
+    - docker:28-dind
   extends:
     - .docker
   rules:
