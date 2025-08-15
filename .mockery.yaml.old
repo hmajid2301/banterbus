@@ -1,19 +1,19 @@
+with-expecter: true
+resolve-type-alias: False
+disable-version-string: True
+issue-845-fix: True
+dir: "{{.InterfaceDir}}/mocks"
 filename: "mock_{{ .InterfaceName | lower }}.go"
-dir: '{{.InterfaceDir}}/mocks'
-pkgname: mocks
-template: testify
-template-data:
-  unroll-variadic: true
+outpkg: "mocks"
+
 packages:
   gitlab.com/hmajid2301/banterbus/internal/service:
     interfaces:
-      Randomizer: {}
       Storer: {}
+      Randomizer: {}
   gitlab.com/hmajid2301/banterbus/internal/transport/websockets:
     interfaces:
+      RoundServicer: {}
       LobbyServicer: {}
       PlayerServicer: {}
-      RoundServicer: {}
-      State: {}
-      WSHandler: {}
       Websocketer: {}

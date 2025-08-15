@@ -8,11 +8,12 @@ default:
   interruptible: true
 
 variables:
-  IMAGE_TAG: v0.1.7.1
+  IMAGE_TAG: v0.1.8
   BANTERBUS_CI_IMAGE: $CI_REGISTRY_IMAGE/ci:$IMAGE_TAG
-  POSTGRES_USER: banterbus
-  POSTGRES_PASSWORD: banterbus
-  POSTGRES_HOST_AUTH_METHOD: trust
+  BANTERBUS_DB_URI: postgresql://postgres:postgres@postgres:5432/banterbus
+  DOCKER_HOST: tcp://docker:2375
+  DOCKER_DRIVER: overlay2
+  DOCKER_TLS_CERTDIR: ""
 
 stages:
   - pre
@@ -43,10 +44,13 @@ stages:
 .test:
   extends:
     - .task
+  # INFO: Not needed for unit tests but simplifies this file a bit.
+  services:
+    - name: docker:dind
   variables:
      GOTESTSUM_JUNITFILE: "report.xml"
      XDG_DATA_HOME: "/tmp/"
-     GOTEST_EXTRA_ARGS: '-args -test.gocoverdir=$CI_PROJECT_DIR/coverage'
+     GOTEST_EXTRA_ARGS: '-args -test.gocoverdir=$CI_PROJECT_DIR/coverage -test.parallel 10'
   rules:
     - if: $CI_PIPELINE_SOURCE == "schedule"
       when: never
@@ -54,6 +58,7 @@ stages:
     - if: $CI_COMMIT_BRANCH == "main"
   before_script:
     - mkdir -p $CI_PROJECT_DIR/coverage /tmp  $CI_PROJECT_DIR/e2e/screenshots
+    - docker login -u "$CI_DEPENDENCY_PROXY_USER" -p "$CI_DEPENDENCY_PROXY_PASSWORD" "$CI_DEPENDENCY_PROXY_SERVER"
   artifacts:
     paths:
       - coverage
@@ -76,7 +81,7 @@ stages:
     - nix-env -iA nixpkgs.docker nixpkgs.go-task
     - task docker:publish
 
-.deploy:
+.k8s_deploy:
   stage: deploy
   image:
     name: ghcr.io/fluxcd/flux-cli:v2.4.0
@@ -97,20 +102,16 @@ publish:docker:ci:
     IMAGE: $BANTERBUS_CI_IMAGE
     FLAKE_TARGET: container-ci
     LOCAL_IMAGE: banterbus-dev
+    IMMUTABLE: true
   rules:
-    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-      changes:
-        - "containers/ci.nix"
-        - "flake.nix"
-        - "flake.lock"
+    - if: $CI_COMMIT_MESSAGE =~ /UPDATE_IMAGE_TAG/
+      when: on_success
   extends:
     - .docker
-  before_script:
-    - |
-      if ! git diff --name-only HEAD~1 | grep -q ".nix"; then
-        echo "No changes in *.nix in the current commit. Skipping job."
-        exit 0
-      fi
+  script:
+    - echo "experimental-features = nix-command flakes" > /etc/nix/nix.conf
+    - nix-env -iA nixpkgs.docker nixpkgs.go-task
+    - task docker:publish
 
 download:dependency:
   extends:
@@ -157,39 +158,26 @@ tests:unit:
 tests:integration:
   extends:
     - .test
-  services:
-    - redis:8.2.0
-    - name: postgres:16.6
-      alias: postgres
-      command:
-        - "postgres"
-        - "-c"
-        - "max_connections=1000"
-    - name: ghcr.io/navikt/mock-oauth2-server:2.1.10
-      alias: oauth2
   variables:
-    BANTERBUS_REDIS_ADDRESS: redis:6379
-    BANTERBUS_DB_URI: postgresql://banterbus:banterbus@postgres:5432
-    BANTERBUS_JWKS_URL: http://oauth2:8080/default/jwks
+    BANTERBUS_REDIS_ADDRESS: docker:6379
   script:
+    - docker compose --profile test up -d --wait
     - task tests:integration -- ${GOTEST_EXTRA_ARGS}
+  after_script:
+    - docker ps
 
 test:e2e:
   extends:
     - .test
-  services:
-    - redis:8.2.0
-    - postgres:16.6
-    - name: ghcr.io/navikt/mock-oauth2-server:2.1.10
-      alias: oauth2
   variables:
-    BANTERBUS_REDIS_ADDRESS: redis:6379
-    BANTERBUS_DB_URI: postgresql://banterbus:banterbus@postgres:5432
-    BANTERBUS_JWKS_URL: http://oauth2:8080/default/jwks
     BANTERBUS_LOG_LEVEL: INFO
     BANTERBUS_ENVIRONMENT: local
+    BANTERBUS_REDIS_ADDRESS: docker:6379
+    BANTERBUS_JWKS_URL: http://docker:8080/default/jwks
+    BANTERBUS_PLAYWRIGHT_HEADLESS: true
   script:
-    - task tests:e2e -- ${GOTEST_EXTRA_ARGS}
+    - docker compose --profile test up -d --wait
+    - task tests:e2e:quiet -- ${GOTEST_EXTRA_ARGS}
   artifacts:
     when: always
     reports:
@@ -217,31 +205,32 @@ combine:coverage:
         coverage_format: cobertura
         path: coverage.xml
 
-publish:dev:docker:
+publish:docker:dev:
   stage: build
-  needs: []
-  variables:
-    FLAKE_TARGET: container
-    LOCAL_IMAGE: banterbus
-  rules:
-    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
   extends:
     - .docker
-  before_script:
-    - export IMAGE="$CI_REGISTRY_IMAGE:dev-$CI_COMMIT_SHA-$(date +%s)"
-    - echo $IMAGE > image_name.txt
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+  script:
+    - echo "experimental-features = nix-command flakes" > /etc/nix/nix.conf
+    - nix-env -iA nixpkgs.docker nixpkgs.go-task
+    - task docker:build
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_JOB_TOKEN" "$CI_REGISTRY"
+    - docker tag banterbus:latest $CI_REGISTRY_IMAGE:$CI_MERGE_REQUEST_IID
+    - docker push $CI_REGISTRY_IMAGE:$CI_MERGE_REQUEST_IID
+    - echo "$CI_REGISTRY_IMAGE:$CI_MERGE_REQUEST_IID" > image_name.txt
   artifacts:
     paths:
       - image_name.txt
 
 check_deploy:dev:
-  extends: .deploy
+  extends: .k8s_deploy
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
   variables:
     NAMESPACE: dev
   dependencies:
-    - publish:dev:docker
+    - publish:docker:dev
 
 # smoke:tests:dev:e2e:
 #   extends:
@@ -262,30 +251,63 @@ check_deploy:dev:
 #   dependencies:
 #     - check_deploy:dev
 
+get:mr:iid:
+  image: $BANTERBUS_CI_IMAGE
+  stage: deploy
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main" || $CI_COMMIT_TAG
+  script:
+    - |
+      # Fetch merged MRs associated with this commit
+      RESPONSE=$(curl -sS \
+        --header "PRIVATE-TOKEN: $CI_JOB_TOKEN" \
+        -w "\n%{http_code}" \
+        "$CI_API_V4_URL/projects/$CI_PROJECT_ID/repository/commits/$CI_COMMIT_SHA/merge_requests?state=merged")
+
+      HTTP_STATUS=$(echo "$RESPONSE" | tail -n1)
+      BODY=$(echo "$RESPONSE" | head -n -1)
+
+      if [ "$HTTP_STATUS" != "200" ]; then
+        echo "ERROR: API request failed with status $HTTP_STATUS"
+        echo "Response body:"
+        echo "$BODY"
+        exit 1
+      fi
+
+      # Extract most recent MR IID
+      MR_IID=$(echo "$BODY" | jq -r 'sort_by(.merged_at) | last | .iid // empty')
+
+      if [ -n "$MR_IID" ]; then
+        echo "Detected MR IID: $MR_IID"
+        echo "MR_IID=$MR_IID" >> build.env
+      else
+        echo "No merged MR found for commit $CI_COMMIT_SHA"
+        exit 1
+      fi
+  artifacts:
+    reports:
+      dotenv: build.env
+
 #INFO: Because Nix docker builds are immutable, we can just rebuild the image here for production
 # If we wanted to be more efficient we could work out way to retag a dev image. But this is good enough for now.
-publish:prod:docker:
-  stage: build
+deploy:prod:
   variables:
     FLAKE_TARGET: container
     LOCAL_IMAGE: banterbus
-  services:
-    - docker:28-dind
+    IMAGE_NAME: $CI_REGISTRY_IMAGE:$MR_IID
+    FLY_CONFIG: fly.prod.toml
   extends:
-    - .docker
+    - .k8s_deploy
+  needs: ["get:mr:iid"]
   rules:
     - if: $CI_PIPELINE_SOURCE == "schedule"
       when: never
     - if: $CI_COMMIT_TAG || $CI_COMMIT_BRANCH == "main"
-  before_script:
-    - export IMAGE="$CI_REGISTRY_IMAGE:prod-$CI_COMMIT_SHA-$(date +%s)"
-    - echo $IMAGE > image_name.txt
-  artifacts:
-    paths:
-      - image_name.txt
+  environment:
+    name: production
 
 check_deploy:prod:
-  extends: .deploy
+  extends: .k8s_deploy
   rules:
     - if: $CI_PIPELINE_SOURCE == "schedule"
       when: never
@@ -293,7 +315,7 @@ check_deploy:prod:
   variables:
     NAMESPACE: prod
   dependencies:
-    - publish:prod:docker
+    - deploy:prod
 
 release:
   stage: release

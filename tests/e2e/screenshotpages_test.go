@@ -10,8 +10,8 @@ import (
 func TestE2EScreenshotPages(t *testing.T) {
 	playerNum := 2
 	t.Run("Should successfully screenshot every page", func(t *testing.T) {
-		playerPages, teardown := setupTest(playerNum)
-		t.Cleanup(func() { teardown(playerPages) })
+		playerPages, err := setupTest(t, playerNum)
+		require.NoError(t, err)
 
 		hostPlayerPage := playerPages[0]
 		otherPlayerPage := playerPages[1]
@@ -20,7 +20,7 @@ func TestE2EScreenshotPages(t *testing.T) {
 			Path: playwright.String("home.png"),
 		})
 
-		err := joinRoom(hostPlayerPage, playerPages[1:])
+		err = joinRoom(hostPlayerPage, playerPages[1:])
 		require.NoError(t, err)
 
 		hostPlayerPage.Screenshot(playwright.PageScreenshotOptions{

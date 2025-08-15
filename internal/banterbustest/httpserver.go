@@ -14,6 +14,7 @@ import (
 
 	"github.com/MicahParks/jwkset"
 	"github.com/MicahParks/keyfunc/v3"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/invopop/ctxi18n"
 	"github.com/invopop/ctxi18n/i18n"
 	"github.com/mdobak/go-xerrors"
@@ -97,18 +98,22 @@ func NewTestServer() (*httptest.Server, error) {
 		AuthDisabled:  true,
 	}
 
-	storage, err := jwkset.NewStorageFromHTTP(conf.JWT.JWKSURL, jwkset.HTTPClientStorageOptions{Ctx: ctx})
-	if err != nil {
-		return nil, fmt.Errorf("failed to jwkset storage: %w", err)
-	}
+	var keyFunc jwt.Keyfunc
+	if !serverConfig.AuthDisabled && conf.JWT.JWKSURL != "" {
+		storage, err := jwkset.NewStorageFromHTTP(conf.JWT.JWKSURL, jwkset.HTTPClientStorageOptions{Ctx: ctx})
+		if err != nil {
+			return nil, fmt.Errorf("failed to jwkset storage: %w", err)
+		}
 
-	k, err := keyfunc.New(keyfunc.Options{
-		Storage: storage,
-	})
-	if err != nil {
-		return nil, fmt.Errorf("failed to create keyfunc: %w", err)
+		k, err := keyfunc.New(keyfunc.Options{
+			Storage: storage,
+		})
+		if err != nil {
+			return nil, fmt.Errorf("failed to create keyfunc: %w", err)
+		}
+		keyFunc = k.Keyfunc
 	}
-	srv := transporthttp.NewServer(subscriber, logger, staticFS, k.Keyfunc, questionServicer, serverConfig)
+	srv := transporthttp.NewServer(subscriber, logger, staticFS, keyFunc, questionServicer, serverConfig)
 	server := httptest.NewServer(srv.Server.Handler)
 
 	return server, nil

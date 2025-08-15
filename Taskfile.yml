@@ -1,14 +1,29 @@
 version: "3"
 
 tasks:
+  build:
+    desc: Build the binary in a tmp location.
+    cmds:
+      - go build -o ./tmp/main main.go
+
+  run:
+    desc: Run the binary.
+    cmds:
+      - go run main.go
+
   dev:
     desc: Start the app in dev mode with live-reloading.
+    summary: |
+      Start the app in dev mode with live-reloading.
+
+      This command starts a local version of the app with reloading enabled.
+      So when the code changes the server restarts. It also watches for changes in `templ` and `tailwind` classes.
+      We reload using air. It also makes sure that the docker containers are started first that the app depends on.
     env:
       BANTERBUS_LOG_LEVEL: debug
     cmds:
-      - podman-compose up -d
-      - task: watch
-      - air
+      - podman-compose up -d --force-recreate --remove-orphans
+      - concurrently "air" "task watch"
 
   lint:
     desc: Runs the linter.
@@ -22,6 +37,9 @@ tasks:
     cmds:
       - goimports -local gitlab.com/hmajid2301/banterbus -w $LOCATIONS
       - golines -m 120 -w $LOCATIONS
+      - sqlfluff format internal/store/db/sqlc/ --dialect postgres --disable-progress-bar
+      - templ fmt internal/views
+      - rustywind internal/views/ --write
 
   tests:
     desc: Runs all the tests.
@@ -31,17 +49,25 @@ tasks:
   tests:unit:
     desc: Runs all the unit tests.
     cmds:
-      - gotestsum --format testname --hide-summary=skipped -- -cover -skip '^TestIntegration' ./internal/... {{.CLI_ARGS}}
+      - gotestsum --format testname --hide-summary=skipped -- -coverprofile coverage.out -cover -covermode=atomic -skip '^TestIntegration' ./internal/... {{.CLI_ARGS}}
 
   tests:integration:
     desc: Runs all the integration tests.
     cmds:
-      - gotestsum --format testname --hide-summary=skipped -- -cover -run ^TestIntegration ./internal/... {{.CLI_ARGS}}
+      - gotestsum --format testname --hide-summary=skipped -- -coverprofile coverage.out -cover -covermode=atomic -run ^TestIntegration ./internal/... {{.CLI_ARGS}}
 
   tests:e2e:
     desc: Runs e2e tests with playwright.
     cmds:
-      - gotestsum --format testname --hide-summary=skipped --rerun-fails --packages="./tests/e2e" -- -cover {{.CLI_ARGS}}
+      - |
+        concurrently \
+          --names "SERVER,TESTS" \
+          --success first \
+          "task run" --kill-others \
+          "until curl -sSf http://localhost:8080/health >/dev/null; do sleep 2; done && \
+           gotestsum --format testname --hide-summary=skipped --rerun-fails --packages='./tests/e2e' -- \
+             -coverprofile coverage.out \
+             -cover -covermode=atomic {{.CLI_ARGS}}"
 
   tests:e2e:quiet:
     desc: Runs e2e tests with playwright without any logging as this can be super verbose.
@@ -50,6 +76,14 @@ tasks:
       BANTERBUS_PLAYWRIGHT_HEADLESS: true
     cmds:
       - gotestsum --format dots -- ./tests/e2e/... {{.CLI_ARGS}}
+
+  tests:smoke:
+    desc: Runs e2e smoke tests with playwright, expected to run against a live instance i.e. dev or prod.
+    env:
+      BANTERBUS_LOG_DISABLED: true
+      BANTERBUS_PLAYWRIGHT_HEADLESS: true
+    cmds:
+      - gotestsum --format standard-verbose -- ./tests/e2e/... -run '^TestSmoke' {{.CLI_ARGS}}
 
   coverage:
     desc: show coverage
@@ -73,9 +107,9 @@ tasks:
     env:
       TEMPL_EXPERIMENT: rawgo
     cmds:
-      - mockery --all
       - templ generate
       - tailwindcss -i ./static/css/tailwind.css -o ./static/css/styles.css --minify
+      - mockery
       - sqlc generate
       - gomod2nix generate
       - task: format
@@ -84,6 +118,15 @@ tasks:
     desc: Release the web app.
     cmds:
       - goreleaser release --clean --verbose
+
+  docker:build:
+    desc: Build the Docker image
+    env:
+      LOCAL_IMAGE: banterbus
+      FLAKE_TARGET: container
+    cmds:
+      - nix build .#${FLAKE_TARGET}
+      - docker load < result
 
   docker:publish:
     desc: Build and publish the Docker image
@@ -100,12 +143,11 @@ tasks:
             exit 1
           fi
         fi
-      - nix build .#${FLAKE_TARGET}
-      - docker load < result
+      - task: docker:build
       - docker image tag $LOCAL_IMAGE:latest $IMAGE
       - docker push $IMAGE
 
   ci:local:
     desc: Run gitlab ci locally
     cmds:
-      - job=$(yq 'keys | .[] | select(. != "image" and . != "workflow" and . != "stages" and . != "variables" and . != "default" and (. | test("^[^.]")) )' .gitlab-ci.yml | gum filter --placeholder "Select a job...") && gitlab-ci-local --variable CI_REGISTRY=registry.gitlab.com "$job"
+      - job=$(gitlab-ci-local --list-all | tail -n +4 | awk '{print $1}' | gum filter --placeholder "Select job") && gitlab-ci-local "$job"

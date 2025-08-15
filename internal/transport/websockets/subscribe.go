@@ -117,7 +117,7 @@ func (s *Subscriber) Subscribe(r *http.Request, w http.ResponseWriter) (err erro
 		trace.WithSpanKind(trace.SpanKindServer),
 	)
 
-	locale := "en-GB"
+	locale := s.config.App.DefaultLocale.String()
 	cookie, err := r.Cookie("locale")
 	if err == nil {
 		locale = cookie.Value
@@ -134,8 +134,7 @@ func (s *Subscriber) Subscribe(r *http.Request, w http.ResponseWriter) (err erro
 			slog.Any("error", err),
 		)
 
-		// TODO: Use app default
-		ctx, err = ctxi18n.WithLocale(ctx, "en-GB")
+		ctx, err = ctxi18n.WithLocale(ctx, s.config.App.DefaultLocale.String())
 		if err != nil {
 			s.logger.ErrorContext(
 				ctx,

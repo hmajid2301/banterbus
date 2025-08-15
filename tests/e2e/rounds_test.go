@@ -14,13 +14,13 @@ func TestE2ERounds(t *testing.T) {
 	playerNum := 6
 
 	t.Run("Should successfully complete an entire game where the fibber is caught first time", func(t *testing.T) {
-		playerPages, teardown := setupTest(playerNum)
-		t.Cleanup(func() { teardown(playerPages) })
+		playerPages, err := setupTest(t, playerNum)
+		require.NoError(t, err)
 
 		hostPlayerPage := playerPages[0]
 		otherPlayerPages := playerPages[1:]
 
-		err := startGame(hostPlayerPage, otherPlayerPages)
+		err = startGame(hostPlayerPage, otherPlayerPages)
 		require.NoError(t, err)
 
 		fibber, normals, err := getPlayerRoles(hostPlayerPage, otherPlayerPages)
@@ -153,13 +153,13 @@ func TestE2ERounds(t *testing.T) {
 	})
 
 	t.Run("Should successfully complete an entire round without guessing the fibber", func(t *testing.T) {
-		playerPages, teardown := setupTest(playerNum)
-		t.Cleanup(func() { teardown(playerPages) })
+		playerPages, err := setupTest(t, playerNum)
+		require.NoError(t, err)
 
 		hostPlayerPage := playerPages[0]
 		otherPlayerPages := playerPages[1:]
 
-		err := startGame(hostPlayerPage, otherPlayerPages)
+		err = startGame(hostPlayerPage, otherPlayerPages)
 		require.NoError(t, err)
 
 		fibber, normals, err := getPlayerRoles(hostPlayerPage, otherPlayerPages)

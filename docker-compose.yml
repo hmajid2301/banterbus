@@ -1,73 +1,143 @@
 services:
   redis:
-    image: redis:8.2.0
+    image: ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX:-docker.io}/redis:7.4.1
+    profiles:
+      - test
     ports:
-      - "6379:6379"
+      - 6379:6379
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   postgres:
-    image: postgres:16.6
+    image: ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX:-docker.io}/postgres:16.6
+    profiles:
+      - test
     ports:
-      - "5432:5432"
+      - 5432:5432
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: banterbus
+      POSTGRES_HOST_AUTH_METHOD: trust
     command:
       - "postgres"
       - "-c"
       - "max_connections=1000"
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
     volumes:
       - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -h 127.0.0.1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
-  oauth:
+  oauth2:
     image: ghcr.io/navikt/mock-oauth2-server:2.1.10
+    profiles:
+      - test
     ports:
-      - "9090:8080"
+      - 8080:8080
+    # healthcheck:
+    #   test: ["CMD-SHELL", "nc -z 127.0.0.1 8080 || exit 1"]
+    #   interval: 10s
+    #   timeout: 5s
+    #   retries: 5
 
-  otel-collector:
-    image: otel/opentelemetry-collector:0.116.1
+  smocker:
+    image: ghcr.io/smocker-dev/smocker:1.0.0
+    profiles:
+      - other
+    ports:
+      - 44300:8080
+      - 44301:8081
+
+  alloy:
+    image: ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX:-docker.io}/grafana/alloy:v1.9.1
+    profiles:
+      - monitoring
+    command:
+      [
+        "run",
+        "--server.http.listen-addr=0.0.0.0:12345",
+        "--storage.path=/var/lib/alloy/data",
+        "--stability.level=public-preview",
+        "/etc/alloy/config.alloy",
+      ]
     ports:
       - 4317:4317
       - 4318:4318
-      - 1888:1888
-      - 8888:8888
-      - 8889:8889
+      - 12345:12345
     volumes:
-      - ./docker/otelcol.yaml:/etc/otelcol/config.yaml
+      - ./docker/config.alloy:/etc/alloy/config.alloy
     depends_on:
       - tempo
+      - loki
+      - mimir
 
-  prometheus:
-    image: prom/prometheus:v3.1.0
+  mimir:
+    image: ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX:-docker.io}/grafana/mimir:2.11.0
+    profiles:
+      - monitoring
+    command:
+      - "-auth.multitenancy-enabled=false"
+      - "-auth.no-auth-tenant=anonymous"
+      - "-config.file=/etc/mimir/config.yaml"
+    # healthcheck:
+    #   test: ["CMD", "curl", "-f", "http://localhost:8080/ready"]
+    #   interval: 10s
+    #   timeout: 5s
+    #   retries: 20
     volumes:
-      - ./docker/prometheus.yaml:/etc/prometheus/prometheus.yml
+      - ./docker/mimir.yaml:/etc/mimir/config.yaml
+      - mimir-data:/data
 
   grafana:
-    image: grafana/grafana:11.4.0
+    image: ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX:-docker.io}/grafana/grafana:11.6.1
+    profiles:
+      - monitoring
     ports:
       - 3000:3000
     environment:
       - GF_AUTH_ANONYMOUS_ENABLED=true
       - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
     volumes:
-      - grafana-data:/var/lib/grafana
+     - ./docker/grafana/datasources.yaml:/etc/grafana/provisioning/datasources/datasources.yml:ro
+     - grafana-data:/var/lib/grafana
 
   tempo:
-    image: grafana/tempo:2.6.1
-    command: [ "-config.file=/etc/tempo.yaml" ]
+    image: ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX:-docker.io}/grafana/tempo:2.7.2
+    profiles:
+      - monitoring
+    command: ["-config.file=/etc/tempo.yaml"]
     volumes:
       - ./docker/tempo.yaml:/etc/tempo.yaml
+      - tempo-data:/var/tempo
+    # healthcheck:
+    #   test: ["CMD", "curl", "-f", "http://localhost:3200/ready"]
+    #   interval: 10s
+    #   timeout: 5s
+    #   retries: 20
     deploy:
       resources:
         limits:
-          cpus: '0.50'  # Limit to 50% of a single CPU core
-          memory: '512M'  # Limit to 512MB of memory
+          cpus: 0.50
+          memory: 512M
 
   loki:
-    image: grafana/loki:3.3.2
-    command: [ "-config.file=/etc/loki/loki-config.yaml" ]
+    image: ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX:-docker.io}/grafana/loki:3.5.0
+    profiles:
+      - monitoring
+    command: ["-config.file=/etc/loki/loki-config.yaml"]
     volumes:
       - ./docker/loki.yaml:/etc/loki/loki-config.yaml
+      - loki-data:/loki
 
 volumes:
   postgres-data:
   grafana-data:
+  mimir-data:
+  tempo-data:
+  loki-data:

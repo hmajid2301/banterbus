@@ -15,8 +15,8 @@ import (
 	"gitlab.com/hmajid2301/banterbus/internal/config"
 	"gitlab.com/hmajid2301/banterbus/internal/service"
 	"gitlab.com/hmajid2301/banterbus/internal/transport/websockets"
+	mockService "gitlab.com/hmajid2301/banterbus/internal/transport/websockets/mocks"
 	"gitlab.com/hmajid2301/banterbus/internal/views"
-	mockService "gitlab.com/hmajid2301/banterbus/internal/websockets/mocks"
 )
 
 func TestStateMachine(t *testing.T) {

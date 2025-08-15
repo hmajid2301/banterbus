@@ -1,0 +1,46 @@
+apiVersion: 1
+datasources:
+  - name: Prometheus
+    uid: "prometheus"
+    type: prometheus
+    access: proxy
+    url: http://mimir:9009/prometheus
+    isDefault: true
+    jsonData:
+      httpMethod: POST
+      exemplarTraceIdDestinations:
+        - name: trace_id
+          datasourceUid: "tempo"
+          url: '${__value.raw}'
+
+
+  - name: Loki
+    uid: "loki"
+    type: loki
+    access: proxy
+    url: http://loki:3100
+    isDefault: false
+    jsonData:
+      derivedFields:
+        - name: "🔍 View Trace"
+          matcherRegex: '"traceid":\s*"([0-9a-f]{32})"'
+          url: '$${__value.raw}'
+          datasourceUid: "tempo"
+          matcherType: regex
+
+  - name: Tempo
+    uid: "tempo"
+    type: tempo
+    access: proxy
+    url: http://tempo:3200
+    isDefault: false
+    jsonData:
+      nodeGraph:
+        enabled: true
+      tracesToLogs:
+        datasourceUid: "loki"
+        spanStartTimeShift: '-5m'
+        spanEndTimeShift: '5m'
+        filterByTraceID: true
+      tracesToMetrics:
+        datasourceUid: "prometheus"

@@ -1,28 +1,70 @@
 {
-  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": [
-    "config:recommended"
-  ],
-  "postUpgradeTasks": {
-    "commands": [
-      "task generate"
+    "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+    "extends": [
+        "config:base",
+        "config:recommended"
     ],
+    "postUpgradeTasks": {
+        "commands": [
+            "task generate"
+        ],
+        "fileFilters": [
+            "**/*"
+        ],
+        "executionMode": "update"
+    },
     "allowedPostUpgradeCommands": [
-      "^task generate$"
-    ]
-  },
-  "packageRules": [
-    {
-      "groupName": "all non-major dependencies",
-      "groupSlug": "all-minor-patch",
-      "matchPackageNames": [
-        "*"
-      ],
-      "matchUpdateTypes": [
-        "minor",
-        "patch"
-      ],
-      "automerge": true
+        "^task generate$"
+    ],
+    "packageRules": [
+        {
+            "groupName": "all non-major dependencies",
+            "groupSlug": "all-minor-patch",
+            "matchPackageNames": [
+                "*"
+            ],
+            "matchUpdateTypes": [
+                "minor",
+                "patch"
+            ],
+            "automerge": true
+        },
+        {
+            "groupName": "docker images",
+            "matchManagers": ["docker-compose"],
+            "matchUpdateTypes": ["minor", "patch"],
+            "automerge": true
+        }
+    ],
+    "customManagers": [
+        {
+            "customType": "regex",
+            "fileMatch": ["\\.templ$"],
+            "matchStrings": [
+                "https://unpkg\\.com/htmx\\.org@(?<currentValue>[^\"\\s]+)"
+            ],
+            "depNameTemplate": "htmx.org",
+            "datasourceTemplate": "npm",
+            "packageNameTemplate": "htmx.org"
+        },
+        {
+            "customType": "regex",
+            "fileMatch": ["\\.templ$"],
+            "matchStrings": [
+                "https://cdn\\.jsdelivr\\.net/npm/alpinejs@(?<currentValue>[^/\"\\s]+)"
+            ],
+            "depNameTemplate": "alpinejs",
+            "datasourceTemplate": "npm",
+            "packageNameTemplate": "alpinejs"
+        }
+    ],
+    "nix": {
+        "enabled": true
+    },
+    "docker-compose": {
+        "enabled": true
+    },
+    "lockFileMaintenance": {
+        "enabled": true
     }
-  ]
 }

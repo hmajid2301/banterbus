@@ -2,47 +2,47 @@ package e2e
 
 import (
 	"log"
-	"net/http/httptest"
 	"os"
 	"testing"
 
 	"github.com/mdobak/go-xerrors"
 	"github.com/playwright-community/playwright-go"
-
-	"gitlab.com/hmajid2301/banterbus/internal/banterbustest"
 )
 
 var (
 	expect    playwright.PlaywrightAssertions
 	browser   playwright.Browser
+	pw        *playwright.Playwright
 	webappURL = os.Getenv("BANTERBUS_PLAYWRIGHT_URL")
 )
 
 func TestMain(m *testing.M) {
-	pw, server, err := beforeAll()
-	if err != nil {
+	code := 1
+	defer func() {
+		afterAll()
+		os.Exit(code)
+	}()
+
+	if err := beforeAll(); err != nil {
 		log.Fatalf("could not start server: %v", err)
 	}
 
-	code := m.Run()
-	afterAll(pw, server)
-	os.Exit(code)
+	code = m.Run()
 }
 
-func beforeAll() (*playwright.Playwright, *httptest.Server, error) {
+func beforeAll() error {
 	var err error
-	pw, err := playwright.Run()
+	pw, err = playwright.Run()
 	if err != nil {
-		log.Fatalf("could not start Playwright: %v", err)
+		return xerrors.New("could not start Playwright: %v", err)
 	}
 
-	browserName, hasEnv := os.LookupEnv("BROWSER")
-	if !hasEnv {
+	browserName := os.Getenv("BROWSER")
+	if browserName == "" {
 		browserName = "chromium"
 	}
 
 	var browserType playwright.BrowserType
-
 	switch browserName {
 	case "chromium":
 		browserType = pw.Chromium
@@ -54,40 +54,80 @@ func beforeAll() (*playwright.Playwright, *httptest.Server, error) {
 		browserType = pw.Chromium
 	}
 
-	headless := os.Getenv("BANTERBUS_PLAYWRIGHT_HEADLESS") == ""
+	headless := os.Getenv("BANTERBUS_PLAYWRIGHT_HEADLESS") == "true"
 	browser, err = browserType.Launch(playwright.BrowserTypeLaunchOptions{
 		Headless: playwright.Bool(headless),
 	})
 	if err != nil {
-		return &playwright.Playwright{}, nil, xerrors.New("could not start browser: %v", err)
+		return xerrors.New("could not start browser: %v", err)
 	}
 
 	expect = playwright.NewPlaywrightAssertions(1000)
 
-	// INFO: if no address passed start local server
-	var server *httptest.Server
+	// Set webappURL from environment or default to localhost
 	if webappURL == "" {
-		server, err = banterbustest.NewTestServer()
-		webappURL = server.Listener.Addr().String()
-		if err != nil {
-			return &playwright.Playwright{}, nil, err
+		webappURL = "http://localhost:8080"
+	}
+
+	return nil
+}
+
+func afterAll() {
+	if browser != nil {
+		if err := browser.Close(); err != nil {
+			log.Printf("Browser close error: %v", err)
 		}
 	}
-
-	return pw, server, nil
-}
-
-func afterAll(pw *playwright.Playwright, server *httptest.Server) {
-	if server != nil {
-		server.Close()
-	}
-
-	if err := pw.Stop(); err != nil {
-		log.Fatalf("could not stop Playwright: %v", err)
+	if pw != nil {
+		if err := pw.Stop(); err != nil {
+			log.Printf("Playwright stop error: %v", err)
+		}
 	}
 }
 
-func setupTest(playerNum int) ([]playwright.Page, func(pages []playwright.Page) error) {
+func setupTest(t *testing.T, playerNum int) ([]playwright.Page, error) {
+	pages := []playwright.Page{}
+
+	for range playerNum {
+		context, err := browser.NewContext(playwright.BrowserNewContextOptions{
+			RecordVideo: &playwright.RecordVideo{Dir: "videos"},
+			Viewport: &playwright.Size{
+				Width:  960,
+				Height: 1280,
+			},
+			Permissions: []string{"clipboard-read", "clipboard-write"},
+		})
+		if err != nil {
+			return nil, xerrors.New("context creation failed: %v", err)
+		}
+
+		page, err := context.NewPage()
+		if err != nil {
+			return nil, xerrors.New("page creation failed: %v", err)
+		}
+
+		_, err = page.Goto(webappURL)
+		if err != nil {
+			return nil, xerrors.New("failed to go to URL: %v", err)
+		}
+		pages = append(pages, page)
+		cleanup := func() {
+			if err := page.Close(); err != nil {
+				log.Printf("Page close error: %v", err)
+			}
+			if err := context.Close(); err != nil {
+				log.Printf("Context close error: %v", err)
+
+			}
+		}
+		t.Cleanup(cleanup)
+
+	}
+
+	return pages, nil
+}
+
+func setupTestMultiple(playerNum int) ([]playwright.Page, func(pages []playwright.Page) error) {
 	var err error
 
 	contexts := make([]playwright.BrowserContext, playerNum)

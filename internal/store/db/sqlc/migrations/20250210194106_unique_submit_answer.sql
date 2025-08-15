@@ -1,6 +1,8 @@
 -- +goose Up
 -- +goose StatementBegin
-ALTER TABLE fibbing_it_answers ADD CONSTRAINT fibbing_it_answers_player_round_unique UNIQUE (player_id, round_id);
+ALTER TABLE fibbing_it_answers ADD CONSTRAINT fibbing_it_answers_player_round_unique UNIQUE (
+    player_id, round_id
+);
 -- +goose StatementEnd
 
 -- +goose Down

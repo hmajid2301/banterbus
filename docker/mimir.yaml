@@ -1,0 +1,54 @@
+# Single-binary Mimir config
+target: all
+multitenancy_enabled: false
+
+limits:
+  max_global_exemplars_per_user: 100000
+
+common:
+  storage:
+    backend: filesystem
+    filesystem:
+      dir: /data
+
+blocks_storage:
+  storage_prefix: blocks
+  bucket_store:
+    sync_dir: /data/tsdb-sync
+  tsdb:
+    dir: /data/tsdb
+
+compactor:
+  data_dir: /data/compactor
+  sharding_ring:
+    kvstore:
+      store: inmemory
+
+distributor:
+  ring:
+    instance_addr: 127.0.0.1
+    kvstore:
+      store: inmemory
+
+ingester:
+  ring:
+    instance_addr: 127.0.0.1
+    kvstore:
+      store: inmemory
+    replication_factor: 1
+
+ruler_storage:
+  backend: filesystem
+  filesystem:
+    dir: /data/rules
+
+server:
+  http_listen_port: 9009
+  log_level: info
+
+store_gateway:
+  sharding_ring:
+    replication_factor: 1
+
+usage_stats:
+  enabled: false

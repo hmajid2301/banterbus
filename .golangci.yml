@@ -1,92 +1,104 @@
-run:
-  timeout: 5m
+version: "2"
 
 linters:
   enable:
     - bodyclose
-    - bodyclose
+    - copyloopvar
     - dogsled
     - dupl
-    - errcheck
-    - copyloopvar
-    # - funlen
+    - funlen
     - gochecknoinits
     - goconst
     - gocritic
     - gocyclo
-    - gofmt
-    - goimports
-    - mnd
     - goprintffuncname
     - gosec
-    - gosimple
-    - govet
-    - ineffassign
     - lll
     - misspell
+    - mnd
     - nakedret
     - noctx
     - nolintlint
     - revive
     - sloglint
     - staticcheck
-    - stylecheck
-    - typecheck
+    - testifylint
     - unconvert
     - unparam
-    - unused
     - whitespace
+  settings:
+    gosec:
+      excludes:
+        - G404
+    govet:
+      disable:
+        - fieldalignment
+    sloglint:
+      no-mixed-args: false
+      attr-only: true
+      context: all
+      static-msg: true
+      no-raw-keys: false
+      key-naming-case: snake
+      args-on-sep-lines: true
 
+  exclusions:
+    generated: lax
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+    rules:
+      - path: internal/store/db/transactions.go
+        text: Error return value of `tx.Rollback` is not checked
+      - linters:
+          - dupl
+          - errcheck
+          - funlen
+          - gocyclo
+          - gosec
+          - mnd
+        path: _test.go
+      - linters:
+          - dupl
+          - errcheck
+          - funlen
+          - gocyclo
+          - gosec
+          - mnd
+        path: banterbustest
+      - linters:
+          - mnd
+        path: internal/store/db/pgx.go
+        text: 'Magic number: 2'
+      - linters:
+          - errcheck
+        source: ^\s*defer\s+
+    paths:
+      - .go
+      - direnv
+      - internal/mocks
+      - internal/store/db
+      - third_party$
+      - builtin$
+      - examples$
 
-linters-settings:
-  govet:
-    disable:
-      - fieldalignment
-
-  goimports:
-    local-prefixes: gitlab.com/hmajid2301/banterbus
-
-  gosec:
-    excludes:
-      - G404
-
-  sloglint:
-    no-mixed-args: false
-    attr-only: true
-    context: "all"
-    static-msg: true
-    no-raw-keys: false
-    key-naming-case: snake
-    args-on-sep-lines: true
-
-
-issues:
-  exclude-dirs:
-    - .go
-    - direnv
-    - internal/mocks
-    - internal/store/db
-
-  exclude-rules:
-    - path: "internal/store/db/transactions.go"
-      text: "Error return value of `tx.Rollback` is not checked"
-    - path: _test.go
-      linters:
-        - gocyclo
-        - errcheck
-        - dupl
-        - gosec
-        - funlen
-        - mnd
-    - path: banterbustest
-      linters:
-        - gocyclo
-        - errcheck
-        - dupl
-        - gosec
-        - funlen
-        - mnd
-    - path: "internal/store/db/pgx.go"
-      text: "Magic number: 2"
-      linters:
-        - mnd
+formatters:
+  enable:
+    - gofmt
+    - goimports
+  settings:
+    goimports:
+      local-prefixes:
+        - gitlab.com/hmajid2301/banterbus
+  exclusions:
+    generated: lax
+    paths:
+      - .go
+      - direnv
+      - internal/mocks
+      - internal/store/db
+      - third_party$
+      - builtin$
+      - examples$

@@ -155,26 +155,36 @@ func mainLogic() error {
 	}
 	server := transporthttp.NewServer(subscriber, logger, http.FS(fsys), k.Keyfunc, questionService, serverConfig)
 
-	timeoutSeconds := 15
-	go terminateHandler(ctx, logger, server, timeoutSeconds)
-	err = server.Serve(ctx)
-	if err != nil {
-		return fmt.Errorf("failed to start server: %w", err)
-	}
+	go func() {
+		logger.InfoContext(
+			ctx,
+			"starting server",
+			slog.String("host", conf.Server.Host),
+			slog.Int("port", conf.Server.Port),
+		)
+		if err := server.Serve(ctx); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			logger.Error("failed to serve server", "error", err)
+		}
+	}()
+
+	timeoutSeconds := 25
+	terminateHandler(ctx, logger, server, timeoutSeconds)
 
 	return nil
 }
 
 // terminateHandler waits for SIGINT or SIGTERM signals and does a graceful shutdown of the HTTP server
 // Wait for interrupt signal to gracefully shutdown the server with
-// a timeout of 5 seconds.
+// a timeout of 25 seconds.
 // kill (no param) default send syscall.SIGTERM
 // kill -2 is syscall.SIGINT
 // kill -9 is syscall.SIGKILL but can't be catch, so don't need add it
 func terminateHandler(ctx context.Context, logger *slog.Logger, srv *transporthttp.Server, timeout int) {
-	quit := make(chan os.Signal, 1)
-	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
-	<-quit
+	ctx, stop := signal.NotifyContext(ctx, syscall.SIGINT, syscall.SIGTERM)
+	defer stop()
+
+	<-ctx.Done()
+	stop()
 	logger.InfoContext(ctx, "shutting down server")
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(timeout)*time.Second)
