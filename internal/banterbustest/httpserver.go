@@ -4,12 +4,12 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"log"
+
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
 	"os"
-	"strings"
+
 	"time"
 
 	"github.com/MicahParks/jwkset"
@@ -120,30 +120,11 @@ func NewTestServer() (*httptest.Server, error) {
 }
 
 func setupLogger() *slog.Logger {
-	logLevel := os.Getenv("BANTERBUS_LOG_LEVEL")
-	if logLevel == "" {
-		logLevel = "INFO"
-	}
-
-	var level slog.Level
-	switch strings.ToUpper(logLevel) {
-	case "DEBUG":
-		level = slog.LevelDebug
-	case "INFO":
-		level = slog.LevelInfo
-	case "WARN":
-		level = slog.LevelWarn
-	case "ERROR":
-		level = slog.LevelError
-	default:
-		log.Fatalf("unknown log level: %s", logLevel)
-	}
-
 	if _, ok := os.LookupEnv("BANTERBUS_LOG_DISABLED"); ok {
 		handler := slog.NewJSONHandler(io.Discard, nil)
 		return slog.New(handler)
 	}
 
-	logger := logging.New(level, []slog.Attr{})
+	logger := logging.New()
 	return logger
 }

@@ -8,6 +8,7 @@ import (
 	"os"
 	"path"
 	"runtime"
+	"strings"
 
 	// INFO: Driver to connect to postgres to run DB migrations
 	_ "github.com/jackc/pgx/v5/stdlib"
@@ -38,7 +39,14 @@ func CreateDB(ctx context.Context) (*pgxpool.Pool, error) {
 
 	fmt.Println("test database name: ", dbName)
 
-	pgxConfig, err := pgxpool.ParseConfig(fmt.Sprintf("%s/%s", uri, dbName))
+	var newURI string
+	if strings.Contains(uri, "?") {
+		parts := strings.Split(uri, "?")
+		newURI = fmt.Sprintf("%s/%s?%s", parts[0], dbName, parts[1])
+	} else {
+		newURI = fmt.Sprintf("%s/%s", uri, dbName)
+	}
+	pgxConfig, err := pgxpool.ParseConfig(newURI)
 	if err != nil {
 		return pool, fmt.Errorf("failed to parse db uri :%w", err)
 	}

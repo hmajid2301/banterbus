@@ -3,99 +3,22 @@ package logging
 import (
 	"log/slog"
 	"os"
-	"path/filepath"
 	"time"
 
 	"github.com/lmittmann/tint"
-	"github.com/mdobak/go-xerrors"
-	slogotel "github.com/remychantenay/slog-otel"
-	slogctx "github.com/veqryn/slog-context"
+	slogmulti "github.com/samber/slog-multi"
+	"go.opentelemetry.io/contrib/bridges/otelslog"
 )
 
-type stackFrame struct {
-	Func   string `json:"func"`
-	Source string `json:"source"`
-	Line   int    `json:"line"`
-}
+func New() *slog.Logger {
+	// INFO: print to stdout for fly.io logs quickly debugging without needing to go to otel.
+	stdoutHandler := tint.NewHandler(os.Stdout, &tint.Options{
+		AddSource:  true,
+		TimeFormat: time.Kitchen,
+	})
+	otelHandler := otelslog.NewHandler("banterbus", otelslog.WithSource(true))
+	fanoutHandler := slogmulti.Fanout(stdoutHandler, otelHandler)
 
-func New(logLevel slog.Level, defaultAttrs []slog.Attr) *slog.Logger {
-	var handler slog.Handler
-
-	if os.Getenv("BANTERBUS_ENVIRONMENT") == "local" {
-		handler = tint.NewHandler(os.Stdout, &tint.Options{
-			AddSource:   true,
-			Level:       logLevel,
-			TimeFormat:  time.Kitchen,
-			ReplaceAttr: replaceAttr,
-		})
-	} else {
-		opts := slog.HandlerOptions{
-			AddSource:   true,
-			Level:       logLevel,
-			ReplaceAttr: replaceAttr,
-		}
-		handler = slog.NewJSONHandler(os.Stdout, &opts).WithAttrs(defaultAttrs)
-	}
-
-	customHandler := slogctx.NewHandler(handler, nil)
-	logger := slog.New(slogotel.OtelHandler{Next: customHandler})
+	logger := slog.New(fanoutHandler)
 	return logger
-}
-
-// Taken from this blog post https://betterstack.com/community/guides/logging/logging-in-go/#error-logging-with-slog
-func replaceAttr(_ []string, a slog.Attr) slog.Attr {
-	//nolint:gocritic
-	switch a.Value.Kind() {
-	case slog.KindAny:
-		//nolint:gocritic
-		switch v := a.Value.Any().(type) {
-		case error:
-			a.Value = fmtErr(v)
-		}
-	}
-
-	return a
-}
-
-func marshalStack(err error) []stackFrame {
-	trace := xerrors.StackTrace(err)
-
-	if len(trace) == 0 {
-		return nil
-	}
-
-	frames := trace.Frames()
-
-	s := make([]stackFrame, len(frames))
-
-	for i, v := range frames {
-		f := stackFrame{
-			Source: filepath.Join(
-				filepath.Base(filepath.Dir(v.File)),
-				filepath.Base(v.File),
-			),
-			Func: filepath.Base(v.Function),
-			Line: v.Line,
-		}
-
-		s[i] = f
-	}
-
-	return s
-}
-
-func fmtErr(err error) slog.Value {
-	var groupValues []slog.Attr
-
-	groupValues = append(groupValues, slog.String("msg", err.Error()))
-
-	frames := marshalStack(err)
-
-	if frames != nil {
-		groupValues = append(groupValues,
-			slog.Any("trace", frames),
-		)
-	}
-
-	return slog.GroupValue(groupValues...)
 }

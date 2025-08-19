@@ -9,8 +9,11 @@ import (
 )
 
 func TestE2EReconnect(t *testing.T) {
+	t.Parallel()
+
 	playerNum := 2
 	t.Run("Should be able to reconnect to room with just one player", func(t *testing.T) {
+		t.Parallel()
 		playerPages, err := setupTest(t, playerNum)
 		require.NoError(t, err)
 		hostPlayerPage := playerPages[0]
@@ -48,6 +51,7 @@ func TestE2EReconnect(t *testing.T) {
 	})
 
 	t.Run("Should be able to reconnect with started game showing questions", func(t *testing.T) {
+		t.Parallel()
 		playerPages, err := setupTest(t, playerNum)
 		require.NoError(t, err)
 

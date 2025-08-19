@@ -10,8 +10,11 @@ import (
 )
 
 func TestE2ELobby(t *testing.T) {
+	t.Parallel()
+
 	playerNum := 2
 	t.Run("Should not be able to join game that doesn't exist", func(t *testing.T) {
+		t.Parallel()
 		playerPages, err := setupTest(t, playerNum)
 		require.NoError(t, err)
 
@@ -34,12 +37,13 @@ func TestE2ELobby(t *testing.T) {
 	})
 
 	t.Run("Should be able to join game using the join URL", func(t *testing.T) {
+		t.Parallel()
 		playerPages, err := setupTest(t, playerNum)
 		require.NoError(t, err)
 		hostPlayerPage := playerPages[0]
 		otherPlayerPage := playerPages[1]
 
-		err := hostPlayerPage.GetByPlaceholder("Enter your nickname").Fill("HostPlayer")
+		err = hostPlayerPage.GetByPlaceholder("Enter your nickname").Fill("HostPlayer")
 		require.NoError(t, err)
 		err = hostPlayerPage.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Start"}).Click()
 		require.NoError(t, err)
@@ -70,13 +74,14 @@ func TestE2ELobby(t *testing.T) {
 	})
 
 	t.Run("Should be able to update nickname and avatar in lobby", func(t *testing.T) {
-		playerPages, teardown := setupTest(playerNum)
-		t.Cleanup(func() { teardown(playerPages) })
+		t.Parallel()
+		playerPages, err := setupTest(t, playerNum)
+		require.NoError(t, err)
 
 		hostPlayerPage := playerPages[0]
 		otherPlayerPage := playerPages[1:]
 
-		err := joinRoom(hostPlayerPage, otherPlayerPage)
+		err = joinRoom(hostPlayerPage, otherPlayerPage)
 		require.NoError(t, err)
 
 		hostAvatar := hostPlayerPage.GetByAltText("avatar").First()
@@ -104,12 +109,13 @@ func TestE2ELobby(t *testing.T) {
 	})
 
 	t.Run("Should be able to kick player in lobby", func(t *testing.T) {
-		playerPages, teardown := setupTest(playerNum)
-		t.Cleanup(func() { teardown(playerPages) })
+		t.Parallel()
+		playerPages, err := setupTest(t, playerNum)
+		require.NoError(t, err)
 		hostPlayerPage := playerPages[0]
 		otherPlayerPage := playerPages[1]
 
-		err := joinRoom(hostPlayerPage, playerPages[1:])
+		err = joinRoom(hostPlayerPage, playerPages[1:])
 		require.NoError(t, err)
 
 		err = hostPlayerPage.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Kick Player"}).Click()

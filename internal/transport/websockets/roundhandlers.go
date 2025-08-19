@@ -55,6 +55,16 @@ func (s *SubmitAnswer) Handle(ctx context.Context, client *Client, sub *Subscrib
 		return errors.Join(clientErr, err)
 	}
 
+	// Get the current game state after the answer has been submitted
+	currentGameState, err := sub.roundService.GetGameState(ctx, client.playerID)
+	if err != nil {
+		sub.logger.ErrorContext(ctx, "failed to get game state after answer submission", slog.Any("error", err))
+		// Continue without sending toast if we can't get the state, better than crashing
+	} else if currentGameState != db.FibbingITQuestion {
+		// If the game state is no longer question, don't send the "Answer Submitted" toast
+		return nil
+	}
+
 	t := Toast{Message: "Answer Submitted", Type: "success"}
 	toastJSON, err := json.Marshal(t)
 	if err != nil {

@@ -14,7 +14,10 @@ import (
 )
 
 func TestQuestionAdd(t *testing.T) {
+	t.Parallel()
+
 	t.Run("Should successfully add new question", func(t *testing.T) {
+		t.Parallel()
 		mockStore := mockService.NewMockStorer(t)
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewQuestionService(mockStore, mockRandom, "en-GB")
@@ -48,6 +51,7 @@ func TestQuestionAdd(t *testing.T) {
 	})
 
 	t.Run("Should fail to add new question, db fails", func(t *testing.T) {
+		t.Parallel()
 		mockStore := mockService.NewMockStorer(t)
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewQuestionService(mockStore, mockRandom, "en-GB")
@@ -72,7 +76,10 @@ func TestQuestionAdd(t *testing.T) {
 }
 
 func TestQuestionAddTranslation(t *testing.T) {
+	t.Parallel()
+
 	t.Run("Should successfully add new question translation", func(t *testing.T) {
+		t.Parallel()
 		mockStore := mockService.NewMockStorer(t)
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewQuestionService(mockStore, mockRandom, "en-GB")
@@ -103,6 +110,7 @@ func TestQuestionAddTranslation(t *testing.T) {
 	})
 
 	t.Run("Should fail to add new question translation, db fails", func(t *testing.T) {
+		t.Parallel()
 		mockStore := mockService.NewMockStorer(t)
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewQuestionService(mockStore, mockRandom, "en-GB")
@@ -128,7 +136,10 @@ func TestQuestionAddTranslation(t *testing.T) {
 }
 
 func TestQuestionGetGroups(t *testing.T) {
+	t.Parallel()
+
 	t.Run("Should successfully get all group", func(t *testing.T) {
+		t.Parallel()
 		mockStore := mockService.NewMockStorer(t)
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewQuestionService(mockStore, mockRandom, "en-GB")
@@ -163,6 +174,7 @@ func TestQuestionGetGroups(t *testing.T) {
 	})
 
 	t.Run("Should fail get all group, request to DB fails", func(t *testing.T) {
+		t.Parallel()
 		mockStore := mockService.NewMockStorer(t)
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewQuestionService(mockStore, mockRandom, "en-GB")
@@ -176,7 +188,10 @@ func TestQuestionGetGroups(t *testing.T) {
 }
 
 func TestQuestionGetQuestions(t *testing.T) {
+	t.Parallel()
+
 	t.Run("Should successfully get questions", func(t *testing.T) {
+		t.Parallel()
 		mockStore := mockService.NewMockStorer(t)
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewQuestionService(mockStore, mockRandom, "en-GB")
@@ -235,6 +250,7 @@ func TestQuestionGetQuestions(t *testing.T) {
 	})
 
 	t.Run("Should fail to get questions, DB fails", func(t *testing.T) {
+		t.Parallel()
 		mockStore := mockService.NewMockStorer(t)
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewQuestionService(mockStore, mockRandom, "en-GB")
@@ -260,7 +276,10 @@ func TestQuestionGetQuestions(t *testing.T) {
 }
 
 func TestQuestionDisable(t *testing.T) {
+	t.Parallel()
+
 	t.Run("Should successfully disable question", func(t *testing.T) {
+		t.Parallel()
 		mockStore := mockService.NewMockStorer(t)
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewQuestionService(mockStore, mockRandom, "en-GB")
@@ -275,6 +294,7 @@ func TestQuestionDisable(t *testing.T) {
 	})
 
 	t.Run("Should fail to disable question, db fails", func(t *testing.T) {
+		t.Parallel()
 		mockStore := mockService.NewMockStorer(t)
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewQuestionService(mockStore, mockRandom, "en-GB")
@@ -290,7 +310,10 @@ func TestQuestionDisable(t *testing.T) {
 }
 
 func TestQuestionEnable(t *testing.T) {
+	t.Parallel()
+
 	t.Run("Should successfully enable question", func(t *testing.T) {
+		t.Parallel()
 		mockStore := mockService.NewMockStorer(t)
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewQuestionService(mockStore, mockRandom, "en-GB")
@@ -305,6 +328,7 @@ func TestQuestionEnable(t *testing.T) {
 	})
 
 	t.Run("Should fail to enable question, db fails", func(t *testing.T) {
+		t.Parallel()
 		mockStore := mockService.NewMockStorer(t)
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewQuestionService(mockStore, mockRandom, "en-GB")
@@ -320,7 +344,10 @@ func TestQuestionEnable(t *testing.T) {
 }
 
 func TestQuestionAddGroup(t *testing.T) {
+	t.Parallel()
+
 	t.Run("Should successfully add new group", func(t *testing.T) {
+		t.Parallel()
 		mockStore := mockService.NewMockStorer(t)
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewQuestionService(mockStore, mockRandom, "en-GB")
@@ -345,6 +372,7 @@ func TestQuestionAddGroup(t *testing.T) {
 	})
 
 	t.Run("Should fail to add new group, db fails", func(t *testing.T) {
+		t.Parallel()
 		mockStore := mockService.NewMockStorer(t)
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewQuestionService(mockStore, mockRandom, "en-GB")

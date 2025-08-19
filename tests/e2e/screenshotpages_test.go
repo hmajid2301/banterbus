@@ -8,8 +8,11 @@ import (
 )
 
 func TestE2EScreenshotPages(t *testing.T) {
+	t.Parallel()
+
 	playerNum := 2
 	t.Run("Should successfully screenshot every page", func(t *testing.T) {
+		t.Parallel()
 		playerPages, err := setupTest(t, playerNum)
 		require.NoError(t, err)
 

@@ -473,6 +473,14 @@ func (r *RoundService) UpdateStateToQuestion(
 		return QuestionState{}, xerrors.New(err.Error())
 	}
 
+	if len(normalsQuestions) == 0 {
+		return QuestionState{}, xerrors.New("no normal questions available")
+	}
+
+	if len(fibberQuestions) == 0 {
+		return QuestionState{}, xerrors.New("no fibber questions available")
+	}
+
 	if fibberLoc == -1 {
 		return QuestionState{}, xerrors.New("failed to set fibber location in players slice")
 	}

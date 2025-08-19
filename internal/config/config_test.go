@@ -13,7 +13,39 @@ import (
 )
 
 func TestLoadConfig(t *testing.T) {
+	t.Parallel()
+
 	t.Run("Should load config with default values", func(t *testing.T) {
+		t.Parallel()
+
+		// Save and clear environment variables that might interfere with defaults
+		envVars := []string{
+			"BANTERBUS_DB_USERNAME", "BANTERBUS_DB_PASSWORD", "BANTERBUS_DB_HOST",
+			"BANTERBUS_DB_PORT", "BANTERBUS_DB_NAME", "BANTERBUS_REDIS_ADDRESS",
+			"BANTERBUS_RETRIES", "BANTERBUS_BASE_DELAY_IN_MS", "BANTERBUS_ENVIRONMENT",
+			"BANTERBUS_LOG_LEVEL", "BANTERBUS_WEBSERVER_HOST", "BANTERBUS_WEBSERVER_PORT",
+			"BANTERBUS_DEFAULT_LOCALE", "BANTERBUS_AUTO_RECONNECT", "BANTERBUS_DISABLE_TELEMETRY",
+			"BANTERBUS_JWKS_URL", "BANTERBUS_JWT_ADMIN_GROUP", "SHOW_QUESTION_SCREEN_FOR",
+			"SHOW_VOTING_SCREEN_FOR", "ALL_READY_TO_NEXT_SCREEN_FOR", "SHOW_REVEAL_SCREEN_FOR",
+			"SHOW_SCORE_SCREEN_FOR", "GUESS_FIBBER", "FIBBER_EVADE_CAPTURE",
+		}
+
+		originalValues := make(map[string]string)
+		for _, envVar := range envVars {
+			originalValues[envVar] = os.Getenv(envVar)
+			os.Unsetenv(envVar)
+		}
+
+		t.Cleanup(func() {
+			for envVar, originalValue := range originalValues {
+				if originalValue != "" {
+					os.Setenv(envVar, originalValue)
+				} else {
+					os.Unsetenv(envVar)
+				}
+			}
+		})
+
 		ctx := context.Background()
 		actualCfg, err := config.LoadConfig(ctx)
 		assert.NoError(t, err)
@@ -55,10 +87,28 @@ func TestLoadConfig(t *testing.T) {
 	})
 
 	t.Run("Should load config from environment values", func(t *testing.T) {
+		// WARNING: This test modifies global environment variables (os.Setenv).
+		// Running in parallel with other tests that also modify environment variables
+		// can lead to race conditions and flaky tests.
+		// Consider refactoring to avoid global state or use a test-specific environment.
+
+		// Save original env vars and restore them after the test
+		originalDBUsername := os.Getenv("BANTERBUS_DB_USERNAME")
+		originalDBPassword := os.Getenv("BANTERBUS_DB_PASSWORD")
+		originalDBHost := os.Getenv("BANTERBUS_DB_HOST")
+		originalDBName := os.Getenv("BANTERBUS_DB_NAME")
+		t.Cleanup(func() {
+			os.Setenv("BANTERBUS_DB_USERNAME", originalDBUsername)
+			os.Setenv("BANTERBUS_DB_PASSWORD", originalDBPassword)
+			os.Setenv("BANTERBUS_DB_HOST", originalDBHost)
+			os.Setenv("BANTERBUS_DB_NAME", originalDBName)
+		})
+
 		ctx := context.Background()
 		os.Setenv("BANTERBUS_DB_USERNAME", "banterbus")
 		os.Setenv("BANTERBUS_DB_PASSWORD", "banterbus")
 		os.Setenv("BANTERBUS_DB_HOST", "localhost")
+		os.Setenv("BANTERBUS_DB_NAME", "banterbus")
 
 		config, err := config.LoadConfig(ctx)
 		assert.NoError(t, err)
@@ -68,6 +118,16 @@ func TestLoadConfig(t *testing.T) {
 	})
 
 	t.Run("Should default to info level logs", func(t *testing.T) {
+		// WARNING: This test modifies global environment variables (os.Setenv).
+		// Running in parallel with other tests that also modify environment variables
+		// can lead to race conditions and flaky tests.
+		// Consider refactoring to avoid global state or use a test-specific environment.
+
+		originalLogLevel := os.Getenv("BANTERBUS_LOG_LEVEL")
+		t.Cleanup(func() {
+			os.Setenv("BANTERBUS_LOG_LEVEL", originalLogLevel)
+		})
+
 		ctx := context.Background()
 		os.Setenv("BANTERBUS_LOG_LEVEL", "invalid_log")
 
@@ -78,6 +138,16 @@ func TestLoadConfig(t *testing.T) {
 	})
 
 	t.Run("Should throw error when invalid port", func(t *testing.T) {
+		// WARNING: This test modifies global environment variables (os.Setenv).
+		// Running in parallel with other tests that also modify environment variables
+		// can lead to race conditions and flaky tests.
+		// Consider refactoring to avoid global state or use a test-specific environment.
+
+		originalPort := os.Getenv("BANTERBUS_WEBSERVER_PORT")
+		t.Cleanup(func() {
+			os.Setenv("BANTERBUS_WEBSERVER_PORT", originalPort)
+		})
+
 		ctx := context.Background()
 		os.Setenv("BANTERBUS_WEBSERVER_PORT", "190000")
 
@@ -86,6 +156,16 @@ func TestLoadConfig(t *testing.T) {
 	})
 
 	t.Run("Should throw error when invalid ip", func(t *testing.T) {
+		// WARNING: This test modifies global environment variables (os.Setenv).
+		// Running in parallel with other tests that also modify environment variables
+		// can lead to race conditions and flaky tests.
+		// Consider refactoring to avoid global state or use a test-specific environment.
+
+		originalHost := os.Getenv("BANTERBUS_WEBSERVER_HOST")
+		t.Cleanup(func() {
+			os.Setenv("BANTERBUS_WEBSERVER_HOST", originalHost)
+		})
+
 		ctx := context.Background()
 		os.Setenv("BANTERBUS_WEBSERVER_HOST", "985646")
 

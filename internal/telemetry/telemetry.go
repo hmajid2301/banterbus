@@ -18,7 +18,15 @@ import (
 	semconv "go.opentelemetry.io/otel/semconv/v1.26.0"
 )
 
-func SetupOTelSDK(ctx context.Context, environment string) (shutdown func(context.Context) error, err error) {
+func SetupOTelSDK(
+	ctx context.Context,
+	environment string,
+	disableTelemetry bool,
+) (shutdown func(context.Context) error, err error) {
+	if disableTelemetry {
+		return func(ctx context.Context) error { return nil }, nil
+	}
+
 	var shutdownFuncs []func(context.Context) error
 
 	shutdown = func(ctx context.Context) error {

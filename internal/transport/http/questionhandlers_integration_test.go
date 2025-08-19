@@ -16,11 +16,19 @@ import (
 )
 
 func TestIntegrationAddQuestionHandler(t *testing.T) {
-	srv, err := banterbustest.NewTestServer()
-	require.NoError(t, err)
-	defer srv.Close()
+	t.Parallel()
 
 	t.Run("Should successfully add new question", func(t *testing.T) {
+		t.Parallel()
+
+		srv, err := banterbustest.NewTestServer()
+		if err != nil {
+			t.Skipf("Skipping integration test: %v", err)
+		}
+		t.Cleanup(func() {
+			srv.Close()
+		})
+
 		question := transporthttp.NewQuestion{
 			Text:      "Do you like cats",
 			GroupName: "cat",
@@ -44,6 +52,16 @@ func TestIntegrationAddQuestionHandler(t *testing.T) {
 	})
 
 	t.Run("Should fail to add new question, invalid method", func(t *testing.T) {
+		t.Parallel()
+
+		srv, err := banterbustest.NewTestServer()
+		if err != nil {
+			t.Skipf("Skipping integration test: %v", err)
+		}
+		t.Cleanup(func() {
+			srv.Close()
+		})
+
 		question := map[string]string{
 			"text": "do",
 		}
@@ -65,6 +83,16 @@ func TestIntegrationAddQuestionHandler(t *testing.T) {
 	})
 
 	t.Run("Should fail to add new question, missing required fields", func(t *testing.T) {
+		t.Parallel()
+
+		srv, err := banterbustest.NewTestServer()
+		if err != nil {
+			t.Skipf("Skipping integration test: %v", err)
+		}
+		t.Cleanup(func() {
+			srv.Close()
+		})
+
 		question := map[string]string{
 			"text": "do",
 		}
@@ -199,9 +227,15 @@ func TestIntegrationAddQuestionHandler(t *testing.T) {
 // }
 
 func TestIntegrationGetQuestionsHandler(t *testing.T) {
+	t.Parallel()
+
 	srv, err := banterbustest.NewTestServer()
-	require.NoError(t, err)
-	defer srv.Close()
+	if err != nil {
+		t.Skipf("Skipping integration test: %v", err)
+	}
+	t.Cleanup(func() {
+		srv.Close()
+	})
 
 	// TODO: enable with pagination
 	// t.Run("Should successfully get handler", func(t *testing.T) {

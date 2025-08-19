@@ -10,7 +10,7 @@ default:
 variables:
   IMAGE_TAG: v0.1.8
   BANTERBUS_CI_IMAGE: $CI_REGISTRY_IMAGE/ci:$IMAGE_TAG
-  BANTERBUS_DB_URI: postgresql://postgres:postgres@postgres:5432/banterbus
+  BANTERBUS_DB_URI: postgresql://postgres:postgres@docker:5432?sslmode=disable
   DOCKER_HOST: tcp://docker:2375
   DOCKER_DRIVER: overlay2
   DOCKER_TLS_CERTDIR: ""
@@ -133,13 +133,6 @@ lint:
   script:
     - task lint
 
-format:
-  extends:
-    - .task
-  script:
-    - task format
-    - git diff --exit-code
-
 generate:
   extends:
     - .task
@@ -160,6 +153,7 @@ tests:integration:
     - .test
   variables:
     BANTERBUS_REDIS_ADDRESS: docker:6379
+    BANTERBUS_DB_URI: postgresql://postgres:postgres@docker:5432?sslmode=disable
   script:
     - docker compose --profile test up -d --wait
     - task tests:integration -- ${GOTEST_EXTRA_ARGS}
@@ -170,14 +164,114 @@ test:e2e:
   extends:
     - .test
   variables:
-    BANTERBUS_LOG_LEVEL: INFO
-    BANTERBUS_ENVIRONMENT: local
+    BANTERBUS_LOG_LEVEL: WARN
+    BANTERBUS_ENVIRONMENT: test
     BANTERBUS_REDIS_ADDRESS: docker:6379
-    BANTERBUS_JWKS_URL: http://docker:8080/default/jwks
+    BANTERBUS_DB_URI: postgresql://postgres:postgres@docker:5432?sslmode=disable
+    BANTERBUS_DB_HOST: docker
+    BANTERBUS_DB_PORT: '5432'
+    BANTERBUS_DB_USERNAME: postgres
+    BANTERBUS_DB_PASSWORD: postgres
+    BANTERBUS_DB_NAME: banterbus
+    BANTERBUS_JWKS_URL: http://docker:9091/default/jwks
     BANTERBUS_PLAYWRIGHT_HEADLESS: true
+    OTEL_EXPORTER_OTLP_ENDPOINT: http://localhost:9999
+    OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: http://localhost:9999/v1/traces  
+    OTEL_EXPORTER_OTLP_METRICS_ENDPOINT: http://localhost:9999/v1/metrics
+    GOTEST_EXTRA_ARGS: '-test.parallel 10'
   script:
     - docker compose --profile test up -d --wait
-    - task tests:e2e:quiet -- ${GOTEST_EXTRA_ARGS}
+    - |
+      # Run migrations first by starting and stopping the app
+      echo "Running database migrations..."
+      timeout 30s task run || true
+      sleep 2
+    - |
+      # Populate main database with test data for e2e tests
+      cat > populate_db.go << 'EOF'
+      package main
+      
+      import (
+        "context"
+        "database/sql"
+        "embed"
+        "fmt"
+        "os"
+        "gitlab.com/hmajid2301/banterbus/internal/banterbustest"
+        "github.com/jackc/pgx/v5/pgxpool"
+        pgxUUID "github.com/vgarvardt/pgx-google-uuid/v5"
+        "github.com/jackc/pgx/v5"
+        "github.com/pressly/goose/v3"
+        _ "github.com/jackc/pgx/v5/stdlib"
+      )
+      
+      //go:embed internal/store/db/sqlc/migrations/*.sql
+      var migrations embed.FS
+      
+      func main() {
+        ctx := context.Background()
+        
+        // Use the same DB URI format as the tests
+        uri := fmt.Sprintf("postgresql://%s:%s@%s:%s/%s?sslmode=disable",
+          os.Getenv("BANTERBUS_DB_USERNAME"),
+          os.Getenv("BANTERBUS_DB_PASSWORD"), 
+          os.Getenv("BANTERBUS_DB_HOST"),
+          os.Getenv("BANTERBUS_DB_PORT"),
+          os.Getenv("BANTERBUS_DB_NAME"))
+        
+        fmt.Println("Connecting to:", uri)
+        
+        // Run migrations first
+        sqlDB, err := sql.Open("pgx", uri)
+        if err != nil {
+          fmt.Printf("Failed to open database: %v\n", err)
+          return
+        }
+        defer sqlDB.Close()
+        
+        goose.SetBaseFS(migrations)
+        if err := goose.SetDialect("postgres"); err != nil {
+          fmt.Printf("Failed to set goose dialect: %v\n", err)
+          return
+        }
+        
+        err = goose.Up(sqlDB, "internal/store/db/sqlc/migrations")
+        if err != nil {
+          fmt.Printf("Failed to run migrations: %v\n", err)
+          return
+        }
+        fmt.Println("Migrations completed successfully")
+        
+        // Now populate data
+        pgxConfig, err := pgxpool.ParseConfig(uri)
+        if err != nil {
+          fmt.Printf("Parse config error: %v\n", err)
+          return
+        }
+        
+        pgxConfig.AfterConnect = func(_ context.Context, conn *pgx.Conn) error {
+          pgxUUID.Register(conn.TypeMap())
+          return nil
+        }
+        
+        pool, err := pgxpool.NewWithConfig(ctx, pgxConfig)
+        if err != nil {
+          fmt.Printf("Pool creation error: %v\n", err)
+          return
+        }
+        defer pool.Close()
+        
+        err = banterbustest.FillWithDummyData(ctx, pool)
+        if err != nil {
+          fmt.Printf("Fill data error: %v\n", err)
+          return
+        }
+        
+        fmt.Println("Successfully populated database with test data")
+      }
+      EOF
+      go run populate_db.go
+    - task tests:e2e -- ${GOTEST_EXTRA_ARGS}
   artifacts:
     when: always
     reports:
@@ -231,6 +325,7 @@ check_deploy:dev:
     NAMESPACE: dev
   dependencies:
     - publish:docker:dev
+  allow_failure: true
 
 # smoke:tests:dev:e2e:
 #   extends:

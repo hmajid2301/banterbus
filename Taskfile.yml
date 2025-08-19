@@ -44,20 +44,23 @@ tasks:
   tests:
     desc: Runs all the tests.
     cmds:
-      - gotestsum
+      - gotestsum -- -parallel 0
 
   tests:unit:
     desc: Runs all the unit tests.
     cmds:
-      - gotestsum --format testname --hide-summary=skipped -- -coverprofile coverage.out -cover -covermode=atomic -skip '^TestIntegration' ./internal/... {{.CLI_ARGS}}
+      - gotestsum --format testname --hide-summary=skipped -- -coverprofile coverage.out -cover -covermode=atomic -skip '^TestIntegration' -parallel 0 ./internal/... {{.CLI_ARGS}}
 
   tests:integration:
     desc: Runs all the integration tests.
     cmds:
-      - gotestsum --format testname --hide-summary=skipped -- -coverprofile coverage.out -cover -covermode=atomic -run ^TestIntegration ./internal/... {{.CLI_ARGS}}
+      - gotestsum --format testname --hide-summary=skipped -- -coverprofile coverage.out -cover -covermode=atomic -run ^TestIntegration -parallel 0 ./internal/... {{.CLI_ARGS}}
 
   tests:e2e:
     desc: Runs e2e tests with playwright.
+    env:
+      SHOW_VOTING_SCREEN_FOR: 10s
+      BANTERBUS_DISABLE_TELEMETRY: true
     cmds:
       - |
         concurrently \
@@ -65,9 +68,9 @@ tasks:
           --success first \
           "task run" --kill-others \
           "until curl -sSf http://localhost:8080/health >/dev/null; do sleep 2; done && \
-           gotestsum --format testname --hide-summary=skipped --rerun-fails --packages='./tests/e2e' -- \
+           gotestsum --format testname --hide-summary=skipped --packages='./tests/e2e' -- \
              -coverprofile coverage.out \
-             -cover -covermode=atomic {{.CLI_ARGS}}"
+             -cover -covermode=atomic -parallel 0 {{.CLI_ARGS}}"
 
   tests:e2e:quiet:
     desc: Runs e2e tests with playwright without any logging as this can be super verbose.

@@ -112,13 +112,29 @@ func (q *QuestionState) Start(ctx context.Context) {
 	}
 
 	time.Sleep(time.Until(deadline))
-	span.AddEvent("state_transition", trace.WithAttributes(
-		attribute.String("next_state", "voting"),
-		attribute.String("transition_reason", "timeout"),
-	))
 
-	v := &VotingState{GameStateID: q.GameStateID, Subscriber: q.Subscriber}
-	go v.Start(ctx)
+	// Check current game state before transitioning
+	currentGameState, err := q.Subscriber.roundService.GetGameState(ctx, q.GameStateID)
+	if err != nil {
+		q.Subscriber.logger.ErrorContext(
+			ctx,
+			"failed to get game state before voting transition",
+			slog.Any("error", err),
+		)
+		return // Don't proceed if we can't get the state
+	}
+
+	if currentGameState == db.FibbingITQuestion { // Only transition if still in question state
+		span.AddEvent("state_transition", trace.WithAttributes(
+			attribute.String("next_state", "voting"),
+			attribute.String("transition_reason", "timeout"),
+		))
+
+		v := &VotingState{GameStateID: q.GameStateID, Subscriber: q.Subscriber}
+		go v.Start(ctx)
+	} else {
+		q.Subscriber.logger.InfoContext(ctx, "game state already transitioned from question state", slog.String("current_state", currentGameState.String()))
+	}
 }
 
 type VotingState struct {

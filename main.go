@@ -48,7 +48,7 @@ func main() {
 
 	err := mainLogic()
 	if err != nil {
-		logger := logging.New(slog.LevelInfo, []slog.Attr{})
+		logger := logging.New()
 		logger.ErrorContext(context.Background(), "failed to start app", slog.Any("error", err))
 		exitCode = 1
 	}
@@ -64,7 +64,7 @@ func mainLogic() error {
 		return fmt.Errorf("failed to load config: %w", err)
 	}
 
-	otelShutdown, err := telemetry.SetupOTelSDK(ctx, conf.App.Environment)
+	otelShutdown, err := telemetry.SetupOTelSDK(ctx, conf.App.Environment, conf.App.DisableTelemetry)
 	if err != nil {
 		return fmt.Errorf("failed to setup otel: %w", err)
 	}
@@ -74,10 +74,7 @@ func mainLogic() error {
 	}()
 
 	// TODO: take these values from otel? instrument via otel?
-	logger := logging.New(conf.App.LogLevel, []slog.Attr{
-		slog.String("service_name", "banterbus"),
-		slog.String("service_namespace", conf.App.Environment),
-	})
+	logger := logging.New()
 
 	// TODO: refactor this
 	pgxConfig, err := pgxpool.ParseConfig(conf.DB.URI)

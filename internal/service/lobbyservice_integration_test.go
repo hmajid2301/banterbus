@@ -20,7 +20,10 @@ const defaultHostNickname = "host_player"
 const defaultOtherPlayerNickname = "another_player"
 
 func TestIntegrationLobbyCreate(t *testing.T) {
+	t.Parallel()
+
 	t.Run("Should create room successfully", func(t *testing.T) {
+		t.Parallel()
 		pool, teardown := setupSubtest(t)
 		t.Cleanup(teardown)
 
@@ -47,7 +50,10 @@ func TestIntegrationLobbyCreate(t *testing.T) {
 }
 
 func TestIntegrationLobbyJoin(t *testing.T) {
+	t.Parallel()
+
 	t.Run("Should successfully join room", func(t *testing.T) {
+		t.Parallel()
 		pool, teardown := setupSubtest(t)
 		t.Cleanup(teardown)
 
@@ -71,6 +77,7 @@ func TestIntegrationLobbyJoin(t *testing.T) {
 	})
 
 	t.Run("Should fail to join room where room code doesn't exist", func(t *testing.T) {
+		t.Parallel()
 		pool, teardown := setupSubtest(t)
 		t.Cleanup(teardown)
 
@@ -90,6 +97,7 @@ func TestIntegrationLobbyJoin(t *testing.T) {
 	})
 
 	t.Run("Should fail to join room where not in CREATED state", func(t *testing.T) {
+		t.Parallel()
 		pool, teardown := setupSubtest(t)
 		t.Cleanup(teardown)
 
@@ -117,7 +125,10 @@ func TestIntegrationLobbyJoin(t *testing.T) {
 }
 
 func TestIntegrationLobbyKickPlayer(t *testing.T) {
+	t.Parallel()
+
 	t.Run("Should successfully kick player from room", func(t *testing.T) {
+		t.Parallel()
 		pool, teardown := setupSubtest(t)
 		t.Cleanup(teardown)
 
@@ -140,6 +151,7 @@ func TestIntegrationLobbyKickPlayer(t *testing.T) {
 	})
 
 	t.Run("Should fail to kick player because room code does not exist", func(t *testing.T) {
+		t.Parallel()
 		pool, teardown := setupSubtest(t)
 		t.Cleanup(teardown)
 
@@ -159,6 +171,7 @@ func TestIntegrationLobbyKickPlayer(t *testing.T) {
 	})
 
 	t.Run("Should fail to kick player is not host of the room", func(t *testing.T) {
+		t.Parallel()
 		pool, teardown := setupSubtest(t)
 		t.Cleanup(teardown)
 
@@ -178,6 +191,7 @@ func TestIntegrationLobbyKickPlayer(t *testing.T) {
 	})
 
 	t.Run("Should fail to kick player because room is not in CREATED state", func(t *testing.T) {
+		t.Parallel()
 		pool, teardown := setupSubtest(t)
 		t.Cleanup(teardown)
 
@@ -204,6 +218,7 @@ func TestIntegrationLobbyKickPlayer(t *testing.T) {
 	})
 
 	t.Run("Should fail to kick player because player with nickname not in room", func(t *testing.T) {
+		t.Parallel()
 		pool, teardown := setupSubtest(t)
 		t.Cleanup(teardown)
 
@@ -224,7 +239,10 @@ func TestIntegrationLobbyKickPlayer(t *testing.T) {
 }
 
 func TestIntegrationLobbyStart(t *testing.T) {
+	t.Parallel()
+
 	t.Run("Should successfully start game", func(t *testing.T) {
+		t.Parallel()
 		pool, teardown := setupSubtest(t)
 		t.Cleanup(teardown)
 
@@ -276,6 +294,7 @@ func TestIntegrationLobbyStart(t *testing.T) {
 	})
 
 	t.Run("Should fail to start game because room not found", func(t *testing.T) {
+		t.Parallel()
 		pool, teardown := setupSubtest(t)
 		t.Cleanup(teardown)
 
@@ -302,6 +321,7 @@ func TestIntegrationLobbyStart(t *testing.T) {
 	})
 
 	t.Run("Should fail to start game because player starting is not host of the room", func(t *testing.T) {
+		t.Parallel()
 		pool, teardown := setupSubtest(t)
 		t.Cleanup(teardown)
 
@@ -328,6 +348,7 @@ func TestIntegrationLobbyStart(t *testing.T) {
 	})
 
 	t.Run("Should fail to start game because room is not in CREATED state", func(t *testing.T) {
+		t.Parallel()
 		pool, teardown := setupSubtest(t)
 		t.Cleanup(teardown)
 
@@ -361,6 +382,7 @@ func TestIntegrationLobbyStart(t *testing.T) {
 	})
 
 	t.Run("Should fail to start game as there is only one player in room", func(t *testing.T) {
+		t.Parallel()
 		pool, teardown := setupSubtest(t)
 		t.Cleanup(teardown)
 
@@ -381,6 +403,7 @@ func TestIntegrationLobbyStart(t *testing.T) {
 	})
 
 	t.Run("Should fail to start game as not every one is ready", func(t *testing.T) {
+		t.Parallel()
 		pool, teardown := setupSubtest(t)
 		t.Cleanup(teardown)
 
@@ -406,7 +429,10 @@ func TestIntegrationLobbyStart(t *testing.T) {
 }
 
 func TestIntegrationLobbyGetRoomState(t *testing.T) {
+	t.Parallel()
+
 	t.Run("Should successfully get room state", func(t *testing.T) {
+		t.Parallel()
 		pool, teardown := setupSubtest(t)
 		t.Cleanup(teardown)
 
@@ -432,6 +458,7 @@ func TestIntegrationLobbyGetRoomState(t *testing.T) {
 	})
 
 	t.Run("Should fail to get room state, player id not found", func(t *testing.T) {
+		t.Parallel()
 		pool, teardown := setupSubtest(t)
 		t.Cleanup(teardown)
 
@@ -457,7 +484,10 @@ func TestIntegrationLobbyGetRoomState(t *testing.T) {
 }
 
 func TestIntegrationLobbyGetLobby(t *testing.T) {
+	t.Parallel()
+
 	t.Run("Should successfully get lobby", func(t *testing.T) {
+		t.Parallel()
 		pool, teardown := setupSubtest(t)
 		t.Cleanup(teardown)
 

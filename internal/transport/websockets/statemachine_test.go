@@ -14,12 +14,15 @@ import (
 
 	"gitlab.com/hmajid2301/banterbus/internal/config"
 	"gitlab.com/hmajid2301/banterbus/internal/service"
+	"gitlab.com/hmajid2301/banterbus/internal/store/db"
 	"gitlab.com/hmajid2301/banterbus/internal/transport/websockets"
 	mockService "gitlab.com/hmajid2301/banterbus/internal/transport/websockets/mocks"
 	"gitlab.com/hmajid2301/banterbus/internal/views"
 )
 
 func TestStateMachine(t *testing.T) {
+	t.Parallel()
+
 	roundService := mockService.NewMockRoundServicer(t)
 	lobbyService := mockService.NewMockLobbyServicer(t)
 	playerService := mockService.NewMockPlayerServicer(t)
@@ -46,7 +49,8 @@ func TestStateMachine(t *testing.T) {
 
 	sub := websockets.NewSubscriber(lobbyService, playerService, roundService, log, websocketer, conf, rules)
 
-	t.Run("Should successfully complete question state and move to voting", func(_ *testing.T) {
+	t.Run("Should successfully complete question state and move to voting", func(t *testing.T) {
+		t.Parallel()
 		u := uuid.Must(uuid.NewV7())
 		q := websockets.QuestionState{
 			GameStateID: u,
@@ -56,6 +60,12 @@ func TestStateMachine(t *testing.T) {
 
 		p1 := uuid.Must(uuid.NewV7())
 		p2 := uuid.Must(uuid.NewV7())
+
+		// Mock GetGameState call that happens at the start of the state machine
+		roundService.EXPECT().
+			GetGameState(mock.Anything, u).
+			Return(db.FibbingITQuestion, nil)
+
 		roundService.EXPECT().
 			UpdateStateToQuestion(mock.Anything, u, mock.AnythingOfType("time.Time"), false).
 			Return(service.QuestionState{
@@ -82,7 +92,8 @@ func TestStateMachine(t *testing.T) {
 		q.Start(ctx)
 	})
 
-	t.Run("Should fail to complete question state, because fail to update state to question", func(_ *testing.T) {
+	t.Run("Should fail to complete question state, because fail to update state to question", func(t *testing.T) {
+		t.Parallel()
 		u := uuid.Must(uuid.NewV7())
 		q := websockets.QuestionState{
 			GameStateID: u,
@@ -97,7 +108,8 @@ func TestStateMachine(t *testing.T) {
 		q.Start(ctx)
 	})
 
-	t.Run("Should successfully complete voting state and move to reveal", func(_ *testing.T) {
+	t.Run("Should successfully complete voting state and move to reveal", func(t *testing.T) {
+		t.Parallel()
 		u := uuid.Must(uuid.NewV7())
 		q := websockets.VotingState{
 			GameStateID: u,
@@ -130,7 +142,8 @@ func TestStateMachine(t *testing.T) {
 		q.Start(ctx)
 	})
 
-	t.Run("Should fail to complete voting state, because fail to update state to voting", func(_ *testing.T) {
+	t.Run("Should fail to complete voting state, because fail to update state to voting", func(t *testing.T) {
+		t.Parallel()
 		u := uuid.Must(uuid.NewV7())
 		q := websockets.VotingState{
 			GameStateID: u,
@@ -144,7 +157,8 @@ func TestStateMachine(t *testing.T) {
 		q.Start(ctx)
 	})
 
-	t.Run("Should successfully complete reveal state and move to question state", func(_ *testing.T) {
+	t.Run("Should successfully complete reveal state and move to question state", func(t *testing.T) {
+		t.Parallel()
 		u := uuid.Must(uuid.NewV7())
 		q := websockets.RevealState{
 			GameStateID: u,
@@ -174,7 +188,8 @@ func TestStateMachine(t *testing.T) {
 
 	t.Run(
 		"Should successfully complete reveal state and move to scoring state because final round",
-		func(_ *testing.T) {
+		func(t *testing.T) {
+			t.Parallel()
 			u := uuid.Must(uuid.NewV7())
 			q := websockets.RevealState{
 				GameStateID: u,
@@ -205,7 +220,8 @@ func TestStateMachine(t *testing.T) {
 
 	t.Run(
 		"Should successfully complete reveal state and move to scoring state because fibber found",
-		func(_ *testing.T) {
+		func(t *testing.T) {
+			t.Parallel()
 			u := uuid.Must(uuid.NewV7())
 			q := websockets.RevealState{
 				GameStateID: u,
@@ -238,7 +254,8 @@ func TestStateMachine(t *testing.T) {
 
 	t.Run(
 		"Should successfully complete reveal state and move to winner state because fibber found",
-		func(_ *testing.T) {
+		func(t *testing.T) {
+			t.Parallel()
 			u := uuid.Must(uuid.NewV7())
 			q := websockets.RevealState{
 				GameStateID: u,
@@ -271,7 +288,8 @@ func TestStateMachine(t *testing.T) {
 
 	t.Run(
 		"Should successfully complete reveal state and move to winner state because final round reached",
-		func(_ *testing.T) {
+		func(t *testing.T) {
+			t.Parallel()
 			u := uuid.Must(uuid.NewV7())
 			q := websockets.RevealState{
 				GameStateID: u,
@@ -303,7 +321,8 @@ func TestStateMachine(t *testing.T) {
 
 	t.Run(
 		"Should successfully complete scoring state and move to question state",
-		func(_ *testing.T) {
+		func(t *testing.T) {
+			t.Parallel()
 			u := uuid.Must(uuid.NewV7())
 			q := websockets.ScoringState{
 				GameStateID: u,
@@ -337,7 +356,8 @@ func TestStateMachine(t *testing.T) {
 
 	t.Run(
 		"Should successfully complete winner state and finish the game",
-		func(_ *testing.T) {
+		func(t *testing.T) {
+			t.Parallel()
 			u := uuid.Must(uuid.NewV7())
 			q := websockets.WinnerState{
 				GameStateID: u,

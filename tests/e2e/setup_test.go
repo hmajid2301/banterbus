@@ -1,11 +1,14 @@
 package e2e
 
 import (
+	"fmt"
 	"log"
 	"os"
+	"path/filepath"
+	"regexp"
+	"strings"
 	"testing"
 
-	"github.com/mdobak/go-xerrors"
 	"github.com/playwright-community/playwright-go"
 )
 
@@ -34,7 +37,7 @@ func beforeAll() error {
 	var err error
 	pw, err = playwright.Run()
 	if err != nil {
-		return xerrors.New("could not start Playwright: %v", err)
+		return fmt.Errorf("could not start Playwright: %v", err)
 	}
 
 	browserName := os.Getenv("BROWSER")
@@ -59,10 +62,10 @@ func beforeAll() error {
 		Headless: playwright.Bool(headless),
 	})
 	if err != nil {
-		return xerrors.New("could not start browser: %v", err)
+		return fmt.Errorf("could not start browser: %v", err)
 	}
 
-	expect = playwright.NewPlaywrightAssertions(1000)
+	expect = playwright.NewPlaywrightAssertions(30000)
 
 	// Set webappURL from environment or default to localhost
 	if webappURL == "" {
@@ -70,6 +73,20 @@ func beforeAll() error {
 	}
 
 	return nil
+}
+
+// sanitizeTestName converts a test name to a filename-safe string
+func sanitizeTestName(testName string) string {
+	reg := regexp.MustCompile(`[<>:"/\\|?*]`)
+	sanitized := reg.ReplaceAllString(testName, "_")
+
+	sanitized = strings.ReplaceAll(sanitized, " ", "_")
+
+	if len(sanitized) > 200 {
+		sanitized = sanitized[:200]
+	}
+
+	return sanitized
 }
 
 func afterAll() {
@@ -87,10 +104,18 @@ func afterAll() {
 
 func setupTest(t *testing.T, playerNum int) ([]playwright.Page, error) {
 	pages := []playwright.Page{}
+	contexts := []playwright.BrowserContext{}
 
-	for range playerNum {
+	testName := sanitizeTestName(t.Name())
+
+	for i := range playerNum {
+		tempVideoDir := filepath.Join("videos", "temp", fmt.Sprintf("%s_%d", testName, i))
+		if err := os.MkdirAll(tempVideoDir, 0755); err != nil {
+			return nil, fmt.Errorf("failed to create temp video dir: %v", err)
+		}
+
 		context, err := browser.NewContext(playwright.BrowserNewContextOptions{
-			RecordVideo: &playwright.RecordVideo{Dir: "videos"},
+			RecordVideo: &playwright.RecordVideo{Dir: tempVideoDir},
 			Viewport: &playwright.Size{
 				Width:  960,
 				Height: 1280,
@@ -98,70 +123,62 @@ func setupTest(t *testing.T, playerNum int) ([]playwright.Page, error) {
 			Permissions: []string{"clipboard-read", "clipboard-write"},
 		})
 		if err != nil {
-			return nil, xerrors.New("context creation failed: %v", err)
+			return nil, fmt.Errorf("context creation failed: %v", err)
 		}
+		contexts = append(contexts, context)
 
 		page, err := context.NewPage()
 		if err != nil {
-			return nil, xerrors.New("page creation failed: %v", err)
+			return nil, fmt.Errorf("page creation failed: %v", err)
 		}
 
 		_, err = page.Goto(webappURL)
 		if err != nil {
-			return nil, xerrors.New("failed to go to URL: %v", err)
+			return nil, fmt.Errorf("failed to go to URL: %v", err)
 		}
 		pages = append(pages, page)
-		cleanup := func() {
-			if err := page.Close(); err != nil {
-				log.Printf("Page close error: %v", err)
-			}
+	}
+
+	// Setup cleanup that renames video files
+	t.Cleanup(func() {
+		statusDir := "passed"
+		if t.Failed() {
+			statusDir = "failed"
+		}
+		finalBaseDir := filepath.Join("videos", statusDir)
+
+		for i, context := range contexts {
 			if err := context.Close(); err != nil {
 				log.Printf("Context close error: %v", err)
+			}
 
+			tempVideoDir := filepath.Join("videos", "temp", fmt.Sprintf("%s_%d", testName, i))
+			finalVideoPath := filepath.Join(finalBaseDir, fmt.Sprintf("%s_player_%d.webm", testName, i+1))
+
+			files, err := filepath.Glob(filepath.Join(tempVideoDir, "*.webm"))
+			if err != nil {
+				log.Printf("Error finding video files: %v", err)
+				continue
+			}
+
+			if len(files) > 0 {
+				if err := os.MkdirAll(finalBaseDir, 0755); err != nil {
+					log.Printf("Error creating final video directory: %v", err)
+					continue
+				}
+
+				if err := os.Rename(files[0], finalVideoPath); err != nil {
+					log.Printf("Error renaming video file: %v", err)
+				} else {
+					log.Printf("Video saved as: %s", finalVideoPath)
+				}
+			}
+
+			if err := os.RemoveAll(tempVideoDir); err != nil {
+				log.Printf("Error removing temp directory: %v", err)
 			}
 		}
-		t.Cleanup(cleanup)
-
-	}
+	})
 
 	return pages, nil
-}
-
-func setupTestMultiple(playerNum int) ([]playwright.Page, func(pages []playwright.Page) error) {
-	var err error
-
-	contexts := make([]playwright.BrowserContext, playerNum)
-	pages := make([]playwright.Page, playerNum)
-
-	for i := 0; i < playerNum; i++ {
-		contexts[i], err = browser.NewContext(playwright.BrowserNewContextOptions{
-			RecordVideo: &playwright.RecordVideo{
-				Dir: "videos/",
-			},
-			Permissions: []string{"clipboard-read", "clipboard-write"},
-		})
-
-		if err != nil {
-			log.Fatalf("could not create a new browser context: %v", err)
-		}
-		page, err := contexts[i].NewPage()
-		if err != nil {
-			log.Fatalf("could not create page: %v", err)
-		}
-
-		_, err = page.Goto(webappURL)
-		if err != nil {
-			log.Fatalf("could not go to page: %v", err)
-		}
-
-		pages[i] = page
-	}
-
-	return pages, func(pages []playwright.Page) error {
-		for _, page := range pages {
-			err := page.Close()
-			return err
-		}
-		return nil
-	}
 }

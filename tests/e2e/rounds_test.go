@@ -11,9 +11,12 @@ import (
 )
 
 func TestE2ERounds(t *testing.T) {
+	t.Parallel()
+
 	playerNum := 6
 
 	t.Run("Should successfully complete an entire game where the fibber is caught first time", func(t *testing.T) {
+		t.Parallel()
 		playerPages, err := setupTest(t, playerNum)
 		require.NoError(t, err)
 
@@ -153,6 +156,7 @@ func TestE2ERounds(t *testing.T) {
 	})
 
 	t.Run("Should successfully complete an entire round without guessing the fibber", func(t *testing.T) {
+		t.Parallel()
 		playerPages, err := setupTest(t, playerNum)
 		require.NoError(t, err)
 
