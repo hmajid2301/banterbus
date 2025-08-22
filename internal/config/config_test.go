@@ -1,7 +1,6 @@
 package config_test
 
 import (
-	"context"
 	"log/slog"
 	"os"
 	"testing"
@@ -46,7 +45,7 @@ func TestLoadConfig(t *testing.T) {
 			}
 		})
 
-		ctx := context.Background()
+		ctx := t.Context()
 		actualCfg, err := config.LoadConfig(ctx)
 		assert.NoError(t, err)
 
@@ -71,7 +70,7 @@ func TestLoadConfig(t *testing.T) {
 			},
 			Timings: config.Timings{
 				ShowQuestionScreenFor:   time.Second * 15,
-				ShowVotingScreenFor:     time.Second * 120,
+				ShowVotingScreenFor:     time.Second * 60,
 				AllReadyToNextScreenFor: time.Second * 2,
 				ShowRevealScreenFor:     time.Second * 15,
 				ShowScoreScreenFor:      time.Second * 15,
@@ -104,7 +103,7 @@ func TestLoadConfig(t *testing.T) {
 			os.Setenv("BANTERBUS_DB_NAME", originalDBName)
 		})
 
-		ctx := context.Background()
+		ctx := t.Context()
 		os.Setenv("BANTERBUS_DB_USERNAME", "banterbus")
 		os.Setenv("BANTERBUS_DB_PASSWORD", "banterbus")
 		os.Setenv("BANTERBUS_DB_HOST", "localhost")
@@ -128,7 +127,7 @@ func TestLoadConfig(t *testing.T) {
 			os.Setenv("BANTERBUS_LOG_LEVEL", originalLogLevel)
 		})
 
-		ctx := context.Background()
+		ctx := t.Context()
 		os.Setenv("BANTERBUS_LOG_LEVEL", "invalid_log")
 
 		config, err := config.LoadConfig(ctx)
@@ -148,7 +147,7 @@ func TestLoadConfig(t *testing.T) {
 			os.Setenv("BANTERBUS_WEBSERVER_PORT", originalPort)
 		})
 
-		ctx := context.Background()
+		ctx := t.Context()
 		os.Setenv("BANTERBUS_WEBSERVER_PORT", "190000")
 
 		_, err := config.LoadConfig(ctx)
@@ -166,7 +165,7 @@ func TestLoadConfig(t *testing.T) {
 			os.Setenv("BANTERBUS_WEBSERVER_HOST", originalHost)
 		})
 
-		ctx := context.Background()
+		ctx := t.Context()
 		os.Setenv("BANTERBUS_WEBSERVER_HOST", "985646")
 
 		_, err := config.LoadConfig(ctx)

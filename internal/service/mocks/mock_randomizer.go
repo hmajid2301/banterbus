@@ -5,7 +5,7 @@
 package mocks
 
 import (
-	"github.com/google/uuid"
+	"github.com/gofrs/uuid/v5"
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -139,7 +139,7 @@ func (_c *MockRandomizer_GetFibberIndex_Call) RunAndReturn(run func(playersLen i
 }
 
 // GetID provides a mock function for the type MockRandomizer
-func (_mock *MockRandomizer) GetID() uuid.UUID {
+func (_mock *MockRandomizer) GetID() (uuid.UUID, error) {
 	ret := _mock.Called()
 
 	if len(ret) == 0 {
@@ -147,6 +147,10 @@ func (_mock *MockRandomizer) GetID() uuid.UUID {
 	}
 
 	var r0 uuid.UUID
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func() (uuid.UUID, error)); ok {
+		return returnFunc()
+	}
 	if returnFunc, ok := ret.Get(0).(func() uuid.UUID); ok {
 		r0 = returnFunc()
 	} else {
@@ -154,7 +158,12 @@ func (_mock *MockRandomizer) GetID() uuid.UUID {
 			r0 = ret.Get(0).(uuid.UUID)
 		}
 	}
-	return r0
+	if returnFunc, ok := ret.Get(1).(func() error); ok {
+		r1 = returnFunc()
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
 }
 
 // MockRandomizer_GetID_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetID'
@@ -174,12 +183,56 @@ func (_c *MockRandomizer_GetID_Call) Run(run func()) *MockRandomizer_GetID_Call 
 	return _c
 }
 
-func (_c *MockRandomizer_GetID_Call) Return(uUID uuid.UUID) *MockRandomizer_GetID_Call {
-	_c.Call.Return(uUID)
+func (_c *MockRandomizer_GetID_Call) Return(uUID uuid.UUID, err error) *MockRandomizer_GetID_Call {
+	_c.Call.Return(uUID, err)
 	return _c
 }
 
-func (_c *MockRandomizer_GetID_Call) RunAndReturn(run func() uuid.UUID) *MockRandomizer_GetID_Call {
+func (_c *MockRandomizer_GetID_Call) RunAndReturn(run func() (uuid.UUID, error)) *MockRandomizer_GetID_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetNickname provides a mock function for the type MockRandomizer
+func (_mock *MockRandomizer) GetNickname() string {
+	ret := _mock.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetNickname")
+	}
+
+	var r0 string
+	if returnFunc, ok := ret.Get(0).(func() string); ok {
+		r0 = returnFunc()
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+	return r0
+}
+
+// MockRandomizer_GetNickname_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetNickname'
+type MockRandomizer_GetNickname_Call struct {
+	*mock.Call
+}
+
+// GetNickname is a helper method to define mock.On call
+func (_e *MockRandomizer_Expecter) GetNickname() *MockRandomizer_GetNickname_Call {
+	return &MockRandomizer_GetNickname_Call{Call: _e.mock.On("GetNickname")}
+}
+
+func (_c *MockRandomizer_GetNickname_Call) Run(run func()) *MockRandomizer_GetNickname_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *MockRandomizer_GetNickname_Call) Return(s string) *MockRandomizer_GetNickname_Call {
+	_c.Call.Return(s)
+	return _c
+}
+
+func (_c *MockRandomizer_GetNickname_Call) RunAndReturn(run func() string) *MockRandomizer_GetNickname_Call {
 	_c.Call.Return(run)
 	return _c
 }

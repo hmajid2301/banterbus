@@ -17,7 +17,7 @@ import (
 
 	"gitlab.com/hmajid2301/banterbus/internal/store/db"
 
-	"github.com/google/uuid"
+	"github.com/gofrs/uuid/v5"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/pressly/goose/v3"
@@ -156,7 +156,7 @@ func FillWithDummyData(ctx context.Context, pool *pgxpool.Pool) error {
 
 	for _, group := range groups {
 		questionGroup, err := queries.WithTx(tx).AddGroup(ctx, db.AddGroupParams{
-			ID:        uuid.MustParse(group.ID),
+			ID:        uuid.Must(uuid.FromString(group.ID)),
 			GroupName: group.Name,
 			GroupType: group.Type,
 		})
@@ -312,6 +312,26 @@ func FillWithDummyData(ctx context.Context, pool *pgxpool.Pool) error {
 		},
 		{
 			"fibbing_it",
+			"8aa9f87f-31d9-4421-aae5-2024ca730351",
+			"free_form",
+			true,
+			"What color bike do you prefer",
+			"en-GB",
+			"bike",
+			"questions",
+		},
+		{
+			"fibbing_it",
+			"8aa9f87f-31d9-4421-aae5-2024ca730352",
+			"free_form",
+			true,
+			"How fast can a bike go",
+			"en-GB",
+			"bike",
+			"questions",
+		},
+		{
+			"fibbing_it",
 			"89b20c84-12ae-444d-ad9c-26f72d3f28ab",
 			"multiple_choice",
 			true,
@@ -356,7 +376,7 @@ func FillWithDummyData(ctx context.Context, pool *pgxpool.Pool) error {
 		groupID := groupNameToID[q.GroupName][q.GroupType]
 
 		_, err := queries.WithTx(tx).AddQuestion(ctx, db.AddQuestionParams{
-			ID:        uuid.MustParse(q.QuestionID),
+			ID:        uuid.Must(uuid.FromString(q.QuestionID)),
 			GameName:  q.GameName,
 			RoundType: q.Round,
 			GroupID:   groupID,
@@ -369,7 +389,7 @@ func FillWithDummyData(ctx context.Context, pool *pgxpool.Pool) error {
 			ID:         uuid.Must(uuid.NewV7()),
 			Question:   q.Question,
 			Locale:     q.Locale,
-			QuestionID: uuid.MustParse(q.QuestionID),
+			QuestionID: uuid.Must(uuid.FromString(q.QuestionID)),
 		})
 		if err != nil {
 			return err

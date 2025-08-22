@@ -1,10 +1,9 @@
 package service_test
 
 import (
-	"context"
 	"testing"
 
-	"github.com/google/uuid"
+	"github.com/gofrs/uuid/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/mdobak/go-xerrors"
 	"github.com/stretchr/testify/assert"
@@ -14,7 +13,7 @@ import (
 	"gitlab.com/hmajid2301/banterbus/internal/store/db"
 )
 
-var playerID = uuid.MustParse("0193a625-dad1-7095-9abb-bebdad739381")
+var playerID = uuid.Must(uuid.FromString("0193a625-dad1-7095-9abb-bebdad739381"))
 var avatarURL = "https://api.dicebear.com/9.x/bottts-neutral/svg?radius=20&seed=randomSeed"
 
 func TestPlayerServiceUpdateNickname(t *testing.T) {
@@ -26,7 +25,7 @@ func TestPlayerServiceUpdateNickname(t *testing.T) {
 		mockRandomizer := mockService.NewMockRandomizer(t)
 		srv := service.NewPlayerService(mockStore, mockRandomizer)
 
-		ctx := context.Background()
+		ctx := t.Context()
 
 		mockStore.EXPECT().GetRoomByPlayerID(ctx, playerID).Return(db.Room{
 			ID:        roomID,
@@ -74,7 +73,7 @@ func TestPlayerServiceUpdateNickname(t *testing.T) {
 		mockRandomizer := mockService.NewMockRandomizer(t)
 		srv := service.NewPlayerService(mockStore, mockRandomizer)
 
-		ctx := context.Background()
+		ctx := t.Context()
 		mockStore.EXPECT().GetRoomByPlayerID(ctx, playerID).Return(
 			db.Room{}, xerrors.New("failed to get room details"),
 		)
@@ -89,7 +88,7 @@ func TestPlayerServiceUpdateNickname(t *testing.T) {
 		mockRandomizer := mockService.NewMockRandomizer(t)
 		srv := service.NewPlayerService(mockStore, mockRandomizer)
 
-		ctx := context.Background()
+		ctx := t.Context()
 
 		mockStore.EXPECT().GetRoomByPlayerID(ctx, playerID).Return(db.Room{
 			ID:        roomID,
@@ -106,7 +105,7 @@ func TestPlayerServiceUpdateNickname(t *testing.T) {
 		mockRandomizer := mockService.NewMockRandomizer(t)
 		srv := service.NewPlayerService(mockStore, mockRandomizer)
 
-		ctx := context.Background()
+		ctx := t.Context()
 
 		mockStore.EXPECT().GetRoomByPlayerID(ctx, playerID).Return(db.Room{
 			ID:        roomID,
@@ -131,7 +130,7 @@ func TestPlayerServiceUpdateNickname(t *testing.T) {
 		mockRandomizer := mockService.NewMockRandomizer(t)
 		srv := service.NewPlayerService(mockStore, mockRandomizer)
 
-		ctx := context.Background()
+		ctx := t.Context()
 
 		mockStore.EXPECT().GetRoomByPlayerID(ctx, playerID).Return(db.Room{
 			ID:        roomID,
@@ -157,7 +156,7 @@ func TestPlayerServiceUpdateNickname(t *testing.T) {
 		mockRandomizer := mockService.NewMockRandomizer(t)
 		srv := service.NewPlayerService(mockStore, mockRandomizer)
 
-		ctx := context.Background()
+		ctx := t.Context()
 
 		mockStore.EXPECT().GetRoomByPlayerID(ctx, playerID).Return(db.Room{
 			ID:        roomID,
@@ -190,7 +189,7 @@ func TestPlayerServiceGenerateAvatar(t *testing.T) {
 		mockRandomizer := mockService.NewMockRandomizer(t)
 		srv := service.NewPlayerService(mockStore, mockRandomizer)
 
-		ctx := context.Background()
+		ctx := t.Context()
 
 		mockStore.EXPECT().GetRoomByPlayerID(ctx, playerID).Return(db.Room{
 			ID:        roomID,
@@ -236,7 +235,7 @@ func TestPlayerServiceGenerateAvatar(t *testing.T) {
 		mockRandomizer := mockService.NewMockRandomizer(t)
 		srv := service.NewPlayerService(mockStore, mockRandomizer)
 
-		ctx := context.Background()
+		ctx := t.Context()
 
 		mockStore.EXPECT().GetRoomByPlayerID(ctx, playerID).Return(
 			db.Room{}, xerrors.New("failed to get room details"),
@@ -252,7 +251,7 @@ func TestPlayerServiceGenerateAvatar(t *testing.T) {
 		mockRandomizer := mockService.NewMockRandomizer(t)
 		srv := service.NewPlayerService(mockStore, mockRandomizer)
 
-		ctx := context.Background()
+		ctx := t.Context()
 
 		mockStore.EXPECT().GetRoomByPlayerID(ctx, playerID).Return(db.Room{
 			ID:        roomID,
@@ -269,7 +268,7 @@ func TestPlayerServiceGenerateAvatar(t *testing.T) {
 		mockRandomizer := mockService.NewMockRandomizer(t)
 		srv := service.NewPlayerService(mockStore, mockRandomizer)
 
-		ctx := context.Background()
+		ctx := t.Context()
 
 		mockStore.EXPECT().GetRoomByPlayerID(ctx, playerID).Return(db.Room{
 			ID:        roomID,
@@ -291,7 +290,7 @@ func TestPlayerServiceGenerateAvatar(t *testing.T) {
 		mockRandomizer := mockService.NewMockRandomizer(t)
 		srv := service.NewPlayerService(mockStore, mockRandomizer)
 
-		ctx := context.Background()
+		ctx := t.Context()
 
 		mockStore.EXPECT().GetRoomByPlayerID(ctx, playerID).Return(db.Room{
 			ID:        roomID,
@@ -338,7 +337,7 @@ func TestPlayerServiceTogglePlayerIsReady(t *testing.T) {
 			mockRandomizer := mockService.NewMockRandomizer(t)
 			srv := service.NewPlayerService(mockStore, mockRandomizer)
 
-			ctx := context.Background()
+			ctx := t.Context()
 
 			mockStore.EXPECT().GetRoomByPlayerID(ctx, playerID).Return(db.Room{
 				ID:        roomID,
@@ -381,7 +380,7 @@ func TestPlayerServiceTogglePlayerIsReady(t *testing.T) {
 		mockRandomizer := mockService.NewMockRandomizer(t)
 		srv := service.NewPlayerService(mockStore, mockRandomizer)
 
-		ctx := context.Background()
+		ctx := t.Context()
 		mockStore.EXPECT().GetRoomByPlayerID(ctx, playerID).Return(
 			db.Room{}, xerrors.New("failed to get room details"),
 		)
@@ -396,7 +395,7 @@ func TestPlayerServiceTogglePlayerIsReady(t *testing.T) {
 		mockRandomizer := mockService.NewMockRandomizer(t)
 		srv := service.NewPlayerService(mockStore, mockRandomizer)
 
-		ctx := context.Background()
+		ctx := t.Context()
 
 		mockStore.EXPECT().GetRoomByPlayerID(ctx, playerID).Return(db.Room{
 			ID:        roomID,
@@ -413,7 +412,7 @@ func TestPlayerServiceTogglePlayerIsReady(t *testing.T) {
 		mockRandomizer := mockService.NewMockRandomizer(t)
 		srv := service.NewPlayerService(mockStore, mockRandomizer)
 
-		ctx := context.Background()
+		ctx := t.Context()
 
 		mockStore.EXPECT().GetRoomByPlayerID(ctx, playerID).Return(db.Room{
 			ID:        roomID,
@@ -433,7 +432,7 @@ func TestPlayerServiceTogglePlayerIsReady(t *testing.T) {
 		mockRandomizer := mockService.NewMockRandomizer(t)
 		srv := service.NewPlayerService(mockStore, mockRandomizer)
 
-		ctx := context.Background()
+		ctx := t.Context()
 
 		mockStore.EXPECT().GetRoomByPlayerID(ctx, playerID).Return(db.Room{
 			ID:        roomID,

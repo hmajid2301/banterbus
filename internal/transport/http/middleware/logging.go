@@ -55,7 +55,7 @@ func (m Middleware) Logging(next http.Handler) http.Handler {
 		start := time.Now()
 		wrapped := wrapResponseWriter(w)
 		next.ServeHTTP(wrapped, r)
-		m.Logger.InfoContext(
+		m.Logger.DebugContext(
 			r.Context(),
 			"HTTP Request",
 			slog.Int("status", wrapped.status),

@@ -1,0 +1,868 @@
+asyncapi: 3.0.0
+info:
+  title: Banter Bus WebSocket API
+  version: 1.0.0
+  description: |
+    Banter Bus WebSocket API for real-time multiplayer party game communication.
+    Players connect via WebSocket to create rooms, join games, submit answers, and vote for the "fibber".
+  contact:
+    name: Haseeb Majid
+    url: https://haseebmajid.dev
+    email: hello@haseebmajid.dev
+  license:
+    name: License
+    url: https://github.com/hmajid2301/banterbus/blob/main/LICENSE
+
+servers:
+  production:
+    host: banterbus.games
+    protocol: wss
+    description: Production WebSocket server
+  development:
+    host: dev.banterbus.games
+    protocol: wss
+    description: Development WebSocket server
+  local:
+    host: localhost:8080
+    protocol: ws
+    description: Local development WebSocket server
+
+channels:
+  game:
+    address: /ws
+    description: Main WebSocket channel for all game communication
+    messages:
+      # Incoming messages (client to server)
+      createRoom:
+        $ref: '#/components/messages/CreateRoom'
+      joinLobby:
+        $ref: '#/components/messages/JoinLobby'
+      startGame:
+        $ref: '#/components/messages/StartGame'
+      updatePlayerNickname:
+        $ref: '#/components/messages/UpdatePlayerNickname'
+      generateNewAvatar:
+        $ref: '#/components/messages/GenerateNewAvatar'
+      togglePlayerIsReady:
+        $ref: '#/components/messages/TogglePlayerIsReady'
+      kickPlayer:
+        $ref: '#/components/messages/KickPlayer'
+      submitAnswer:
+        $ref: '#/components/messages/SubmitAnswer'
+      toggleAnswerIsReady:
+        $ref: '#/components/messages/ToggleAnswerIsReady'
+      submitVote:
+        $ref: '#/components/messages/SubmitVote'
+      toggleVotingIsReady:
+        $ref: '#/components/messages/ToggleVotingIsReady'
+      # Outgoing messages (server to client)
+      lobbyUpdate:
+        $ref: '#/components/messages/LobbyUpdate'
+      questionState:
+        $ref: '#/components/messages/QuestionState'
+      votingState:
+        $ref: '#/components/messages/VotingState'
+      revealRoleState:
+        $ref: '#/components/messages/RevealRoleState'
+      scoreState:
+        $ref: '#/components/messages/ScoreState'
+      winnerState:
+        $ref: '#/components/messages/WinnerState'
+      error:
+        $ref: '#/components/messages/Error'
+
+operations:
+  # Client to Server Operations
+  createRoom:
+    action: send
+    channel:
+      $ref: '#/channels/game'
+    summary: Create a new game room
+    description: Creates a new game room and makes the sender the host
+    messages:
+      - $ref: '#/components/messages/CreateRoom'
+    reply:
+      channel:
+        $ref: '#/channels/game'
+      messages:
+        - $ref: '#/components/messages/LobbyUpdate'
+        - $ref: '#/components/messages/Error'
+
+  joinLobby:
+    action: send
+    channel:
+      $ref: '#/channels/game'
+    summary: Join an existing game room
+    description: Join a game room using a room code
+    messages:
+      - $ref: '#/components/messages/JoinLobby'
+    reply:
+      channel:
+        $ref: '#/channels/game'
+      messages:
+        - $ref: '#/components/messages/LobbyUpdate'
+        - $ref: '#/components/messages/Error'
+
+  startGame:
+    action: send
+    channel:
+      $ref: '#/channels/game'
+    summary: Start the game
+    description: Host starts the game for all players in the lobby
+    messages:
+      - $ref: '#/components/messages/StartGame'
+    reply:
+      channel:
+        $ref: '#/channels/game'
+      messages:
+        - $ref: '#/components/messages/QuestionState'
+        - $ref: '#/components/messages/Error'
+
+  updatePlayerNickname:
+    action: send
+    channel:
+      $ref: '#/channels/game'
+    summary: Update player nickname
+    description: Change the player's display name
+    messages:
+      - $ref: '#/components/messages/UpdatePlayerNickname'
+    reply:
+      channel:
+        $ref: '#/channels/game'
+      messages:
+        - $ref: '#/components/messages/LobbyUpdate'
+        - $ref: '#/components/messages/Error'
+
+  generateNewAvatar:
+    action: send
+    channel:
+      $ref: '#/channels/game'
+    summary: Generate new avatar
+    description: Generate a new random avatar for the player
+    messages:
+      - $ref: '#/components/messages/GenerateNewAvatar'
+    reply:
+      channel:
+        $ref: '#/channels/game'
+      messages:
+        - $ref: '#/components/messages/LobbyUpdate'
+        - $ref: '#/components/messages/Error'
+
+  togglePlayerIsReady:
+    action: send
+    channel:
+      $ref: '#/channels/game'
+    summary: Toggle player ready status
+    description: Toggle whether the player is ready to start the game
+    messages:
+      - $ref: '#/components/messages/TogglePlayerIsReady'
+    reply:
+      channel:
+        $ref: '#/channels/game'
+      messages:
+        - $ref: '#/components/messages/LobbyUpdate'
+        - $ref: '#/components/messages/Error'
+
+  kickPlayer:
+    action: send
+    channel:
+      $ref: '#/channels/game'
+    summary: Kick a player from the room
+    description: Host kicks a player from the game room
+    messages:
+      - $ref: '#/components/messages/KickPlayer'
+    reply:
+      channel:
+        $ref: '#/channels/game'
+      messages:
+        - $ref: '#/components/messages/LobbyUpdate'
+        - $ref: '#/components/messages/Error'
+
+  submitAnswer:
+    action: send
+    channel:
+      $ref: '#/channels/game'
+    summary: Submit answer to question
+    description: Submit an answer during the question phase
+    messages:
+      - $ref: '#/components/messages/SubmitAnswer'
+    reply:
+      channel:
+        $ref: '#/channels/game'
+      messages:
+        - $ref: '#/components/messages/QuestionState'
+        - $ref: '#/components/messages/Error'
+
+  toggleAnswerIsReady:
+    action: send
+    channel:
+      $ref: '#/channels/game'
+    summary: Toggle answer ready status
+    description: Indicate that the player is ready to proceed from the answer phase
+    messages:
+      - $ref: '#/components/messages/ToggleAnswerIsReady'
+    reply:
+      channel:
+        $ref: '#/channels/game'
+      messages:
+        - $ref: '#/components/messages/QuestionState'
+        - $ref: '#/components/messages/Error'
+
+  submitVote:
+    action: send
+    channel:
+      $ref: '#/channels/game'
+    summary: Submit vote for fibber
+    description: Vote for which player you think is the fibber
+    messages:
+      - $ref: '#/components/messages/SubmitVote'
+    reply:
+      channel:
+        $ref: '#/channels/game'
+      messages:
+        - $ref: '#/components/messages/VotingState'
+        - $ref: '#/components/messages/Error'
+
+  toggleVotingIsReady:
+    action: send
+    channel:
+      $ref: '#/channels/game'
+    summary: Toggle voting ready status
+    description: Indicate that the player is ready to proceed from the voting phase
+    messages:
+      - $ref: '#/components/messages/ToggleVotingIsReady'
+    reply:
+      channel:
+        $ref: '#/channels/game'
+      messages:
+        - $ref: '#/components/messages/VotingState'
+        - $ref: '#/components/messages/Error'
+
+  # Server to Client Operations
+  receiveLobbyUpdate:
+    action: receive
+    channel:
+      $ref: '#/channels/game'
+    summary: Receive lobby updates
+    description: Receive updates about the current lobby state
+    messages:
+      - $ref: '#/components/messages/LobbyUpdate'
+
+  receiveQuestionState:
+    action: receive
+    channel:
+      $ref: '#/channels/game'
+    summary: Receive question state
+    description: Receive the current question and game state
+    messages:
+      - $ref: '#/components/messages/QuestionState'
+
+  receiveVotingState:
+    action: receive
+    channel:
+      $ref: '#/channels/game'
+    summary: Receive voting state
+    description: Receive the voting phase state
+    messages:
+      - $ref: '#/components/messages/VotingState'
+
+  receiveRevealRoleState:
+    action: receive
+    channel:
+      $ref: '#/channels/game'
+    summary: Receive role reveal state
+    description: Receive the results of the voting phase
+    messages:
+      - $ref: '#/components/messages/RevealRoleState'
+
+  receiveScoreState:
+    action: receive
+    channel:
+      $ref: '#/channels/game'
+    summary: Receive score state
+    description: Receive current game scores
+    messages:
+      - $ref: '#/components/messages/ScoreState'
+
+  receiveWinnerState:
+    action: receive
+    channel:
+      $ref: '#/channels/game'
+    summary: Receive winner state
+    description: Receive the final game results and winner
+    messages:
+      - $ref: '#/components/messages/WinnerState'
+
+  receiveError:
+    action: receive
+    channel:
+      $ref: '#/channels/game'
+    summary: Receive error message
+    description: Receive error messages from the server
+    messages:
+      - $ref: '#/components/messages/Error'
+
+components:
+  messages:
+    # Client to Server Messages
+    CreateRoom:
+      name: createRoom
+      title: Create Room
+      summary: Create a new game room
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/CreateRoomPayload'
+
+    JoinLobby:
+      name: joinLobby
+      title: Join Lobby
+      summary: Join an existing game room
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/JoinLobbyPayload'
+
+    StartGame:
+      name: startGame
+      title: Start Game
+      summary: Start the game
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/StartGamePayload'
+
+    UpdatePlayerNickname:
+      name: updatePlayerNickname
+      title: Update Player Nickname
+      summary: Update player's nickname
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/UpdatePlayerNicknamePayload'
+
+    GenerateNewAvatar:
+      name: generateNewAvatar
+      title: Generate New Avatar
+      summary: Generate a new avatar for the player
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/GenerateNewAvatarPayload'
+
+    TogglePlayerIsReady:
+      name: togglePlayerIsReady
+      title: Toggle Player Ready
+      summary: Toggle player ready status
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/TogglePlayerIsReadyPayload'
+
+    KickPlayer:
+      name: kickPlayer
+      title: Kick Player
+      summary: Kick a player from the room
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/KickPlayerPayload'
+
+    SubmitAnswer:
+      name: submitAnswer
+      title: Submit Answer
+      summary: Submit an answer to the current question
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/SubmitAnswerPayload'
+
+    ToggleAnswerIsReady:
+      name: toggleAnswerIsReady
+      title: Toggle Answer Ready
+      summary: Toggle answer ready status
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/ToggleAnswerIsReadyPayload'
+
+    SubmitVote:
+      name: submitVote
+      title: Submit Vote
+      summary: Submit a vote for the fibber
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/SubmitVotePayload'
+
+    ToggleVotingIsReady:
+      name: toggleVotingIsReady
+      title: Toggle Voting Ready
+      summary: Toggle voting ready status
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/ToggleVotingIsReadyPayload'
+
+    # Server to Client Messages
+    LobbyUpdate:
+      name: lobbyUpdate
+      title: Lobby Update
+      summary: Lobby state update
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/LobbyState'
+
+    QuestionState:
+      name: questionState
+      title: Question State
+      summary: Current question and game state
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/QuestionState'
+
+    VotingState:
+      name: votingState
+      title: Voting State
+      summary: Current voting phase state
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/VotingState'
+
+    RevealRoleState:
+      name: revealRoleState
+      title: Reveal Role State
+      summary: Role reveal and voting results
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/RevealRoleState'
+
+    ScoreState:
+      name: scoreState
+      title: Score State
+      summary: Current game scores
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/ScoreState'
+
+    WinnerState:
+      name: winnerState
+      title: Winner State
+      summary: Final game results and winner
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/WinnerState'
+
+    Error:
+      name: error
+      title: Error
+      summary: Error message from server
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/ErrorPayload'
+
+  schemas:
+    # Client to Server Payload Schemas
+    CreateRoomPayload:
+      type: object
+      required:
+        - message_type
+        - game_name
+        - player_nickname
+      properties:
+        message_type:
+          type: string
+          const: create_room
+        game_name:
+          type: string
+          description: Name of the game to create
+          example: "fibbing_it"
+        player_nickname:
+          type: string
+          description: Host player's nickname
+          example: "Player1"
+          minLength: 1
+
+    JoinLobbyPayload:
+      type: object
+      required:
+        - message_type
+        - room_code
+        - player_nickname
+      properties:
+        message_type:
+          type: string
+          const: join_lobby
+        room_code:
+          type: string
+          description: Room code to join
+          example: "ABC123"
+          pattern: '^[A-Z0-9]{6}$'
+        player_nickname:
+          type: string
+          description: Player's nickname
+          example: "Player2"
+          minLength: 1
+
+    StartGamePayload:
+      type: object
+      required:
+        - message_type
+        - room_code
+      properties:
+        message_type:
+          type: string
+          const: start_game
+        room_code:
+          type: string
+          description: Room code to start
+          example: "ABC123"
+          pattern: '^[A-Z0-9]{6}$'
+
+    UpdatePlayerNicknamePayload:
+      type: object
+      required:
+        - message_type
+        - player_nickname
+      properties:
+        message_type:
+          type: string
+          const: update_player_nickname
+        player_nickname:
+          type: string
+          description: New nickname for the player
+          example: "NewNickname"
+          minLength: 1
+
+    GenerateNewAvatarPayload:
+      type: object
+      required:
+        - message_type
+      properties:
+        message_type:
+          type: string
+          const: generate_new_avatar
+
+    TogglePlayerIsReadyPayload:
+      type: object
+      required:
+        - message_type
+      properties:
+        message_type:
+          type: string
+          const: toggle_player_is_ready
+
+    KickPlayerPayload:
+      type: object
+      required:
+        - message_type
+        - room_code
+        - player_nickname_to_kick
+      properties:
+        message_type:
+          type: string
+          const: kick_player
+        room_code:
+          type: string
+          description: Room code
+          example: "ABC123"
+          pattern: '^[A-Z0-9]{6}$'
+        player_nickname_to_kick:
+          type: string
+          description: Nickname of player to kick
+          example: "PlayerToKick"
+          minLength: 1
+
+    SubmitAnswerPayload:
+      type: object
+      required:
+        - message_type
+        - answer
+      properties:
+        message_type:
+          type: string
+          const: submit_answer
+        answer:
+          type: string
+          description: Player's answer to the question
+          example: "Blue"
+          minLength: 1
+
+    ToggleAnswerIsReadyPayload:
+      type: object
+      required:
+        - message_type
+      properties:
+        message_type:
+          type: string
+          const: toggle_answer_is_ready
+
+    SubmitVotePayload:
+      type: object
+      required:
+        - message_type
+        - voted_player_nickname
+      properties:
+        message_type:
+          type: string
+          const: submit_vote
+        voted_player_nickname:
+          type: string
+          description: Nickname of the player being voted for
+          example: "SuspiciousPlayer"
+          minLength: 1
+
+    ToggleVotingIsReadyPayload:
+      type: object
+      required:
+        - message_type
+      properties:
+        message_type:
+          type: string
+          const: toggle_voting_is_ready
+
+    # Server to Client Payload Schemas
+    LobbyState:
+      type: object
+      properties:
+        code:
+          type: string
+          description: Room code
+          example: "ABC123"
+        players:
+          type: array
+          description: Players in the lobby
+          items:
+            $ref: '#/components/schemas/LobbyPlayer'
+
+    LobbyPlayer:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Player's unique identifier
+        nickname:
+          type: string
+          description: Player's nickname
+          example: "Player1"
+        avatar:
+          type: string
+          description: Player's avatar URL
+          example: "https://api.dicebear.com/7.x/personas/svg?seed=Player1"
+        is_ready:
+          type: boolean
+          description: Whether the player is ready to start
+        is_host:
+          type: boolean
+          description: Whether the player is the host
+
+    QuestionState:
+      type: object
+      properties:
+        game_state_id:
+          type: string
+          format: uuid
+          description: Unique identifier for this game state
+        players:
+          type: array
+          description: Players with their roles and questions
+          items:
+            $ref: '#/components/schemas/PlayerWithRole'
+        round:
+          type: integer
+          description: Current round number (1-3)
+          minimum: 1
+          maximum: 3
+          example: 1
+        round_type:
+          type: string
+          description: Type of round
+          enum: [fibbing_it]
+          example: "fibbing_it"
+        deadline:
+          type: integer
+          description: Time remaining in seconds
+          example: 30
+
+    PlayerWithRole:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Player's unique identifier
+        role:
+          type: string
+          description: Player's role in the game
+          enum: [normal, fibber]
+          example: "normal"
+        question:
+          type: string
+          description: The question shown to this player
+          example: "What is your favorite color?"
+        is_answer_ready:
+          type: boolean
+          description: Whether the player has indicated they're ready
+        possible_answers:
+          type: array
+          description: Suggested answers for fibbers
+          items:
+            type: string
+          example: ["Red", "Blue", "Green"]
+        current_answer:
+          type: string
+          description: Player's current answer
+          example: "Blue"
+
+    VotingState:
+      type: object
+      properties:
+        players:
+          type: array
+          description: Players with their answers and voting info
+          items:
+            $ref: '#/components/schemas/PlayerWithVoting'
+        question:
+          type: string
+          description: The question that was asked
+          example: "What is your favorite color?"
+        round:
+          type: integer
+          description: Current round number
+          example: 1
+        game_state_id:
+          type: string
+          format: uuid
+          description: Game state identifier
+        deadline:
+          type: integer
+          description: Time remaining in seconds
+          example: 30
+
+    PlayerWithVoting:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Player's unique identifier
+        nickname:
+          type: string
+          description: Player's nickname
+          example: "Player1"
+        avatar:
+          type: string
+          description: Player's avatar URL
+        votes:
+          type: integer
+          description: Number of votes received
+          example: 2
+        answer:
+          type: string
+          description: Player's answer
+          example: "Blue"
+        is_ready:
+          type: boolean
+          description: Whether player is ready to continue
+        role:
+          type: string
+          description: Player's role
+          enum: [normal, fibber]
+
+    RevealRoleState:
+      type: object
+      properties:
+        voted_for_player_nickname:
+          type: string
+          description: Nickname of the player who received the most votes
+          example: "Player2"
+        voted_for_player_avatar:
+          type: string
+          description: Avatar of the voted player
+        voted_for_player_role:
+          type: string
+          description: Role of the voted player
+          enum: [normal, fibber]
+          example: "fibber"
+        should_reveal:
+          type: boolean
+          description: Whether the role should be revealed
+        deadline:
+          type: integer
+          description: Time remaining in seconds
+          example: 10
+        round:
+          type: integer
+          description: Current round number
+          example: 1
+        round_type:
+          type: string
+          description: Type of round
+          enum: [fibbing_it]
+        player_ids:
+          type: array
+          description: IDs of players in this reveal
+          items:
+            type: string
+            format: uuid
+
+    ScoreState:
+      type: object
+      properties:
+        players:
+          type: array
+          description: Players with their current scores
+          items:
+            $ref: '#/components/schemas/PlayerWithScoring'
+        deadline:
+          type: integer
+          description: Time remaining in seconds
+          example: 5
+        round_type:
+          type: string
+          description: Type of round
+          enum: [fibbing_it]
+        round_number:
+          type: integer
+          description: Current round number
+          example: 1
+
+    PlayerWithScoring:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Player's unique identifier
+        nickname:
+          type: string
+          description: Player's nickname
+          example: "Player1"
+        avatar:
+          type: string
+          description: Player's avatar URL
+        score:
+          type: integer
+          description: Player's current score
+          example: 100
+
+    WinnerState:
+      type: object
+      properties:
+        players:
+          type: array
+          description: Final player standings (sorted by score)
+          items:
+            $ref: '#/components/schemas/PlayerWithScoring'
+
+    ErrorPayload:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Error message
+          example: "Room code is required"
+        details:
+          type: string
+          description: Additional error details
+          example: "The room_code field must not be empty"
+
+tags:
+  - name: Lobby
+    description: Lobby management operations
+  - name: Player
+    description: Player management operations
+  - name: Game
+    description: Game round operations
+  - name: System
+    description: System and error messages

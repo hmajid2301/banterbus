@@ -19,7 +19,7 @@ import (
 )
 
 func setupSubtest(t *testing.T) (*pgxpool.Pool, func()) {
-	ctx := context.Background()
+	ctx := t.Context()
 	db, err := banterbustest.CreateDB(ctx)
 	require.NoError(t, err)
 
@@ -34,8 +34,8 @@ func createRoom(ctx context.Context, srv *service.LobbyService) (service.Lobby, 
 	newPlayer := service.NewHostPlayer{
 		ID: defaultHostPlayerID,
 	}
-	lobby, err := srv.Create(ctx, "fibbing_it", newPlayer)
-	return lobby, err
+	result, err := srv.Create(ctx, "fibbing_it", newPlayer)
+	return result.Lobby, err
 }
 
 func lobbyWithTwoPlayers(ctx context.Context, srv *service.LobbyService) (service.Lobby, error) {
@@ -43,13 +43,13 @@ func lobbyWithTwoPlayers(ctx context.Context, srv *service.LobbyService) (servic
 		ID:       defaultHostPlayerID,
 		Nickname: defaultHostNickname,
 	}
-	lobby, err := srv.Create(ctx, "fibbing_it", newPlayer)
+	result, err := srv.Create(ctx, "fibbing_it", newPlayer)
 	if err != nil {
-		return lobby, err
+		return service.Lobby{}, err
 	}
 
-	lobby, err = srv.Join(ctx, lobby.Code, defaultOtherPlayerID, defaultOtherPlayerNickname)
-	return lobby, err
+	joinResult, err := srv.Join(ctx, result.Lobby.Code, defaultOtherPlayerID, defaultOtherPlayerNickname)
+	return joinResult.Lobby, err
 }
 
 func startGame(
@@ -61,12 +61,12 @@ func startGame(
 		ID:       defaultHostPlayerID,
 		Nickname: defaultHostNickname,
 	}
-	lobby, err := lobbySrv.Create(ctx, "fibbing_it", newPlayer)
+	l, err := lobbySrv.Create(ctx, "fibbing_it", newPlayer)
 	if err != nil {
 		return service.QuestionState{}, err
 	}
 
-	lobby, err = lobbySrv.Join(ctx, lobby.Code, defaultOtherPlayerID, defaultOtherPlayerNickname)
+	lobby, err := lobbySrv.Join(ctx, l.Lobby.Code, defaultOtherPlayerID, defaultOtherPlayerNickname)
 	if err != nil {
 		return service.QuestionState{}, err
 	}
@@ -81,7 +81,18 @@ func startGame(
 		return service.QuestionState{}, err
 	}
 
-	questionState, err := lobbySrv.Start(ctx, lobby.Code, newPlayer.ID, time.Now().UTC().Add(10*time.Second))
+	questionState, err := lobbySrv.Start(ctx, lobby.Lobby.Code, newPlayer.ID, time.Now().UTC().Add(10*time.Second))
+	if err != nil {
+		return service.QuestionState{}, err
+	}
+
+	if len(questionState.Players) < 2 {
+		return service.QuestionState{}, fmt.Errorf(
+			"not enough players after game start: got %d, need 2",
+			len(questionState.Players),
+		)
+	}
+
 	return questionState, err
 }
 
@@ -93,6 +104,13 @@ func votingState(ctx context.Context,
 	questionState, err := startGame(ctx, lobbyService, playerService)
 	if err != nil {
 		return service.VotingState{}, err
+	}
+
+	if len(questionState.Players) < 2 {
+		return service.VotingState{}, fmt.Errorf(
+			"not enough players in question state: got %d, need 2",
+			len(questionState.Players),
+		)
 	}
 
 	err = roundService.SubmitAnswer(ctx, questionState.Players[0].ID, "This is my answer", time.Now())

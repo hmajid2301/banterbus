@@ -1,13 +1,12 @@
 package service_test
 
 import (
-	"context"
 	"database/sql"
 	"testing"
 	"time"
 
+	"github.com/gofrs/uuid/v5"
 	"github.com/google/go-cmp/cmp/cmpopts"
-	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/mdobak/go-xerrors"
 	"github.com/stretchr/testify/assert"
@@ -22,14 +21,14 @@ const roomCode = "ABC12"
 const gameName = "fibbing_it"
 
 // TODO: move to generic
-var roomID = uuid.MustParse("0193a627-db9b-7af3-88d8-6b3164d4b969")
-var hostPlayerID = uuid.MustParse("0193a623-8423-74b3-b991-896d7c6df52a")
+var roomID = uuid.Must(uuid.FromString("0193a627-db9b-7af3-88d8-6b3164d4b969"))
+var hostPlayerID = uuid.Must(uuid.FromString("0193a623-8423-74b3-b991-896d7c6df52a"))
 
 func TestLobbyServiceCreate(t *testing.T) {
 	t.Parallel()
 
 	defaultNewHostPlayer := service.NewHostPlayer{
-		ID:       uuid.MustParse("0193a626-2586-7784-9b5b-104d927d64ca"),
+		ID:       uuid.Must(uuid.FromString("0193a626-2586-7784-9b5b-104d927d64ca")),
 		Nickname: "Majiy00",
 	}
 
@@ -51,27 +50,30 @@ func TestLobbyServiceCreate(t *testing.T) {
 		mockRandom.EXPECT().GetAvatar(defaultNewPlayer.Nickname).Return(defaultNewPlayer.Avatar)
 		mockRandom.EXPECT().GetRoomCode().Return(roomCode)
 		mockStore.EXPECT().GetRoomByCode(ctx, roomCode).Return(db.Room{}, sql.ErrNoRows)
-		mockRandom.EXPECT().GetID().Return(roomID)
+		mockRandom.EXPECT().GetID().Return(roomID, nil)
 
 		createRoom := getCreateRoomParams(defaultNewPlayer, defaultNewHostPlayer)
 		mockStore.EXPECT().CreateRoom(ctx, createRoom).Return(nil)
-		lobby, err := srv.Create(ctx, gameName, defaultNewHostPlayer)
+		result, err := srv.Create(ctx, gameName, defaultNewHostPlayer)
 
-		expectedLobby := service.Lobby{
-			Code: roomCode,
-			Players: []service.LobbyPlayer{
-				{
-					ID:       defaultNewPlayer.ID,
-					Nickname: defaultNewPlayer.Nickname,
-					Avatar:   defaultNewPlayer.Avatar,
-					IsHost:   true,
-					IsReady:  false,
+		expectedResult := service.LobbyCreationResult{
+			Lobby: service.Lobby{
+				Code: roomCode,
+				Players: []service.LobbyPlayer{
+					{
+						ID:       defaultNewPlayer.ID,
+						Nickname: defaultNewPlayer.Nickname,
+						Avatar:   defaultNewPlayer.Avatar,
+						IsHost:   true,
+						IsReady:  false,
+					},
 				},
 			},
+			NewPlayerID: defaultNewPlayer.ID,
 		}
 
 		assert.NoError(t, err)
-		assert.Equal(t, expectedLobby, lobby)
+		assert.Equal(t, expectedResult, result)
 	})
 
 	t.Run("Should create room when nickname is passed", func(t *testing.T) {
@@ -82,7 +84,7 @@ func TestLobbyServiceCreate(t *testing.T) {
 
 		newHostPlayer := service.NewHostPlayer{
 			Nickname: "MyNickname",
-			ID:       uuid.MustParse("0193a626-2586-7784-9b5b-104d927d64ca"),
+			ID:       uuid.Must(uuid.FromString("0193a626-2586-7784-9b5b-104d927d64ca")),
 		}
 
 		newPlayer := service.NewPlayer{
@@ -97,27 +99,30 @@ func TestLobbyServiceCreate(t *testing.T) {
 		mockRandom.EXPECT().GetAvatar(newHostPlayer.Nickname).Return(newPlayer.Avatar)
 		mockRandom.EXPECT().GetRoomCode().Return(roomCode)
 		mockStore.EXPECT().GetRoomByCode(ctx, roomCode).Return(db.Room{}, sql.ErrNoRows)
-		mockRandom.EXPECT().GetID().Return(roomID)
+		mockRandom.EXPECT().GetID().Return(roomID, nil)
 
 		createRoom := getCreateRoomParams(newPlayer, newHostPlayer)
 		mockStore.EXPECT().CreateRoom(ctx, createRoom).Return(nil)
-		lobby, err := srv.Create(ctx, gameName, newHostPlayer)
+		result, err := srv.Create(ctx, gameName, newHostPlayer)
 
-		expectedLobby := service.Lobby{
-			Code: roomCode,
-			Players: []service.LobbyPlayer{
-				{
-					ID:       newPlayer.ID,
-					Nickname: newPlayer.Nickname,
-					Avatar:   newPlayer.Avatar,
-					IsHost:   true,
-					IsReady:  false,
+		expectedResult := service.LobbyCreationResult{
+			Lobby: service.Lobby{
+				Code: roomCode,
+				Players: []service.LobbyPlayer{
+					{
+						ID:       newPlayer.ID,
+						Nickname: newPlayer.Nickname,
+						Avatar:   newPlayer.Avatar,
+						IsHost:   true,
+						IsReady:  false,
+					},
 				},
 			},
+			NewPlayerID: newPlayer.ID,
 		}
 
 		assert.NoError(t, err)
-		assert.Equal(t, expectedLobby, lobby)
+		assert.Equal(t, expectedResult, result)
 	})
 
 	t.Run("Should create room successfully, code is used by room", func(t *testing.T) {
@@ -139,27 +144,30 @@ func TestLobbyServiceCreate(t *testing.T) {
 			GetRoomByCode(ctx, roomCode).
 			Return(db.Room{RoomState: db.Abandoned.String()}, nil).
 			Times(1)
-		mockRandom.EXPECT().GetID().Return(roomID)
+		mockRandom.EXPECT().GetID().Return(roomID, nil)
 
 		createRoom := getCreateRoomParams(defaultNewPlayer, defaultNewHostPlayer)
 		mockStore.EXPECT().CreateRoom(ctx, createRoom).Return(nil)
-		lobby, err := srv.Create(ctx, gameName, defaultNewHostPlayer)
+		result, err := srv.Create(ctx, gameName, defaultNewHostPlayer)
 
-		expectedLobby := service.Lobby{
-			Code: roomCode,
-			Players: []service.LobbyPlayer{
-				{
-					ID:       defaultNewPlayer.ID,
-					Nickname: defaultNewPlayer.Nickname,
-					Avatar:   defaultNewPlayer.Avatar,
-					IsHost:   true,
-					IsReady:  false,
+		expectedResult := service.LobbyCreationResult{
+			Lobby: service.Lobby{
+				Code: roomCode,
+				Players: []service.LobbyPlayer{
+					{
+						ID:       defaultNewPlayer.ID,
+						Nickname: defaultNewPlayer.Nickname,
+						Avatar:   defaultNewPlayer.Avatar,
+						IsHost:   true,
+						IsReady:  false,
+					},
 				},
 			},
+			NewPlayerID: defaultNewPlayer.ID,
 		}
 
 		assert.NoError(t, err)
-		assert.Equal(t, expectedLobby, lobby)
+		assert.Equal(t, expectedResult, result)
 	})
 
 	t.Run("Should throw error when we fail to get room code", func(t *testing.T) {
@@ -193,7 +201,7 @@ func TestLobbyServiceCreate(t *testing.T) {
 		mockRandom.EXPECT().GetAvatar(defaultNewPlayer.Nickname).Return(defaultNewPlayer.Avatar)
 		mockRandom.EXPECT().GetRoomCode().Return(roomCode)
 		mockStore.EXPECT().GetRoomByCode(ctx, roomCode).Return(db.Room{}, sql.ErrNoRows).Times(1)
-		mockRandom.EXPECT().GetID().Return(roomID)
+		mockRandom.EXPECT().GetID().Return(roomID, nil)
 
 		createRoom := getCreateRoomParams(defaultNewPlayer, defaultNewHostPlayer)
 		mockStore.EXPECT().CreateRoom(ctx, createRoom).Return(xerrors.New("failed to create room"))
@@ -233,12 +241,6 @@ func getCreateRoomParams(newCreatedPlayer service.NewPlayer, newPlayer service.N
 func TestLobbyServiceJoin(t *testing.T) {
 	t.Parallel()
 
-	defaultNewPlayer := service.NewPlayer{
-		ID:       uuid.MustParse("0193a626-2586-7784-9b5b-104d927d64ca"),
-		Nickname: "",
-		Avatar:   "https://api.dicebear.com/9.x/bottts-neutral/svg?radius=20&seed=",
-	}
-
 	t.Run("Should allow player to join room successfully", func(t *testing.T) {
 		t.Parallel()
 		mockStore := mockService.NewMockStorer(t)
@@ -248,10 +250,15 @@ func TestLobbyServiceJoin(t *testing.T) {
 		ctx, err := getI18nCtx()
 		require.NoError(t, err)
 
+		generatedPlayerID := uuid.Must(uuid.NewV4())
+		generatedAvatar := "https://api.dicebear.com/9.x/bottts-neutral/svg?radius=20&seed=" + generatedPlayerID.String()
+		playerNickname := "example"
+
+		mockRandom.EXPECT().GetID().Return(generatedPlayerID, nil).Once()
 		mockStore.EXPECT().
-			GetRoomByPlayerID(ctx, defaultNewPlayer.ID).
-			Return(db.Room{}, xerrors.New("failed to get room by player ID"))
-		mockRandom.EXPECT().GetAvatar(defaultNewPlayer.Nickname).Return(defaultNewPlayer.Avatar)
+			GetRoomByPlayerID(ctx, generatedPlayerID).
+			Return(db.Room{}, sql.ErrNoRows)
+		mockRandom.EXPECT().GetAvatar(playerNickname).Return(generatedAvatar).Once()
 		mockStore.EXPECT().
 			GetRoomByCode(ctx, roomCode).
 			Return(db.Room{ID: roomID, RoomState: db.Created.String()}, nil)
@@ -262,15 +269,15 @@ func TestLobbyServiceJoin(t *testing.T) {
 		}, nil)
 
 		addPlayer := db.AddPlayerParams{
-			ID:       defaultNewPlayer.ID,
-			Avatar:   defaultNewPlayer.Avatar,
-			Nickname: defaultNewPlayer.Nickname,
+			ID:       generatedPlayerID,
+			Avatar:   generatedAvatar,
+			Nickname: playerNickname,
 			Locale:   pgtype.Text{String: "en-GB"},
 		}
 
 		addRoomPlayer := db.AddRoomPlayerParams{
 			RoomID:   roomID,
-			PlayerID: defaultNewPlayer.ID,
+			PlayerID: generatedPlayerID,
 		}
 
 		addPlayerToRoom := db.AddPlayerToRoomArgs{
@@ -278,49 +285,69 @@ func TestLobbyServiceJoin(t *testing.T) {
 			RoomPlayer: addRoomPlayer,
 		}
 		mockStore.EXPECT().AddPlayerToRoom(ctx, addPlayerToRoom).Return(nil)
-		mockStore.EXPECT().GetAllPlayersInRoom(ctx, defaultNewPlayer.ID).Return([]db.GetAllPlayersInRoomRow{
+		mockStore.EXPECT().GetAllPlayersInRoom(ctx, generatedPlayerID).Return([]db.GetAllPlayersInRoomRow{
 			{
-				ID:         uuid.MustParse("0193a628-51bc-7a60-9204-a8667771f278"),
+				ID:         uuid.Must(uuid.FromString("0193a628-51bc-7a60-9204-a8667771f278")),
 				Nickname:   "EmotionalTiger",
 				Avatar:     "https://api.dicebear.com/9.x/bottts-neutral/svg?radius=20&seed=EmotionalTiger",
 				IsReady:    pgtype.Bool{Bool: false, Valid: true},
-				HostPlayer: uuid.MustParse("0193a628-8b7b-7ad9-aefe-031ec85289fa"),
+				HostPlayer: uuid.Must(uuid.FromString("0193a628-8b7b-7ad9-aefe-031ec85289fa")),
 			},
 			{
-				ID:         uuid.MustParse("0193a628-8b7b-7ad9-aefe-031ec85289fa"),
+				ID:         uuid.Must(uuid.FromString("0193a628-8b7b-7ad9-aefe-031ec85289fa")),
 				Nickname:   "Hello",
 				Avatar:     "https://api.dicebear.com/9.x/bottts-neutral/svg?radius=20&seed=Hello",
 				IsReady:    pgtype.Bool{Bool: false, Valid: true},
-				HostPlayer: uuid.MustParse("0193a628-8b7b-7ad9-aefe-031ec85289fa"),
+				HostPlayer: uuid.Must(uuid.FromString("0193a628-8b7b-7ad9-aefe-031ec85289fa")),
+			},
+			{
+				ID:         generatedPlayerID,
+				Nickname:   playerNickname,
+				Avatar:     generatedAvatar,
+				IsReady:    pgtype.Bool{Bool: false, Valid: true},
+				HostPlayer: uuid.Must(uuid.FromString("0193a628-8b7b-7ad9-aefe-031ec85289fa")),
+				RoomCode:   roomCode,
 			},
 		}, nil)
-		lobby, err := srv.Join(ctx, roomCode, defaultNewPlayer.ID, defaultNewPlayer.Nickname)
-		expectedLobby := service.Lobby{
-			Code: roomCode,
-			Players: []service.LobbyPlayer{
-				{
-					ID:       uuid.MustParse("0193a628-51bc-7a60-9204-a8667771f278"),
-					Nickname: "EmotionalTiger",
-					Avatar:   "https://api.dicebear.com/9.x/bottts-neutral/svg?radius=20&seed=EmotionalTiger",
-					IsReady:  false,
-					IsHost:   false,
-				},
-				{
-					ID:       uuid.MustParse("0193a628-8b7b-7ad9-aefe-031ec85289fa"),
-					Nickname: "Hello",
-					Avatar:   "https://api.dicebear.com/9.x/bottts-neutral/svg?radius=20&seed=Hello",
-					IsReady:  false,
-					IsHost:   true,
+		result, err := srv.Join(ctx, roomCode, uuid.Nil, playerNickname)
+		expectedResult := service.LobbyJoinResult{
+			Lobby: service.Lobby{
+				Code: roomCode,
+				Players: []service.LobbyPlayer{
+					{
+						ID:       uuid.Must(uuid.FromString("0193a628-51bc-7a60-9204-a8667771f278")),
+						Nickname: "EmotionalTiger",
+						Avatar:   "https://api.dicebear.com/9.x/bottts-neutral/svg?radius=20&seed=EmotionalTiger",
+						IsHost:   false,
+						IsReady:  false,
+					},
+					{
+						ID:       uuid.Must(uuid.FromString("0193a628-8b7b-7ad9-aefe-031ec85289fa")),
+						Nickname: "Hello",
+						Avatar:   "https://api.dicebear.com/9.x/bottts-neutral/svg?radius=20&seed=Hello",
+						IsReady:  false,
+						IsHost:   true,
+					},
+					{
+						ID:       generatedPlayerID,
+						Nickname: playerNickname,
+						Avatar:   generatedAvatar,
+						IsHost:   false,
+						IsReady:  false,
+					},
 				},
 			},
+			NewPlayerID: generatedPlayerID,
 		}
 		assert.NoError(t, err)
-		assert.Equal(t, expectedLobby, lobby)
+		assert.Equal(t, expectedResult, result)
 	})
 
 	t.Run("Should allow player to join room successfully, when they pass nickname", func(t *testing.T) {
 		t.Parallel()
 		nickname := "MyNickname"
+		playerID := uuid.Must(uuid.NewV4())
+		playerAvatar := "https://api.dicebear.com/9.x/bottts-neutral/svg?radius=20&seed=" + nickname
 
 		mockStore := mockService.NewMockStorer(t)
 		mockRandom := mockService.NewMockRandomizer(t)
@@ -330,11 +357,11 @@ func TestLobbyServiceJoin(t *testing.T) {
 		require.NoError(t, err)
 
 		mockStore.EXPECT().
-			GetRoomByPlayerID(ctx, defaultNewPlayer.ID).
-			Return(db.Room{}, xerrors.New("failed to get room by player ID"))
+			GetRoomByPlayerID(ctx, playerID).
+			Return(db.Room{}, sql.ErrNoRows)
 		mockRandom.EXPECT().
 			GetAvatar(nickname).
-			Return("https://api.dicebear.com/9.x/bottts-neutral/svg?radius=20&seed=MyNickname")
+			Return(playerAvatar).Once()
 		mockStore.EXPECT().
 			GetRoomByCode(ctx, roomCode).
 			Return(db.Room{ID: roomID, RoomState: db.Created.String()}, nil)
@@ -345,15 +372,15 @@ func TestLobbyServiceJoin(t *testing.T) {
 		}, nil)
 
 		addPlayer := db.AddPlayerParams{
-			ID:       defaultNewPlayer.ID,
-			Avatar:   "https://api.dicebear.com/9.x/bottts-neutral/svg?radius=20&seed=MyNickname",
+			ID:       playerID,
+			Avatar:   playerAvatar,
 			Nickname: nickname,
 			Locale:   pgtype.Text{String: "en-GB"},
 		}
 
 		addRoomPlayer := db.AddRoomPlayerParams{
 			RoomID:   roomID,
-			PlayerID: defaultNewPlayer.ID,
+			PlayerID: playerID,
 		}
 
 		addPlayerToRoom := db.AddPlayerToRoomArgs{
@@ -361,44 +388,63 @@ func TestLobbyServiceJoin(t *testing.T) {
 			RoomPlayer: addRoomPlayer,
 		}
 		mockStore.EXPECT().AddPlayerToRoom(ctx, addPlayerToRoom).Return(nil)
-		mockStore.EXPECT().GetAllPlayersInRoom(ctx, defaultNewPlayer.ID).Return([]db.GetAllPlayersInRoomRow{
+		mockStore.EXPECT().GetAllPlayersInRoom(ctx, playerID).Return([]db.GetAllPlayersInRoomRow{
 			{
-				ID:         uuid.MustParse("0193a628-51bc-7a60-9204-a8667771f278"),
+				ID:         uuid.Must(uuid.FromString("0193a628-51bc-7a60-9204-a8667771f278")),
 				Nickname:   nickname,
-				Avatar:     "https://api.dicebear.com/9.x/bottts-neutral/svg?radius=20&seed=MyNickname",
+				Avatar:     playerAvatar,
 				IsReady:    pgtype.Bool{Bool: false, Valid: true},
-				HostPlayer: uuid.MustParse("0193a628-8b7b-7ad9-aefe-031ec85289fa"),
+				HostPlayer: uuid.Must(uuid.FromString("0193a628-8b7b-7ad9-aefe-031ec85289fa")),
 			},
 			{
-				ID:         uuid.MustParse("0193a628-8b7b-7ad9-aefe-031ec85289fa"),
+				ID:         uuid.Must(uuid.FromString("0193a628-8b7b-7ad9-aefe-031ec85289fa")),
 				Nickname:   "Hello",
 				Avatar:     "https://api.dicebear.com/9.x/bottts-neutral/svg?radius=20&seed=Hello",
 				IsReady:    pgtype.Bool{Bool: false, Valid: true},
-				HostPlayer: uuid.MustParse("0193a628-8b7b-7ad9-aefe-031ec85289fa"),
+				HostPlayer: uuid.Must(uuid.FromString("0193a628-8b7b-7ad9-aefe-031ec85289fa")),
 			},
 		}, nil)
-		lobby, err := srv.Join(ctx, roomCode, defaultNewPlayer.ID, nickname)
-		expectedLobby := service.Lobby{
-			Code: roomCode,
-			Players: []service.LobbyPlayer{
-				{
-					ID:       uuid.MustParse("0193a628-51bc-7a60-9204-a8667771f278"),
-					Nickname: nickname,
-					Avatar:   "https://api.dicebear.com/9.x/bottts-neutral/svg?radius=20&seed=MyNickname",
-					IsReady:  false,
-					IsHost:   false,
-				},
-				{
-					ID:       uuid.MustParse("0193a628-8b7b-7ad9-aefe-031ec85289fa"),
-					Nickname: "Hello",
-					Avatar:   "https://api.dicebear.com/9.x/bottts-neutral/svg?radius=20&seed=Hello",
-					IsReady:  false,
-					IsHost:   true,
+		result, err := srv.Join(ctx, roomCode, playerID, nickname)
+		expectedResult := service.LobbyJoinResult{
+			Lobby: service.Lobby{
+				Code: roomCode,
+				Players: []service.LobbyPlayer{
+					{
+						ID:       uuid.Must(uuid.FromString("0193a628-51bc-7a60-9204-a8667771f278")),
+						Nickname: nickname,
+						Avatar:   playerAvatar,
+						IsHost:   false,
+						IsReady:  false,
+					},
+					{
+						ID:       uuid.Must(uuid.FromString("0193a628-8b7b-7ad9-aefe-031ec85289fa")),
+						Nickname: "Hello",
+						Avatar:   "https://api.dicebear.com/9.x/bottts-neutral/svg?radius=20&seed=Hello",
+						IsReady:  false,
+						IsHost:   true,
+					},
 				},
 			},
+			NewPlayerID: playerID,
 		}
 		assert.NoError(t, err)
-		assert.Equal(t, expectedLobby, lobby)
+		assert.Equal(t, expectedResult, result)
+	})
+
+	t.Run("Should fail to join room, player id alredy in room", func(t *testing.T) {
+		t.Parallel()
+		playerID := uuid.Must(uuid.NewV4()) // Specific player ID for this test
+		playerNickname := "some_nickname"
+
+		mockStore := mockService.NewMockStorer(t)
+		mockRandom := mockService.NewMockRandomizer(t)
+		srv := service.NewLobbyService(mockStore, mockRandom, "en-GB")
+
+		ctx := t.Context()
+		mockStore.EXPECT().GetRoomByPlayerID(ctx, playerID).Return(db.Room{RoomCode: roomCode}, nil).Once()
+
+		_, err := srv.Join(ctx, roomCode, playerID, playerNickname) // Pass specific playerID
+		assert.ErrorIs(t, err, service.ErrPlayerAlreadyInRoom)
 	})
 
 	t.Run("Should fail to join room, not in CREATED room state", func(t *testing.T) {
@@ -407,30 +453,22 @@ func TestLobbyServiceJoin(t *testing.T) {
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewLobbyService(mockStore, mockRandom, "en-GB")
 
-		ctx := context.Background()
+		ctx := t.Context()
+		generatedPlayerID := uuid.Must(uuid.NewV4())
+		playerNickname := ""
+		generatedAvatar := "https://api.dicebear.com/9.x/bottts-neutral/svg?radius=20&seed=" + playerNickname
+
+		mockRandom.EXPECT().GetID().Return(generatedPlayerID, nil).Once()
 		mockStore.EXPECT().
-			GetRoomByPlayerID(ctx, defaultNewPlayer.ID).
-			Return(db.Room{}, xerrors.New("failed to get room by player ID"))
-		mockRandom.EXPECT().GetAvatar(defaultNewPlayer.Nickname).Return(defaultNewPlayer.Avatar)
+			GetRoomByPlayerID(ctx, generatedPlayerID).
+			Return(db.Room{}, sql.ErrNoRows)
+		mockRandom.EXPECT().GetAvatar(playerNickname).Return(generatedAvatar).Once()
 		mockStore.EXPECT().
 			GetRoomByCode(ctx, roomCode).
 			Return(db.Room{ID: roomID, RoomState: db.Playing.String()}, nil)
 
-		_, err := srv.Join(ctx, roomCode, defaultNewPlayer.ID, defaultNewPlayer.Nickname)
+		_, err := srv.Join(ctx, roomCode, uuid.Nil, playerNickname) // Pass uuid.Nil
 		assert.ErrorContains(t, err, "room is not in CREATED state")
-	})
-
-	t.Run("Should fail to join room, player id alredy in room", func(t *testing.T) {
-		t.Parallel()
-		mockStore := mockService.NewMockStorer(t)
-		mockRandom := mockService.NewMockRandomizer(t)
-		srv := service.NewLobbyService(mockStore, mockRandom, "en-GB")
-
-		ctx := context.Background()
-		mockStore.EXPECT().GetRoomByPlayerID(ctx, defaultNewPlayer.ID).Return(db.Room{RoomCode: roomCode}, nil)
-
-		_, err := srv.Join(ctx, roomCode, defaultNewPlayer.ID, defaultNewPlayer.Nickname)
-		assert.ErrorIs(t, err, service.ErrPlayerAlreadyInRoom)
 	})
 
 	t.Run("Should fail to join room, nickname already exists", func(t *testing.T) {
@@ -441,11 +479,15 @@ func TestLobbyServiceJoin(t *testing.T) {
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewLobbyService(mockStore, mockRandom, "en-GB")
 
-		ctx := context.Background()
+		ctx := t.Context()
+		generatedPlayerID := uuid.Must(uuid.NewV4())
+		generatedAvatar := "https://api.dicebear.com/9.x/bottts-neutral/svg?radius=20&seed=" + nickname
+
+		mockRandom.EXPECT().GetID().Return(generatedPlayerID, nil).Once()
 		mockStore.EXPECT().
-			GetRoomByPlayerID(ctx, defaultNewPlayer.ID).
-			Return(db.Room{}, xerrors.New("failed to get room by player ID"))
-		mockRandom.EXPECT().GetAvatar(nickname).Return(defaultNewPlayer.Avatar)
+			GetRoomByPlayerID(ctx, generatedPlayerID).
+			Return(db.Room{}, sql.ErrNoRows)
+		mockRandom.EXPECT().GetAvatar(nickname).Return(generatedAvatar).Once()
 		mockStore.EXPECT().
 			GetRoomByCode(ctx, roomCode).
 			Return(db.Room{ID: roomID, RoomState: db.Created.String()}, nil)
@@ -455,7 +497,7 @@ func TestLobbyServiceJoin(t *testing.T) {
 			},
 		}, nil)
 
-		_, err := srv.Join(ctx, roomCode, defaultNewPlayer.ID, nickname)
+		_, err := srv.Join(ctx, roomCode, uuid.Nil, nickname) // Pass uuid.Nil
 		assert.ErrorContains(t, err, "nickname already exists in room")
 	})
 
@@ -468,10 +510,15 @@ func TestLobbyServiceJoin(t *testing.T) {
 		ctx, err := getI18nCtx()
 		require.NoError(t, err)
 
+		generatedPlayerID := uuid.Must(uuid.NewV4())
+		playerNickname := ""
+		generatedAvatar := "https://api.dicebear.com/9.x/bottts-neutral/svg?radius=20&seed=" + playerNickname
+
+		mockRandom.EXPECT().GetID().Return(generatedPlayerID, nil).Once()
 		mockStore.EXPECT().
-			GetRoomByPlayerID(ctx, defaultNewPlayer.ID).
-			Return(db.Room{}, xerrors.New("failed to get room by player ID"))
-		mockRandom.EXPECT().GetAvatar(defaultNewPlayer.Nickname).Return(defaultNewPlayer.Avatar)
+			GetRoomByPlayerID(ctx, generatedPlayerID).
+			Return(db.Room{}, sql.ErrNoRows)
+		mockRandom.EXPECT().GetAvatar(playerNickname).Return(generatedAvatar).Once()
 		mockStore.EXPECT().
 			GetRoomByCode(ctx, roomCode).
 			Return(db.Room{ID: roomID, RoomState: db.Created.String()}, nil)
@@ -482,15 +529,15 @@ func TestLobbyServiceJoin(t *testing.T) {
 		}, nil)
 
 		addPlayer := db.AddPlayerParams{
-			ID:       defaultNewPlayer.ID,
-			Avatar:   defaultNewPlayer.Avatar,
-			Nickname: defaultNewPlayer.Nickname,
+			ID:       generatedPlayerID,
+			Avatar:   generatedAvatar,
+			Nickname: playerNickname,
 			Locale:   pgtype.Text{String: "en-GB"},
 		}
 
 		addRoomPlayer := db.AddRoomPlayerParams{
 			RoomID:   roomID,
-			PlayerID: defaultNewPlayer.ID,
+			PlayerID: generatedPlayerID,
 		}
 
 		addPlayerToRoom := db.AddPlayerToRoomArgs{
@@ -499,7 +546,7 @@ func TestLobbyServiceJoin(t *testing.T) {
 		}
 		mockStore.EXPECT().AddPlayerToRoom(ctx, addPlayerToRoom).Return(xerrors.New("failed to add player to room"))
 
-		_, err = srv.Join(ctx, roomCode, defaultNewPlayer.ID, defaultNewPlayer.Nickname)
+		_, err = srv.Join(ctx, roomCode, uuid.Nil, playerNickname) // Pass uuid.Nil
 		assert.Error(t, err)
 	})
 
@@ -512,10 +559,15 @@ func TestLobbyServiceJoin(t *testing.T) {
 		ctx, err := getI18nCtx()
 		require.NoError(t, err)
 
+		generatedPlayerID := uuid.Must(uuid.NewV4())
+		playerNickname := ""
+		generatedAvatar := "https://api.dicebear.com/9.x/bottts-neutral/svg?radius=20&seed=" + playerNickname
+
+		mockRandom.EXPECT().GetID().Return(generatedPlayerID, nil).Once()
 		mockStore.EXPECT().
-			GetRoomByPlayerID(ctx, defaultNewPlayer.ID).
-			Return(db.Room{}, xerrors.New("failed to get room by player ID"))
-		mockRandom.EXPECT().GetAvatar(defaultNewPlayer.Nickname).Return(defaultNewPlayer.Avatar)
+			GetRoomByPlayerID(ctx, generatedPlayerID).
+			Return(db.Room{}, sql.ErrNoRows)
+		mockRandom.EXPECT().GetAvatar(playerNickname).Return(generatedAvatar).Once()
 		mockStore.EXPECT().
 			GetRoomByCode(ctx, roomCode).
 			Return(db.Room{ID: roomID, RoomState: db.Created.String()}, nil)
@@ -526,15 +578,15 @@ func TestLobbyServiceJoin(t *testing.T) {
 		}, nil)
 
 		addPlayer := db.AddPlayerParams{
-			ID:       defaultNewPlayer.ID,
-			Avatar:   defaultNewPlayer.Avatar,
-			Nickname: defaultNewPlayer.Nickname,
+			ID:       generatedPlayerID,
+			Avatar:   generatedAvatar,
+			Nickname: playerNickname,
 			Locale:   pgtype.Text{String: "en-GB"},
 		}
 
 		addRoomPlayer := db.AddRoomPlayerParams{
 			RoomID:   roomID,
-			PlayerID: defaultNewPlayer.ID,
+			PlayerID: generatedPlayerID,
 		}
 
 		addPlayerToRoom := db.AddPlayerToRoomArgs{
@@ -543,9 +595,9 @@ func TestLobbyServiceJoin(t *testing.T) {
 		}
 		mockStore.EXPECT().AddPlayerToRoom(ctx, addPlayerToRoom).Return(nil)
 		mockStore.EXPECT().
-			GetAllPlayersInRoom(ctx, defaultNewPlayer.ID).
+			GetAllPlayersInRoom(ctx, generatedPlayerID).
 			Return([]db.GetAllPlayersInRoomRow{}, xerrors.New("failed to get all players in room"))
-		_, err = srv.Join(ctx, roomCode, defaultNewPlayer.ID, defaultNewPlayer.Nickname)
+		_, err = srv.Join(ctx, roomCode, uuid.Nil, playerNickname) // Pass uuid.Nil
 		assert.Error(t, err)
 	})
 }
@@ -554,7 +606,7 @@ func TestLobbyServiceKickPlayer(t *testing.T) {
 	t.Parallel()
 
 	defaultNewPlayer := service.NewPlayer{
-		ID:       uuid.MustParse("0193a626-2586-7784-9b5b-104d927d64ca"),
+		ID:       uuid.Must(uuid.FromString("0193a626-2586-7784-9b5b-104d927d64ca")),
 		Nickname: "Hello",
 		Avatar:   "https://api.dicebear.com/9.x/bottts-neutral/svg?radius=20&seed=Hello",
 	}
@@ -565,7 +617,7 @@ func TestLobbyServiceKickPlayer(t *testing.T) {
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewLobbyService(mockStore, mockRandom, "en-GB")
 
-		ctx := context.Background()
+		ctx := t.Context()
 		mockStore.EXPECT().
 			GetRoomByCode(ctx, roomCode).
 			Return(db.Room{ID: roomID, HostPlayer: hostPlayerID, RoomState: db.Created.String()}, nil)
@@ -607,7 +659,7 @@ func TestLobbyServiceKickPlayer(t *testing.T) {
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewLobbyService(mockStore, mockRandom, "en-GB")
 
-		ctx := context.Background()
+		ctx := t.Context()
 		mockStore.EXPECT().GetRoomByCode(ctx, roomCode).Return(db.Room{}, xerrors.New("failed to get room by code"))
 		_, _, err := srv.KickPlayer(ctx, roomCode, hostPlayerID, defaultNewPlayer.Nickname)
 		assert.Error(t, err)
@@ -619,7 +671,7 @@ func TestLobbyServiceKickPlayer(t *testing.T) {
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewLobbyService(mockStore, mockRandom, "en-GB")
 
-		ctx := context.Background()
+		ctx := t.Context()
 		mockStore.EXPECT().
 			GetRoomByCode(ctx, roomCode).
 			Return(db.Room{ID: roomID, HostPlayer: hostPlayerID, RoomState: db.Created.String()}, nil)
@@ -633,7 +685,7 @@ func TestLobbyServiceKickPlayer(t *testing.T) {
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewLobbyService(mockStore, mockRandom, "en-GB")
 
-		ctx := context.Background()
+		ctx := t.Context()
 		mockStore.EXPECT().
 			GetRoomByCode(ctx, roomCode).
 			Return(db.Room{ID: roomID, HostPlayer: hostPlayerID, RoomState: db.Playing.String()}, nil)
@@ -647,7 +699,7 @@ func TestLobbyServiceKickPlayer(t *testing.T) {
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewLobbyService(mockStore, mockRandom, "en-GB")
 
-		ctx := context.Background()
+		ctx := t.Context()
 		mockStore.EXPECT().
 			GetRoomByCode(ctx, roomCode).
 			Return(db.Room{ID: roomID, HostPlayer: hostPlayerID, RoomState: db.Created.String()}, nil)
@@ -665,7 +717,7 @@ func TestLobbyServiceKickPlayer(t *testing.T) {
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewLobbyService(mockStore, mockRandom, "en-GB")
 
-		ctx := context.Background()
+		ctx := t.Context()
 		mockStore.EXPECT().
 			GetRoomByCode(ctx, roomCode).
 			Return(db.Room{ID: roomID, HostPlayer: hostPlayerID, RoomState: db.Created.String()}, nil)
@@ -687,7 +739,7 @@ func TestLobbyServiceKickPlayer(t *testing.T) {
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewLobbyService(mockStore, mockRandom, "en-GB")
 
-		ctx := context.Background()
+		ctx := t.Context()
 		mockStore.EXPECT().
 			GetRoomByCode(ctx, roomCode).
 			Return(db.Room{ID: roomID, HostPlayer: hostPlayerID, RoomState: db.Created.String()}, nil)
@@ -715,11 +767,11 @@ func TestLobbyServiceKickPlayer(t *testing.T) {
 func TestLobbyServiceStart(t *testing.T) {
 	t.Parallel()
 
-	groupID := uuid.MustParse("0193a629-1fcf-79dd-ac70-760bedbdffa9")
-	gameStateID := uuid.MustParse("0193a629-373b-7a3e-b6c2-0e7d2f95ce43")
+	groupID := uuid.Must(uuid.FromString("0193a629-1fcf-79dd-ac70-760bedbdffa9"))
+	gameStateID := uuid.Must(uuid.FromString("0193a629-373b-7a3e-b6c2-0e7d2f95ce43"))
 
 	defaultNewPlayer := service.NewPlayer{
-		ID:       uuid.MustParse("0193a626-2586-7784-9b5b-104d927d64ca"),
+		ID:       uuid.Must(uuid.FromString("0193a626-2586-7784-9b5b-104d927d64ca")),
 		Nickname: "Hello",
 		Avatar:   "https://api.dicebear.com/9.x/bottts-neutral/svg?radius=20&seed=Hello",
 	}
@@ -730,7 +782,7 @@ func TestLobbyServiceStart(t *testing.T) {
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewLobbyService(mockStore, mockRandom, "en-GB")
 
-		ctx := context.Background()
+		ctx := t.Context()
 		mockStore.EXPECT().
 			GetRoomByCode(ctx, roomCode).
 			Return(
@@ -762,7 +814,7 @@ func TestLobbyServiceStart(t *testing.T) {
 			RoundType: "free_form",
 		}).Return([]db.GetRandomQuestionByRoundRow{
 			{
-				QuestionID: uuid.MustParse("0193a629-7dcc-78ad-822f-fd5d83c89ae7"),
+				QuestionID: uuid.Must(uuid.FromString("0193a629-7dcc-78ad-822f-fd5d83c89ae7")),
 				Question:   "What is the capital of France?",
 				Locale:     "en-GB",
 				GroupID:    groupID,
@@ -770,36 +822,36 @@ func TestLobbyServiceStart(t *testing.T) {
 		}, nil)
 		mockStore.EXPECT().GetRandomQuestionInGroup(ctx, db.GetRandomQuestionInGroupParams{
 			GroupID:   groupID,
-			ID:        uuid.MustParse("0193a629-7dcc-78ad-822f-fd5d83c89ae7"),
+			ID:        uuid.Must(uuid.FromString("0193a629-7dcc-78ad-822f-fd5d83c89ae7")),
 			RoundType: "free_form",
 		}).Return([]db.GetRandomQuestionInGroupRow{
 			{
-				QuestionID: uuid.MustParse("0193a629-a9ac-7fc4-828c-a1334c282e0f"),
+				QuestionID: uuid.Must(uuid.FromString("0193a629-a9ac-7fc4-828c-a1334c282e0f")),
 				Question:   "What is the capital of Germany?",
 			},
 		}, nil)
 		mockRandom.EXPECT().GetFibberIndex(2).Return(1)
-		mockRandom.EXPECT().GetID().Return(gameStateID)
+		mockRandom.EXPECT().GetID().Return(gameStateID, nil)
 		deadline := time.Now().Add(5 * time.Second)
 		mockStore.EXPECT().StartGame(ctx, db.StartGameArgs{
 			GameStateID:       gameStateID,
 			RoomID:            roomID,
-			NormalsQuestionID: uuid.MustParse("0193a629-7dcc-78ad-822f-fd5d83c89ae7"),
-			FibberQuestionID:  uuid.MustParse("0193a629-a9ac-7fc4-828c-a1334c282e0f"),
+			NormalsQuestionID: uuid.Must(uuid.FromString("0193a629-7dcc-78ad-822f-fd5d83c89ae7")),
+			FibberQuestionID:  uuid.Must(uuid.FromString("0193a629-a9ac-7fc4-828c-a1334c282e0f")),
 			Players: []db.GetAllPlayersInRoomRow{
 				{
 					ID:         defaultNewPlayer.ID,
 					Nickname:   "Hello",
+					HostPlayer: hostPlayerID,
 					IsReady:    pgtype.Bool{Bool: true, Valid: true},
 					RoomCode:   roomCode,
-					HostPlayer: hostPlayerID,
 				},
 				{
 					ID:         hostPlayerID,
 					Nickname:   "EmotionalTiger",
+					HostPlayer: hostPlayerID,
 					IsReady:    pgtype.Bool{Bool: true, Valid: true},
 					RoomCode:   roomCode,
-					HostPlayer: hostPlayerID,
 				},
 			},
 			FibberLoc: 1,
@@ -838,7 +890,7 @@ func TestLobbyServiceStart(t *testing.T) {
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewLobbyService(mockStore, mockRandom, "en-GB")
 
-		ctx := context.Background()
+		ctx := t.Context()
 		mockStore.EXPECT().
 			GetRoomByCode(ctx, roomCode).
 			Return(
@@ -859,7 +911,7 @@ func TestLobbyServiceStart(t *testing.T) {
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewLobbyService(mockStore, mockRandom, "en-GB")
 
-		ctx := context.Background()
+		ctx := t.Context()
 		mockStore.EXPECT().
 			GetRoomByCode(ctx, roomCode).
 			Return(
@@ -880,7 +932,7 @@ func TestLobbyServiceStart(t *testing.T) {
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewLobbyService(mockStore, mockRandom, "en-GB")
 
-		ctx := context.Background()
+		ctx := t.Context()
 		mockStore.EXPECT().
 			GetRoomByCode(ctx, roomCode).
 			Return(
@@ -904,7 +956,7 @@ func TestLobbyServiceStart(t *testing.T) {
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewLobbyService(mockStore, mockRandom, "en-GB")
 
-		ctx := context.Background()
+		ctx := t.Context()
 		mockStore.EXPECT().
 			GetRoomByCode(ctx, roomCode).
 			Return(
@@ -915,7 +967,7 @@ func TestLobbyServiceStart(t *testing.T) {
 				}, nil)
 		mockStore.EXPECT().GetAllPlayersInRoom(ctx, hostPlayerID).Return([]db.GetAllPlayersInRoomRow{
 			{
-				ID:         defaultNewPlayer.ID,
+				ID:         uuid.Must(uuid.FromString("0193a626-2586-7784-9b5b-104d927d64ca")),
 				Nickname:   "Hello",
 				HostPlayer: hostPlayerID,
 				IsReady:    pgtype.Bool{Bool: true, Valid: true},
@@ -934,12 +986,11 @@ func TestLobbyServiceStart(t *testing.T) {
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewLobbyService(mockStore, mockRandom, "en-GB")
 
-		ctx := context.Background()
+		ctx := t.Context()
 		mockStore.EXPECT().
 			GetRoomByCode(ctx, roomCode).
 			Return(
-				db.Room{
-					ID:         roomID,
+				db.Room{ID: roomID,
 					GameName:   gameName,
 					HostPlayer: hostPlayerID,
 					RoomState:  db.Created.String(),
@@ -947,7 +998,7 @@ func TestLobbyServiceStart(t *testing.T) {
 				nil)
 		mockStore.EXPECT().GetAllPlayersInRoom(ctx, hostPlayerID).Return([]db.GetAllPlayersInRoomRow{
 			{
-				ID:         defaultNewPlayer.ID,
+				ID:         uuid.Must(uuid.FromString("0193a626-2586-7784-9b5b-104d927d64ca")),
 				Nickname:   "Hello",
 				HostPlayer: hostPlayerID,
 				IsReady:    pgtype.Bool{Bool: true, Valid: true},
@@ -973,19 +1024,18 @@ func TestLobbyServiceStart(t *testing.T) {
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewLobbyService(mockStore, mockRandom, "en-GB")
 
-		ctx := context.Background()
+		ctx := t.Context()
 		mockStore.EXPECT().
 			GetRoomByCode(ctx, roomCode).
 			Return(
-				db.Room{
-					ID:         roomID,
+				db.Room{ID: roomID,
 					GameName:   gameName,
 					HostPlayer: hostPlayerID,
 					RoomState:  db.Created.String(),
 				}, nil)
 		mockStore.EXPECT().GetAllPlayersInRoom(ctx, hostPlayerID).Return([]db.GetAllPlayersInRoomRow{
 			{
-				ID:         defaultNewPlayer.ID,
+				ID:         uuid.Must(uuid.FromString("0193a626-2586-7784-9b5b-104d927d64ca")),
 				Nickname:   "Hello",
 				HostPlayer: hostPlayerID,
 				IsReady:    pgtype.Bool{Bool: true, Valid: true},
@@ -999,12 +1049,13 @@ func TestLobbyServiceStart(t *testing.T) {
 				RoomCode:   roomCode,
 			},
 		}, nil)
+
 		mockStore.EXPECT().GetRandomQuestionByRound(ctx, db.GetRandomQuestionByRoundParams{
 			GameName:  gameName,
 			RoundType: "free_form",
 		}).Return([]db.GetRandomQuestionByRoundRow{
 			{
-				QuestionID: uuid.MustParse("0193a629-7dcc-78ad-822f-fd5d83c89ae7"),
+				QuestionID: uuid.Must(uuid.FromString("0193a629-7dcc-78ad-822f-fd5d83c89ae7")),
 				Question:   "What is the capital of France?",
 				Locale:     "en-GB",
 				GroupID:    groupID,
@@ -1022,7 +1073,7 @@ func TestLobbyServiceStart(t *testing.T) {
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewLobbyService(mockStore, mockRandom, "en-GB")
 
-		ctx := context.Background()
+		ctx := t.Context()
 		mockStore.EXPECT().
 			GetRoomByCode(ctx, roomCode).
 			Return(
@@ -1034,7 +1085,7 @@ func TestLobbyServiceStart(t *testing.T) {
 				nil)
 		mockStore.EXPECT().GetAllPlayersInRoom(ctx, hostPlayerID).Return([]db.GetAllPlayersInRoomRow{
 			{
-				ID:         defaultNewPlayer.ID,
+				ID:         uuid.Must(uuid.FromString("0193a626-2586-7784-9b5b-104d927d64ca")),
 				Nickname:   "Hello",
 				HostPlayer: hostPlayerID,
 				IsReady:    pgtype.Bool{Bool: true, Valid: true},
@@ -1054,7 +1105,7 @@ func TestLobbyServiceStart(t *testing.T) {
 			RoundType: "free_form",
 		}).Return([]db.GetRandomQuestionByRoundRow{
 			{
-				QuestionID: uuid.MustParse("0193a629-7dcc-78ad-822f-fd5d83c89ae7"),
+				QuestionID: uuid.Must(uuid.FromString("0193a629-7dcc-78ad-822f-fd5d83c89ae7")),
 				Question:   "What is the capital of France?",
 				Locale:     "en-GB",
 				GroupID:    groupID,
@@ -1062,7 +1113,7 @@ func TestLobbyServiceStart(t *testing.T) {
 		}, nil)
 		mockStore.EXPECT().GetRandomQuestionInGroup(ctx, db.GetRandomQuestionInGroupParams{
 			GroupID:   groupID,
-			ID:        uuid.MustParse("0193a629-7dcc-78ad-822f-fd5d83c89ae7"),
+			ID:        uuid.Must(uuid.FromString("0193a629-7dcc-78ad-822f-fd5d83c89ae7")),
 			RoundType: "free_form",
 		}).Return([]db.GetRandomQuestionInGroupRow{}, xerrors.New("failed to get random question for fibber"))
 
@@ -1077,12 +1128,11 @@ func TestLobbyServiceStart(t *testing.T) {
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewLobbyService(mockStore, mockRandom, "en-GB")
 
-		ctx := context.Background()
+		ctx := t.Context()
 		mockStore.EXPECT().
 			GetRoomByCode(ctx, roomCode).
 			Return(
-				db.Room{
-					ID:         roomID,
+				db.Room{ID: roomID,
 					GameName:   gameName,
 					HostPlayer: hostPlayerID,
 					RoomState:  db.Created.String(),
@@ -1090,7 +1140,7 @@ func TestLobbyServiceStart(t *testing.T) {
 				nil)
 		mockStore.EXPECT().GetAllPlayersInRoom(ctx, hostPlayerID).Return([]db.GetAllPlayersInRoomRow{
 			{
-				ID:         defaultNewPlayer.ID,
+				ID:         uuid.Must(uuid.FromString("0193a626-2586-7784-9b5b-104d927d64ca")),
 				Nickname:   "Hello",
 				HostPlayer: hostPlayerID,
 				IsReady:    pgtype.Bool{Bool: true, Valid: true},
@@ -1110,7 +1160,7 @@ func TestLobbyServiceStart(t *testing.T) {
 			RoundType: "free_form",
 		}).Return([]db.GetRandomQuestionByRoundRow{
 			{
-				QuestionID: uuid.MustParse("0193a629-7dcc-78ad-822f-fd5d83c89ae7"),
+				QuestionID: uuid.Must(uuid.FromString("0193a629-7dcc-78ad-822f-fd5d83c89ae7")),
 				Question:   "What is the capital of France?",
 				Locale:     "en-GB",
 				GroupID:    groupID,
@@ -1118,36 +1168,36 @@ func TestLobbyServiceStart(t *testing.T) {
 		}, nil)
 		mockStore.EXPECT().GetRandomQuestionInGroup(ctx, db.GetRandomQuestionInGroupParams{
 			GroupID:   groupID,
-			ID:        uuid.MustParse("0193a629-7dcc-78ad-822f-fd5d83c89ae7"),
+			ID:        uuid.Must(uuid.FromString("0193a629-7dcc-78ad-822f-fd5d83c89ae7")),
 			RoundType: "free_form",
 		}).Return([]db.GetRandomQuestionInGroupRow{
 			{
-				QuestionID: uuid.MustParse("0193a629-a9ac-7fc4-828c-a1334c282e0f"),
+				QuestionID: uuid.Must(uuid.FromString("0193a629-a9ac-7fc4-828c-a1334c282e0f")),
 				Question:   "What is the capital of Germany?",
 			},
 		}, nil)
 		mockRandom.EXPECT().GetFibberIndex(2).Return(1)
-		mockRandom.EXPECT().GetID().Return(gameStateID)
+		mockRandom.EXPECT().GetID().Return(gameStateID, nil)
 		deadline := time.Now().Add(5 * time.Second)
 		mockStore.EXPECT().StartGame(ctx, db.StartGameArgs{
 			GameStateID:       gameStateID,
 			RoomID:            roomID,
-			NormalsQuestionID: uuid.MustParse("0193a629-7dcc-78ad-822f-fd5d83c89ae7"),
-			FibberQuestionID:  uuid.MustParse("0193a629-a9ac-7fc4-828c-a1334c282e0f"),
+			NormalsQuestionID: uuid.Must(uuid.FromString("0193a629-7dcc-78ad-822f-fd5d83c89ae7")),
+			FibberQuestionID:  uuid.Must(uuid.FromString("0193a629-a9ac-7fc4-828c-a1334c282e0f")),
 			Players: []db.GetAllPlayersInRoomRow{
 				{
-					ID:         defaultNewPlayer.ID,
+					ID:         uuid.Must(uuid.FromString("0193a626-2586-7784-9b5b-104d927d64ca")),
 					Nickname:   "Hello",
+					HostPlayer: hostPlayerID,
 					IsReady:    pgtype.Bool{Bool: true, Valid: true},
 					RoomCode:   roomCode,
-					HostPlayer: hostPlayerID,
 				},
 				{
 					ID:         hostPlayerID,
 					Nickname:   "EmotionalTiger",
+					HostPlayer: hostPlayerID,
 					IsReady:    pgtype.Bool{Bool: true, Valid: true},
 					RoomCode:   roomCode,
-					HostPlayer: hostPlayerID,
 				},
 			},
 			FibberLoc: 1,
@@ -1201,7 +1251,7 @@ func TestLobbyServiceGetRoomState(t *testing.T) {
 			mockRandom := mockService.NewMockRandomizer(t)
 			lobbyService := service.NewLobbyService(mockStore, mockRandom, "en-GB")
 
-			ctx := context.Background()
+			ctx := t.Context()
 			mockStore.EXPECT().GetRoomByPlayerID(ctx, playerID).Return(db.Room{
 				RoomState: tt.roomState.String(),
 			}, nil)
@@ -1218,7 +1268,7 @@ func TestLobbyServiceGetRoomState(t *testing.T) {
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewLobbyService(mockStore, mockRandom, "en-GB")
 
-		ctx := context.Background()
+		ctx := t.Context()
 		mockStore.EXPECT().GetRoomByPlayerID(ctx, playerID).Return(
 			db.Room{}, xerrors.New("failed to get room details"),
 		)
@@ -1237,7 +1287,7 @@ func TestLobbyerviceGetLobby(t *testing.T) {
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewLobbyService(mockStore, mockRandom, "en-GB")
 
-		ctx := context.Background()
+		ctx := t.Context()
 
 		mockStore.EXPECT().GetAllPlayersInRoom(ctx, playerID).Return([]db.GetAllPlayersInRoomRow{
 			{
@@ -1271,7 +1321,7 @@ func TestLobbyerviceGetLobby(t *testing.T) {
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewLobbyService(mockStore, mockRandom, "en-GB")
 
-		ctx := context.Background()
+		ctx := t.Context()
 
 		mockStore.EXPECT().GetAllPlayersInRoom(ctx, playerID).Return(
 			[]db.GetAllPlayersInRoomRow{}, xerrors.New("failed to get players in room"),

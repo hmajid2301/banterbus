@@ -11,11 +11,26 @@ templ Base(languages map[string]string, environment string) {
 			<meta name="apple-mobile-web-app-title" content="Banter Bus"/>
 			<title>Banter Bus</title>
 			<link rel="stylesheet" href="/static/css/styles.css"/>
+			<link rel="stylesheet" href="https://sets.hugeicons.com/gnrbwn6u4pr.css" crossorigin="anonymous"/>
 			<link rel="icon" type="image/png" href="/static/images/favicon-48x48.png" sizes="48x48"/>
 			<link rel="icon" type="image/svg+xml" href="/static/images/favicon.svg"/>
 			<link rel="shortcut icon" href="/static/images/favicon.ico"/>
 			<link rel="apple-touch-icon" sizes="180x180" href="/static/images/apple-touch-icon.png"/>
 			<link rel="manifest" href="/static/site.webmanifest"/>
+			<script>
+				if ("serviceWorker" in navigator) {
+					window.addEventListener("load", () => {
+						navigator.serviceWorker.register("/static/js/sw.js").then(
+							(registration) => {
+								console.log("ServiceWorker registration successful with scope: ", registration.scope);
+							},
+							(err) => {
+								console.log("ServiceWorker registration failed: ", err);
+							},
+						);
+					});
+				}
+			</script>
 		</head>
 		<body>
 			@components.Toast()

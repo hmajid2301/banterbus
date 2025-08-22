@@ -7,7 +7,7 @@ package mocks
 import (
 	"context"
 
-	"github.com/google/uuid"
+	"github.com/gofrs/uuid/v5"
 	mock "github.com/stretchr/testify/mock"
 
 	"gitlab.com/hmajid2301/banterbus/internal/service"

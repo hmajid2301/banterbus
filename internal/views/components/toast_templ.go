@@ -8,8 +8,6 @@ package components
 import (
 	"github.com/a-h/templ"
 	templruntime "github.com/a-h/templ/runtime"
-
-	"gitlab.com/hmajid2301/banterbus/internal/views/icons"
 )
 
 func Toast() templ.Component {
@@ -33,47 +31,7 @@ func Toast() templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div x-data=\"toast\" x-init=\"globalInit($el)\"><template x-teleport=\"body\"><div class=\"block fixed right-0 bottom-0 mr-4 mb-4 space-y-2.5 z-[999]\" @add-toast.window=\"add\"><template x-for=\"toast in toasts\" :key=\"toast.id\"><div :id=\"toast.id\" x-init=\"toastInit($el)\" x-show=\"toast.show\" x-transition:enter=\"transition ease-out duration-300\" x-transition:enter-start=\"opacity-0 scale-90\" x-transition:enter-end=\"opacity-100 scale-100\" x-transition:leave=\"transition ease-in duration-300\" x-transition:leave-start=\"opacity-100 scale-100\" x-transition:leave-end=\"opacity-0 scale-90\" :class=\"toast.type === 'success' ? 'bg-green': 'bg-red'\" class=\"flex relative gap-2 items-center py-7 px-5 rounded-lg border shadow-sm border-border min-w-[384px]\"><button @click=\"dismiss(toast.id)\" class=\"absolute top-3 right-3\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = icons.Cross("").Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "</button><template x-if=\"toast.type === 'success'\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = icons.CircleCheckmark("").Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "</template><template x-if=\"toast.type === 'info'\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = icons.Info("").Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "</template><template x-if=\"toast.type === 'warning'\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = icons.Warning("").Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "</template><template x-if=\"toast.type === 'failure'\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = icons.CancelCircle("").Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "</template><p class=\"text-sm font-medium text-black\" x-text=\"toast.message\"></p></div></template></div></template></div><script type=\"text/javascript\" src=\"/static/js/toast.js\"></script>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div x-data=\"toast\" x-init=\"globalInit($el)\"><template x-teleport=\"body\"><div class=\"block fixed right-0 bottom-0 mr-4 mb-4 space-y-2.5 z-[999]\" @add-toast.window=\"add\"><template x-for=\"toast in toasts\" :key=\"toast.id\"><div :id=\"toast.id\" x-init=\"toastInit($el)\" x-show=\"toast.show\" x-transition:enter=\"transition ease-out duration-300\" x-transition:enter-start=\"opacity-0 scale-90\" x-transition:enter-end=\"opacity-100 scale-100\" x-transition:leave=\"transition ease-in duration-300\" x-transition:leave-start=\"opacity-100 scale-100\" x-transition:leave-end=\"opacity-0 scale-90\" :class=\"toast.type === 'success' ? 'bg-green': 'bg-red'\" class=\"flex relative gap-2 items-center py-7 px-5 rounded-lg border shadow-sm border-border min-w-[384px]\"><button @click=\"dismiss(toast.id)\" class=\"absolute top-3 right-3\"><i class=\"hgi hgi-solid hgi-cancel-01\"></i></button><template x-if=\"toast.type === 'success'\"><i class=\"hgi hgi-solid hgi-check-circle\"></i></template><template x-if=\"toast.type === 'info'\"><i class=\"hgi hgi-solid hgi-information-circle\"></i></template><template x-if=\"toast.type === 'warning'\"><i class=\"hgi hgi-solid hgi-alert-triangle\"></i></template><template x-if=\"toast.type === 'failure'\"><i class=\"hgi hgi-solid hgi-cancel-circle\"></i></template><p class=\"text-sm font-medium text-black\" x-text=\"toast.message\"></p></div></template></div></template></div><script type=\"text/javascript\" src=\"/static/js/toast.js\"></script>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

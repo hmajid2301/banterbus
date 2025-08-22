@@ -383,16 +383,15 @@ get:mr:iid:
     reports:
       dotenv: build.env
 
-#INFO: Because Nix docker builds are immutable, we can just rebuild the image here for production
-# If we wanted to be more efficient we could work out way to retag a dev image. But this is good enough for now.
 deploy:prod:
+  stage: deploy
+  image: docker:latest
+  services:
+    - docker:dind
   variables:
-    FLAKE_TARGET: container
-    LOCAL_IMAGE: banterbus
-    IMAGE_NAME: $CI_REGISTRY_IMAGE:$MR_IID
-    FLY_CONFIG: fly.prod.toml
-  extends:
-    - .k8s_deploy
+    DOCKER_HOST: tcp://docker:2375
+    DOCKER_DRIVER: overlay2
+    DOCKER_TLS_CERTDIR: ""
   needs: ["get:mr:iid"]
   rules:
     - if: $CI_PIPELINE_SOURCE == "schedule"
@@ -400,6 +399,21 @@ deploy:prod:
     - if: $CI_COMMIT_TAG || $CI_COMMIT_BRANCH == "main"
   environment:
     name: production
+  before_script:
+    - export IMAGE="$CI_REGISTRY_IMAGE:prod-$CI_COMMIT_SHA-$(date +%s)"
+    - echo $IMAGE > image_name.txt
+  script:
+    - echo "Pulling MR image $CI_REGISTRY_IMAGE:$MR_IID"
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_JOB_TOKEN" "$CI_REGISTRY"
+    - docker pull $CI_REGISTRY_IMAGE:$MR_IID
+    - echo "Tagging as production image $IMAGE"
+    - docker tag $CI_REGISTRY_IMAGE:$MR_IID $IMAGE
+    - echo "Pushing production image to registry"
+    - docker push $IMAGE
+    - echo "Production image $IMAGE"
+  artifacts:
+    paths:
+      - image_name.txt
 
 check_deploy:prod:
   extends: .k8s_deploy

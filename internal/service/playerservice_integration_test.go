@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/google/uuid"
+	"github.com/gofrs/uuid/v5"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -25,7 +25,8 @@ func TestIntegrationPlayerUpdateNickname(t *testing.T) {
 		str := db.NewDB(pool, 3, baseDelay)
 		randomizer := randomizer.NewUserRandomizer()
 
-		id := uuid.New()
+		id, err := uuid.NewV4()
+		require.NoError(t, err)
 		newPlayer := service.NewHostPlayer{
 			ID: id,
 		}
@@ -51,7 +52,8 @@ func TestIntegrationPlayerUpdateNickname(t *testing.T) {
 		str := db.NewDB(pool, 3, baseDelay)
 		randomizer := randomizer.NewUserRandomizer()
 
-		id := uuid.New()
+		id, err := uuid.NewV4()
+		require.NoError(t, err)
 		newPlayer := service.NewHostPlayer{
 			ID:       id,
 			Nickname: "majiy01",
@@ -67,7 +69,7 @@ func TestIntegrationPlayerUpdateNickname(t *testing.T) {
 		_, err = pool.Exec(
 			ctx,
 			"UPDATE rooms SET room_state = 'PLAYING' WHERE room_code = $1",
-			lobby.Code,
+			lobby.Lobby.Code,
 		)
 		require.NoError(t, err)
 
@@ -85,7 +87,8 @@ func TestIntegrationPlayerUpdateNickname(t *testing.T) {
 		str := db.NewDB(pool, 3, baseDelay)
 		randomizer := randomizer.NewUserRandomizer()
 
-		id := uuid.New()
+		id, err := uuid.NewV4()
+		require.NoError(t, err)
 		newPlayer := service.NewHostPlayer{
 			ID:       id,
 			Nickname: "majiy01",
@@ -115,7 +118,8 @@ func TestIntegrationPlayerGenerateNewAvatar(t *testing.T) {
 		str := db.NewDB(pool, 3, baseDelay)
 		randomizer := randomizer.NewUserRandomizer()
 
-		id := uuid.New()
+		id, err := uuid.NewV4()
+		require.NoError(t, err)
 		newPlayer := service.NewHostPlayer{
 			ID: id,
 		}
@@ -126,12 +130,12 @@ func TestIntegrationPlayerGenerateNewAvatar(t *testing.T) {
 		lobbyService := service.NewLobbyService(str, randomizer, "en-GB")
 		lobby, err := lobbyService.Create(ctx, "fibbing_it", newPlayer)
 		require.NoError(t, err)
-		oldAvatar := lobby.Players[0].Avatar
+		oldAvatar := lobby.Lobby.Players[0].Avatar
 
 		srv := service.NewPlayerService(str, randomizer)
-		lobby, err = srv.GenerateNewAvatar(ctx, id)
+		updatedLobby, err := srv.GenerateNewAvatar(ctx, id)
 		assert.NoError(t, err)
-		newAvatar := lobby.Players[0].Avatar
+		newAvatar := updatedLobby.Players[0].Avatar
 		assert.NotEqual(t, oldAvatar, newAvatar)
 	})
 
@@ -144,7 +148,8 @@ func TestIntegrationPlayerGenerateNewAvatar(t *testing.T) {
 		str := db.NewDB(pool, 3, baseDelay)
 		randomizer := randomizer.NewUserRandomizer()
 
-		id := uuid.New()
+		id, err := uuid.NewV4()
+		require.NoError(t, err)
 		newPlayer := service.NewHostPlayer{
 			ID: id,
 		}
@@ -159,7 +164,7 @@ func TestIntegrationPlayerGenerateNewAvatar(t *testing.T) {
 		_, err = pool.Exec(
 			ctx,
 			"UPDATE rooms SET room_state = 'PLAYING' WHERE room_code = $1",
-			lobby.Code,
+			lobby.Lobby.Code,
 		)
 		require.NoError(t, err)
 
@@ -181,7 +186,8 @@ func TestIntegrationToggleIsReady(t *testing.T) {
 		str := db.NewDB(pool, 3, baseDelay)
 		randomizer := randomizer.NewUserRandomizer()
 
-		id := uuid.New()
+		id, err := uuid.NewV4()
+		require.NoError(t, err)
 		newPlayer := service.NewHostPlayer{
 			ID: id,
 		}
@@ -208,7 +214,8 @@ func TestIntegrationToggleIsReady(t *testing.T) {
 		str := db.NewDB(pool, 3, baseDelay)
 		randomizer := randomizer.NewUserRandomizer()
 
-		id := uuid.New()
+		id, err := uuid.NewV4()
+		require.NoError(t, err)
 		newPlayer := service.NewHostPlayer{
 			ID: id,
 		}
@@ -237,7 +244,8 @@ func TestIntegrationToggleIsReady(t *testing.T) {
 		str := db.NewDB(pool, 3, baseDelay)
 		randomizer := randomizer.NewUserRandomizer()
 
-		id := uuid.New()
+		id, err := uuid.NewV4()
+		require.NoError(t, err)
 		newPlayer := service.NewHostPlayer{
 			ID: id,
 		}
@@ -250,7 +258,7 @@ func TestIntegrationToggleIsReady(t *testing.T) {
 		require.NoError(t, err)
 
 		srv := service.NewPlayerService(str, randomizer)
-		_, err = srv.TogglePlayerIsReady(ctx, uuid.New())
+		_, err = srv.TogglePlayerIsReady(ctx, uuid.Must(uuid.NewV4()))
 		assert.ErrorContains(t, err, "no rows in result set")
 	})
 
@@ -263,7 +271,8 @@ func TestIntegrationToggleIsReady(t *testing.T) {
 		str := db.NewDB(pool, 3, baseDelay)
 		randomizer := randomizer.NewUserRandomizer()
 
-		id := uuid.New()
+		id, err := uuid.NewV4()
+		require.NoError(t, err)
 		newPlayer := service.NewHostPlayer{
 			ID: id,
 		}
@@ -278,7 +287,7 @@ func TestIntegrationToggleIsReady(t *testing.T) {
 		_, err = pool.Exec(
 			ctx,
 			"UPDATE rooms SET room_state = 'PLAYING' WHERE room_code = $1",
-			lobby.Code,
+			lobby.Lobby.Code,
 		)
 		require.NoError(t, err)
 

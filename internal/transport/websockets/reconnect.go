@@ -6,7 +6,7 @@ import (
 	"errors"
 
 	"github.com/a-h/templ"
-	"github.com/google/uuid"
+	"github.com/gofrs/uuid/v5"
 	"github.com/mdobak/go-xerrors"
 	slogctx "github.com/veqryn/slog-context"
 	"go.opentelemetry.io/otel"

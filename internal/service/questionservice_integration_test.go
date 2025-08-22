@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/google/uuid"
+	"github.com/gofrs/uuid/v5"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -242,6 +242,22 @@ func TestIntegrationQuestionGetQuestions(t *testing.T) {
 				Enabled:   true,
 			},
 			{
+				ID:        "8aa9f87f-31d9-4421-aae5-2024ca730351",
+				Text:      "What color bike do you prefer",
+				GroupName: "bike",
+				Locale:    "en-GB",
+				RoundType: "free_form",
+				Enabled:   true,
+			},
+			{
+				ID:        "8aa9f87f-31d9-4421-aae5-2024ca730352",
+				Text:      "How fast can a bike go",
+				GroupName: "bike",
+				Locale:    "en-GB",
+				RoundType: "free_form",
+				Enabled:   true,
+			},
+			{
 				ID:        "89b20c84-12ae-444d-ad9c-26f72d3f28ab",
 				Text:      "What do you think about camels",
 				GroupName: "horse",
@@ -411,6 +427,22 @@ func TestIntegrationQuestionGetQuestions(t *testing.T) {
 				RoundType: "free_form",
 				Enabled:   true,
 			},
+			{
+				ID:        "8aa9f87f-31d9-4421-aae5-2024ca730351",
+				Text:      "What color bike do you prefer",
+				GroupName: "bike",
+				Locale:    "en-GB",
+				RoundType: "free_form",
+				Enabled:   true,
+			},
+			{
+				ID:        "8aa9f87f-31d9-4421-aae5-2024ca730352",
+				Text:      "How fast can a bike go",
+				GroupName: "bike",
+				Locale:    "en-GB",
+				RoundType: "free_form",
+				Enabled:   true,
+			},
 		}
 		assert.Equal(t, expectedQuestions, questions)
 	})
@@ -475,6 +507,7 @@ func TestIntegrationQuestionGetQuestions(t *testing.T) {
 
 	t.Run("Should successfully get questions with limit", func(t *testing.T) {
 		t.Parallel()
+		// TODO: Include cleanup in subtest?
 		pool, teardown := setupSubtest(t)
 		t.Cleanup(teardown)
 
@@ -584,7 +617,7 @@ func TestIntegrationQuestionDisableQuestion(t *testing.T) {
 		q, err := questionService.Add(ctx, text, group, roundType)
 		require.NoError(t, err)
 
-		err = questionService.DisableQuestion(ctx, uuid.MustParse(q.ID))
+		err = questionService.DisableQuestion(ctx, uuid.Must(uuid.FromString(q.ID)))
 		assert.NoError(t, err)
 	})
 }
@@ -613,10 +646,10 @@ func TestIntegrationQuestionEnableQuestion(t *testing.T) {
 		q, err := questionService.Add(ctx, text, group, roundType)
 		require.NoError(t, err)
 
-		err = questionService.DisableQuestion(ctx, uuid.MustParse(q.ID))
+		err = questionService.DisableQuestion(ctx, uuid.Must(uuid.FromString(q.ID)))
 		require.NoError(t, err)
 
-		err = questionService.EnableQuestion(ctx, uuid.MustParse(q.ID))
+		err = questionService.EnableQuestion(ctx, uuid.Must(uuid.FromString(q.ID)))
 		assert.NoError(t, err)
 	})
 }

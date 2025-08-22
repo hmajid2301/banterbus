@@ -92,11 +92,13 @@ SELECT
 FROM players p
 JOIN rooms_players rp ON p.id = rp.player_id
 JOIN rooms r ON rp.room_id = r.id
-WHERE rp.room_id = (
-    SELECT rp_inner.room_id
-    FROM rooms_players rp_inner
-    WHERE rp_inner.player_id = $1
-);
+WHERE
+    rp.room_id = (
+        SELECT rp_inner.room_id
+        FROM rooms_players rp_inner
+        WHERE rp_inner.player_id = $1
+    )
+ORDER BY p.created_at;
 
 -- name: GetAllPlayersByGameStateID :many
 SELECT
@@ -107,7 +109,8 @@ SELECT
 FROM players p
 JOIN rooms_players rp ON p.id = rp.player_id
 JOIN game_state gs ON rp.room_id = gs.room_id
-WHERE gs.id = $1;
+WHERE gs.id = $1
+ORDER BY p.created_at;
 
 -- name: GetAllPlayerByRoomCode :many
 SELECT
@@ -233,9 +236,9 @@ SELECT
     p.id AS player_id,
     p.nickname,
     p.avatar,
-    COALESCE(COUNT(fv.id), 0) AS votes,
+    COALESCE(vote_counts.votes, 0) AS votes,
     fia.answer,
-    fv.is_ready,
+    COALESCE(voter_ready.is_ready, FALSE) AS is_ready,
     fpr.player_role AS role
 FROM fibbing_it_rounds fir
 JOIN questions q ON fir.normal_question_id = q.id
@@ -246,25 +249,27 @@ JOIN players p ON p.id = rp.player_id
 LEFT JOIN
     fibbing_it_answers fia
     ON fia.round_id = fir.id AND fia.player_id = p.id
-LEFT JOIN
-    fibbing_it_votes fv
-    ON fv.round_id = fir.id AND fv.voted_for_player_id = p.id
+LEFT JOIN (
+    SELECT
+        voted_for_player_id,
+        COUNT(*) AS votes
+    FROM fibbing_it_votes
+    WHERE fibbing_it_votes.round_id = $1
+    GROUP BY voted_for_player_id
+) vote_counts ON vote_counts.voted_for_player_id = p.id
+LEFT JOIN (
+    SELECT
+        player_id,
+        BOOL_OR(is_ready) AS is_ready
+    FROM fibbing_it_votes
+    WHERE fibbing_it_votes.round_id = $1
+    GROUP BY player_id
+) voter_ready ON voter_ready.player_id = p.id
 LEFT JOIN
     fibbing_it_player_roles fpr
     ON p.id = fpr.player_id AND fir.id = fpr.round_id
 WHERE fir.id = $1
-GROUP BY
-    fir.round,
-    qi.question,
-    gs.submit_deadline,
-    p.id,
-    p.nickname,
-    p.avatar,
-    fia.answer,
-    fv.is_ready,
-    fpr.player_role,
-    gs.id
-ORDER BY votes DESC, p.nickname;
+ORDER BY COALESCE(vote_counts.votes, 0) DESC, p.nickname, p.created_at;
 
 -- name: ToggleAnswerIsReady :one
 UPDATE fibbing_it_answers SET is_ready = NOT is_ready

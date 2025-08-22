@@ -10,12 +10,13 @@ import (
 	"log/slog"
 	"net"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/a-h/templ"
 	"github.com/gobwas/ws"
 	"github.com/gobwas/ws/wsutil"
-	"github.com/google/uuid"
+	"github.com/gofrs/uuid/v5"
 	"github.com/invopop/ctxi18n"
 	"github.com/mdobak/go-xerrors"
 	"github.com/redis/go-redis/v9"
@@ -31,14 +32,14 @@ import (
 
 // TODO: give this struct a better name, it doesn't really have much to with subscribing users anymore.
 type Subscriber struct {
-	lobbyService  LobbyServicer
-	playerService PlayerServicer
-	roundService  RoundServicer
-	logger        *slog.Logger
-	handlers      map[string]WSHandler
-	websocket     Websocketer
-	config        config.Config
-	rules         templ.Component
+	lobbyService    LobbyServicer
+	playerService   PlayerServicer
+	roundService    RoundServicer
+	logger          *slog.Logger
+	handlerRegistry *HandlerRegistry
+	websocket       Websocketer
+	config          config.Config
+	rules           templ.Component
 }
 
 type Websocketer interface {
@@ -51,12 +52,27 @@ type message struct {
 	MessageType string `json:"message_type"`
 }
 
+// WSHandler interface kept for compatibility with existing handler structs
+// These will be adapted to HandlerFunc
 type WSHandler interface {
 	Handle(ctx context.Context, client *Client, sub *Subscriber) error
 	Validate() error
 }
 
 var errConnectionClosed = xerrors.New("connection closed")
+
+func isConnectionError(err error) bool {
+	if err == nil {
+		return false
+	}
+
+	errStr := err.Error()
+	return strings.Contains(errStr, "broken pipe") ||
+		strings.Contains(errStr, "connection reset") ||
+		strings.Contains(errStr, "use of closed network connection") ||
+		strings.Contains(errStr, "write: connection refused") ||
+		strings.Contains(errStr, "use of reserved op code")
+}
 
 func NewSubscriber(
 	lobbyService LobbyServicer,
@@ -67,31 +83,50 @@ func NewSubscriber(
 	config config.Config,
 	rules templ.Component,
 ) *Subscriber {
+	// Create base middleware chain
+	baseMiddleware := NewChain(
+		RecoveryMiddleware(),
+		LoggingMiddleware(),
+		AuthMiddleware(),
+	)
+
+	// Create handler registry with base middleware
+	registry := NewHandlerRegistry(baseMiddleware...)
+
 	s := &Subscriber{
-		lobbyService:  lobbyService,
-		playerService: playerService,
-		roundService:  roundService,
-		logger:        logger,
-		websocket:     websocket,
-		config:        config,
-		rules:         rules,
+		lobbyService:    lobbyService,
+		playerService:   playerService,
+		roundService:    roundService,
+		logger:          logger,
+		handlerRegistry: registry,
+		websocket:       websocket,
+		config:          config,
+		rules:           rules,
 	}
 
-	s.handlers = map[string]WSHandler{
-		"create_room":            &CreateRoom{},
-		"update_player_nickname": &UpdateNickname{},
-		"generate_new_avatar":    &GenerateNewAvatar{},
-		"join_lobby":             &JoinLobby{},
-		"toggle_player_is_ready": &TogglePlayerIsReady{},
-		"kick_player":            &KickPlayer{},
-		"start_game":             &StartGame{},
-		"submit_answer":          &SubmitAnswer{},
-		"toggle_answer_is_ready": &ToggleAnswerIsReady{},
-		"submit_vote":            &SubmitVote{},
-		"toggle_voting_is_ready": &ToggleVotingIsReady{},
-	}
-
+	// Register handlers with the new pattern
+	s.registerHandlers()
 	return s
+}
+
+// registerHandlers registers all WebSocket handlers with appropriate middleware
+func (s *Subscriber) registerHandlers() {
+	// Lobby handlers - no special middleware needed
+	s.handlerRegistry.Register("create_room", s.createRoomHandler)
+	s.handlerRegistry.Register("join_lobby", s.joinLobbyHandler)
+	s.handlerRegistry.Register("start_game", s.startGameHandler)
+	s.handlerRegistry.Register("kick_player", s.kickPlayerHandler)
+
+	// Player handlers - might need rate limiting in the future
+	s.handlerRegistry.Register("update_player_nickname", s.updateNicknameHandler)
+	s.handlerRegistry.Register("generate_new_avatar", s.generateNewAvatarHandler)
+	s.handlerRegistry.Register("toggle_player_is_ready", s.togglePlayerIsReadyHandler)
+
+	// Game handlers - might need game state validation middleware
+	s.handlerRegistry.Register("submit_answer", s.submitAnswerHandler)
+	s.handlerRegistry.Register("toggle_answer_is_ready", s.toggleAnswerIsReadyHandler)
+	s.handlerRegistry.Register("submit_vote", s.submitVoteHandler)
+	s.handlerRegistry.Register("toggle_voting_is_ready", s.toggleVotingIsReadyHandler)
 }
 
 func (s *Subscriber) Subscribe(r *http.Request, w http.ResponseWriter) (err error) {
@@ -154,7 +189,7 @@ func (s *Subscriber) Subscribe(r *http.Request, w http.ResponseWriter) (err erro
 		cookie = setPlayerIDCookie()
 		http.SetCookie(w, cookie)
 	} else {
-		playerID, err = uuid.Parse(cookie.Value)
+		playerID, err = uuid.FromString(cookie.Value)
 		if err != nil {
 			cancel()
 			return err
@@ -175,7 +210,7 @@ func (s *Subscriber) Subscribe(r *http.Request, w http.ResponseWriter) (err erro
 		}
 	}
 
-	playerID, err = uuid.Parse(cookie.Value)
+	playerID, err = uuid.FromString(cookie.Value)
 	if err != nil {
 		cancel()
 		return err
@@ -222,7 +257,15 @@ func (s *Subscriber) Subscribe(r *http.Request, w http.ResponseWriter) (err erro
 	}
 
 	defer func() {
+		cancel()
+		err = s.websocket.Close(playerID)
+		if err != nil {
+			s.logger.WarnContext(ctx, "failed to close websocket subscription", slog.Any("error", err))
+		}
 		err = connection.Close()
+		if err != nil {
+			s.logger.WarnContext(ctx, "failed to close connection", slog.Any("error", err))
+		}
 	}()
 
 	span.SetStatus(codes.Ok, "subscribed_successfully")
@@ -245,14 +288,20 @@ func (s *Subscriber) Subscribe(r *http.Request, w http.ResponseWriter) (err erro
 			start := time.Now()
 			err = wsutil.WriteServerText(connection, []byte(msg.Payload))
 			if err != nil {
+				if isConnectionError(err) {
+					s.logger.InfoContext(ctx, "client connection closed, stopping message loop",
+						slog.String("player_id", playerID.String()),
+						slog.Any("error", err))
+					cancel()
+					return nil
+				}
+
 				s.logger.ErrorContext(ctx, "failed to write message", slog.Any("error", err))
 
 				err = telemetry.IncrementMessageSentError(ctx)
 				if err != nil {
 					s.logger.WarnContext(ctx, "failed to increment message sent err", slog.Any("error", err))
 				}
-				// TODO: do we need this?
-				// return err
 			} else {
 				err = telemetry.IncrementMessageSent(ctx)
 				if err != nil {
@@ -273,11 +322,16 @@ func (s *Subscriber) Subscribe(r *http.Request, w http.ResponseWriter) (err erro
 }
 
 func setPlayerIDCookie() *http.Cookie {
-	playerID := uuid.Must(uuid.NewV7()).String()
+	playerID, err := uuid.NewV7()
+	if err != nil {
+		// Fallback to NewV4 if NewV7 fails
+		playerID = uuid.Must(uuid.NewV4())
+	}
+	playerIDStr := playerID.String()
 
 	cookie := &http.Cookie{
 		Name:     "player_id",
-		Value:    playerID,
+		Value:    playerIDStr,
 		Path:     "/",
 		HttpOnly: true,
 		Secure:   true,
@@ -302,6 +356,14 @@ func (s *Subscriber) handleMessages(ctx context.Context, cancel context.CancelFu
 			)
 			err := s.handleMessage(ctx, client)
 			if err != nil {
+				if errors.Is(err, errConnectionClosed) || isConnectionError(err) {
+					s.logger.InfoContext(ctx, "client connection closed, stopping message handler",
+						slog.String("player_id", client.playerID.String()),
+						slog.Any("error", err))
+					cancel()
+					return
+				}
+
 				s.logger.ErrorContext(
 					ctx,
 					"failed to handle message",
@@ -316,11 +378,6 @@ func (s *Subscriber) handleMessages(ctx context.Context, cancel context.CancelFu
 						slog.Any("error", err),
 					)
 				}
-
-				if errors.Is(err, errConnectionClosed) {
-					cancel()
-					return
-				}
 			}
 		}
 	}
@@ -334,9 +391,11 @@ func (s *Subscriber) handleMessage(ctx context.Context, client *Client) error {
 	hdr, r, err := wsutil.NextReader(client.connection, ws.StateServerSide)
 	if err != nil {
 		if err == io.EOF {
-			return nil
+			return errConnectionClosed
 		} else if opErr, ok := err.(*net.OpError); ok && opErr.Err.Error() == "use of closed network connection" {
-			return nil
+			return errConnectionClosed
+		} else if isConnectionError(err) {
+			return errConnectionClosed
 		}
 
 		return fmt.Errorf("failed to get next message: %w", err)
@@ -354,20 +413,32 @@ func (s *Subscriber) handleMessage(ctx context.Context, client *Client) error {
 		return fmt.Errorf("failed to read message: %w", err)
 	}
 
+	return s.handleMessageData(ctx, client, data, start, messageStatus)
+}
+
+func (s *Subscriber) handleMessageData(
+	ctx context.Context,
+	client *Client,
+	data []byte,
+	start time.Time,
+	messageStatus string,
+) error {
 	var message message
-	err = json.Unmarshal(data, &message)
+	err := json.Unmarshal(data, &message)
 	s.logger.DebugContext(ctx, "received message", slog.Any("message", message))
 	if err != nil {
 		messageStatus = "fail_unmarshal_message"
 		return fmt.Errorf("failed to unmarshal message: %w", err)
 	}
 
+	span := trace.SpanFromContext(ctx)
 	defer func() {
 		latencyMs := float64(time.Since(start).Milliseconds())
 		err = telemetry.RecordRequestLatency(ctx, latencyMs, message.MessageType, messageStatus)
 		if err != nil {
 			s.logger.WarnContext(ctx, "failed to record latency metric", slog.Any("error", err))
 		}
+		span.End()
 	}()
 
 	err = telemetry.IncrementMessageReceived(ctx, message.MessageType)
@@ -377,37 +448,102 @@ func (s *Subscriber) handleMessage(ctx context.Context, client *Client) error {
 
 	span.SetAttributes(attribute.String("message_type", message.MessageType))
 	s.logger.DebugContext(ctx, "handling message", slog.String("message_type", message.MessageType))
-	handler, ok := s.handlers[message.MessageType]
-	if !ok {
-		messageStatus = "fail_matching_handler"
-		return fmt.Errorf("handler not found for message type: %s", message.MessageType)
-	}
 
-	err = json.Unmarshal(data, &handler)
-	s.logger.DebugContext(ctx, "trying to unmarshal handler message", slog.Any("message", message))
-	if err != nil {
-		messageStatus = "fail_unmarshal_handler_message"
-		return fmt.Errorf("failed to unmarshal for handler: %w", err)
-	}
+	// Add raw JSON data to context for handlers to use
+	ctx = context.WithValue(ctx, "raw_json", data)
 
-	err = handler.Validate()
+	// Use the handler registry to handle the message
+	err = s.handlerRegistry.Handle(message.MessageType, ctx, client, s)
 	if err != nil {
-		webSocketErr := s.updateClientAboutErr(ctx, client.playerID, err.Error())
-		if webSocketErr != nil {
-			return errors.Join(err, webSocketErr)
+		var handlerNotFoundErr ErrHandlerNotFound
+		if errors.As(err, &handlerNotFoundErr) {
+			messageStatus = "fail_matching_handler"
+		} else {
+			var validationErr ErrValidation
+			if errors.As(err, &validationErr) {
+				messageStatus = "fail_validate"
+				// Send validation error to client
+				webSocketErr := s.updateClientAboutErr(ctx, client.playerID, validationErr.Err.Error())
+				if webSocketErr != nil {
+					return errors.Join(err, webSocketErr)
+				}
+			} else {
+				messageStatus = "fail_handler"
+			}
 		}
-
-		messageStatus = "fail_validate"
-		return fmt.Errorf("error validating handler message: %w", err)
-	}
-
-	err = handler.Handle(ctx, client, s)
-	if err != nil {
-		messageStatus = "fail_handler"
 		return fmt.Errorf("error in handler function: %w", err)
 	}
 
 	s.logger.DebugContext(ctx, "finished handling request")
 	span.SetStatus(codes.Ok, "handle_message_successful")
 	return nil
+}
+
+// Handler implementations that convert from old WSHandler pattern to new HandlerFunc pattern
+
+func (s *Subscriber) createRoomHandler(ctx context.Context, client *Client, sub *Subscriber) error {
+	return s.handleWithValidation(ctx, client, sub, &CreateRoom{})
+}
+
+func (s *Subscriber) joinLobbyHandler(ctx context.Context, client *Client, sub *Subscriber) error {
+	return s.handleWithValidation(ctx, client, sub, &JoinLobby{})
+}
+
+func (s *Subscriber) startGameHandler(ctx context.Context, client *Client, sub *Subscriber) error {
+	return s.handleWithValidation(ctx, client, sub, &StartGame{})
+}
+
+func (s *Subscriber) kickPlayerHandler(ctx context.Context, client *Client, sub *Subscriber) error {
+	return s.handleWithValidation(ctx, client, sub, &KickPlayer{})
+}
+
+func (s *Subscriber) updateNicknameHandler(ctx context.Context, client *Client, sub *Subscriber) error {
+	return s.handleWithValidation(ctx, client, sub, &UpdateNickname{})
+}
+
+func (s *Subscriber) generateNewAvatarHandler(ctx context.Context, client *Client, sub *Subscriber) error {
+	return s.handleWithValidation(ctx, client, sub, &GenerateNewAvatar{})
+}
+
+func (s *Subscriber) togglePlayerIsReadyHandler(ctx context.Context, client *Client, sub *Subscriber) error {
+	return s.handleWithValidation(ctx, client, sub, &TogglePlayerIsReady{})
+}
+
+func (s *Subscriber) submitAnswerHandler(ctx context.Context, client *Client, sub *Subscriber) error {
+	return s.handleWithValidation(ctx, client, sub, &SubmitAnswer{})
+}
+
+func (s *Subscriber) toggleAnswerIsReadyHandler(ctx context.Context, client *Client, sub *Subscriber) error {
+	return s.handleWithValidation(ctx, client, sub, &ToggleAnswerIsReady{})
+}
+
+func (s *Subscriber) submitVoteHandler(ctx context.Context, client *Client, sub *Subscriber) error {
+	return s.handleWithValidation(ctx, client, sub, &SubmitVote{})
+}
+
+func (s *Subscriber) toggleVotingIsReadyHandler(ctx context.Context, client *Client, sub *Subscriber) error {
+	return s.handleWithValidation(ctx, client, sub, &ToggleVotingIsReady{})
+}
+
+// handleWithValidation is a helper that handles JSON unmarshaling, validation, and execution
+func (s *Subscriber) handleWithValidation(
+	ctx context.Context,
+	client *Client,
+	sub *Subscriber,
+	handler WSHandler,
+) error {
+	rawData, ok := ctx.Value("raw_json").([]byte)
+	if !ok {
+		return ErrNoRawJSONData{}
+	}
+
+	if err := json.Unmarshal(rawData, handler); err != nil {
+		return ErrJSONUnmarshal{Err: err}
+	}
+
+	if err := handler.Validate(); err != nil {
+		return ErrValidation{Err: err}
+	}
+
+	return handler.Handle(ctx, client, sub)
 }

@@ -89,7 +89,7 @@ type In struct {
 	AdminGroup string `env:"BANTERBUS_JWT_ADMIN_GROUP"`
 
 	ShowQuestionScreenFor   time.Duration `env:"SHOW_QUESTION_SCREEN_FOR, default=15s"`
-	ShowVotingScreenFor     time.Duration `env:"SHOW_VOTING_SCREEN_FOR, default=120s"`
+	ShowVotingScreenFor     time.Duration `env:"SHOW_VOTING_SCREEN_FOR, default=60s"`
 	AllReadyToNextScreenFor time.Duration `env:"ALL_READY_TO_NEXT_SCREEN_FOR, default=2s"`
 	ShowRevealScreenFor     time.Duration `env:"SHOW_REVEAL_SCREEN_FOR, default=15s"`
 	ShowScoreScreenFor      time.Duration `env:"SHOW_SCORE_SCREEN_FOR, default=15s"`

@@ -3,7 +3,6 @@ package pages
 import (
 	"github.com/invopop/ctxi18n/i18n"
 	"gitlab.com/hmajid2301/banterbus/internal/views/components"
-	"gitlab.com/hmajid2301/banterbus/internal/views/icons"
 	"gitlab.com/hmajid2301/banterbus/internal/views/layouts"
 )
 
@@ -32,7 +31,7 @@ templ Join(languages map[string]string, environment string, roomCode string) {
 					<div class="flex flex-row mt-12 space-x-4 w-full">
 						<div class="w-full">
 							@components.Button(components.ButtonProps{BackgroundColor: "bg-text2", TextColor: "text-black"}, templ.Attributes{}) {
-								@icons.Group("")
+								<i class="mr-2 hgi hgi-solid hgi-group"></i>
 								<p>{ i18n.T(ctx, "home.join_button_label") }</p>
 							}
 						</div>

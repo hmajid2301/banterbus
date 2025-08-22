@@ -1,14 +1,12 @@
 package components
 
-import "gitlab.com/hmajid2301/banterbus/internal/views/icons"
-
 templ Rules(body templ.Component) {
 	<div
 		x-data={ toJSON(map[string]any{"showModal": false}) }
 		@keydown.escape="showModal = false"
 	>
 		<button type="button" @click="showModal = true">
-			@icons.Info("")
+			<i class="hgi hgi-solid hgi-information-circle"></i>
 		</button>
 		<div
 			class="flex overflow-auto fixed inset-0 z-30 justify-center items-center bg-black bg-opacity-50"
@@ -23,7 +21,7 @@ templ Rules(body templ.Component) {
 			>
 				<div class="flex justify-between items-center">
 					<button type="button" aria-label="Close" class="z-50 cursor-pointer" @click="showModal = false">
-						@icons.Cross("")
+						<i class="hgi hgi-solid hgi-cancel-01"></i>
 					</button>
 				</div>
 				<div class="markdown">

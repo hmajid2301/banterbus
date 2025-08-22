@@ -11,7 +11,11 @@ sql:
         emit_interface: true
         overrides:
           - db_type: "uuid"
-            go_type: "github.com/google/uuid.UUID"
+            go_type:
+              import: "github.com/gofrs/uuid/v5"
+              type: "UUID"
           - db_type: "uuid"
-            go_type: "github.com/google/uuid.NullUUID"
+            go_type:
+              import: "github.com/gofrs/uuid/v5"
+              type: "NullUUID"
             nullable: true

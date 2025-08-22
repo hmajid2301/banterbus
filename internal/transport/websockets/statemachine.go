@@ -5,7 +5,7 @@ import (
 	"log/slog"
 	"time"
 
-	"github.com/google/uuid"
+	"github.com/gofrs/uuid/v5"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
@@ -63,6 +63,21 @@ func (q *QuestionState) Start(ctx context.Context) {
 
 	questionState, err := q.Subscriber.roundService.UpdateStateToQuestion(ctx, q.GameStateID, deadline, q.NextRound)
 	if err != nil {
+		// Check if error indicates game completion (no more round types)
+		if err.Error() == "game completed - no more round types available" {
+			span.AddEvent("state_transition", trace.WithAttributes(
+				attribute.String("next_state", "winner"),
+				attribute.String("transition_reason", "all_round_types_completed"),
+			))
+
+			q.Subscriber.logger.InfoContext(ctx, "all round types completed, transitioning to winner state",
+				slog.String("game_state_id", q.GameStateID.String()))
+
+			w := &WinnerState{GameStateID: q.GameStateID, Subscriber: q.Subscriber}
+			go w.Start(ctx)
+			return
+		}
+
 		span.SetStatus(codes.Error, "failed to update state")
 		span.RecordError(err, trace.WithAttributes(
 			attribute.String("error.type", "state_update_failure"),
@@ -111,29 +126,39 @@ func (q *QuestionState) Start(ctx context.Context) {
 		return
 	}
 
-	time.Sleep(time.Until(deadline))
+	// Use a timer that can be cancelled with context
+	timer := time.NewTimer(time.Until(deadline))
+	defer timer.Stop()
 
-	// Check current game state before transitioning
-	currentGameState, err := q.Subscriber.roundService.GetGameState(ctx, q.GameStateID)
-	if err != nil {
-		q.Subscriber.logger.ErrorContext(
-			ctx,
-			"failed to get game state before voting transition",
-			slog.Any("error", err),
-		)
-		return // Don't proceed if we can't get the state
-	}
+	select {
+	case <-timer.C:
+		// Check current game state before transitioning
+		currentGameState, err := q.Subscriber.roundService.GetGameState(ctx, q.GameStateID)
+		if err != nil {
+			q.Subscriber.logger.ErrorContext(
+				ctx,
+				"failed to get game state before voting transition",
+				slog.Any("error", err),
+				slog.String("game_state_id", q.GameStateID.String()),
+			)
+			return // Don't proceed if we can't get the state
+		}
 
-	if currentGameState == db.FibbingITQuestion { // Only transition if still in question state
-		span.AddEvent("state_transition", trace.WithAttributes(
-			attribute.String("next_state", "voting"),
-			attribute.String("transition_reason", "timeout"),
-		))
+		if currentGameState == db.FibbingITQuestion { // Only transition if still in question state
+			span.AddEvent("state_transition", trace.WithAttributes(
+				attribute.String("next_state", "voting"),
+				attribute.String("transition_reason", "timeout"),
+			))
 
-		v := &VotingState{GameStateID: q.GameStateID, Subscriber: q.Subscriber}
-		go v.Start(ctx)
-	} else {
-		q.Subscriber.logger.InfoContext(ctx, "game state already transitioned from question state", slog.String("current_state", currentGameState.String()))
+			v := &VotingState{GameStateID: q.GameStateID, Subscriber: q.Subscriber}
+			go v.Start(ctx)
+		} else {
+			q.Subscriber.logger.InfoContext(ctx, "game state already transitioned from question state", slog.String("current_state", currentGameState.String()))
+		}
+	case <-ctx.Done():
+		q.Subscriber.logger.InfoContext(ctx, "question state cancelled before timeout",
+			slog.String("game_state_id", q.GameStateID.String()))
+		return
 	}
 }
 
@@ -223,11 +248,51 @@ func (v *VotingState) Start(ctx context.Context) {
 		return
 	}
 
-	time.Sleep(time.Until(deadline))
-	span.AddEvent("state_transition", trace.WithAttributes(
-		attribute.String("next_state", "reveal"),
-		attribute.String("transition_reason", "timeout"),
-	))
+	// Check periodically if all players have voted to transition early
+	ticker := time.NewTicker(1 * time.Second) // Check every second
+	defer ticker.Stop()
+
+	// Use a proper timer that respects context cancellation
+	timer := time.NewTimer(time.Until(deadline))
+	defer timer.Stop()
+
+	for {
+		select {
+		case <-timer.C:
+			// Timeout reached, transition to reveal
+			span.AddEvent("state_transition", trace.WithAttributes(
+				attribute.String("next_state", "reveal"),
+				attribute.String("transition_reason", "timeout"),
+			))
+			goto transitionToReveal
+		case <-ticker.C:
+			// Check if all players have voted
+			allReady, err := v.Subscriber.roundService.AreAllPlayersVotingReady(ctx, v.GameStateID)
+			if err != nil {
+				v.Subscriber.logger.WarnContext(ctx, "failed to check if all players are ready for voting",
+					slog.Any("error", err),
+					slog.String("game_state_id", v.GameStateID.String()))
+				continue // Continue checking on error
+			}
+
+			if allReady {
+				// All players have voted, transition early
+				span.AddEvent("state_transition", trace.WithAttributes(
+					attribute.String("next_state", "reveal"),
+					attribute.String("transition_reason", "all_players_voted"),
+				))
+				v.Subscriber.logger.InfoContext(ctx, "all players have voted, transitioning early to reveal",
+					slog.String("game_state_id", v.GameStateID.String()))
+				goto transitionToReveal
+			}
+		case <-ctx.Done():
+			v.Subscriber.logger.InfoContext(ctx, "voting state cancelled before completion",
+				slog.String("game_state_id", v.GameStateID.String()))
+			return
+		}
+	}
+
+transitionToReveal:
 
 	r := &RevealState{GameStateID: v.GameStateID, Subscriber: v.Subscriber}
 	go r.Start(ctx)
@@ -338,18 +403,27 @@ func (r *RevealState) Start(ctx context.Context) {
 		attribute.Bool("fibber_found", fibberFound),
 	))
 
-	time.Sleep(time.Until(deadline))
+	// Use a timer that respects context cancellation
+	timer := time.NewTimer(time.Until(deadline))
+	defer timer.Stop()
 
-	switch nextState {
-	case db.FibbingItWinner:
-		w := &WinnerState{GameStateID: r.GameStateID, Subscriber: r.Subscriber}
-		go w.Start(ctx)
-	case db.FibbingItScoring:
-		s := &ScoringState{GameStateID: r.GameStateID, Subscriber: r.Subscriber}
-		go s.Start(ctx)
-	default:
-		q := &QuestionState{GameStateID: r.GameStateID, Subscriber: r.Subscriber, NextRound: false}
-		go q.Start(ctx)
+	select {
+	case <-timer.C:
+		switch nextState {
+		case db.FibbingItWinner:
+			w := &WinnerState{GameStateID: r.GameStateID, Subscriber: r.Subscriber}
+			go w.Start(ctx)
+		case db.FibbingItScoring:
+			s := &ScoringState{GameStateID: r.GameStateID, Subscriber: r.Subscriber}
+			go s.Start(ctx)
+		default:
+			q := &QuestionState{GameStateID: r.GameStateID, Subscriber: r.Subscriber, NextRound: false}
+			go q.Start(ctx)
+		}
+	case <-ctx.Done():
+		r.Subscriber.logger.InfoContext(ctx, "reveal state cancelled before completion",
+			slog.String("game_state_id", r.GameStateID.String()))
+		return
 	}
 }
 
@@ -445,15 +519,25 @@ func (r *ScoringState) Start(ctx context.Context) {
 		return
 	}
 
-	time.Sleep(time.Until(deadline))
-	span.AddEvent("state_transition", trace.WithAttributes(
-		attribute.String("next_state", "question"),
-		attribute.String("transition_reason", "timeout"),
-		attribute.Bool("next_round", true),
-	))
+	// Use a timer that respects context cancellation
+	timer := time.NewTimer(time.Until(deadline))
+	defer timer.Stop()
 
-	q := &QuestionState{GameStateID: r.GameStateID, Subscriber: r.Subscriber, NextRound: true}
-	go q.Start(ctx)
+	select {
+	case <-timer.C:
+		span.AddEvent("state_transition", trace.WithAttributes(
+			attribute.String("next_state", "question"),
+			attribute.String("transition_reason", "timeout"),
+			attribute.Bool("next_round", true),
+		))
+
+		q := &QuestionState{GameStateID: r.GameStateID, Subscriber: r.Subscriber, NextRound: true}
+		go q.Start(ctx)
+	case <-ctx.Done():
+		r.Subscriber.logger.InfoContext(ctx, "scoring state cancelled before completion",
+			slog.String("game_state_id", r.GameStateID.String()))
+		return
+	}
 }
 
 type WinnerState struct {
@@ -542,29 +626,39 @@ func (r *WinnerState) Start(ctx context.Context) {
 		return
 	}
 
-	time.Sleep(time.Until(deadline))
-	span.AddEvent("game_completion", trace.WithAttributes(
-		attribute.String("completion_status", "success"),
-	))
+	// Use a timer that respects context cancellation
+	timer := time.NewTimer(time.Until(deadline))
+	defer timer.Stop()
 
-	if err := r.Subscriber.roundService.FinishGame(ctx, r.GameStateID); err != nil {
-		span.SetStatus(codes.Error, "failed to finish game")
-		span.RecordError(err, trace.WithAttributes(
-			attribute.String("error.type", "game_cleanup_failure"),
+	select {
+	case <-timer.C:
+		span.AddEvent("game_completion", trace.WithAttributes(
+			attribute.String("completion_status", "success"),
 		))
 
-		r.Subscriber.logger.ErrorContext(
-			ctx,
-			"failed to finish game",
-			slog.Any("error", err),
-			slog.String("game_state_id", r.GameStateID.String()),
-		)
+		if err := r.Subscriber.roundService.FinishGame(ctx, r.GameStateID); err != nil {
+			span.SetStatus(codes.Error, "failed to finish game")
+			span.RecordError(err, trace.WithAttributes(
+				attribute.String("error.type", "game_cleanup_failure"),
+			))
 
-		_ = telemetry.IncrementStateOperationError(ctx, "winner", "game_cleanup")
+			r.Subscriber.logger.ErrorContext(
+				ctx,
+				"failed to finish game",
+				slog.Any("error", err),
+				slog.String("game_state_id", r.GameStateID.String()),
+			)
+
+			_ = telemetry.IncrementStateOperationError(ctx, "winner", "game_cleanup")
+			return
+		}
+
+		span.AddEvent("game_terminated", trace.WithAttributes(
+			attribute.String("termination_reason", "normal_completion"),
+		))
+	case <-ctx.Done():
+		r.Subscriber.logger.InfoContext(ctx, "winner state cancelled before completion",
+			slog.String("game_state_id", r.GameStateID.String()))
 		return
 	}
-
-	span.AddEvent("game_terminated", trace.WithAttributes(
-		attribute.String("termination_reason", "normal_completion"),
-	))
 }

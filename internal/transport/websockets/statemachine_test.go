@@ -1,14 +1,13 @@
 package websockets_test
 
 import (
-	"context"
 	"fmt"
 	"io"
 	"log/slog"
 	"testing"
 	"time"
 
-	"github.com/google/uuid"
+	"github.com/gofrs/uuid/v5"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
@@ -29,7 +28,7 @@ func TestStateMachine(t *testing.T) {
 	log := slog.New(slog.NewTextHandler(io.Discard, &slog.HandlerOptions{}))
 	websocketer := mockService.NewMockWebsocketer(t)
 
-	ctx := context.Background()
+	ctx := t.Context()
 	conf, err := config.LoadConfig(ctx)
 	require.NoError(t, err)
 
@@ -51,15 +50,18 @@ func TestStateMachine(t *testing.T) {
 
 	t.Run("Should successfully complete question state and move to voting", func(t *testing.T) {
 		t.Parallel()
-		u := uuid.Must(uuid.NewV7())
+		u, err := uuid.NewV7()
+		require.NoError(t, err)
 		q := websockets.QuestionState{
 			GameStateID: u,
 			Subscriber:  *sub,
 			NextRound:   false,
 		}
 
-		p1 := uuid.Must(uuid.NewV7())
-		p2 := uuid.Must(uuid.NewV7())
+		p1, err := uuid.NewV7()
+		require.NoError(t, err)
+		p2, err := uuid.NewV7()
+		require.NoError(t, err)
 
 		// Mock GetGameState call that happens at the start of the state machine
 		roundService.EXPECT().
@@ -94,7 +96,8 @@ func TestStateMachine(t *testing.T) {
 
 	t.Run("Should fail to complete question state, because fail to update state to question", func(t *testing.T) {
 		t.Parallel()
-		u := uuid.Must(uuid.NewV7())
+		u, err := uuid.NewV7()
+		require.NoError(t, err)
 		q := websockets.QuestionState{
 			GameStateID: u,
 			Subscriber:  *sub,
@@ -110,14 +113,17 @@ func TestStateMachine(t *testing.T) {
 
 	t.Run("Should successfully complete voting state and move to reveal", func(t *testing.T) {
 		t.Parallel()
-		u := uuid.Must(uuid.NewV7())
+		u, err := uuid.NewV7()
+		require.NoError(t, err)
 		q := websockets.VotingState{
 			GameStateID: u,
 			Subscriber:  *sub,
 		}
 
-		p1 := uuid.Must(uuid.NewV7())
-		p2 := uuid.Must(uuid.NewV7())
+		p1, err := uuid.NewV7()
+		require.NoError(t, err)
+		p2, err := uuid.NewV7()
+		require.NoError(t, err)
 		roundService.EXPECT().
 			UpdateStateToVoting(mock.Anything, u, mock.AnythingOfType("time.Time")).
 			Return(service.VotingState{
@@ -144,7 +150,8 @@ func TestStateMachine(t *testing.T) {
 
 	t.Run("Should fail to complete voting state, because fail to update state to voting", func(t *testing.T) {
 		t.Parallel()
-		u := uuid.Must(uuid.NewV7())
+		u, err := uuid.NewV7()
+		require.NoError(t, err)
 		q := websockets.VotingState{
 			GameStateID: u,
 			Subscriber:  *sub,
@@ -159,14 +166,17 @@ func TestStateMachine(t *testing.T) {
 
 	t.Run("Should successfully complete reveal state and move to question state", func(t *testing.T) {
 		t.Parallel()
-		u := uuid.Must(uuid.NewV7())
+		u, err := uuid.NewV7()
+		require.NoError(t, err)
 		q := websockets.RevealState{
 			GameStateID: u,
 			Subscriber:  *sub,
 		}
 
-		p1 := uuid.Must(uuid.NewV7())
-		p2 := uuid.Must(uuid.NewV7())
+		p1, err := uuid.NewV7()
+		require.NoError(t, err)
+		p2, err := uuid.NewV7()
+		require.NoError(t, err)
 		roundService.EXPECT().
 			UpdateStateToReveal(mock.Anything, u, mock.AnythingOfType("time.Time")).
 			Return(service.RevealRoleState{
@@ -190,14 +200,17 @@ func TestStateMachine(t *testing.T) {
 		"Should successfully complete reveal state and move to scoring state because final round",
 		func(t *testing.T) {
 			t.Parallel()
-			u := uuid.Must(uuid.NewV7())
+			u, err := uuid.NewV7()
+			require.NoError(t, err)
 			q := websockets.RevealState{
 				GameStateID: u,
 				Subscriber:  *sub,
 			}
 
-			p1 := uuid.Must(uuid.NewV7())
-			p2 := uuid.Must(uuid.NewV7())
+			p1, err := uuid.NewV7()
+			require.NoError(t, err)
+			p2, err := uuid.NewV7()
+			require.NoError(t, err)
 			roundService.EXPECT().
 				UpdateStateToReveal(mock.Anything, u, mock.AnythingOfType("time.Time")).
 				Return(service.RevealRoleState{
@@ -222,14 +235,17 @@ func TestStateMachine(t *testing.T) {
 		"Should successfully complete reveal state and move to scoring state because fibber found",
 		func(t *testing.T) {
 			t.Parallel()
-			u := uuid.Must(uuid.NewV7())
+			u, err := uuid.NewV7()
+			require.NoError(t, err)
 			q := websockets.RevealState{
 				GameStateID: u,
 				Subscriber:  *sub,
 			}
 
-			p1 := uuid.Must(uuid.NewV7())
-			p2 := uuid.Must(uuid.NewV7())
+			p1, err := uuid.NewV7()
+			require.NoError(t, err)
+			p2, err := uuid.NewV7()
+			require.NoError(t, err)
 			roundService.EXPECT().
 				UpdateStateToReveal(mock.Anything, u, mock.AnythingOfType("time.Time")).
 				Return(service.RevealRoleState{
@@ -256,14 +272,17 @@ func TestStateMachine(t *testing.T) {
 		"Should successfully complete reveal state and move to winner state because fibber found",
 		func(t *testing.T) {
 			t.Parallel()
-			u := uuid.Must(uuid.NewV7())
+			u, err := uuid.NewV7()
+			require.NoError(t, err)
 			q := websockets.RevealState{
 				GameStateID: u,
 				Subscriber:  *sub,
 			}
 
-			p1 := uuid.Must(uuid.NewV7())
-			p2 := uuid.Must(uuid.NewV7())
+			p1, err := uuid.NewV7()
+			require.NoError(t, err)
+			p2, err := uuid.NewV7()
+			require.NoError(t, err)
 			roundService.EXPECT().
 				UpdateStateToReveal(mock.Anything, u, mock.AnythingOfType("time.Time")).
 				Return(service.RevealRoleState{
@@ -290,14 +309,17 @@ func TestStateMachine(t *testing.T) {
 		"Should successfully complete reveal state and move to winner state because final round reached",
 		func(t *testing.T) {
 			t.Parallel()
-			u := uuid.Must(uuid.NewV7())
+			u, err := uuid.NewV7()
+			require.NoError(t, err)
 			q := websockets.RevealState{
 				GameStateID: u,
 				Subscriber:  *sub,
 			}
 
-			p1 := uuid.Must(uuid.NewV7())
-			p2 := uuid.Must(uuid.NewV7())
+			p1, err := uuid.NewV7()
+			require.NoError(t, err)
+			p2, err := uuid.NewV7()
+			require.NoError(t, err)
 			roundService.EXPECT().
 				UpdateStateToReveal(mock.Anything, u, mock.AnythingOfType("time.Time")).
 				Return(service.RevealRoleState{
@@ -323,14 +345,17 @@ func TestStateMachine(t *testing.T) {
 		"Should successfully complete scoring state and move to question state",
 		func(t *testing.T) {
 			t.Parallel()
-			u := uuid.Must(uuid.NewV7())
+			u, err := uuid.NewV7()
+			require.NoError(t, err)
 			q := websockets.ScoringState{
 				GameStateID: u,
 				Subscriber:  *sub,
 			}
 
-			p1 := uuid.Must(uuid.NewV7())
-			p2 := uuid.Must(uuid.NewV7())
+			p1, err := uuid.NewV7()
+			require.NoError(t, err)
+			p2, err := uuid.NewV7()
+			require.NoError(t, err)
 			roundService.EXPECT().
 				UpdateStateToScore(mock.Anything, u, mock.AnythingOfType("time.Time"), scoring).
 				Return(service.ScoreState{
@@ -358,14 +383,17 @@ func TestStateMachine(t *testing.T) {
 		"Should successfully complete winner state and finish the game",
 		func(t *testing.T) {
 			t.Parallel()
-			u := uuid.Must(uuid.NewV7())
+			u, err := uuid.NewV7()
+			require.NoError(t, err)
 			q := websockets.WinnerState{
 				GameStateID: u,
 				Subscriber:  *sub,
 			}
 
-			p1 := uuid.Must(uuid.NewV7())
-			p2 := uuid.Must(uuid.NewV7())
+			p1, err := uuid.NewV7()
+			require.NoError(t, err)
+			p2, err := uuid.NewV7()
+			require.NoError(t, err)
 			roundService.EXPECT().
 				UpdateStateToWinner(mock.Anything, u, mock.AnythingOfType("time.Time")).
 				Return(service.WinnerState{

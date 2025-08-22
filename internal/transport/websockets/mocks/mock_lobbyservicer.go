@@ -8,7 +8,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/google/uuid"
+	"github.com/gofrs/uuid/v5"
 	mock "github.com/stretchr/testify/mock"
 
 	"gitlab.com/hmajid2301/banterbus/internal/service"
@@ -43,22 +43,22 @@ func (_m *MockLobbyServicer) EXPECT() *MockLobbyServicer_Expecter {
 }
 
 // Create provides a mock function for the type MockLobbyServicer
-func (_mock *MockLobbyServicer) Create(ctx context.Context, gameName string, player service.NewHostPlayer) (service.Lobby, error) {
+func (_mock *MockLobbyServicer) Create(ctx context.Context, gameName string, player service.NewHostPlayer) (service.LobbyCreationResult, error) {
 	ret := _mock.Called(ctx, gameName, player)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Create")
 	}
 
-	var r0 service.Lobby
+	var r0 service.LobbyCreationResult
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, service.NewHostPlayer) (service.Lobby, error)); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, service.NewHostPlayer) (service.LobbyCreationResult, error)); ok {
 		return returnFunc(ctx, gameName, player)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, service.NewHostPlayer) service.Lobby); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, service.NewHostPlayer) service.LobbyCreationResult); ok {
 		r0 = returnFunc(ctx, gameName, player)
 	} else {
-		r0 = ret.Get(0).(service.Lobby)
+		r0 = ret.Get(0).(service.LobbyCreationResult)
 	}
 	if returnFunc, ok := ret.Get(1).(func(context.Context, string, service.NewHostPlayer) error); ok {
 		r1 = returnFunc(ctx, gameName, player)
@@ -104,12 +104,12 @@ func (_c *MockLobbyServicer_Create_Call) Run(run func(ctx context.Context, gameN
 	return _c
 }
 
-func (_c *MockLobbyServicer_Create_Call) Return(lobby service.Lobby, err error) *MockLobbyServicer_Create_Call {
-	_c.Call.Return(lobby, err)
+func (_c *MockLobbyServicer_Create_Call) Return(lobbyCreationResult service.LobbyCreationResult, err error) *MockLobbyServicer_Create_Call {
+	_c.Call.Return(lobbyCreationResult, err)
 	return _c
 }
 
-func (_c *MockLobbyServicer_Create_Call) RunAndReturn(run func(ctx context.Context, gameName string, player service.NewHostPlayer) (service.Lobby, error)) *MockLobbyServicer_Create_Call {
+func (_c *MockLobbyServicer_Create_Call) RunAndReturn(run func(ctx context.Context, gameName string, player service.NewHostPlayer) (service.LobbyCreationResult, error)) *MockLobbyServicer_Create_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -247,22 +247,22 @@ func (_c *MockLobbyServicer_GetRoomState_Call) RunAndReturn(run func(ctx context
 }
 
 // Join provides a mock function for the type MockLobbyServicer
-func (_mock *MockLobbyServicer) Join(ctx context.Context, roomCode string, playerID uuid.UUID, playerNickname string) (service.Lobby, error) {
+func (_mock *MockLobbyServicer) Join(ctx context.Context, roomCode string, playerID uuid.UUID, playerNickname string) (service.LobbyJoinResult, error) {
 	ret := _mock.Called(ctx, roomCode, playerID, playerNickname)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Join")
 	}
 
-	var r0 service.Lobby
+	var r0 service.LobbyJoinResult
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, uuid.UUID, string) (service.Lobby, error)); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, uuid.UUID, string) (service.LobbyJoinResult, error)); ok {
 		return returnFunc(ctx, roomCode, playerID, playerNickname)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, uuid.UUID, string) service.Lobby); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, uuid.UUID, string) service.LobbyJoinResult); ok {
 		r0 = returnFunc(ctx, roomCode, playerID, playerNickname)
 	} else {
-		r0 = ret.Get(0).(service.Lobby)
+		r0 = ret.Get(0).(service.LobbyJoinResult)
 	}
 	if returnFunc, ok := ret.Get(1).(func(context.Context, string, uuid.UUID, string) error); ok {
 		r1 = returnFunc(ctx, roomCode, playerID, playerNickname)
@@ -314,12 +314,12 @@ func (_c *MockLobbyServicer_Join_Call) Run(run func(ctx context.Context, roomCod
 	return _c
 }
 
-func (_c *MockLobbyServicer_Join_Call) Return(lobby service.Lobby, err error) *MockLobbyServicer_Join_Call {
-	_c.Call.Return(lobby, err)
+func (_c *MockLobbyServicer_Join_Call) Return(lobbyJoinResult service.LobbyJoinResult, err error) *MockLobbyServicer_Join_Call {
+	_c.Call.Return(lobbyJoinResult, err)
 	return _c
 }
 
-func (_c *MockLobbyServicer_Join_Call) RunAndReturn(run func(ctx context.Context, roomCode string, playerID uuid.UUID, playerNickname string) (service.Lobby, error)) *MockLobbyServicer_Join_Call {
+func (_c *MockLobbyServicer_Join_Call) RunAndReturn(run func(ctx context.Context, roomCode string, playerID uuid.UUID, playerNickname string) (service.LobbyJoinResult, error)) *MockLobbyServicer_Join_Call {
 	_c.Call.Return(run)
 	return _c
 }

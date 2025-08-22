@@ -7,7 +7,7 @@ import (
 	"log/slog"
 	"time"
 
-	"github.com/google/uuid"
+	"github.com/gofrs/uuid/v5"
 
 	"gitlab.com/hmajid2301/banterbus/internal/service"
 	"gitlab.com/hmajid2301/banterbus/internal/store/db"
@@ -26,6 +26,7 @@ type RoundServicer interface {
 	ToggleAnswerIsReady(ctx context.Context, playerID uuid.UUID, submittedAt time.Time) (bool, error)
 	GetVotingState(ctx context.Context, playerID uuid.UUID) (service.VotingState, error)
 	ToggleVotingIsReady(ctx context.Context, playerID uuid.UUID, submittedAt time.Time) (bool, error)
+	AreAllPlayersVotingReady(ctx context.Context, gameStateID uuid.UUID) (bool, error)
 	UpdateStateToReveal(ctx context.Context, gameStateID uuid.UUID, deadline time.Time) (service.RevealRoleState, error)
 	GetRevealState(ctx context.Context, playerID uuid.UUID) (service.RevealRoleState, error)
 	UpdateStateToScore(
@@ -83,21 +84,36 @@ func (t *ToggleAnswerIsReady) Handle(ctx context.Context, client *Client, sub *S
 		return errors.Join(clientErr, err)
 	}
 
-	questionState, err := sub.roundService.GetQuestionState(ctx, client.playerID)
+	// Get current game state to check if we should update question display
+	currentGameState, err := sub.roundService.GetGameState(ctx, client.playerID)
 	if err != nil {
-		errStr := "Failed to toggle you are ready."
-		clientErr := sub.updateClientAboutErr(ctx, client.playerID, errStr)
-		return errors.Join(clientErr, err)
-	}
+		sub.logger.ErrorContext(ctx, "failed to get game state after toggle ready", slog.Any("error", err))
+		// Continue without error to avoid breaking the toggle functionality
+	} else if currentGameState == db.FibbingITQuestion {
+		// Only update question display if still in question state
+		// This prevents showing stale data during state transitions
+		questionState, err := sub.roundService.GetQuestionState(ctx, client.playerID)
+		if err != nil {
+			errStr := "Failed to get updated question state."
+			clientErr := sub.updateClientAboutErr(ctx, client.playerID, errStr)
+			return errors.Join(clientErr, err)
+		}
 
-	// INFO: Only need to update state of one player, so question state here should only contain a single player.
-	showRole := false
-	err = sub.updateClientsAboutQuestion(ctx, questionState, showRole)
-	if err != nil {
-		return err
+		// INFO: Only updating individual player's ready status, not full state refresh
+		showRole := false
+		err = sub.updateClientsAboutQuestion(ctx, questionState, showRole)
+		if err != nil {
+			return err
+		}
 	}
 
 	if allReady {
+		// Get the game state ID from the current player's question state
+		questionState, err := sub.roundService.GetQuestionState(ctx, client.playerID)
+		if err != nil {
+			return err
+		}
+
 		votingState := VotingState{
 			GameStateID: questionState.GameStateID,
 			Subscriber:  *sub,

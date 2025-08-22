@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/invopop/ctxi18n/i18n"
-	"gitlab.com/hmajid2301/banterbus/internal/views/icons"
 )
 
 templ Role(role string, showRole bool) {
@@ -14,7 +13,7 @@ templ Role(role string, showRole bool) {
 		@keydown.escape="showModal = false"
 	>
 		<button type="button" @click="showModal = true; setTimeout(() => showModal = false, 15000)">
-			@icons.Info("")
+			<i class="hgi hgi-solid hgi-information-circle"></i>
 		</button>
 		<div
 			class="flex overflow-auto fixed inset-0 z-30 justify-center items-center bg-black bg-opacity-50"
@@ -29,16 +28,16 @@ templ Role(role string, showRole bool) {
 			>
 				<div class="flex justify-between items-center">
 					<button type="button" aria-label="Close" class="z-50 cursor-pointer" @click="showModal = false">
-						@icons.Cross("")
+						<i class="hgi hgi-solid hgi-cancel-01"></i>
 					</button>
 				</div>
 				<div class="text-text2">
 					<div class="flex justify-between items-center">
 						<div class="text-2xl text-center">
 							if role == "fibber" {
-								@icons.Alien("")
+								<i class="hgi hgi-solid hgi-alien"></i>
 							} else {
-								@icons.User("")
+								<i class="hgi hgi-solid hgi-user"></i>
 							}
 							<p class="font-bold">
 								{ i18n.T(ctx, "role.sush") }

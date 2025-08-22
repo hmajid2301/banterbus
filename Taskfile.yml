@@ -44,17 +44,17 @@ tasks:
   tests:
     desc: Runs all the tests.
     cmds:
-      - gotestsum -- -parallel 0
+      - gotestsum
 
   tests:unit:
     desc: Runs all the unit tests.
     cmds:
-      - gotestsum --format testname --hide-summary=skipped -- -coverprofile coverage.out -cover -covermode=atomic -skip '^TestIntegration' -parallel 0 ./internal/... {{.CLI_ARGS}}
+      - gotestsum --format testname --hide-summary=skipped -- -coverprofile coverage.out -cover -covermode=atomic -skip '^TestIntegration' ./internal/... {{.CLI_ARGS}}
 
   tests:integration:
     desc: Runs all the integration tests.
     cmds:
-      - gotestsum --format testname --hide-summary=skipped -- -coverprofile coverage.out -cover -covermode=atomic -run ^TestIntegration -parallel 0 ./internal/... {{.CLI_ARGS}}
+      - gotestsum --format testname --hide-summary=skipped -- -coverprofile coverage.out -cover -covermode=atomic -run ^TestIntegration ./internal/... {{.CLI_ARGS}}
 
   tests:e2e:
     desc: Runs e2e tests with playwright.
@@ -70,7 +70,7 @@ tasks:
           "until curl -sSf http://localhost:8080/health >/dev/null; do sleep 2; done && \
            gotestsum --format testname --hide-summary=skipped --packages='./tests/e2e' -- \
              -coverprofile coverage.out \
-             -cover -covermode=atomic -parallel 0 {{.CLI_ARGS}}"
+             -cover -covermode=atomic {{.CLI_ARGS}}"
 
   tests:e2e:quiet:
     desc: Runs e2e tests with playwright without any logging as this can be super verbose.

@@ -4,9 +4,10 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"log/slog"
 	"time"
 
-	"github.com/google/uuid"
+	"github.com/gofrs/uuid/v5"
 	"github.com/mdobak/go-xerrors"
 
 	"gitlab.com/hmajid2301/banterbus/internal/service"
@@ -14,8 +15,13 @@ import (
 )
 
 type LobbyServicer interface {
-	Create(ctx context.Context, gameName string, player service.NewHostPlayer) (service.Lobby, error)
-	Join(ctx context.Context, roomCode string, playerID uuid.UUID, playerNickname string) (service.Lobby, error)
+	Create(ctx context.Context, gameName string, player service.NewHostPlayer) (service.LobbyCreationResult, error)
+	Join(
+		ctx context.Context,
+		roomCode string,
+		playerID uuid.UUID,
+		playerNickname string,
+	) (service.LobbyJoinResult, error)
 	Start(ctx context.Context, roomCode string, playerID uuid.UUID, deadline time.Time) (service.QuestionState, error)
 	KickPlayer(
 		ctx context.Context,
@@ -32,21 +38,24 @@ func (c *CreateRoom) Handle(ctx context.Context, client *Client, sub *Subscriber
 		ID:       client.playerID,
 		Nickname: c.PlayerNickname,
 	}
-	lobby, err := sub.lobbyService.Create(ctx, c.GameName, newPlayer)
+	result, err := sub.lobbyService.Create(ctx, c.GameName, newPlayer)
 	if err != nil {
 		errStr := "Failed to create room"
 		clientErr := sub.updateClientAboutErr(ctx, client.playerID, errStr)
 		return errors.Join(clientErr, err)
 	}
 
-	err = sub.updateClientsAboutLobby(ctx, lobby)
+	// Update the client's player ID to the newly generated one for this room
+	client.playerID = result.NewPlayerID
+
+	err = sub.updateClientsAboutLobby(ctx, result.Lobby)
 	return err
 }
 
 func (j *JoinLobby) Handle(ctx context.Context, client *Client, sub *Subscriber) error {
 	var err error
 	var component bytes.Buffer
-	updatedRoom, err := sub.lobbyService.Join(ctx, j.RoomCode, client.playerID, j.PlayerNickname)
+	result, err := sub.lobbyService.Join(ctx, j.RoomCode, client.playerID, j.PlayerNickname)
 	if err != nil {
 		if errors.Is(err, service.ErrPlayerAlreadyInRoom) {
 			component, err = sub.Reconnect(ctx, client.playerID)
@@ -64,7 +73,10 @@ func (j *JoinLobby) Handle(ctx context.Context, client *Client, sub *Subscriber)
 		}
 	}
 
-	clientErr := sub.updateClientsAboutLobby(ctx, updatedRoom)
+	// Update the client's player ID to the newly generated one for this room
+	client.playerID = result.NewPlayerID
+
+	clientErr := sub.updateClientsAboutLobby(ctx, result.Lobby)
 	return errors.Join(clientErr, err)
 }
 
@@ -90,8 +102,17 @@ func (s *StartGame) Handle(ctx context.Context, client *Client, sub *Subscriber)
 		}
 
 		deadline := time.Now().UTC().Add(sub.config.Timings.ShowQuestionScreenFor)
-		time.Sleep(time.Until(deadline))
-		go v.Start(ctx)
+		timer := time.NewTimer(time.Until(deadline))
+		defer timer.Stop()
+
+		select {
+		case <-timer.C:
+			go v.Start(ctx)
+		case <-ctx.Done():
+			sub.logger.InfoContext(ctx, "voting transition cancelled",
+				slog.String("game_state_id", questionState.GameStateID.String()))
+			return
+		}
 	}()
 
 	return nil

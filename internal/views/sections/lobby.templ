@@ -5,7 +5,6 @@ import (
 	"github.com/invopop/ctxi18n/i18n"
 	"gitlab.com/hmajid2301/banterbus/internal/service"
 	"gitlab.com/hmajid2301/banterbus/internal/views/components"
-	"gitlab.com/hmajid2301/banterbus/internal/views/icons"
 )
 
 templ Lobby(code string, players []service.LobbyPlayer, currentPlayer service.LobbyPlayer, rulesContent templ.Component) {
@@ -16,7 +15,7 @@ templ Lobby(code string, players []service.LobbyPlayer, currentPlayer service.Lo
 			Value:     code,
 		}, templ.Attributes{"disabled": true}) {
 			<button class="inline-flex absolute top-1/2 justify-center items-center p-2 rounded-lg text-text2 end-2 hover:text-surface0" aria-label="Copy Join Link" @click={ getClipboardString(code) }>
-				@icons.Clipboard("")
+				<i class="hgi hgi-solid hgi-clipboard"></i>
 			</button>
 		}
 		<div>
@@ -32,7 +31,7 @@ templ Lobby(code string, players []service.LobbyPlayer, currentPlayer service.Lo
 									<input class="hidden" name="room_code" value={ code }/>
 									<input class="hidden" name="player_nickname_to_kick" value={ player.Nickname }/>
 									<button aria-label="Kick Player">
-										@icons.Remove("")
+										<i class="text-red-500 hgi hgi-solid hgi-delete-02"></i>
 									</button>
 								</form>
 							</div>
@@ -40,14 +39,14 @@ templ Lobby(code string, players []service.LobbyPlayer, currentPlayer service.Lo
 						<div class="relative w-20 h-20 rounded-full border-2 border-white bg-overlay0">
 							if player.IsHost {
 								<div class="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-									@icons.Crown("")
+									<i class="text-yellow-500 hgi hgi-solid hgi-crown"></i>
 								</div>
 							}
 							<img src={ player.Avatar } alt="avatar" class="w-full h-full rounded-full"/>
 							if currentPlayer == player {
 								<form id="update_avatar_form" hx-vals='{"message_type": "generate_new_avatar" }' ws-send>
 									<button class="absolute right-0 bottom-0 p-1 text-black bg-white rounded-full hover:bg-surface2 hover:text-text2" aria-label="Update Avatar">
-										@icons.Redo("")
+										<i class="hgi hgi-solid hgi-redo-02"></i>
 									</button>
 								</form>
 							}
@@ -58,7 +57,7 @@ templ Lobby(code string, players []service.LobbyPlayer, currentPlayer service.Lo
 									<div class="relative">
 										<input type="text" name="player_nickname" value={ player.Nickname } class="py-3 px-5 w-full rounded-xl border-1 bg-overlay0 placeholder-surface0 border-text2"/>
 										<button class="inline-flex absolute top-1/2 justify-center items-center p-2 rounded-lg -translate-y-5 text-text2 end-2" aria-label="Update Nickname">
-											@icons.EditText("")
+											<i class="hgi hgi-solid hgi-edit-02"></i>
 										</button>
 									</div>
 								</div>
@@ -68,9 +67,9 @@ templ Lobby(code string, players []service.LobbyPlayer, currentPlayer service.Lo
 						}
 						<button>
 							if player.IsReady {
-								@icons.SquareCheckmark("")
+								<i class="text-green-500 hgi hgi-solid hgi-tick-square"></i>
 							} else {
-								@icons.SquareCross("")
+								<i class="text-red-500 hgi hgi-solid hgi-cancel-square"></i>
 							}
 						</button>
 					</div>

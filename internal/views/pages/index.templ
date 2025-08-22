@@ -3,7 +3,6 @@ package pages
 import (
 	"github.com/invopop/ctxi18n/i18n"
 	"gitlab.com/hmajid2301/banterbus/internal/views/components"
-	"gitlab.com/hmajid2301/banterbus/internal/views/icons"
 	"gitlab.com/hmajid2301/banterbus/internal/views/layouts"
 )
 
@@ -31,13 +30,13 @@ templ Index(languages map[string]string, environment string) {
 					<div class="flex flex-row mt-12 space-x-4 w-full">
 						<div class="w-full" @click="action = JSON.stringify({ message_type: 'create_room', game_name: 'fibbing_it' })">
 							@components.Button(components.ButtonProps{}, templ.Attributes{}) {
-								@icons.Play("")
+								<i class="mr-2 hgi hgi-solid hgi-play"></i>
 								<p>{ i18n.T(ctx, "home.start_button_label") }</p>
 							}
 						</div>
 						<div class="w-full" @click="action = JSON.stringify({ message_type: 'join_lobby' })">
 							@components.Button(components.ButtonProps{BackgroundColor: "bg-text2", TextColor: "text-black"}, templ.Attributes{}) {
-								@icons.Group("")
+								<i class="mr-2 hgi hgi-solid hgi-group"></i>
 								<p>{ i18n.T(ctx, "home.join_button_label") }</p>
 							}
 						</div>

@@ -3,12 +3,22 @@ package service
 import (
 	"time"
 
-	"github.com/google/uuid"
+	"github.com/gofrs/uuid/v5"
 )
 
 type Lobby struct {
 	Code    string
 	Players []LobbyPlayer
+}
+
+type LobbyCreationResult struct {
+	Lobby       Lobby
+	NewPlayerID uuid.UUID
+}
+
+type LobbyJoinResult struct {
+	Lobby       Lobby
+	NewPlayerID uuid.UUID
 }
 
 type LobbyPlayer struct {

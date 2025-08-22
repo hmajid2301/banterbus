@@ -1,12 +1,12 @@
 package service_test
 
 import (
-	"context"
 	"fmt"
 	"testing"
 
-	"github.com/google/uuid"
+	"github.com/gofrs/uuid/v5"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"gitlab.com/hmajid2301/banterbus/internal/service"
 	mockService "gitlab.com/hmajid2301/banterbus/internal/service/mocks"
@@ -22,7 +22,7 @@ func TestQuestionAdd(t *testing.T) {
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewQuestionService(mockStore, mockRandom, "en-GB")
 
-		ctx := context.Background()
+		ctx := t.Context()
 
 		roundType := "multiple_choice"
 		groupName := "example"
@@ -56,7 +56,7 @@ func TestQuestionAdd(t *testing.T) {
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewQuestionService(mockStore, mockRandom, "en-GB")
 
-		ctx := context.Background()
+		ctx := t.Context()
 
 		roundType := "multiple_choice"
 		groupName := "example"
@@ -77,6 +77,8 @@ func TestQuestionAdd(t *testing.T) {
 
 func TestQuestionAddTranslation(t *testing.T) {
 	t.Parallel()
+	var u uuid.UUID
+	var questionID uuid.UUID
 
 	t.Run("Should successfully add new question translation", func(t *testing.T) {
 		t.Parallel()
@@ -84,14 +86,17 @@ func TestQuestionAddTranslation(t *testing.T) {
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewQuestionService(mockStore, mockRandom, "en-GB")
 
-		ctx := context.Background()
+		ctx := t.Context()
 
 		text := "portguese words"
 		locale := "pt-PT"
 
-		u := uuid.Must(uuid.NewV7())
-		questionID := uuid.Must(uuid.NewV7())
-		mockRandom.EXPECT().GetID().Return(u)
+		var err error
+		u, err = uuid.NewV7()
+		require.NoError(t, err)
+		questionID, err = uuid.NewV7()
+		require.NoError(t, err)
+		mockRandom.EXPECT().GetID().Return(u, nil)
 		mockStore.EXPECT().AddQuestionTranslation(ctx, db.AddQuestionTranslationParams{
 			ID:         u,
 			Question:   text,
@@ -115,14 +120,17 @@ func TestQuestionAddTranslation(t *testing.T) {
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewQuestionService(mockStore, mockRandom, "en-GB")
 
-		ctx := context.Background()
+		ctx := t.Context()
 
 		text := "portguese words"
 		locale := "pt-PT"
 
-		u := uuid.Must(uuid.NewV7())
-		questionID := uuid.Must(uuid.NewV7())
-		mockRandom.EXPECT().GetID().Return(u)
+		var err error
+		u, err = uuid.NewV7()
+		require.NoError(t, err)
+		questionID, err = uuid.NewV7()
+		require.NoError(t, err)
+		mockRandom.EXPECT().GetID().Return(u, nil)
 		mockStore.EXPECT().AddQuestionTranslation(ctx, db.AddQuestionTranslationParams{
 			ID:         u,
 			Question:   text,
@@ -130,13 +138,14 @@ func TestQuestionAddTranslation(t *testing.T) {
 			QuestionID: questionID,
 		}).Return(db.QuestionsI18n{}, fmt.Errorf("failed to add question translation"))
 
-		_, err := srv.AddTranslation(ctx, questionID, text, locale)
+		_, err = srv.AddTranslation(ctx, questionID, text, locale)
 		assert.Error(t, err)
 	})
 }
 
 func TestQuestionGetGroups(t *testing.T) {
 	t.Parallel()
+	var u uuid.UUID
 
 	t.Run("Should successfully get all group", func(t *testing.T) {
 		t.Parallel()
@@ -144,9 +153,11 @@ func TestQuestionGetGroups(t *testing.T) {
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewQuestionService(mockStore, mockRandom, "en-GB")
 
-		ctx := context.Background()
+		ctx := t.Context()
 
-		u := uuid.Must(uuid.NewV7())
+		var err error
+		u, err = uuid.NewV7()
+		require.NoError(t, err)
 		mockStore.EXPECT().GetGroups(ctx).Return([]db.QuestionsGroup{
 			{
 				ID:        u,
@@ -179,7 +190,7 @@ func TestQuestionGetGroups(t *testing.T) {
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewQuestionService(mockStore, mockRandom, "en-GB")
 
-		ctx := context.Background()
+		ctx := t.Context()
 
 		mockStore.EXPECT().GetGroups(ctx).Return(nil, fmt.Errorf("failed to make request"))
 		_, err := srv.GetGroups(ctx)
@@ -196,7 +207,7 @@ func TestQuestionGetQuestions(t *testing.T) {
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewQuestionService(mockStore, mockRandom, "en-GB")
 
-		ctx := context.Background()
+		ctx := t.Context()
 
 		questionsDB := []db.GetQuestionsRow{
 			{
@@ -255,7 +266,8 @@ func TestQuestionGetQuestions(t *testing.T) {
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewQuestionService(mockStore, mockRandom, "en-GB")
 
-		ctx := context.Background()
+		ctx := t.Context()
+
 		mockStore.EXPECT().GetQuestions(ctx, db.GetQuestionsParams{
 			Column1: "en-GB",
 			Column2: "free_form",
@@ -277,6 +289,7 @@ func TestQuestionGetQuestions(t *testing.T) {
 
 func TestQuestionDisable(t *testing.T) {
 	t.Parallel()
+	var u uuid.UUID
 
 	t.Run("Should successfully disable question", func(t *testing.T) {
 		t.Parallel()
@@ -284,12 +297,14 @@ func TestQuestionDisable(t *testing.T) {
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewQuestionService(mockStore, mockRandom, "en-GB")
 
-		ctx := context.Background()
+		ctx := t.Context()
 
-		u := uuid.Must(uuid.NewV7())
+		var err error
+		u, err = uuid.NewV7()
+		require.NoError(t, err)
 		mockStore.EXPECT().DisableQuestion(ctx, u).Return(db.Question{}, nil)
 
-		err := srv.DisableQuestion(ctx, u)
+		err = srv.DisableQuestion(ctx, u)
 		assert.NoError(t, err)
 	})
 
@@ -299,18 +314,21 @@ func TestQuestionDisable(t *testing.T) {
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewQuestionService(mockStore, mockRandom, "en-GB")
 
-		ctx := context.Background()
+		ctx := t.Context()
 
-		u := uuid.Must(uuid.NewV7())
+		var err error
+		u, err = uuid.NewV7()
+		require.NoError(t, err)
 		mockStore.EXPECT().DisableQuestion(ctx, u).Return(db.Question{}, fmt.Errorf("failed to disable question"))
 
-		err := srv.DisableQuestion(ctx, u)
+		err = srv.DisableQuestion(ctx, u)
 		assert.Error(t, err)
 	})
 }
 
 func TestQuestionEnable(t *testing.T) {
 	t.Parallel()
+	var u uuid.UUID
 
 	t.Run("Should successfully enable question", func(t *testing.T) {
 		t.Parallel()
@@ -318,12 +336,14 @@ func TestQuestionEnable(t *testing.T) {
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewQuestionService(mockStore, mockRandom, "en-GB")
 
-		ctx := context.Background()
+		ctx := t.Context()
 
-		u := uuid.Must(uuid.NewV7())
+		var err error
+		u, err = uuid.NewV7()
+		require.NoError(t, err)
 		mockStore.EXPECT().EnableQuestion(ctx, u).Return(db.Question{}, nil)
 
-		err := srv.EnableQuestion(ctx, u)
+		err = srv.EnableQuestion(ctx, u)
 		assert.NoError(t, err)
 	})
 
@@ -333,12 +353,14 @@ func TestQuestionEnable(t *testing.T) {
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewQuestionService(mockStore, mockRandom, "en-GB")
 
-		ctx := context.Background()
+		ctx := t.Context()
 
-		u := uuid.Must(uuid.NewV7())
+		var err error
+		u, err = uuid.NewV7()
+		require.NoError(t, err)
 		mockStore.EXPECT().EnableQuestion(ctx, u).Return(db.Question{}, fmt.Errorf("failed to enable question"))
 
-		err := srv.EnableQuestion(ctx, u)
+		err = srv.EnableQuestion(ctx, u)
 		assert.Error(t, err)
 	})
 }
@@ -352,10 +374,12 @@ func TestQuestionAddGroup(t *testing.T) {
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewQuestionService(mockStore, mockRandom, "en-GB")
 
-		ctx := context.Background()
+		ctx := t.Context()
 
-		u := uuid.Must(uuid.NewV7())
-		mockRandom.EXPECT().GetID().Return(u)
+		var err error
+		u, err := uuid.NewV7()
+		require.NoError(t, err)
+		mockRandom.EXPECT().GetID().Return(u, nil)
 		mockStore.EXPECT().AddGroup(ctx, db.AddGroupParams{
 			ID:        u,
 			GroupName: "cat",
@@ -377,17 +401,19 @@ func TestQuestionAddGroup(t *testing.T) {
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewQuestionService(mockStore, mockRandom, "en-GB")
 
-		ctx := context.Background()
+		ctx := t.Context()
 
-		u := uuid.Must(uuid.NewV7())
-		mockRandom.EXPECT().GetID().Return(u)
+		var err error
+		u, err := uuid.NewV7()
+		require.NoError(t, err)
+		mockRandom.EXPECT().GetID().Return(u, nil)
 		mockStore.EXPECT().AddGroup(ctx, db.AddGroupParams{
 			ID:        u,
 			GroupName: "cat",
 			GroupType: "questions",
 		}).Return(db.QuestionsGroup{}, fmt.Errorf("failed to add group to db"))
 
-		_, err := srv.AddGroup(ctx, "cat")
+		_, err = srv.AddGroup(ctx, "cat")
 		assert.Error(t, err)
 	})
 }

@@ -7,7 +7,7 @@ package mocks
 import (
 	"context"
 
-	"github.com/google/uuid"
+	"github.com/gofrs/uuid/v5"
 	"github.com/redis/go-redis/v9"
 	mock "github.com/stretchr/testify/mock"
 )

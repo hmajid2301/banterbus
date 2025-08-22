@@ -1,7 +1,5 @@
 package components
 
-import "gitlab.com/hmajid2301/banterbus/internal/views/icons"
-
 templ Toast() {
 	<div
 		x-data="toast"
@@ -27,19 +25,19 @@ templ Toast() {
 						class="flex relative gap-2 items-center py-7 px-5 rounded-lg border shadow-sm border-border min-w-[384px]"
 					>
 						<button @click="dismiss(toast.id)" class="absolute top-3 right-3">
-							@icons.Cross("")
+							<i class="hgi hgi-solid hgi-cancel-01"></i>
 						</button>
 						<template x-if="toast.type === 'success'">
-							@icons.CircleCheckmark("")
+							<i class="hgi hgi-solid hgi-check-circle"></i>
 						</template>
 						<template x-if="toast.type === 'info'">
-							@icons.Info("")
+							<i class="hgi hgi-solid hgi-information-circle"></i>
 						</template>
 						<template x-if="toast.type === 'warning'">
-							@icons.Warning("")
+							<i class="hgi hgi-solid hgi-alert-triangle"></i>
 						</template>
 						<template x-if="toast.type === 'failure'">
-							@icons.CancelCircle("")
+							<i class="hgi hgi-solid hgi-cancel-circle"></i>
 						</template>
 						<p class="text-sm font-medium text-black" x-text="toast.message"></p>
 					</div>

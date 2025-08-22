@@ -1,0 +1,544 @@
+openapi: 3.0.3
+info:
+  title: Banter Bus API
+  description: |
+    Banter Bus is a multiplayer party game where players try to identify the "fibber" among them.
+    This API provides endpoints for managing game questions, translations, and administrative tasks.
+  version: 1.0.0
+  license:
+    name: License
+    url: https://github.com/hmajid2301/banterbus/blob/main/LICENSE
+  contact:
+    name: Haseeb Majid
+    url: https://haseebmajid.dev
+    email: hello@haseebmajid.dev
+
+servers:
+  - url: https://banterbus.games
+    description: Production server
+  - url: https://dev.banterbus.games
+    description: Development server
+  - url: http://localhost:8080
+    description: Local development server
+
+security:
+  - BearerAuth: []
+
+paths:
+  # Health and Status Endpoints
+  /health:
+    get:
+      tags:
+        - Health
+      summary: Health check endpoint
+      description: Returns the health status of the application
+      security: []
+      responses:
+        '200':
+          description: Application is healthy
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "OK"
+
+  /readiness:
+    get:
+      tags:
+        - Health
+      summary: Readiness check endpoint
+      description: Returns the readiness status of the application
+      security: []
+      responses:
+        '200':
+          description: Application is ready
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "OK"
+
+  # Game Web Interface Endpoints
+  /:
+    get:
+      tags:
+        - Game
+      summary: Game homepage
+      description: Serves the main game interface
+      security: []
+      responses:
+        '200':
+          description: Game homepage HTML
+          content:
+            text/html:
+              schema:
+                type: string
+
+  /join/{room_code}:
+    get:
+      tags:
+        - Game
+      summary: Join game room
+      description: Serves the interface to join a game room with a specific room code
+      security: []
+      parameters:
+        - name: room_code
+          in: path
+          required: true
+          description: The room code to join
+          schema:
+            type: string
+            pattern: '^[A-Z0-9]{6}$'
+            example: "ABC123"
+      responses:
+        '200':
+          description: Join room HTML page
+          content:
+            text/html:
+              schema:
+                type: string
+
+  /ws:
+    get:
+      tags:
+        - Game
+      summary: WebSocket connection
+      description: Establishes WebSocket connection for real-time game communication
+      security: []
+      responses:
+        '101':
+          description: WebSocket connection established
+
+  # Question Management API
+  /question:
+    get:
+      tags:
+        - Questions
+      summary: Get questions
+      description: Retrieves a paginated list of game questions with optional filters
+      parameters:
+        - name: group_name
+          in: query
+          description: Filter by question group
+          schema:
+            type: string
+            example: "general"
+        - name: round_type
+          in: query
+          description: Filter by round type
+          schema:
+            type: string
+            enum: [fibbing_it]
+            example: "fibbing_it"
+        - name: enabled
+          in: query
+          description: Filter by enabled status
+          schema:
+            type: boolean
+            example: true
+        - name: limit
+          in: query
+          description: Number of results per page
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+            example: 20
+        - name: page
+          in: query
+          description: Page number (1-based)
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+            example: 1
+      responses:
+        '200':
+          description: List of questions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Question'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    post:
+      tags:
+        - Questions
+      summary: Create new question
+      description: Creates a new game question
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewQuestion'
+      responses:
+        '201':
+          description: Question created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Question'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /question/{id}/locale/{locale}:
+    post:
+      tags:
+        - Questions
+      summary: Add question translation
+      description: Adds a translation for an existing question
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Question ID
+          schema:
+            type: string
+            format: uuid
+        - name: locale
+          in: path
+          required: true
+          description: Locale code (e.g., en, es, fr)
+          schema:
+            type: string
+            pattern: '^[a-z]{2}(-[A-Z]{2})?$'
+            example: "en"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewQuestionTranslation'
+      responses:
+        '201':
+          description: Translation added successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QuestionTranslation'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /question/group:
+    get:
+      tags:
+        - Questions
+      summary: Get question groups
+      description: Retrieves all available question groups
+      responses:
+        '200':
+          description: List of question groups
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Group'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    post:
+      tags:
+        - Questions
+      summary: Create question group
+      description: Creates a new question group
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewGroup'
+      responses:
+        '201':
+          description: Group created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Group'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  # Admin Question Management
+  /question/{id}/enable:
+    put:
+      tags:
+        - Admin
+      summary: Enable question
+      description: Enables a disabled question (Admin only)
+      security:
+        - BearerAuth: [admin]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Question ID
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Question enabled successfully
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /question/{id}/disable:
+    put:
+      tags:
+        - Admin
+      summary: Disable question
+      description: Disables an active question (Admin only)
+      security:
+        - BearerAuth: [admin]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Question ID
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Question disabled successfully
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token obtained from your authentication provider
+
+  schemas:
+    Question:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique identifier for the question
+        text:
+          type: string
+          description: The question text
+          example: "What is your favorite color?"
+        group_name:
+          type: string
+          description: The group this question belongs to
+          example: "general"
+        round_type:
+          type: string
+          enum: [fibbing_it]
+          description: The type of game round this question is for
+        enabled:
+          type: boolean
+          description: Whether this question is enabled for use in games
+        created_at:
+          type: string
+          format: date-time
+          description: When the question was created
+        updated_at:
+          type: string
+          format: date-time
+          description: When the question was last updated
+        translations:
+          type: array
+          description: Available translations for this question
+          items:
+            $ref: '#/components/schemas/QuestionTranslation'
+
+    NewQuestion:
+      type: object
+      required:
+        - text
+        - group_name
+        - round_type
+      properties:
+        text:
+          type: string
+          description: The question text
+          example: "What is your favorite color?"
+          minLength: 1
+          maxLength: 500
+        group_name:
+          type: string
+          description: The group this question belongs to
+          example: "general"
+          minLength: 1
+          maxLength: 100
+        round_type:
+          type: string
+          enum: [fibbing_it]
+          description: The type of game round this question is for
+
+    QuestionTranslation:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique identifier for the translation
+        question_id:
+          type: string
+          format: uuid
+          description: ID of the question this translation belongs to
+        locale:
+          type: string
+          description: Locale code for this translation
+          example: "en"
+        text:
+          type: string
+          description: Translated question text
+          example: "¿Cuál es tu color favorito?"
+        created_at:
+          type: string
+          format: date-time
+          description: When the translation was created
+
+    NewQuestionTranslation:
+      type: object
+      required:
+        - text
+      properties:
+        text:
+          type: string
+          description: Translated question text
+          example: "¿Cuál es tu color favorito?"
+          minLength: 1
+          maxLength: 500
+
+    Group:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique identifier for the group
+        name:
+          type: string
+          description: Group name
+          example: "general"
+        created_at:
+          type: string
+          format: date-time
+          description: When the group was created
+
+    NewGroup:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          description: Group name
+          example: "general"
+          minLength: 1
+          maxLength: 100
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Error message
+        details:
+          type: string
+          description: Additional error details (optional)
+
+  responses:
+    BadRequest:
+      description: Invalid request parameters or body
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          examples:
+            validation_error:
+              summary: Validation error
+              value:
+                error: "Validation failed"
+                details: "Field 'text' is required"
+
+    Unauthorized:
+      description: Authentication required or invalid token
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: "Unauthorized"
+
+    Forbidden:
+      description: Insufficient permissions
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: "Forbidden"
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: "Not found"
+
+    InternalServerError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: "Internal server error"
+
+tags:
+  - name: Health
+    description: Health and readiness check endpoints
+  - name: Game
+    description: Game web interface and WebSocket endpoints
+  - name: Questions
+    description: Question management API endpoints
+  - name: Admin
+    description: Administrative endpoints (requires admin privileges)

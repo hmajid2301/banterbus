@@ -3,7 +3,7 @@ package websockets
 import (
 	"net"
 
-	"github.com/google/uuid"
+	"github.com/gofrs/uuid/v5"
 	"github.com/redis/go-redis/v9"
 )
 

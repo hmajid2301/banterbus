@@ -2,7 +2,6 @@ package http_test
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -38,7 +37,7 @@ func TestIntegrationAddQuestionHandler(t *testing.T) {
 		jsonData, err := json.Marshal(question)
 		require.NoError(t, err)
 
-		ctx := context.Background()
+		ctx := t.Context()
 		endpoint := fmt.Sprintf("%s/question", srv.URL)
 		req, err := http.NewRequestWithContext(ctx, http.MethodPost, endpoint, bytes.NewReader(jsonData))
 		require.NoError(t, err)
@@ -69,7 +68,7 @@ func TestIntegrationAddQuestionHandler(t *testing.T) {
 		jsonData, err := json.Marshal(question)
 		require.NoError(t, err)
 
-		ctx := context.Background()
+		ctx := t.Context()
 		endpoint := fmt.Sprintf("%s/question", srv.URL)
 		req, err := http.NewRequestWithContext(ctx, http.MethodPut, endpoint, bytes.NewReader(jsonData))
 		require.NoError(t, err)
@@ -100,7 +99,7 @@ func TestIntegrationAddQuestionHandler(t *testing.T) {
 		jsonData, err := json.Marshal(question)
 		require.NoError(t, err)
 
-		ctx := context.Background()
+		ctx := t.Context()
 		endpoint := fmt.Sprintf("%s/question", srv.URL)
 		req, err := http.NewRequestWithContext(ctx, http.MethodPost, endpoint, bytes.NewReader(jsonData))
 		require.NoError(t, err)
@@ -127,7 +126,7 @@ func TestIntegrationAddQuestionHandler(t *testing.T) {
 // 		jsonData, err := json.Marshal(question)
 // 		require.NoError(t, err)
 //
-// 		ctx := context.Background()
+// 		ctx := t.Context()
 // 		endpoint := fmt.Sprintf("%s/question/%s/locale/%s", srv.URL, "", "pt-PT")
 // 		req, err := http.NewRequestWithContext(ctx, http.MethodPut, endpoint, bytes.NewReader(jsonData))
 // 		require.NoError(t, err)
@@ -148,7 +147,7 @@ func TestIntegrationAddQuestionHandler(t *testing.T) {
 // 		jsonData, err := json.Marshal(question)
 // 		require.NoError(t, err)
 //
-// 		ctx := context.Background()
+// 		ctx := t.Context()
 // 		endpoint := fmt.Sprintf("%s/question", srv.URL)
 // 		req, err := http.NewRequestWithContext(ctx, http.MethodGet, endpoint, bytes.NewReader(jsonData))
 // 		require.NoError(t, err)
@@ -169,7 +168,7 @@ func TestIntegrationAddQuestionHandler(t *testing.T) {
 // 		jsonData, err := json.Marshal(question)
 // 		require.NoError(t, err)
 //
-// 		ctx := context.Background()
+// 		ctx := t.Context()
 // 		endpoint := fmt.Sprintf("%s/question", srv.URL)
 // 		req, err := http.NewRequestWithContext(ctx, http.MethodPost, endpoint, bytes.NewReader(jsonData))
 // 		require.NoError(t, err)
@@ -189,7 +188,7 @@ func TestIntegrationAddQuestionHandler(t *testing.T) {
 // 	defer srv.Close()
 //
 // 	t.Run("Should successfully get group", func(t *testing.T) {
-// 		ctx := context.Background()
+// 		ctx := t.Context()
 // 		endpoint := fmt.Sprintf("%s/question/group", srv.URL)
 // 		req, err := http.NewRequestWithContext(ctx, http.MethodGet, endpoint, http.NoBody)
 // 		require.NoError(t, err)
@@ -239,7 +238,7 @@ func TestIntegrationGetQuestionsHandler(t *testing.T) {
 
 	// TODO: enable with pagination
 	// t.Run("Should successfully get handler", func(t *testing.T) {
-	// 	ctx := context.Background()
+	// 	ctx := t.Context()
 	// 	endpoint := fmt.Sprintf("%s/question", srv.URL)
 	// 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, endpoint, http.NoBody)
 	// 	require.NoError(t, err)

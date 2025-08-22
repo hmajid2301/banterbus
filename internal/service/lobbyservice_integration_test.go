@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/google/uuid"
+	"github.com/gofrs/uuid/v5"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -13,8 +13,8 @@ import (
 	db "gitlab.com/hmajid2301/banterbus/internal/store/db"
 )
 
-var defaultHostPlayerID = uuid.MustParse("0193a5e6-50db-7082-b0dd-42d7c88dd3ba")
-var defaultOtherPlayerID = uuid.MustParse("0193a5f3-8fbe-7748-89ab-cbd4fe0fb5f1")
+var defaultHostPlayerID, _ = uuid.FromString("0193a5e6-50db-7082-b0dd-42d7c88dd3ba")
+var defaultOtherPlayerID, _ = uuid.FromString("0193a5f3-8fbe-7748-89ab-cbd4fe0fb5f1")
 
 const defaultHostNickname = "host_player"
 const defaultOtherPlayerNickname = "another_player"
@@ -31,7 +31,8 @@ func TestIntegrationLobbyCreate(t *testing.T) {
 		str := db.NewDB(pool, 3, baseDelay)
 		randomizer := randomizer.NewUserRandomizer()
 
-		id := uuid.New()
+		id, err := uuid.NewV4()
+		require.NoError(t, err)
 		newPlayer := service.NewHostPlayer{
 			ID:       id,
 			Nickname: "Majiy00",
@@ -44,8 +45,9 @@ func TestIntegrationLobbyCreate(t *testing.T) {
 		lobby, err := srv.Create(ctx, "fibbing_it", newPlayer)
 
 		assert.NoError(t, err)
-		assert.Equal(t, id, lobby.Players[0].ID)
-		assert.Equal(t, "Majiy00", lobby.Players[0].Nickname)
+		assert.NotEqual(t, uuid.Nil, lobby.Lobby.Players[0].ID)
+		assert.Equal(t, "Majiy00", lobby.Lobby.Players[0].Nickname)
+		assert.True(t, lobby.Lobby.Players[0].IsHost)
 	})
 }
 
@@ -68,11 +70,11 @@ func TestIntegrationLobbyJoin(t *testing.T) {
 		lobby, err := createRoom(ctx, srv)
 		assert.NoError(t, err)
 
-		lobby, err = srv.Join(ctx, lobby.Code, defaultOtherPlayerID, "nickname")
+		joinResult, err := srv.Join(ctx, lobby.Code, defaultOtherPlayerID, "nickname")
 		assert.NoError(t, err)
 
-		joinedPlayer := lobby.Players[1]
-		assert.Len(t, lobby.Players, 2)
+		joinedPlayer := joinResult.Lobby.Players[1]
+		assert.Len(t, joinResult.Lobby.Players, 2)
 		assert.Equal(t, "nickname", joinedPlayer.Nickname)
 	})
 
@@ -440,7 +442,8 @@ func TestIntegrationLobbyGetRoomState(t *testing.T) {
 		str := db.NewDB(pool, 3, baseDelay)
 		randomizer := randomizer.NewUserRandomizer()
 
-		id := uuid.New()
+		id, err := uuid.NewV4()
+		require.NoError(t, err)
 		newPlayer := service.NewHostPlayer{
 			ID: id,
 		}
@@ -466,7 +469,8 @@ func TestIntegrationLobbyGetRoomState(t *testing.T) {
 		str := db.NewDB(pool, 3, baseDelay)
 		randomizer := randomizer.NewUserRandomizer()
 
-		id := uuid.New()
+		id, err := uuid.NewV4()
+		require.NoError(t, err)
 		newPlayer := service.NewHostPlayer{
 			ID: id,
 		}
@@ -478,7 +482,7 @@ func TestIntegrationLobbyGetRoomState(t *testing.T) {
 		_, err = srv.Create(ctx, "fibbing_it", newPlayer)
 		require.NoError(t, err)
 
-		_, err = srv.GetRoomState(ctx, uuid.New())
+		_, err = srv.GetRoomState(ctx, uuid.Must(uuid.NewV4()))
 		assert.ErrorContains(t, err, "no rows in result set")
 	})
 }
@@ -496,7 +500,8 @@ func TestIntegrationLobbyGetLobby(t *testing.T) {
 		randomizer := randomizer.NewUserRandomizer()
 		lobbyService := service.NewLobbyService(str, randomizer, "en-GB")
 
-		id := uuid.New()
+		id, err := uuid.NewV4()
+		require.NoError(t, err)
 		newPlayer := service.NewHostPlayer{
 			ID: id,
 		}
@@ -511,12 +516,12 @@ func TestIntegrationLobbyGetLobby(t *testing.T) {
 		assert.NoError(t, err)
 
 		expectedLobby := service.Lobby{
-			Code: createdLobby.Code,
+			Code: createdLobby.Lobby.Code,
 			Players: []service.LobbyPlayer{
 				{
 					ID:       id,
-					Nickname: createdLobby.Players[0].Nickname,
-					Avatar:   createdLobby.Players[0].Avatar,
+					Nickname: createdLobby.Lobby.Players[0].Nickname,
+					Avatar:   createdLobby.Lobby.Players[0].Avatar,
 					IsHost:   true,
 					IsReady:  false,
 				},

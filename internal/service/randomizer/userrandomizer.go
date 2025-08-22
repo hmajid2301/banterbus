@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"math/rand/v2"
 
-	"github.com/google/uuid"
+	"github.com/gofrs/uuid/v5"
 )
 
 type UserRandomizer struct{}
@@ -103,8 +103,8 @@ func (UserRandomizer) GetRoomCode() string {
 	return code
 }
 
-func (UserRandomizer) GetID() uuid.UUID {
-	return uuid.Must(uuid.NewV7())
+func (UserRandomizer) GetID() (uuid.UUID, error) {
+	return uuid.NewV7()
 }
 
 func (UserRandomizer) GetFibberIndex(playersLen int) int {

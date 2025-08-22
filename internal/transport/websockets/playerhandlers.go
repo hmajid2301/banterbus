@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 
-	"github.com/google/uuid"
+	"github.com/gofrs/uuid/v5"
 
 	"gitlab.com/hmajid2301/banterbus/internal/service"
 )

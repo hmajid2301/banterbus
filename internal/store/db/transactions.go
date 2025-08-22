@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/google/uuid"
+	"github.com/gofrs/uuid/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
@@ -82,8 +82,12 @@ func (s *DB) StartGame(ctx context.Context, arg StartGameArgs) error {
 			return err
 		}
 
+		roundID, err := uuid.NewV7()
+		if err != nil {
+			return err
+		}
 		round, err := q.AddFibbingItRound(ctx, AddFibbingItRoundParams{
-			ID:               uuid.Must(uuid.NewV7()),
+			ID:               roundID,
 			RoundType:        "free_form",
 			Round:            1,
 			FibberQuestionID: arg.FibberQuestionID,
@@ -100,8 +104,12 @@ func (s *DB) StartGame(ctx context.Context, arg StartGameArgs) error {
 				role = "fibber"
 			}
 
+			roleID, err := uuid.NewV7()
+			if err != nil {
+				return err
+			}
 			_, err = q.AddFibbingItRole(ctx, AddFibbingItRoleParams{
-				ID:         uuid.Must(uuid.NewV7()),
+				ID:         roleID,
 				RoundID:    round.ID,
 				PlayerID:   player.ID,
 				PlayerRole: role,
@@ -126,8 +134,12 @@ type NewRoundArgs struct {
 
 func (s *DB) NewRound(ctx context.Context, arg NewRoundArgs) error {
 	return s.TransactionWithRetry(ctx, func(q *Queries) error {
+		roundID, err := uuid.NewV7()
+		if err != nil {
+			return err
+		}
 		newRound, err := q.AddFibbingItRound(ctx, AddFibbingItRoundParams{
-			ID:               uuid.Must(uuid.NewV7()),
+			ID:               roundID,
 			RoundType:        arg.RoundType,
 			Round:            arg.Round,
 			FibberQuestionID: arg.FibberQuestionID,
@@ -144,8 +156,12 @@ func (s *DB) NewRound(ctx context.Context, arg NewRoundArgs) error {
 				role = "fibber"
 			}
 
+			roleID, err := uuid.NewV7()
+			if err != nil {
+				return err
+			}
 			_, err = q.AddFibbingItRole(ctx, AddFibbingItRoleParams{
-				ID:         uuid.Must(uuid.NewV7()),
+				ID:         roleID,
 				RoundID:    newRound.ID,
 				PlayerID:   player.ID,
 				PlayerRole: role,
@@ -165,8 +181,12 @@ type NewScoresArgs struct {
 func (s *DB) NewScores(ctx context.Context, arg NewScoresArgs) error {
 	return s.TransactionWithRetry(ctx, func(q *Queries) error {
 		for _, player := range arg.Players {
-			_, err := q.AddFibbingItScore(ctx, AddFibbingItScoreParams{
-				ID:       uuid.Must(uuid.NewV7()),
+			scoreID, err := uuid.NewV7()
+			if err != nil {
+				return err
+			}
+			_, err = q.AddFibbingItScore(ctx, AddFibbingItScoreParams{
+				ID:       scoreID,
 				PlayerID: player.PlayerID,
 				RoundID:  player.RoundID,
 				Score:    player.Score,
@@ -196,8 +216,12 @@ func (s *DB) CreateQuestion(ctx context.Context, arg CreateQuestionArgs) (uuid.U
 			return err
 		}
 
+		qID, err := uuid.NewV7()
+		if err != nil {
+			return err
+		}
 		newQuestion, err := q.AddQuestion(ctx, AddQuestionParams{
-			ID:        uuid.Must(uuid.NewV7()),
+			ID:        qID,
 			GameName:  arg.GameName,
 			RoundType: arg.RoundType,
 			GroupID:   questionGroup.ID,
@@ -206,8 +230,12 @@ func (s *DB) CreateQuestion(ctx context.Context, arg CreateQuestionArgs) (uuid.U
 			return err
 		}
 
+		translationID, err := uuid.NewV7()
+		if err != nil {
+			return err
+		}
 		_, err = q.AddQuestionTranslation(ctx, AddQuestionTranslationParams{
-			ID:         uuid.Must(uuid.NewV7()),
+			ID:         translationID,
 			Question:   arg.Text,
 			QuestionID: newQuestion.ID,
 			Locale:     arg.Locale,

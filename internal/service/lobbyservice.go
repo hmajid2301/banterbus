@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/google/uuid"
+	"github.com/gofrs/uuid/v5"
 	"github.com/invopop/ctxi18n"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/mdobak/go-xerrors"
@@ -28,8 +28,23 @@ func NewLobbyService(store Storer, randomizer Randomizer, defaultLocale string) 
 	return &LobbyService{store: store, randomizer: randomizer, defaultLocale: defaultLocale}
 }
 
-func (r *LobbyService) Create(ctx context.Context, gameName string, newHostPlayer NewHostPlayer) (Lobby, error) {
-	player := r.getNewPlayer(newHostPlayer.Nickname, newHostPlayer.ID)
+func (r *LobbyService) Create(
+	ctx context.Context,
+	gameName string,
+	newHostPlayer NewHostPlayer,
+) (LobbyCreationResult, error) {
+	var newPlayerID uuid.UUID
+	var err error
+
+	if newHostPlayer.ID != uuid.Nil {
+		newPlayerID = newHostPlayer.ID
+	} else {
+		newPlayerID, err = r.randomizer.GetID()
+		if err != nil {
+			return LobbyCreationResult{}, fmt.Errorf("failed to generate new player ID: %w", err)
+		}
+	}
+	player := r.getNewPlayer(newHostPlayer.Nickname, newPlayerID)
 
 	var roomCode string
 	for {
@@ -40,7 +55,7 @@ func (r *LobbyService) Create(ctx context.Context, gameName string, newHostPlaye
 				break
 			}
 
-			return Lobby{}, err
+			return LobbyCreationResult{}, err
 		}
 
 		if room.RoomState == db.Finished.String() || room.RoomState == db.Abandoned.String() {
@@ -56,7 +71,10 @@ func (r *LobbyService) Create(ctx context.Context, gameName string, newHostPlaye
 		Locale:   pgtype.Text{String: locale},
 	}
 
-	roomID := r.randomizer.GetID()
+	roomID, err := r.randomizer.GetID()
+	if err != nil {
+		return LobbyCreationResult{}, err
+	}
 	addRoom := db.AddRoomParams{
 		ID:         roomID,
 		GameName:   gameName,
@@ -76,9 +94,9 @@ func (r *LobbyService) Create(ctx context.Context, gameName string, newHostPlaye
 		RoomPlayer: addRoomPlayer,
 	}
 
-	err := r.store.CreateRoom(ctx, createRoom)
+	err = r.store.CreateRoom(ctx, createRoom)
 	if err != nil {
-		return Lobby{}, xerrors.Append(fmt.Errorf("failed to create room"), err)
+		return LobbyCreationResult{}, xerrors.Append(fmt.Errorf("failed to create room"), err)
 	}
 
 	lobby := Lobby{
@@ -93,35 +111,54 @@ func (r *LobbyService) Create(ctx context.Context, gameName string, newHostPlaye
 			},
 		},
 	}
-	return lobby, nil
+	return LobbyCreationResult{
+		Lobby:       lobby,
+		NewPlayerID: newPlayerID,
+	}, nil
 }
 
-func (r *LobbyService) Join(ctx context.Context, roomCode string, playerID uuid.UUID, nickname string) (Lobby, error) {
-	room, err := r.store.GetRoomByPlayerID(ctx, playerID)
-	if err == nil {
-		if room.RoomCode == roomCode {
-			return Lobby{}, ErrPlayerAlreadyInRoom
+func (r *LobbyService) Join(
+	ctx context.Context,
+	roomCode string,
+	playerID uuid.UUID,
+	nickname string,
+) (LobbyJoinResult, error) {
+	var newPlayerID uuid.UUID
+	var err error
+
+	if playerID != uuid.Nil {
+		newPlayerID = playerID
+	} else {
+		newPlayerID, err = r.randomizer.GetID()
+		if err != nil {
+			return LobbyJoinResult{}, fmt.Errorf("failed to generate new player ID: %w", err)
 		}
 	}
 
-	newPlayer := r.getNewPlayer(nickname, playerID)
-	room, err = r.store.GetRoomByCode(ctx, roomCode)
+	// Check if player is already in a room
+	existingRoom, err := r.store.GetRoomByPlayerID(ctx, newPlayerID)
+	if err == nil && existingRoom.RoomCode != "" {
+		return LobbyJoinResult{}, ErrPlayerAlreadyInRoom
+	}
+
+	newPlayer := r.getNewPlayer(nickname, newPlayerID)
+	room, err := r.store.GetRoomByCode(ctx, roomCode)
 	if err != nil {
-		return Lobby{}, err
+		return LobbyJoinResult{}, err
 	}
 
 	if room.RoomState != db.Created.String() {
-		return Lobby{}, xerrors.New("room is not in CREATED state")
+		return LobbyJoinResult{}, xerrors.New("room is not in CREATED state")
 	}
 
 	playersInRoom, err := r.store.GetAllPlayerByRoomCode(ctx, roomCode)
 	if err != nil {
-		return Lobby{}, err
+		return LobbyJoinResult{}, err
 	}
 
 	for _, p := range playersInRoom {
 		if p.Nickname == nickname {
-			return Lobby{}, ErrNicknameExists
+			return LobbyJoinResult{}, ErrNicknameExists
 		}
 	}
 
@@ -145,17 +182,20 @@ func (r *LobbyService) Join(ctx context.Context, roomCode string, playerID uuid.
 
 	err = r.store.AddPlayerToRoom(ctx, addPlayerToRoom)
 	if err != nil {
-		return Lobby{}, err
+		return LobbyJoinResult{}, err
 	}
 
 	// TODO: could use information above to work out players in room
 	players, err := r.store.GetAllPlayersInRoom(ctx, newPlayer.ID)
 	if err != nil {
-		return Lobby{}, err
+		return LobbyJoinResult{}, err
 	}
 
 	lobby := getLobbyPlayers(players, roomCode)
-	return lobby, nil
+	return LobbyJoinResult{
+		Lobby:       lobby,
+		NewPlayerID: newPlayerID,
+	}, nil
 }
 
 func (r *LobbyService) KickPlayer(
@@ -215,6 +255,7 @@ func (r *LobbyService) Start(
 	playerID uuid.UUID,
 	deadline time.Time,
 ) (QuestionState, error) {
+	var gameStateID uuid.UUID
 	room, err := r.store.GetRoomByCode(ctx, roomCode)
 	if err != nil {
 		return QuestionState{}, err
@@ -251,7 +292,10 @@ func (r *LobbyService) Start(
 
 	randomFibberLoc := r.randomizer.GetFibberIndex(len(playersInRoom))
 
-	gameStateID := r.randomizer.GetID()
+	gameStateID, err = r.randomizer.GetID()
+	if err != nil {
+		return QuestionState{}, err
+	}
 	err = r.store.StartGame(ctx, db.StartGameArgs{
 		GameStateID:       gameStateID,
 		RoomID:            room.ID,

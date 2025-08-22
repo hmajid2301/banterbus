@@ -3,7 +3,6 @@ package components
 import (
 	"fmt"
 	"gitlab.com/hmajid2301/banterbus/internal/service"
-	"gitlab.com/hmajid2301/banterbus/internal/views/icons"
 	"strconv"
 )
 
@@ -11,22 +10,24 @@ templ Scoreboard(players []service.PlayerWithScoring, maxScore int) {
 	<div class="space-y-4">
 		for i, p := range players {
 			<div class="flex items-center p-4 rounded-lg bg-surface1">
-				<div class="flex justify-center items-center mr-4 w-12 h-12">
+				<div class="relative mr-4 w-12 h-12">
+					<img src={ p.Avatar } alt={ p.Avatar } class="w-12 h-12 rounded-full"/>
 					if i == 0 {
-						@icons.FirstPlace("text-3xl text-gold")
+						<i class="absolute -top-1 -right-1 text-lg hgi hgi-solid hgi-medal-first-place text-gold"></i>
 					} else if i == 1 {
-						@icons.SecondPlace("text-3xl text-silver")
+						<i class="absolute -top-1 -right-1 text-lg hgi hgi-solid hgi-medal-second-place text-silver"></i>
 					} else if i == 2 {
-						@icons.ThirdPlace("text-3xl text-bronze")
+						<i class="absolute -top-1 -right-1 text-lg hgi hgi-solid hgi-medal-third-place text-bronze"></i>
 					}
 				</div>
-				<img src={ p.Avatar } alt={ p.Avatar } class="mr-4 w-12 h-12 rounded-full"/>
 				<div class="flex-grow">
 					<div class="flex justify-between items-center mb-2">
-						<span class="py-5 font-semibold">{ p.Nickname }</span>
+						<span class="py-3 font-semibold">{ p.Nickname }</span>
 						<span class="font-bold font-button">{ strconv.Itoa(p.Score) }</span>
 					</div>
-					<div class={ scoreBarClass(p.Score, maxScore, i) } style={ calculateWidth(p.Score, maxScore) }></div>
+					<div class="w-full h-6 bg-gray-200 rounded-full">
+						<div class={ scoreBarClass(p.Score, maxScore, i) } style={ calculateWidth(p.Score, maxScore) }></div>
+					</div>
 				</div>
 			</div>
 		}
@@ -39,7 +40,7 @@ func scoreBarClass(score int, maxScore int, index int) string {
 	}
 
 	colour := colours[index]
-	return fmt.Sprintf("h-4 rounded-full %s", colour)
+	return fmt.Sprintf("h-6 rounded-full %s", colour)
 }
 
 func calculateWidth(score, maxScore int) string {

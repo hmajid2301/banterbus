@@ -71,77 +71,56 @@ func (s *Server) setupHTTPRoutes(config ServerConfig, keyfunc jwt.Keyfunc, stati
 		Logger:        s.Logger,
 		Keyfunc:       keyfunc,
 		DisableAuth:   config.AuthDisabled,
+		AdminGroup:    "admin",
 	}
 
-	mux := http.NewServeMux()
-	mux.Handle("/", m.Locale(http.HandlerFunc(s.indexHandler)))
-	mux.Handle("/static/", http.StripPrefix("/static", http.FileServer(staticFS)))
-	mux.Handle("/ws", m.Locale(http.HandlerFunc(s.subscribeHandler)))
-	mux.Handle("/join/{room_code}", m.Locale(http.HandlerFunc(s.joinHandler)))
+	// Create router with no base middleware
+	router := middleware.NewRouter()
 
-	mux.HandleFunc("/health", s.healthHandler)
-	mux.HandleFunc("/readiness", s.readinessHandler)
+	// Public routes (no middleware)
+	publicGroup := router.Group("public")
+	publicGroup.HandleFunc("/health", s.healthHandler)
+	publicGroup.HandleFunc("/readiness", s.readinessHandler)
+	publicGroup.Handle("/static/", http.StripPrefix("/static", http.FileServer(staticFS)))
 
-	mux.Handle("/question", m.ValidateJWT(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		switch r.Method {
-		case http.MethodPost:
-			s.addQuestionHandler(w, r)
-		case http.MethodGet:
-			s.getQuestionsHandler(w, r)
-		default:
-			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		}
-	})))
+	// Game routes (with locale middleware)
+	gameGroup := router.Group("game", m.Locale)
+	gameGroup.HandleFunc("/", s.indexHandler)
+	gameGroup.HandleFunc("/ws", s.subscribeHandler)
+	gameGroup.HandleFunc("/join/{room_code}", s.joinHandler)
 
-	mux.Handle("/question/{id}/locale/{locale}", m.ValidateJWT(http.HandlerFunc(s.addQuestionTranslationHandler)))
-	mux.Handle(
-		"/question/{id}/enable",
-		m.ValidateAdminJWT(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			if r.Method == http.MethodPut {
-				s.enableQuestionHandler(w, r)
-			} else {
-				http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-			}
-		})),
-	)
-	mux.Handle(
-		"/question/{id}/disable",
-		m.ValidateAdminJWT(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			if r.Method == http.MethodPut {
-				s.disableQuestionHandler(w, r)
-			} else {
-				http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-			}
-		})),
-	)
-	mux.Handle("/question/group", m.ValidateJWT(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		switch r.Method {
-		case http.MethodPost:
-			s.addGroupHandler(w, r)
-		case http.MethodGet:
-			s.getGroupsHandler(w, r)
-		default:
-			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		}
-	})))
+	// API routes (with locale + auth middleware)
+	apiGroup := router.Group("api", m.Locale, m.ValidateJWT)
+	apiGroup.Handle("/question", s.questionHandler())
+	apiGroup.HandleFunc("/question/{id}/locale/{locale}", s.addQuestionTranslationHandler)
+	apiGroup.Handle("/question/group", s.questionGroupHandler())
 
+	// Admin routes (with locale + admin auth middleware)
+	adminGroup := router.Group("admin", m.Locale, m.ValidateAdminJWT)
+	adminGroup.Handle("/question/{id}/enable", s.methodHandler("PUT", s.enableQuestionHandler))
+	adminGroup.Handle("/question/{id}/disable", s.methodHandler("PUT", s.disableQuestionHandler))
+
+	// Debug routes (local environment only)
 	if config.Environment == "local" {
-		mux.HandleFunc("/debug/pprof/", pprof.Index)
-		mux.HandleFunc("/debug/pprof/cmdline", pprof.Cmdline)
-		mux.HandleFunc("/debug/pprof/profile", pprof.Profile)
-		mux.HandleFunc("/debug/pprof/symbol", pprof.Symbol)
-		mux.HandleFunc("/debug/pprof/trace", pprof.Trace)
+		debugGroup := router.Group("debug")
+		debugGroup.HandleFunc("/debug/pprof/", pprof.Index)
+		debugGroup.HandleFunc("/debug/pprof/cmdline", pprof.Cmdline)
+		debugGroup.HandleFunc("/debug/pprof/profile", pprof.Profile)
+		debugGroup.HandleFunc("/debug/pprof/symbol", pprof.Symbol)
+		debugGroup.HandleFunc("/debug/pprof/trace", pprof.Trace)
 	}
 
+	// Create final handler with logging and OTEL
 	httpSpanName := func(_ string, r *http.Request) string {
 		return fmt.Sprintf("HTTP %s %s", r.Method, r.URL.Path)
 	}
 
 	otelFilters := func(r *http.Request) bool {
-		return r.URL.Path != "/health" && r.URL.Path != "/readiness" && strings.HasPrefix(r.URL.Path, "/static")
+		return r.URL.Path != "/health" && r.URL.Path != "/readiness" && !strings.HasPrefix(r.URL.Path, "/static")
 	}
 
-	routes := m.Logging(mux)
+	// Apply logging middleware to the entire router
+	routes := m.Logging(router)
 
 	handler := otelhttp.NewHandler(
 		routes,
@@ -166,4 +145,45 @@ func (s *Server) Shutdown(ctx context.Context) error {
 	s.Logger.InfoContext(ctx, "shutting down server")
 	err := s.Server.Shutdown(ctx)
 	return err
+}
+
+// Helper methods for route organization
+
+// questionHandler handles both GET and POST requests for /question
+func (s *Server) questionHandler() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodPost:
+			s.addQuestionHandler(w, r)
+		case http.MethodGet:
+			s.getQuestionsHandler(w, r)
+		default:
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		}
+	})
+}
+
+// questionGroupHandler handles both GET and POST requests for /question/group
+func (s *Server) questionGroupHandler() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodPost:
+			s.addGroupHandler(w, r)
+		case http.MethodGet:
+			s.getGroupsHandler(w, r)
+		default:
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		}
+	})
+}
+
+// methodHandler restricts a handler to a specific HTTP method
+func (s *Server) methodHandler(method string, handler http.HandlerFunc) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == method {
+			handler(w, r)
+		} else {
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		}
+	})
 }

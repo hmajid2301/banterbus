@@ -7,7 +7,7 @@ package mocks
 import (
 	"context"
 
-	"github.com/google/uuid"
+	"github.com/gofrs/uuid/v5"
 	mock "github.com/stretchr/testify/mock"
 
 	"gitlab.com/hmajid2301/banterbus/internal/store/db"
@@ -2413,8 +2413,8 @@ func (_c *MockStorer_GetTotalScoresByGameStateID_Call) RunAndReturn(run func(ctx
 }
 
 // GetVotingState provides a mock function for the type MockStorer
-func (_mock *MockStorer) GetVotingState(ctx context.Context, id uuid.UUID) ([]db.GetVotingStateRow, error) {
-	ret := _mock.Called(ctx, id)
+func (_mock *MockStorer) GetVotingState(ctx context.Context, roundID uuid.UUID) ([]db.GetVotingStateRow, error) {
+	ret := _mock.Called(ctx, roundID)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetVotingState")
@@ -2423,17 +2423,17 @@ func (_mock *MockStorer) GetVotingState(ctx context.Context, id uuid.UUID) ([]db
 	var r0 []db.GetVotingStateRow
 	var r1 error
 	if returnFunc, ok := ret.Get(0).(func(context.Context, uuid.UUID) ([]db.GetVotingStateRow, error)); ok {
-		return returnFunc(ctx, id)
+		return returnFunc(ctx, roundID)
 	}
 	if returnFunc, ok := ret.Get(0).(func(context.Context, uuid.UUID) []db.GetVotingStateRow); ok {
-		r0 = returnFunc(ctx, id)
+		r0 = returnFunc(ctx, roundID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]db.GetVotingStateRow)
 		}
 	}
 	if returnFunc, ok := ret.Get(1).(func(context.Context, uuid.UUID) error); ok {
-		r1 = returnFunc(ctx, id)
+		r1 = returnFunc(ctx, roundID)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -2447,12 +2447,12 @@ type MockStorer_GetVotingState_Call struct {
 
 // GetVotingState is a helper method to define mock.On call
 //   - ctx context.Context
-//   - id uuid.UUID
-func (_e *MockStorer_Expecter) GetVotingState(ctx interface{}, id interface{}) *MockStorer_GetVotingState_Call {
-	return &MockStorer_GetVotingState_Call{Call: _e.mock.On("GetVotingState", ctx, id)}
+//   - roundID uuid.UUID
+func (_e *MockStorer_Expecter) GetVotingState(ctx interface{}, roundID interface{}) *MockStorer_GetVotingState_Call {
+	return &MockStorer_GetVotingState_Call{Call: _e.mock.On("GetVotingState", ctx, roundID)}
 }
 
-func (_c *MockStorer_GetVotingState_Call) Run(run func(ctx context.Context, id uuid.UUID)) *MockStorer_GetVotingState_Call {
+func (_c *MockStorer_GetVotingState_Call) Run(run func(ctx context.Context, roundID uuid.UUID)) *MockStorer_GetVotingState_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
@@ -2475,7 +2475,7 @@ func (_c *MockStorer_GetVotingState_Call) Return(getVotingStateRows []db.GetVoti
 	return _c
 }
 
-func (_c *MockStorer_GetVotingState_Call) RunAndReturn(run func(ctx context.Context, id uuid.UUID) ([]db.GetVotingStateRow, error)) *MockStorer_GetVotingState_Call {
+func (_c *MockStorer_GetVotingState_Call) RunAndReturn(run func(ctx context.Context, roundID uuid.UUID) ([]db.GetVotingStateRow, error)) *MockStorer_GetVotingState_Call {
 	_c.Call.Return(run)
 	return _c
 }

@@ -3,7 +3,7 @@ package service
 import (
 	"context"
 
-	"github.com/google/uuid"
+	"github.com/gofrs/uuid/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/mdobak/go-xerrors"
 

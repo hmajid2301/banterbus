@@ -9,7 +9,7 @@ import (
 	"sort"
 	"time"
 
-	"github.com/google/uuid"
+	"github.com/gofrs/uuid/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/mdobak/go-xerrors"
 
@@ -74,8 +74,12 @@ func (r *RoundService) SubmitAnswer(
 		}
 	}
 
+	answerID, err := r.randomizer.GetID()
+	if err != nil {
+		return err
+	}
 	_, err = r.store.UpsertFibbingItAnswer(ctx, db.UpsertFibbingItAnswerParams{
-		ID:       r.randomizer.GetID(),
+		ID:       answerID,
 		RoundID:  round.ID,
 		PlayerID: playerID,
 		Answer:   answer,
@@ -194,9 +198,12 @@ func (r *RoundService) SubmitVote(
 		return VotingState{}, xerrors.New("answer submission deadline has passed")
 	}
 
-	u := r.randomizer.GetID()
+	voteID, err := r.randomizer.GetID()
+	if err != nil {
+		return VotingState{}, err
+	}
 	err = r.store.UpsertFibbingItVote(ctx, db.UpsertFibbingItVoteParams{
-		ID:               u,
+		ID:               voteID,
 		RoundID:          round.ID,
 		PlayerID:         playerID,
 		VotedForPlayerID: votedPlayerID,
@@ -212,10 +219,7 @@ func (r *RoundService) SubmitVote(
 
 	var votingPlayers []PlayerWithVoting
 	for _, p := range playersWithVoteAndAnswers {
-		voteCount := 0
-		if vc, ok := p.Votes.(int64); ok {
-			voteCount = int(vc)
-		}
+		voteCount := int(p.Votes)
 		votingPlayers = append(votingPlayers, PlayerWithVoting{
 			ID:       p.PlayerID,
 			Nickname: p.Nickname,
@@ -259,10 +263,7 @@ func (r *RoundService) getVotingState(ctx context.Context, roundID uuid.UUID, ro
 	var normalQuestion string
 	var votingPlayers []PlayerWithVoting
 	for _, p := range votes {
-		voteCount := 0
-		if vc, ok := p.Votes.(int64); ok {
-			voteCount = int(vc)
-		}
+		voteCount := int(p.Votes)
 
 		if p.Role.String != FibberRole {
 			normalQuestion = p.Question
@@ -274,7 +275,7 @@ func (r *RoundService) getVotingState(ctx context.Context, roundID uuid.UUID, ro
 			Avatar:   p.Avatar,
 			Votes:    voteCount,
 			Answer:   p.Answer.String,
-			IsReady:  p.IsReady.Bool,
+			IsReady:  p.IsReady,
 			Role:     p.Role.String,
 		})
 	}
@@ -324,6 +325,31 @@ func (r *RoundService) ToggleVotingIsReady(
 	}
 
 	allReady, err := r.store.GetAllPlayersVotingIsReady(ctx, playerID)
+	return allReady, err
+}
+
+func (r *RoundService) AreAllPlayersVotingReady(ctx context.Context, gameStateID uuid.UUID) (bool, error) {
+	game, err := r.store.GetGameState(ctx, gameStateID)
+	if err != nil {
+		return false, err
+	}
+
+	if game.State != db.FibbingItVoting.String() {
+		return false, xerrors.New("game state is not in FIBBING_IT_VOTING state")
+	}
+
+	// Get any player from this room to use for the voting status check
+	players, err := r.store.GetAllPlayersByGameStateID(ctx, gameStateID)
+	if err != nil {
+		return false, err
+	}
+
+	if len(players) == 0 {
+		return false, xerrors.New("no players in room")
+	}
+
+	// Use the first player to check if all players are ready for voting
+	allReady, err := r.store.GetAllPlayersVotingIsReady(ctx, players[0].ID)
 	return allReady, err
 }
 
@@ -452,7 +478,12 @@ func (r *RoundService) UpdateStateToQuestion(
 	// TODO: move to config
 	var maxRounds int32 = 3
 	if roundNumber == maxRounds+1 || nextRound {
-		roundType = getNextRoundType(roundType)
+		nextRoundType := getNextRoundType(roundType)
+		if nextRoundType == "" {
+			// No more round types, this means we've completed all game types
+			return QuestionState{}, xerrors.New("game completed - no more round types available")
+		}
+		roundType = nextRoundType
 		roundNumber = 1
 		fibberLoc = r.randomizer.GetFibberIndex(len(players))
 	} else {
@@ -819,7 +850,10 @@ func (r *RoundService) GetWinnerState(ctx context.Context, playerID uuid.UUID) (
 func (r *RoundService) getWinnerState(ctx context.Context, gameStateID uuid.UUID) (WinnerState, error) {
 	// INFO: Query adds all scored that don't include a certain round ID, so we use a fake round ID, so it adds
 	// all player scores.
-	fakeRoundID := r.randomizer.GetID()
+	fakeRoundID, err := r.randomizer.GetID()
+	if err != nil {
+		return WinnerState{}, err
+	}
 	scoredByPlayerID, err := r.store.GetTotalScoresByGameStateID(ctx, db.GetTotalScoresByGameStateIDParams{
 		ID:   gameStateID,
 		ID_2: fakeRoundID,
@@ -853,6 +887,7 @@ func getNextRoundType(roundType string) string {
 	nextRoundMap := map[string]string{
 		"free_form":       "multiple_choice",
 		"multiple_choice": "most_likely",
+		"most_likely":     "", // No next round type - game should end
 	}
 
 	return nextRoundMap[roundType]

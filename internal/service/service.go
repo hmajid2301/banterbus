@@ -3,7 +3,7 @@ package service
 import (
 	"context"
 
-	"github.com/google/uuid"
+	"github.com/gofrs/uuid/v5"
 
 	"gitlab.com/hmajid2301/banterbus/internal/store/db"
 )
@@ -19,9 +19,10 @@ type Storer interface {
 }
 
 type Randomizer interface {
+	GetNickname() string
 	GetAvatar(nickname string) string
 	GetRoomCode() string
-	GetID() uuid.UUID
+	GetID() (uuid.UUID, error)
 	GetFibberIndex(playersLen int) int
 }
 

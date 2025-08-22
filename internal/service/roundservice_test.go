@@ -1,16 +1,16 @@
 package service_test
 
 import (
-	"context"
 	"fmt"
 	"testing"
 	"time"
 
+	"github.com/gofrs/uuid/v5"
 	"github.com/google/go-cmp/cmp/cmpopts"
-	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/mdobak/go-xerrors"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"gitlab.com/hmajid2301/banterbus/internal/service"
 	mockService "gitlab.com/hmajid2301/banterbus/internal/service/mocks"
@@ -20,8 +20,8 @@ import (
 func TestRoundServiceSubmitAnswer(t *testing.T) {
 	t.Parallel()
 
-	roomID := uuid.MustParse("0193a62a-4dff-774c-850a-b1fe78e2a8d2")
-	roundID := uuid.MustParse("0193a62a-364e-751a-9088-cf3b9711153e")
+	roomID := uuid.Must(uuid.FromString("0193a62a-4dff-774c-850a-b1fe78e2a8d2"))
+	roundID := uuid.Must(uuid.FromString("0193a62a-364e-751a-9088-cf3b9711153e"))
 
 	t.Run("Should successfully submit answer", func(t *testing.T) {
 		t.Parallel()
@@ -30,7 +30,12 @@ func TestRoundServiceSubmitAnswer(t *testing.T) {
 		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
 		now := time.Now()
-		ctx := context.Background()
+		ctx := t.Context()
+
+		roomID, err := uuid.NewV7()
+		require.NoError(t, err)
+		roundID, err := uuid.NewV7()
+		require.NoError(t, err)
 
 		mockStore.EXPECT().GetRoomByPlayerID(ctx, playerID).Return(db.Room{
 			ID:        roomID,
@@ -43,8 +48,9 @@ func TestRoundServiceSubmitAnswer(t *testing.T) {
 				RoundType:      "free_form",
 			}, nil)
 
-		u := uuid.Must(uuid.NewV7())
-		mockRandom.EXPECT().GetID().Return(u)
+		u, err := uuid.NewV7()
+		require.NoError(t, err)
+		mockRandom.EXPECT().GetID().Return(u, nil)
 		mockStore.EXPECT().UpsertFibbingItAnswer(ctx, db.UpsertFibbingItAnswerParams{
 			ID:       u,
 			RoundID:  roundID,
@@ -52,7 +58,7 @@ func TestRoundServiceSubmitAnswer(t *testing.T) {
 			Answer:   "My answer",
 		}).Return(db.FibbingItAnswer{}, nil)
 
-		err := srv.SubmitAnswer(ctx, playerID, "My answer", now)
+		err = srv.SubmitAnswer(ctx, playerID, "My answer", now)
 		assert.NoError(t, err)
 	})
 
@@ -63,7 +69,7 @@ func TestRoundServiceSubmitAnswer(t *testing.T) {
 		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
 		now := time.Now()
-		ctx := context.Background()
+		ctx := t.Context()
 
 		mockStore.EXPECT().GetRoomByPlayerID(ctx, playerID).Return(db.Room{
 			ID:        roomID,
@@ -82,13 +88,14 @@ func TestRoundServiceSubmitAnswer(t *testing.T) {
 					Nickname: "host_player",
 				},
 				{
-					ID:       uuid.MustParse("0194291f-ca55-7a36-baf8-9085c2fae7fb"),
+					ID:       uuid.Must(uuid.FromString("0194291f-ca55-7a36-baf8-9085c2fae7fb")),
 					Nickname: "other_player",
 				},
 			}, nil)
 
-		u := uuid.Must(uuid.NewV7())
-		mockRandom.EXPECT().GetID().Return(u)
+		u, err := uuid.NewV7()
+		require.NoError(t, err)
+		mockRandom.EXPECT().GetID().Return(u, nil)
 		mockStore.EXPECT().UpsertFibbingItAnswer(ctx, db.UpsertFibbingItAnswerParams{
 			ID:       u,
 			RoundID:  roundID,
@@ -96,7 +103,7 @@ func TestRoundServiceSubmitAnswer(t *testing.T) {
 			Answer:   "other_player",
 		}).Return(db.FibbingItAnswer{}, nil)
 
-		err := srv.SubmitAnswer(ctx, playerID, "other_player", now)
+		err = srv.SubmitAnswer(ctx, playerID, "other_player", now)
 		assert.NoError(t, err)
 	})
 
@@ -107,7 +114,7 @@ func TestRoundServiceSubmitAnswer(t *testing.T) {
 		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
 		now := time.Now()
-		ctx := context.Background()
+		ctx := t.Context()
 
 		mockStore.EXPECT().GetRoomByPlayerID(ctx, playerID).Return(db.Room{
 			ID:        roomID,
@@ -120,8 +127,9 @@ func TestRoundServiceSubmitAnswer(t *testing.T) {
 				RoundType:      "multiple_choice",
 			}, nil)
 
-		u := uuid.Must(uuid.NewV7())
-		mockRandom.EXPECT().GetID().Return(u)
+		u, err := uuid.NewV7()
+		require.NoError(t, err)
+		mockRandom.EXPECT().GetID().Return(u, nil)
 		mockStore.EXPECT().UpsertFibbingItAnswer(ctx, db.UpsertFibbingItAnswerParams{
 			ID:       u,
 			RoundID:  roundID,
@@ -129,7 +137,7 @@ func TestRoundServiceSubmitAnswer(t *testing.T) {
 			Answer:   "Strongly Agree",
 		}).Return(db.FibbingItAnswer{}, nil)
 
-		err := srv.SubmitAnswer(ctx, playerID, "Strongly Agree", now)
+		err = srv.SubmitAnswer(ctx, playerID, "Strongly Agree", now)
 		assert.NoError(t, err)
 	})
 
@@ -140,7 +148,7 @@ func TestRoundServiceSubmitAnswer(t *testing.T) {
 		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
 		now := time.Now()
-		ctx := context.Background()
+		ctx := t.Context()
 
 		mockStore.EXPECT().
 			GetRoomByPlayerID(ctx, playerID).
@@ -156,7 +164,7 @@ func TestRoundServiceSubmitAnswer(t *testing.T) {
 		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
 		now := time.Now()
-		ctx := context.Background()
+		ctx := t.Context()
 
 		mockStore.EXPECT().GetRoomByPlayerID(ctx, playerID).Return(db.Room{
 			ID:        roomID,
@@ -174,7 +182,7 @@ func TestRoundServiceSubmitAnswer(t *testing.T) {
 		service := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
 		now := time.Now()
-		ctx := context.Background()
+		ctx := t.Context()
 
 		mockStore.EXPECT().GetRoomByPlayerID(ctx, playerID).Return(db.Room{
 			ID:        roomID,
@@ -196,7 +204,7 @@ func TestRoundServiceSubmitAnswer(t *testing.T) {
 		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
 		now := time.Now()
-		ctx := context.Background()
+		ctx := t.Context()
 
 		mockStore.EXPECT().GetRoomByPlayerID(ctx, playerID).Return(db.Room{
 			ID:        roomID,
@@ -218,7 +226,7 @@ func TestRoundServiceSubmitAnswer(t *testing.T) {
 		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
 		now := time.Now()
-		ctx := context.Background()
+		ctx := t.Context()
 
 		mockStore.EXPECT().GetRoomByPlayerID(ctx, playerID).Return(db.Room{
 			ID:        roomID,
@@ -231,7 +239,7 @@ func TestRoundServiceSubmitAnswer(t *testing.T) {
 				RoundType:      "free_form",
 			}, nil)
 
-		mockRandom.EXPECT().GetID().Return(defaultHostPlayerID)
+		mockRandom.EXPECT().GetID().Return(defaultHostPlayerID, nil)
 		mockStore.EXPECT().UpsertFibbingItAnswer(ctx, db.UpsertFibbingItAnswerParams{
 			ID:       defaultHostPlayerID,
 			RoundID:  roundID,
@@ -250,7 +258,7 @@ func TestRoundServiceSubmitAnswer(t *testing.T) {
 		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
 		now := time.Now()
-		ctx := context.Background()
+		ctx := t.Context()
 
 		mockStore.EXPECT().GetRoomByPlayerID(ctx, playerID).Return(db.Room{
 			ID:        roomID,
@@ -269,7 +277,7 @@ func TestRoundServiceSubmitAnswer(t *testing.T) {
 					Nickname: "host_player",
 				},
 				{
-					ID:       uuid.MustParse("0194291f-ca55-7a36-baf8-9085c2fae7fb"),
+					ID:       uuid.Must(uuid.FromString("0194291f-ca55-7a36-baf8-9085c2fae7fb")),
 					Nickname: "other_player",
 				},
 			}, nil)
@@ -285,7 +293,7 @@ func TestRoundServiceSubmitAnswer(t *testing.T) {
 		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
 		now := time.Now()
-		ctx := context.Background()
+		ctx := t.Context()
 
 		mockStore.EXPECT().GetRoomByPlayerID(ctx, playerID).Return(db.Room{
 			ID:        roomID,
@@ -311,7 +319,7 @@ func TestRoundServiceSubmitAnswer(t *testing.T) {
 		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
 		now := time.Now()
-		ctx := context.Background()
+		ctx := t.Context()
 
 		mockStore.EXPECT().GetRoomByPlayerID(ctx, playerID).Return(db.Room{
 			ID:        roomID,
@@ -338,7 +346,7 @@ func TestRoundServiceToggleAnswerIsReady(t *testing.T) {
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
-		ctx := context.Background()
+		ctx := t.Context()
 
 		mockStore.EXPECT().GetGameStateByPlayerID(ctx, playerID).Return(db.GameState{
 			State:          db.FibbingITQuestion.String(),
@@ -358,7 +366,7 @@ func TestRoundServiceToggleAnswerIsReady(t *testing.T) {
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
-		ctx := context.Background()
+		ctx := t.Context()
 
 		mockStore.EXPECT().GetGameStateByPlayerID(ctx, playerID).Return(db.GameState{
 			State:          db.FibbingITQuestion.String(),
@@ -378,7 +386,7 @@ func TestRoundServiceToggleAnswerIsReady(t *testing.T) {
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
-		ctx := context.Background()
+		ctx := t.Context()
 
 		mockStore.EXPECT().GetGameStateByPlayerID(ctx, playerID).Return(
 			db.GameState{}, xerrors.New("failed to get state"),
@@ -394,7 +402,7 @@ func TestRoundServiceToggleAnswerIsReady(t *testing.T) {
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
-		ctx := context.Background()
+		ctx := t.Context()
 
 		mockStore.EXPECT().GetGameStateByPlayerID(ctx, playerID).Return(db.GameState{
 			State:          db.FibbingItVoting.String(),
@@ -413,7 +421,7 @@ func TestRoundServiceToggleAnswerIsReady(t *testing.T) {
 			mockRandom := mockService.NewMockRandomizer(t)
 			srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
-			ctx := context.Background()
+			ctx := t.Context()
 
 			mockStore.EXPECT().GetGameStateByPlayerID(ctx, playerID).Return(db.GameState{
 				State:          db.FibbingITQuestion.String(),
@@ -436,7 +444,7 @@ func TestRoundServiceToggleAnswerIsReady(t *testing.T) {
 			mockRandom := mockService.NewMockRandomizer(t)
 			srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
-			ctx := context.Background()
+			ctx := t.Context()
 
 			mockStore.EXPECT().GetGameStateByPlayerID(ctx, playerID).Return(db.GameState{
 				State:          db.FibbingITQuestion.String(),
@@ -460,7 +468,7 @@ func TestRoundServiceToggleAnswerIsReady(t *testing.T) {
 			mockRandom := mockService.NewMockRandomizer(t)
 			srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
-			ctx := context.Background()
+			ctx := t.Context()
 
 			mockStore.EXPECT().GetGameStateByPlayerID(ctx, playerID).Return(db.GameState{
 				State:          db.FibbingITQuestion.String(),
@@ -476,8 +484,8 @@ func TestRoundServiceToggleAnswerIsReady(t *testing.T) {
 func TestRoundServiceUpdateStateToVoting(t *testing.T) {
 	t.Parallel()
 
-	gameStateID := uuid.MustParse("fbb75599-9f7a-4392-b523-fd433b3208ea")
-	roundID := uuid.MustParse("0193a62a-364e-751a-9088-cf3b9711153e")
+	gameStateID := uuid.Must(uuid.FromString("fbb75599-9f7a-4392-b523-fd433b3208ea"))
+	roundID := uuid.Must(uuid.FromString("0193a62a-364e-751a-9088-cf3b9711153e"))
 
 	t.Run("Should successfully update state to voting", func(t *testing.T) {
 		t.Parallel()
@@ -485,7 +493,7 @@ func TestRoundServiceUpdateStateToVoting(t *testing.T) {
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
-		ctx := context.Background()
+		ctx := t.Context()
 		now := time.Now().Add(30 * time.Second)
 
 		mockStore.EXPECT().GetGameState(ctx, gameStateID).Return(db.GameState{
@@ -555,7 +563,7 @@ func TestRoundServiceUpdateStateToVoting(t *testing.T) {
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
-		ctx := context.Background()
+		ctx := t.Context()
 		now := time.Now().Add(30 * time.Second)
 
 		mockStore.EXPECT().GetGameState(ctx, gameStateID).Return(
@@ -571,7 +579,7 @@ func TestRoundServiceUpdateStateToVoting(t *testing.T) {
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
-		ctx := context.Background()
+		ctx := t.Context()
 		now := time.Now().Add(30 * time.Second)
 
 		mockStore.EXPECT().GetGameState(ctx, gameStateID).Return(db.GameState{
@@ -588,7 +596,7 @@ func TestRoundServiceUpdateStateToVoting(t *testing.T) {
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
-		ctx := context.Background()
+		ctx := t.Context()
 		now := time.Now().Add(30 * time.Second)
 
 		mockStore.EXPECT().GetGameState(ctx, gameStateID).Return(db.GameState{
@@ -608,7 +616,7 @@ func TestRoundServiceUpdateStateToVoting(t *testing.T) {
 func TestRoundServiceSubmitVote(t *testing.T) {
 	t.Parallel()
 
-	roundID := uuid.MustParse("0193a62a-7740-7bce-849d-0e462465ca0e")
+	roundID := uuid.Must(uuid.FromString("0193a62a-7740-7bce-849d-0e462465ca0e"))
 
 	t.Run("Should successfully submit vote", func(t *testing.T) {
 		t.Parallel()
@@ -616,7 +624,7 @@ func TestRoundServiceSubmitVote(t *testing.T) {
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
-		ctx := context.Background()
+		ctx := t.Context()
 
 		mockStore.EXPECT().GetGameStateByPlayerID(ctx, defaultHostPlayerID).Return(db.GameState{
 			State: db.FibbingItVoting.String(),
@@ -637,8 +645,9 @@ func TestRoundServiceSubmitVote(t *testing.T) {
 			SubmitDeadline: pgtype.Timestamp{Time: deadline},
 		}, nil)
 
-		u := uuid.Must(uuid.NewV7())
-		mockRandom.EXPECT().GetID().Return(u)
+		u, err := uuid.NewV7()
+		require.NoError(t, err)
+		mockRandom.EXPECT().GetID().Return(u, nil)
 		mockStore.EXPECT().UpsertFibbingItVote(ctx, db.UpsertFibbingItVoteParams{
 			ID:               u,
 			RoundID:          roundID,
@@ -704,7 +713,7 @@ func TestRoundServiceSubmitVote(t *testing.T) {
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
-		ctx := context.Background()
+		ctx := t.Context()
 		now := time.Now().Add(30 * time.Second)
 
 		mockStore.EXPECT().GetGameStateByPlayerID(ctx, defaultHostPlayerID).Return(
@@ -721,7 +730,7 @@ func TestRoundServiceSubmitVote(t *testing.T) {
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
-		ctx := context.Background()
+		ctx := t.Context()
 		now := time.Now().Add(30 * time.Second)
 
 		mockStore.EXPECT().GetGameStateByPlayerID(ctx, defaultHostPlayerID).Return(db.GameState{
@@ -738,7 +747,7 @@ func TestRoundServiceSubmitVote(t *testing.T) {
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
-		ctx := context.Background()
+		ctx := t.Context()
 		now := time.Now().Add(30 * time.Second)
 
 		mockStore.EXPECT().GetGameStateByPlayerID(ctx, defaultHostPlayerID).Return(db.GameState{
@@ -758,7 +767,7 @@ func TestRoundServiceSubmitVote(t *testing.T) {
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
-		ctx := context.Background()
+		ctx := t.Context()
 		now := time.Now().Add(30 * time.Second)
 
 		mockStore.EXPECT().GetGameStateByPlayerID(ctx, defaultHostPlayerID).Return(db.GameState{
@@ -785,7 +794,7 @@ func TestRoundServiceSubmitVote(t *testing.T) {
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
-		ctx := context.Background()
+		ctx := t.Context()
 		now := time.Now().Add(30 * time.Second)
 
 		mockStore.EXPECT().GetGameStateByPlayerID(ctx, defaultHostPlayerID).Return(db.GameState{
@@ -812,7 +821,7 @@ func TestRoundServiceSubmitVote(t *testing.T) {
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
-		ctx := context.Background()
+		ctx := t.Context()
 		now := time.Now().Add(30 * time.Second)
 
 		mockStore.EXPECT().GetGameStateByPlayerID(ctx, defaultHostPlayerID).Return(db.GameState{
@@ -842,7 +851,7 @@ func TestRoundServiceSubmitVote(t *testing.T) {
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
-		ctx := context.Background()
+		ctx := t.Context()
 		now := time.Now().Add(30 * time.Second)
 
 		mockStore.EXPECT().GetGameStateByPlayerID(ctx, defaultHostPlayerID).Return(db.GameState{
@@ -873,7 +882,7 @@ func TestRoundServiceSubmitVote(t *testing.T) {
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
-		ctx := context.Background()
+		ctx := t.Context()
 		now := time.Now().Add(30 * time.Second)
 
 		mockStore.EXPECT().GetGameStateByPlayerID(ctx, defaultHostPlayerID).Return(db.GameState{
@@ -894,8 +903,9 @@ func TestRoundServiceSubmitVote(t *testing.T) {
 			SubmitDeadline: pgtype.Timestamp{Time: now.Add(1 * time.Hour)},
 		}, nil)
 
-		u := uuid.Must(uuid.NewV7())
-		mockRandom.EXPECT().GetID().Return(u)
+		u, err := uuid.NewV7()
+		require.NoError(t, err)
+		mockRandom.EXPECT().GetID().Return(u, nil)
 		mockStore.EXPECT().UpsertFibbingItVote(ctx, db.UpsertFibbingItVoteParams{
 			ID:               u,
 			RoundID:          roundID,
@@ -903,7 +913,7 @@ func TestRoundServiceSubmitVote(t *testing.T) {
 			VotedForPlayerID: defaultOtherPlayerID,
 		}).Return(xerrors.New("failed to upsert fibbing it vote"))
 
-		_, err := srv.SubmitVote(ctx, defaultHostPlayerID, "Player 2", now)
+		_, err = srv.SubmitVote(ctx, defaultHostPlayerID, "Player 2", now)
 		assert.Error(t, err)
 	})
 
@@ -913,7 +923,7 @@ func TestRoundServiceSubmitVote(t *testing.T) {
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
-		ctx := context.Background()
+		ctx := t.Context()
 		now := time.Now().Add(30 * time.Second)
 
 		mockStore.EXPECT().GetGameStateByPlayerID(ctx, defaultHostPlayerID).Return(db.GameState{
@@ -933,8 +943,9 @@ func TestRoundServiceSubmitVote(t *testing.T) {
 			ID:             roundID,
 			SubmitDeadline: pgtype.Timestamp{Time: now.Add(1 * time.Hour)},
 		}, nil)
-		u := uuid.Must(uuid.NewV7())
-		mockRandom.EXPECT().GetID().Return(u)
+		u, err := uuid.NewV7()
+		require.NoError(t, err)
+		mockRandom.EXPECT().GetID().Return(u, nil)
 		mockStore.EXPECT().UpsertFibbingItVote(ctx, db.UpsertFibbingItVoteParams{
 			ID:               u,
 			RoundID:          roundID,
@@ -945,7 +956,7 @@ func TestRoundServiceSubmitVote(t *testing.T) {
 			[]db.GetVotingStateRow{}, xerrors.New("failed to get vote count"),
 		)
 
-		_, err := srv.SubmitVote(ctx, defaultHostPlayerID, "Player 2", now)
+		_, err = srv.SubmitVote(ctx, defaultHostPlayerID, "Player 2", now)
 		assert.Error(t, err)
 	})
 }
@@ -953,8 +964,8 @@ func TestRoundServiceSubmitVote(t *testing.T) {
 func TestPlayerServiceGetVotingState(t *testing.T) {
 	t.Parallel()
 
-	roundID := uuid.MustParse("0193a629-e26c-7326-8df4-81ad3ec82214")
-	gameStateID := uuid.MustParse("fbb75599-9f7a-4392-b523-fd433b3208ea")
+	roundID := uuid.Must(uuid.FromString("0193a629-e26c-7326-8df4-81ad3ec82214"))
+	gameStateID := uuid.Must(uuid.FromString("fbb75599-9f7a-4392-b523-fd433b3208ea"))
 
 	t.Run("Should successfully get voting state", func(t *testing.T) {
 		t.Parallel()
@@ -962,7 +973,7 @@ func TestPlayerServiceGetVotingState(t *testing.T) {
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
-		ctx := context.Background()
+		ctx := t.Context()
 
 		deadline := time.Now().Add(5 * time.Second)
 		mockStore.EXPECT().GetLatestRoundByPlayerID(ctx, playerID).Return(
@@ -1015,7 +1026,7 @@ func TestPlayerServiceGetVotingState(t *testing.T) {
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
-		ctx := context.Background()
+		ctx := t.Context()
 
 		mockStore.EXPECT().GetLatestRoundByPlayerID(ctx, playerID).Return(
 			db.GetLatestRoundByPlayerIDRow{}, xerrors.New("failed to get round info"),
@@ -1030,7 +1041,7 @@ func TestPlayerServiceGetVotingState(t *testing.T) {
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
-		ctx := context.Background()
+		ctx := t.Context()
 
 		mockStore.EXPECT().GetLatestRoundByPlayerID(ctx, playerID).Return(
 			db.GetLatestRoundByPlayerIDRow{
@@ -1041,7 +1052,6 @@ func TestPlayerServiceGetVotingState(t *testing.T) {
 		)
 
 		_, err := srv.GetVotingState(ctx, playerID)
-
 		assert.Error(t, err)
 	})
 }
@@ -1055,7 +1065,7 @@ func TestRoundServiceToggleVotingIsReady(t *testing.T) {
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
-		ctx := context.Background()
+		ctx := t.Context()
 
 		mockStore.EXPECT().GetGameStateByPlayerID(ctx, playerID).Return(db.GameState{
 			State:          db.FibbingItVoting.String(),
@@ -1075,7 +1085,7 @@ func TestRoundServiceToggleVotingIsReady(t *testing.T) {
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
-		ctx := context.Background()
+		ctx := t.Context()
 
 		mockStore.EXPECT().GetGameStateByPlayerID(ctx, playerID).Return(db.GameState{
 			State:          db.FibbingItVoting.String(),
@@ -1095,7 +1105,7 @@ func TestRoundServiceToggleVotingIsReady(t *testing.T) {
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
-		ctx := context.Background()
+		ctx := t.Context()
 
 		mockStore.EXPECT().GetGameStateByPlayerID(ctx, playerID).Return(
 			db.GameState{}, xerrors.New("failed to get state"),
@@ -1113,7 +1123,7 @@ func TestRoundServiceToggleVotingIsReady(t *testing.T) {
 			mockRandom := mockService.NewMockRandomizer(t)
 			srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
-			ctx := context.Background()
+			ctx := t.Context()
 
 			mockStore.EXPECT().GetGameStateByPlayerID(ctx, playerID).Return(db.GameState{
 				State:          db.FibbingItVoting.String(),
@@ -1131,7 +1141,7 @@ func TestRoundServiceToggleVotingIsReady(t *testing.T) {
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
-		ctx := context.Background()
+		ctx := t.Context()
 
 		mockStore.EXPECT().GetGameStateByPlayerID(ctx, playerID).Return(db.GameState{
 			State:          db.FibbingITQuestion.String(),
@@ -1150,7 +1160,7 @@ func TestRoundServiceToggleVotingIsReady(t *testing.T) {
 			mockRandom := mockService.NewMockRandomizer(t)
 			srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
-			ctx := context.Background()
+			ctx := t.Context()
 
 			mockStore.EXPECT().GetGameStateByPlayerID(ctx, playerID).Return(db.GameState{
 				State:          db.FibbingItVoting.String(),
@@ -1173,7 +1183,7 @@ func TestRoundServiceToggleVotingIsReady(t *testing.T) {
 			mockRandom := mockService.NewMockRandomizer(t)
 			srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
-			ctx := context.Background()
+			ctx := t.Context()
 
 			mockStore.EXPECT().GetGameStateByPlayerID(ctx, playerID).Return(db.GameState{
 				State:          db.FibbingItVoting.String(),
@@ -1193,8 +1203,8 @@ func TestRoundServiceToggleVotingIsReady(t *testing.T) {
 func TestRoundServiceUpdateStateToReveal(t *testing.T) {
 	t.Parallel()
 
-	gameStateID := uuid.MustParse("fbb75599-9f7a-4392-b523-fd433b3208ea")
-	roundID := uuid.MustParse("0193a62a-364e-751a-9088-cf3b9711153e")
+	gameStateID := uuid.Must(uuid.FromString("fbb75599-9f7a-4392-b523-fd433b3208ea"))
+	roundID := uuid.Must(uuid.FromString("0193a62a-364e-751a-9088-cf3b9711153e"))
 
 	tests := []struct {
 		name                   string
@@ -1238,7 +1248,7 @@ func TestRoundServiceUpdateStateToReveal(t *testing.T) {
 			mockRandom := mockService.NewMockRandomizer(t)
 			srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
-			ctx := context.Background()
+			ctx := t.Context()
 			now := time.Now().Add(15 * time.Second)
 
 			mockStore.EXPECT().GetGameState(ctx, gameStateID).Return(db.GameState{
@@ -1303,7 +1313,7 @@ func TestRoundServiceUpdateStateToReveal(t *testing.T) {
 			mockRandom := mockService.NewMockRandomizer(t)
 			srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
-			ctx := context.Background()
+			ctx := t.Context()
 			now := time.Now().Add(15 * time.Second)
 
 			mockStore.EXPECT().
@@ -1322,7 +1332,7 @@ func TestRoundServiceUpdateStateToReveal(t *testing.T) {
 			mockRandom := mockService.NewMockRandomizer(t)
 			srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
-			ctx := context.Background()
+			ctx := t.Context()
 			now := time.Now().Add(15 * time.Second)
 
 			mockStore.EXPECT().GetGameState(ctx, gameStateID).Return(db.GameState{
@@ -1342,7 +1352,7 @@ func TestRoundServiceUpdateStateToReveal(t *testing.T) {
 			mockRandom := mockService.NewMockRandomizer(t)
 			srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
-			ctx := context.Background()
+			ctx := t.Context()
 			now := time.Now().Add(15 * time.Second)
 
 			mockStore.EXPECT().GetGameState(ctx, gameStateID).Return(db.GameState{
@@ -1367,7 +1377,7 @@ func TestRoundServiceUpdateStateToReveal(t *testing.T) {
 			mockRandom := mockService.NewMockRandomizer(t)
 			srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
-			ctx := context.Background()
+			ctx := t.Context()
 			now := time.Now().Add(15 * time.Second)
 
 			mockStore.EXPECT().GetGameState(ctx, gameStateID).Return(db.GameState{
@@ -1395,7 +1405,7 @@ func TestRoundServiceUpdateStateToReveal(t *testing.T) {
 			mockRandom := mockService.NewMockRandomizer(t)
 			srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
-			ctx := context.Background()
+			ctx := t.Context()
 			now := time.Now().Add(15 * time.Second)
 
 			mockStore.EXPECT().GetGameState(ctx, gameStateID).Return(db.GameState{
@@ -1423,8 +1433,8 @@ func TestRoundServiceUpdateStateToReveal(t *testing.T) {
 func TestRoundServiceUpdateStateToQuestion(t *testing.T) {
 	t.Parallel()
 
-	gameStateID := uuid.MustParse("fbb75599-9f7a-4392-b523-fd433b3208ea")
-	groupID := uuid.MustParse("0193a629-1fcf-79dd-ac70-760bedbdffa9")
+	gameStateID := uuid.Must(uuid.FromString("fbb75599-9f7a-4392-b523-fd433b3208ea"))
+	groupID := uuid.Must(uuid.FromString("0193a629-1fcf-79dd-ac70-760bedbdffa9"))
 
 	tests := []struct {
 		name            string
@@ -1475,7 +1485,7 @@ func TestRoundServiceUpdateStateToQuestion(t *testing.T) {
 			mockRandom := mockService.NewMockRandomizer(t)
 			srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
-			ctx := context.Background()
+			ctx := t.Context()
 			gameName := gameName
 			deadline := time.Now().Add(5 * time.Second).UTC()
 
@@ -1501,7 +1511,7 @@ func TestRoundServiceUpdateStateToQuestion(t *testing.T) {
 				nil,
 			)
 			mockStore.EXPECT().GetLatestRoundByGameStateID(ctx, gameStateID).Return(db.GetLatestRoundByGameStateIDRow{
-				ID:        uuid.MustParse("0193ea48-c27f-74bd-8a17-523f69350aff"),
+				ID:        uuid.Must(uuid.FromString("0193ea48-c27f-74bd-8a17-523f69350aff")),
 				RoundType: tt.roundType,
 				Round:     tt.roundNumber,
 			}, nil)
@@ -1510,8 +1520,8 @@ func TestRoundServiceUpdateStateToQuestion(t *testing.T) {
 				RoundType: tt.expectedType,
 			}).Return([]db.GetRandomQuestionByRoundRow{
 				{
-					ID:         uuid.MustParse("0193ea48-c27f-74bd-8a17-523f69350aca"),
-					QuestionID: uuid.MustParse("0193a629-7dcc-78ad-822f-fd5d83c89ae7"),
+					ID:         uuid.Must(uuid.FromString("0193ea48-c27f-74bd-8a17-523f69350aca")),
+					QuestionID: uuid.Must(uuid.FromString("0193a629-7dcc-78ad-822f-fd5d83c89ae7")),
 					Question:   tt.normalQuestion,
 					Locale:     "en-GB",
 					GroupID:    groupID,
@@ -1519,11 +1529,11 @@ func TestRoundServiceUpdateStateToQuestion(t *testing.T) {
 			}, nil)
 			mockStore.EXPECT().GetRandomQuestionInGroup(ctx, db.GetRandomQuestionInGroupParams{
 				GroupID:   groupID,
-				ID:        uuid.MustParse("0193a629-7dcc-78ad-822f-fd5d83c89ae7"),
+				ID:        uuid.Must(uuid.FromString("0193a629-7dcc-78ad-822f-fd5d83c89ae7")),
 				RoundType: tt.expectedType,
 			}).Return([]db.GetRandomQuestionInGroupRow{
 				{
-					QuestionID: uuid.MustParse("0193a629-a9ac-7fc4-828c-a1334c282e0f"),
+					QuestionID: uuid.Must(uuid.FromString("0193a629-a9ac-7fc4-828c-a1334c282e0f")),
 					Question:   tt.fibberQuestion,
 				},
 			}, nil)
@@ -1531,7 +1541,7 @@ func TestRoundServiceUpdateStateToQuestion(t *testing.T) {
 			if tt.roundNumber == 3 {
 				mockRandom.EXPECT().GetFibberIndex(2).Return(1)
 			} else {
-				mockStore.EXPECT().GetFibberByRoundID(ctx, uuid.MustParse("0193ea48-c27f-74bd-8a17-523f69350aff")).Return(
+				mockStore.EXPECT().GetFibberByRoundID(ctx, uuid.Must(uuid.FromString("0193ea48-c27f-74bd-8a17-523f69350aff"))).Return(
 					db.FibbingItPlayerRole{
 						PlayerID: defaultOtherPlayerID,
 					},
@@ -1541,8 +1551,8 @@ func TestRoundServiceUpdateStateToQuestion(t *testing.T) {
 
 			mockStore.EXPECT().NewRound(ctx, db.NewRoundArgs{
 				GameStateID:       gameStateID,
-				NormalsQuestionID: uuid.MustParse("0193a629-7dcc-78ad-822f-fd5d83c89ae7"),
-				FibberQuestionID:  uuid.MustParse("0193a629-a9ac-7fc4-828c-a1334c282e0f"),
+				NormalsQuestionID: uuid.Must(uuid.FromString("0193a629-7dcc-78ad-822f-fd5d83c89ae7")),
+				FibberQuestionID:  uuid.Must(uuid.FromString("0193a629-a9ac-7fc4-828c-a1334c282e0f")),
 				Round:             tt.expectedRound,
 				RoundType:         tt.expectedType,
 				Players: []db.GetAllPlayersByGameStateIDRow{
@@ -1594,7 +1604,7 @@ func TestRoundServiceUpdateStateToQuestion(t *testing.T) {
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
-		ctx := context.Background()
+		ctx := t.Context()
 		deadline := time.Now().Add(5 * time.Second).UTC()
 
 		mockStore.EXPECT().
@@ -1610,7 +1620,7 @@ func TestRoundServiceUpdateStateToQuestion(t *testing.T) {
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
-		ctx := context.Background()
+		ctx := t.Context()
 		deadline := time.Now().Add(5 * time.Second).UTC()
 
 		mockStore.EXPECT().GetGameState(ctx, gameStateID).Return(db.GameState{
@@ -1630,7 +1640,7 @@ func TestRoundServiceUpdateStateToQuestion(t *testing.T) {
 			mockRandom := mockService.NewMockRandomizer(t)
 			srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
-			ctx := context.Background()
+			ctx := t.Context()
 			deadline := time.Now().Add(5 * time.Second).UTC()
 
 			mockStore.EXPECT().GetGameState(ctx, gameStateID).Return(db.GameState{
@@ -1656,7 +1666,7 @@ func TestRoundServiceUpdateStateToQuestion(t *testing.T) {
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
-		ctx := context.Background()
+		ctx := t.Context()
 		deadline := time.Now().Add(5 * time.Second).UTC()
 
 		mockStore.EXPECT().GetGameState(ctx, gameStateID).Return(db.GameState{
@@ -1696,7 +1706,7 @@ func TestRoundServiceUpdateStateToQuestion(t *testing.T) {
 			mockRandom := mockService.NewMockRandomizer(t)
 			srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
-			ctx := context.Background()
+			ctx := t.Context()
 			deadline := time.Now().Add(5 * time.Second).UTC()
 
 			mockStore.EXPECT().GetGameState(ctx, gameStateID).Return(db.GameState{
@@ -1720,7 +1730,7 @@ func TestRoundServiceUpdateStateToQuestion(t *testing.T) {
 				},
 				nil,
 			)
-			roundID := uuid.MustParse("0193ea48-c27f-74bd-8a17-523f69350aff")
+			roundID := uuid.Must(uuid.FromString("0193ea48-c27f-74bd-8a17-523f69350aff"))
 			mockStore.EXPECT().GetLatestRoundByGameStateID(ctx, gameStateID).Return(db.GetLatestRoundByGameStateIDRow{
 				ID:        roundID,
 				RoundType: "free_form",
@@ -1743,7 +1753,7 @@ func TestRoundServiceUpdateStateToQuestion(t *testing.T) {
 			mockRandom := mockService.NewMockRandomizer(t)
 			srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
-			ctx := context.Background()
+			ctx := t.Context()
 			gameName := gameName
 			deadline := time.Now().Add(5 * time.Second).UTC()
 
@@ -1768,7 +1778,7 @@ func TestRoundServiceUpdateStateToQuestion(t *testing.T) {
 				},
 				nil,
 			)
-			roundID := uuid.MustParse("0193ea48-c27f-74bd-8a17-523f69350aff")
+			roundID := uuid.Must(uuid.FromString("0193ea48-c27f-74bd-8a17-523f69350aff"))
 			mockStore.EXPECT().GetLatestRoundByGameStateID(ctx, gameStateID).Return(db.GetLatestRoundByGameStateIDRow{
 				ID:        roundID,
 				RoundType: "free_form",
@@ -1793,7 +1803,7 @@ func TestRoundServiceUpdateStateToQuestion(t *testing.T) {
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
-		ctx := context.Background()
+		ctx := t.Context()
 		gameName := gameName
 		deadline := time.Now().Add(5 * time.Second).UTC()
 
@@ -1818,7 +1828,7 @@ func TestRoundServiceUpdateStateToQuestion(t *testing.T) {
 			},
 			nil,
 		)
-		roundID := uuid.MustParse("0193ea48-c27f-74bd-8a17-523f69350aff")
+		roundID := uuid.Must(uuid.FromString("0193ea48-c27f-74bd-8a17-523f69350aff"))
 		mockStore.EXPECT().GetLatestRoundByGameStateID(ctx, gameStateID).Return(db.GetLatestRoundByGameStateIDRow{
 			ID:        roundID,
 			RoundType: "free_form",
@@ -1832,8 +1842,8 @@ func TestRoundServiceUpdateStateToQuestion(t *testing.T) {
 			RoundType: "free_form",
 		}).Return([]db.GetRandomQuestionByRoundRow{
 			{
-				ID:         uuid.MustParse("0193a629-7dcc-78ad-822f-fd5d83c89ae8"),
-				QuestionID: uuid.MustParse("0193a629-7dcc-78ad-822f-fd5d83c89ae7"),
+				ID:         uuid.Must(uuid.FromString("0193a629-7dcc-78ad-822f-fd5d83c89ae8")),
+				QuestionID: uuid.Must(uuid.FromString("0193a629-7dcc-78ad-822f-fd5d83c89ae7")),
 				Question:   "What is the capital of France?",
 				Locale:     "en-GB",
 				GroupID:    groupID,
@@ -1841,7 +1851,7 @@ func TestRoundServiceUpdateStateToQuestion(t *testing.T) {
 		}, nil)
 		mockStore.EXPECT().GetRandomQuestionInGroup(ctx, db.GetRandomQuestionInGroupParams{
 			GroupID:   groupID,
-			ID:        uuid.MustParse("0193a629-7dcc-78ad-822f-fd5d83c89ae7"),
+			ID:        uuid.Must(uuid.FromString("0193a629-7dcc-78ad-822f-fd5d83c89ae7")),
 			RoundType: "free_form",
 		}).Return([]db.GetRandomQuestionInGroupRow{
 			{},
@@ -1857,7 +1867,7 @@ func TestRoundServiceUpdateStateToQuestion(t *testing.T) {
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
-		ctx := context.Background()
+		ctx := t.Context()
 		deadline := time.Now().Add(5 * time.Second).UTC()
 
 		mockStore.EXPECT().GetGameState(ctx, gameStateID).Return(db.GameState{
@@ -1881,7 +1891,7 @@ func TestRoundServiceUpdateStateToQuestion(t *testing.T) {
 			},
 			nil,
 		)
-		roundID := uuid.MustParse("0193ea48-c27f-74bd-8a17-523f69350aff")
+		roundID := uuid.Must(uuid.FromString("0193ea48-c27f-74bd-8a17-523f69350aff"))
 		mockStore.EXPECT().GetLatestRoundByGameStateID(ctx, gameStateID).Return(db.GetLatestRoundByGameStateIDRow{
 			ID:        roundID,
 			RoundType: "free_form",
@@ -1895,8 +1905,8 @@ func TestRoundServiceUpdateStateToQuestion(t *testing.T) {
 			RoundType: "free_form",
 		}).Return([]db.GetRandomQuestionByRoundRow{
 			{
-				ID:         uuid.MustParse("0193ea48-c27f-74bd-8a17-523f69350aca"),
-				QuestionID: uuid.MustParse("0193a629-7dcc-78ad-822f-fd5d83c89ae7"),
+				ID:         uuid.Must(uuid.FromString("0193ea48-c27f-74bd-8a17-523f69350aca")),
+				QuestionID: uuid.Must(uuid.FromString("0193a629-7dcc-78ad-822f-fd5d83c89ae7")),
 				Question:   "I love cats",
 				Locale:     "en-GB",
 				GroupID:    groupID,
@@ -1904,18 +1914,18 @@ func TestRoundServiceUpdateStateToQuestion(t *testing.T) {
 		}, nil)
 		mockStore.EXPECT().GetRandomQuestionInGroup(ctx, db.GetRandomQuestionInGroupParams{
 			GroupID:   groupID,
-			ID:        uuid.MustParse("0193a629-7dcc-78ad-822f-fd5d83c89ae7"),
+			ID:        uuid.Must(uuid.FromString("0193a629-7dcc-78ad-822f-fd5d83c89ae7")),
 			RoundType: "free_form",
 		}).Return([]db.GetRandomQuestionInGroupRow{
 			{
-				QuestionID: uuid.MustParse("0193a629-a9ac-7fc4-828c-a1334c282e0f"),
+				QuestionID: uuid.Must(uuid.FromString("0193a629-a9ac-7fc4-828c-a1334c282e0f")),
 				Question:   "I love dogs",
 			},
 		}, nil)
 		mockStore.EXPECT().NewRound(ctx, db.NewRoundArgs{
 			GameStateID:       gameStateID,
-			NormalsQuestionID: uuid.MustParse("0193a629-7dcc-78ad-822f-fd5d83c89ae7"),
-			FibberQuestionID:  uuid.MustParse("0193a629-a9ac-7fc4-828c-a1334c282e0f"),
+			NormalsQuestionID: uuid.Must(uuid.FromString("0193a629-7dcc-78ad-822f-fd5d83c89ae7")),
+			FibberQuestionID:  uuid.Must(uuid.FromString("0193a629-a9ac-7fc4-828c-a1334c282e0f")),
 			Round:             2,
 			RoundType:         "free_form",
 			Players: []db.GetAllPlayersByGameStateIDRow{
@@ -1939,7 +1949,7 @@ func TestRoundServiceUpdateStateToQuestion(t *testing.T) {
 func TestRoundServiceUpdateStateToScore(t *testing.T) {
 	t.Parallel()
 
-	gameStateID := uuid.MustParse("fbb75599-9f7a-4392-b523-fd433b3208ea")
+	gameStateID := uuid.Must(uuid.FromString("fbb75599-9f7a-4392-b523-fd433b3208ea"))
 	scoring := service.Scoring{
 		GuessedFibber:      100,
 		FibberEvadeCapture: 150,
@@ -1952,7 +1962,7 @@ func TestRoundServiceUpdateStateToScore(t *testing.T) {
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
-		ctx := context.Background()
+		ctx := t.Context()
 		now := time.Now().Add(15 * time.Second)
 
 		mockStore.EXPECT().
@@ -1974,7 +1984,7 @@ func TestRoundServiceUpdateStateToScore(t *testing.T) {
 					VoterAvatar:   "https://api.dicebear.com/9.x/bottts-neutral/svg?radius=20&seed=Player+1",
 					VoterNickname: "Player 1",
 					FibberID:      defaultOtherPlayerID,
-					RoundID:       uuid.MustParse("0193a62a-364e-751a-9088-cf3b9711153e"),
+					RoundID:       uuid.Must(uuid.FromString("0193a62a-364e-751a-9088-cf3b9711153e")),
 				},
 			}, nil)
 		mockStore.EXPECT().
@@ -1994,14 +2004,14 @@ func TestRoundServiceUpdateStateToScore(t *testing.T) {
 		mockStore.EXPECT().
 			GetLatestRoundByGameStateID(ctx, gameStateID).
 			Return(db.GetLatestRoundByGameStateIDRow{
-				ID:        uuid.MustParse("0193a62a-364e-751a-9088-cf3b9711153e"),
+				ID:        uuid.Must(uuid.FromString("0193a62a-364e-751a-9088-cf3b9711153e")),
 				Round:     1,
 				RoundType: "free_form",
 			}, nil)
 		mockStore.EXPECT().
 			GetTotalScoresByGameStateID(ctx, db.GetTotalScoresByGameStateIDParams{
 				ID:   gameStateID,
-				ID_2: uuid.MustParse("0193a62a-364e-751a-9088-cf3b9711153e"),
+				ID_2: uuid.Must(uuid.FromString("0193a62a-364e-751a-9088-cf3b9711153e")),
 			}).
 			Return([]db.GetTotalScoresByGameStateIDRow{}, nil)
 		mockStore.EXPECT().
@@ -2009,12 +2019,12 @@ func TestRoundServiceUpdateStateToScore(t *testing.T) {
 				Players: []db.AddFibbingItScoreParams{
 					{
 						PlayerID: defaultHostPlayerID,
-						RoundID:  uuid.MustParse("0193a62a-364e-751a-9088-cf3b9711153e"),
+						RoundID:  uuid.Must(uuid.FromString("0193a62a-364e-751a-9088-cf3b9711153e")),
 						Score:    100,
 					},
 					{
 						PlayerID: defaultOtherPlayerID,
-						RoundID:  uuid.MustParse("0193a62a-364e-751a-9088-cf3b9711153e"),
+						RoundID:  uuid.Must(uuid.FromString("0193a62a-364e-751a-9088-cf3b9711153e")),
 						Score:    0,
 					},
 				},
@@ -2054,7 +2064,7 @@ func TestRoundServiceUpdateStateToScore(t *testing.T) {
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
-		ctx := context.Background()
+		ctx := t.Context()
 		now := time.Now().Add(15 * time.Second)
 
 		mockStore.EXPECT().
@@ -2071,7 +2081,7 @@ func TestRoundServiceUpdateStateToScore(t *testing.T) {
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
-		ctx := context.Background()
+		ctx := t.Context()
 		now := time.Now().Add(15 * time.Second)
 
 		mockStore.EXPECT().
@@ -2088,7 +2098,7 @@ func TestRoundServiceUpdateStateToScore(t *testing.T) {
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
-		ctx := context.Background()
+		ctx := t.Context()
 		now := time.Now().Add(15 * time.Second)
 
 		mockStore.EXPECT().
@@ -2112,7 +2122,7 @@ func TestRoundServiceUpdateStateToScore(t *testing.T) {
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
-		ctx := context.Background()
+		ctx := t.Context()
 		now := time.Now().Add(15 * time.Second)
 
 		mockStore.EXPECT().
@@ -2142,7 +2152,7 @@ func TestRoundServiceUpdateStateToScore(t *testing.T) {
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
-		ctx := context.Background()
+		ctx := t.Context()
 		now := time.Now().Add(15 * time.Second)
 
 		mockStore.EXPECT().
@@ -2164,7 +2174,7 @@ func TestRoundServiceUpdateStateToScore(t *testing.T) {
 					VoterAvatar:   "https://api.dicebear.com/9.x/bottts-neutral/svg?radius=20&seed=Player+1",
 					VoterNickname: "Player 1",
 					FibberID:      defaultOtherPlayerID,
-					RoundID:       uuid.MustParse("0193a62a-364e-751a-9088-cf3b9711153e"),
+					RoundID:       uuid.Must(uuid.FromString("0193a62a-364e-751a-9088-cf3b9711153e")),
 				},
 			}, nil)
 		mockStore.EXPECT().
@@ -2181,7 +2191,7 @@ func TestRoundServiceUpdateStateToScore(t *testing.T) {
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
-		ctx := context.Background()
+		ctx := t.Context()
 		now := time.Now().Add(15 * time.Second)
 
 		mockStore.EXPECT().
@@ -2203,7 +2213,7 @@ func TestRoundServiceUpdateStateToScore(t *testing.T) {
 					VoterAvatar:   "https://api.dicebear.com/9.x/bottts-neutral/svg?radius=20&seed=Player+1",
 					VoterNickname: "Player 1",
 					FibberID:      defaultOtherPlayerID,
-					RoundID:       uuid.MustParse("0193a62a-364e-751a-9088-cf3b9711153e"),
+					RoundID:       uuid.Must(uuid.FromString("0193a62a-364e-751a-9088-cf3b9711153e")),
 				},
 			}, nil)
 		mockStore.EXPECT().
@@ -2234,7 +2244,7 @@ func TestRoundServiceUpdateStateToScore(t *testing.T) {
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
-		ctx := context.Background()
+		ctx := t.Context()
 		now := time.Now().Add(15 * time.Second)
 
 		mockStore.EXPECT().
@@ -2256,7 +2266,7 @@ func TestRoundServiceUpdateStateToScore(t *testing.T) {
 					VoterAvatar:   "https://api.dicebear.com/9.x/bottts-neutral/svg?radius=20&seed=Player+1",
 					VoterNickname: "Player 1",
 					FibberID:      defaultOtherPlayerID,
-					RoundID:       uuid.MustParse("0193a62a-364e-751a-9088-cf3b9711153e"),
+					RoundID:       uuid.Must(uuid.FromString("0193a62a-364e-751a-9088-cf3b9711153e")),
 				},
 			}, nil)
 		mockStore.EXPECT().
@@ -2276,13 +2286,13 @@ func TestRoundServiceUpdateStateToScore(t *testing.T) {
 		mockStore.EXPECT().
 			GetLatestRoundByGameStateID(ctx, gameStateID).
 			Return(db.GetLatestRoundByGameStateIDRow{
-				ID:    uuid.MustParse("0193a62a-364e-751a-9088-cf3b9711153e"),
+				ID:    uuid.Must(uuid.FromString("0193a62a-364e-751a-9088-cf3b9711153e")),
 				Round: 1,
 			}, nil)
 		mockStore.EXPECT().
 			GetTotalScoresByGameStateID(ctx, db.GetTotalScoresByGameStateIDParams{
 				ID:   gameStateID,
-				ID_2: uuid.MustParse("0193a62a-364e-751a-9088-cf3b9711153e"),
+				ID_2: uuid.Must(uuid.FromString("0193a62a-364e-751a-9088-cf3b9711153e")),
 			}).
 			Return([]db.GetTotalScoresByGameStateIDRow{}, nil)
 		mockStore.EXPECT().
@@ -2290,12 +2300,12 @@ func TestRoundServiceUpdateStateToScore(t *testing.T) {
 				Players: []db.AddFibbingItScoreParams{
 					{
 						PlayerID: defaultHostPlayerID,
-						RoundID:  uuid.MustParse("0193a62a-364e-751a-9088-cf3b9711153e"),
+						RoundID:  uuid.Must(uuid.FromString("0193a62a-364e-751a-9088-cf3b9711153e")),
 						Score:    100,
 					},
 					{
 						PlayerID: defaultOtherPlayerID,
-						RoundID:  uuid.MustParse("0193a62a-364e-751a-9088-cf3b9711153e"),
+						RoundID:  uuid.Must(uuid.FromString("0193a62a-364e-751a-9088-cf3b9711153e")),
 						Score:    0,
 					},
 				},
@@ -2333,7 +2343,7 @@ func TestRoundServiceGetGameState(t *testing.T) {
 			mockRandom := mockService.NewMockRandomizer(t)
 			srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
-			ctx := context.Background()
+			ctx := t.Context()
 			mockStore.EXPECT().GetGameStateByPlayerID(ctx, playerID).Return(db.GameState{
 				State: tt.gameState.String(),
 			}, nil)
@@ -2350,7 +2360,7 @@ func TestRoundServiceGetGameState(t *testing.T) {
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
-		ctx := context.Background()
+		ctx := t.Context()
 		mockStore.EXPECT().GetGameStateByPlayerID(ctx, playerID).Return(
 			db.GameState{}, xerrors.New("failed to get game state details"),
 		)
@@ -2369,7 +2379,7 @@ func TestRoundServiceGetQuestionState(t *testing.T) {
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
-		ctx := context.Background()
+		ctx := t.Context()
 
 		deadline := time.Now().Add(5 * time.Second)
 		mockStore.EXPECT().GetCurrentQuestionByPlayerID(ctx, playerID).Return(db.GetCurrentQuestionByPlayerIDRow{
@@ -2411,7 +2421,7 @@ func TestRoundServiceGetQuestionState(t *testing.T) {
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
-		ctx := context.Background()
+		ctx := t.Context()
 
 		deadline := time.Now().Add(5 * time.Second)
 		mockStore.EXPECT().GetCurrentQuestionByPlayerID(ctx, playerID).Return(db.GetCurrentQuestionByPlayerIDRow{
@@ -2453,7 +2463,7 @@ func TestRoundServiceGetQuestionState(t *testing.T) {
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
-		ctx := context.Background()
+		ctx := t.Context()
 
 		deadline := time.Now().Add(5 * time.Second)
 		mockStore.EXPECT().GetCurrentQuestionByPlayerID(ctx, playerID).Return(db.GetCurrentQuestionByPlayerIDRow{
@@ -2494,7 +2504,7 @@ func TestRoundServiceGetQuestionState(t *testing.T) {
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
-		ctx := context.Background()
+		ctx := t.Context()
 
 		deadline := time.Now().Add(5 * time.Second)
 		mockStore.EXPECT().GetCurrentQuestionByPlayerID(ctx, playerID).Return(db.GetCurrentQuestionByPlayerIDRow{
@@ -2544,7 +2554,7 @@ func TestRoundServiceGetQuestionState(t *testing.T) {
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
-		ctx := context.Background()
+		ctx := t.Context()
 
 		mockStore.EXPECT().GetCurrentQuestionByPlayerID(ctx, playerID).Return(
 			db.GetCurrentQuestionByPlayerIDRow{}, xerrors.New("failed to get questions"),
@@ -2564,16 +2574,18 @@ func TestRoundServiceUpdateStateToWinning(t *testing.T) {
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
-		ctx := context.Background()
+		ctx := t.Context()
 
-		gameID := uuid.Must(uuid.NewV7())
+		gameID, err := uuid.NewV7()
+		require.NoError(t, err)
 		mockStore.EXPECT().GetGameState(ctx, gameID).Return(db.GameState{
 			State: db.FibbingItScoring.String(),
 			ID:    gameID,
 		}, nil)
 
-		u := uuid.Must(uuid.NewV7())
-		mockRandom.EXPECT().GetID().Return(u)
+		u, err := uuid.NewV7()
+		require.NoError(t, err)
+		mockRandom.EXPECT().GetID().Return(u, nil)
 
 		deadline := time.Now().UTC().Add(1 * time.Hour)
 		mockStore.EXPECT().UpdateGameState(ctx, db.UpdateGameStateParams{
@@ -2628,14 +2640,15 @@ func TestRoundServiceUpdateStateToWinning(t *testing.T) {
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
-		ctx := context.Background()
+		ctx := t.Context()
 
-		gameID := uuid.Must(uuid.NewV7())
+		gameID, err := uuid.NewV7()
+		require.NoError(t, err)
 		mockStore.EXPECT().GetGameState(ctx, gameID).Return(db.GameState{}, fmt.Errorf("failed to get game state"))
 
 		deadline := time.Now().UTC().Add(1 * time.Hour)
 
-		_, err := srv.UpdateStateToWinner(ctx, gameID, deadline)
+		_, err = srv.UpdateStateToWinner(ctx, gameID, deadline)
 		assert.Error(t, err)
 	})
 
@@ -2645,9 +2658,10 @@ func TestRoundServiceUpdateStateToWinning(t *testing.T) {
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
-		ctx := context.Background()
+		ctx := t.Context()
 
-		gameID := uuid.Must(uuid.NewV7())
+		gameID, err := uuid.NewV7()
+		require.NoError(t, err)
 		mockStore.EXPECT().GetGameState(ctx, gameID).Return(db.GameState{
 			State: db.FibbingItRevealRole.String(),
 			ID:    gameID,
@@ -2655,7 +2669,7 @@ func TestRoundServiceUpdateStateToWinning(t *testing.T) {
 
 		deadline := time.Now().UTC().Add(1 * time.Hour)
 
-		_, err := srv.UpdateStateToWinner(ctx, gameID, deadline)
+		_, err = srv.UpdateStateToWinner(ctx, gameID, deadline)
 		assert.ErrorContains(t, err, "game state is not in FIBBING_IT_SCORING_STATE state")
 	})
 
@@ -2665,9 +2679,10 @@ func TestRoundServiceUpdateStateToWinning(t *testing.T) {
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
-		ctx := context.Background()
+		ctx := t.Context()
 
-		gameID := uuid.Must(uuid.NewV7())
+		gameID, err := uuid.NewV7()
+		require.NoError(t, err)
 		mockStore.EXPECT().GetGameState(ctx, gameID).Return(db.GameState{
 			State: db.FibbingItScoring.String(),
 			ID:    gameID,
@@ -2680,7 +2695,7 @@ func TestRoundServiceUpdateStateToWinning(t *testing.T) {
 			SubmitDeadline: pgtype.Timestamp{Time: deadline, Valid: true},
 		}).Return(db.GameState{}, fmt.Errorf("failed to update game state"))
 
-		_, err := srv.UpdateStateToWinner(ctx, gameID, deadline)
+		_, err = srv.UpdateStateToWinner(ctx, gameID, deadline)
 		assert.Error(t, err)
 	})
 
@@ -2690,16 +2705,18 @@ func TestRoundServiceUpdateStateToWinning(t *testing.T) {
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
-		ctx := context.Background()
+		ctx := t.Context()
 
-		gameID := uuid.Must(uuid.NewV7())
+		gameID, err := uuid.NewV7()
+		require.NoError(t, err)
 		mockStore.EXPECT().GetGameState(ctx, gameID).Return(db.GameState{
 			State: db.FibbingItScoring.String(),
 			ID:    gameID,
 		}, nil)
 
-		u := uuid.Must(uuid.NewV7())
-		mockRandom.EXPECT().GetID().Return(u)
+		u, err := uuid.NewV7()
+		require.NoError(t, err)
+		mockRandom.EXPECT().GetID().Return(u, nil)
 
 		deadline := time.Now().UTC().Add(1 * time.Hour)
 		mockStore.EXPECT().UpdateGameState(ctx, db.UpdateGameStateParams{
@@ -2713,7 +2730,7 @@ func TestRoundServiceUpdateStateToWinning(t *testing.T) {
 			ID_2: u,
 		}).Return([]db.GetTotalScoresByGameStateIDRow{}, fmt.Errorf("fail to get scores from DB"))
 
-		_, err := srv.UpdateStateToWinner(ctx, gameID, deadline)
+		_, err = srv.UpdateStateToWinner(ctx, gameID, deadline)
 		assert.Error(t, err)
 	})
 }
@@ -2727,16 +2744,18 @@ func TestRoundServiceGetWinnerState(t *testing.T) {
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
-		ctx := context.Background()
+		ctx := t.Context()
 
-		gameID := uuid.Must(uuid.NewV7())
+		gameID, err := uuid.NewV7()
+		require.NoError(t, err)
 		mockStore.EXPECT().GetGameStateByPlayerID(ctx, playerID).Return(db.GameState{
 			State: db.FibbingItWinner.String(),
 			ID:    gameID,
 		}, nil)
 
-		u := uuid.Must(uuid.NewV7())
-		mockRandom.EXPECT().GetID().Return(u)
+		u, err := uuid.NewV7()
+		require.NoError(t, err)
+		mockRandom.EXPECT().GetID().Return(u, nil)
 
 		mockStore.EXPECT().GetTotalScoresByGameStateID(ctx, db.GetTotalScoresByGameStateIDParams{
 			ID:   gameID,
@@ -2784,7 +2803,7 @@ func TestRoundServiceGetWinnerState(t *testing.T) {
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
-		ctx := context.Background()
+		ctx := t.Context()
 
 		mockStore.EXPECT().
 			GetGameStateByPlayerID(ctx, playerID).
@@ -2800,23 +2819,25 @@ func TestRoundServiceGetWinnerState(t *testing.T) {
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
-		ctx := context.Background()
+		ctx := t.Context()
 
-		gameID := uuid.Must(uuid.NewV7())
+		gameID, err := uuid.NewV7()
+		require.NoError(t, err)
 		mockStore.EXPECT().GetGameStateByPlayerID(ctx, playerID).Return(db.GameState{
 			State: db.FibbingItWinner.String(),
 			ID:    gameID,
 		}, nil)
 
-		u := uuid.Must(uuid.NewV7())
-		mockRandom.EXPECT().GetID().Return(u)
+		u, err := uuid.NewV7()
+		require.NoError(t, err)
+		mockRandom.EXPECT().GetID().Return(u, nil)
 
 		mockStore.EXPECT().GetTotalScoresByGameStateID(ctx, db.GetTotalScoresByGameStateIDParams{
 			ID:   gameID,
 			ID_2: u,
 		}).Return([]db.GetTotalScoresByGameStateIDRow{}, fmt.Errorf("failed to get total scores"))
 
-		_, err := srv.GetWinnerState(ctx, playerID)
+		_, err = srv.GetWinnerState(ctx, playerID)
 		assert.Error(t, err)
 	})
 }
@@ -2830,10 +2851,12 @@ func TestRoundServiceFinishGame(t *testing.T) {
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
-		ctx := context.Background()
+		ctx := t.Context()
 
-		gameID := uuid.Must(uuid.NewV7())
-		roomID := uuid.Must(uuid.NewV7())
+		gameID, err := uuid.NewV7()
+		require.NoError(t, err)
+		roomID, err := uuid.NewV7()
+		require.NoError(t, err)
 		mockStore.EXPECT().GetGameState(ctx, gameID).Return(db.GameState{
 			State:  db.FibbingItWinner.String(),
 			ID:     gameID,
@@ -2844,7 +2867,7 @@ func TestRoundServiceFinishGame(t *testing.T) {
 			UpdateRoomState(ctx, db.UpdateRoomStateParams{RoomState: db.Finished.String(), ID: roomID}).
 			Return(db.Room{}, nil)
 
-		err := srv.FinishGame(ctx, gameID)
+		err = srv.FinishGame(ctx, gameID)
 		assert.NoError(t, err)
 	})
 
@@ -2854,12 +2877,13 @@ func TestRoundServiceFinishGame(t *testing.T) {
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
-		ctx := context.Background()
+		ctx := t.Context()
 
-		gameID := uuid.Must(uuid.NewV7())
+		gameID, err := uuid.NewV7()
+		require.NoError(t, err)
 		mockStore.EXPECT().GetGameState(ctx, gameID).Return(db.GameState{}, fmt.Errorf("fail to get game state"))
 
-		err := srv.FinishGame(ctx, gameID)
+		err = srv.FinishGame(ctx, gameID)
 		assert.Error(t, err)
 	})
 
@@ -2869,10 +2893,12 @@ func TestRoundServiceFinishGame(t *testing.T) {
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
-		ctx := context.Background()
+		ctx := t.Context()
 
-		gameID := uuid.Must(uuid.NewV7())
-		roomID := uuid.Must(uuid.NewV7())
+		gameID, err := uuid.NewV7()
+		require.NoError(t, err)
+		roomID, err := uuid.NewV7()
+		require.NoError(t, err)
 		mockStore.EXPECT().GetGameState(ctx, gameID).Return(db.GameState{
 			State:  db.FibbingItWinner.String(),
 			ID:     gameID,
@@ -2883,7 +2909,7 @@ func TestRoundServiceFinishGame(t *testing.T) {
 			UpdateRoomState(ctx, db.UpdateRoomStateParams{RoomState: db.Finished.String(), ID: roomID}).
 			Return(db.Room{}, fmt.Errorf("fail to update room state"))
 
-		err := srv.FinishGame(ctx, gameID)
+		err = srv.FinishGame(ctx, gameID)
 		assert.Error(t, err)
 	})
 }

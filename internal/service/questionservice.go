@@ -3,7 +3,7 @@ package service
 import (
 	"context"
 
-	"github.com/google/uuid"
+	"github.com/gofrs/uuid/v5"
 
 	"gitlab.com/hmajid2301/banterbus/internal/store/db"
 )
@@ -49,8 +49,11 @@ func (q QuestionService) AddTranslation(
 	text string,
 	locale string,
 ) (QuestionTranslation, error) {
-	u := q.randomizer.GetID()
-	_, err := q.store.AddQuestionTranslation(ctx, db.AddQuestionTranslationParams{
+	u, err := q.randomizer.GetID()
+	if err != nil {
+		return QuestionTranslation{}, err
+	}
+	_, err = q.store.AddQuestionTranslation(ctx, db.AddQuestionTranslationParams{
 		ID:         u,
 		Question:   text,
 		Locale:     locale,
@@ -120,8 +123,11 @@ func (q QuestionService) GetQuestions(
 }
 
 func (q QuestionService) AddGroup(ctx context.Context, name string) (Group, error) {
-	u := q.randomizer.GetID()
-	_, err := q.store.AddGroup(ctx, db.AddGroupParams{
+	u, err := q.randomizer.GetID()
+	if err != nil {
+		return Group{}, err
+	}
+	_, err = q.store.AddGroup(ctx, db.AddGroupParams{
 		ID:        u,
 		GroupName: name,
 		GroupType: "questions",

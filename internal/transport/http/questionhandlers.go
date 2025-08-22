@@ -10,7 +10,7 @@ import (
 	"strconv"
 
 	"github.com/go-playground/validator/v10"
-	"github.com/google/uuid"
+	"github.com/gofrs/uuid/v5"
 
 	"gitlab.com/hmajid2301/banterbus/internal/service"
 )
@@ -110,7 +110,7 @@ func (s *Server) addQuestionTranslationHandler(w http.ResponseWriter, r *http.Re
 	id := r.PathValue("id")
 	locale := r.PathValue("locale")
 
-	questionID, err := uuid.Parse(id)
+	questionID, err := uuid.FromString(id)
 	if err != nil {
 		s.Logger.ErrorContext(ctx, "failed to parse question UUID", slog.Any("error", err))
 		http.Error(w, "Bad Request", http.StatusBadRequest)
@@ -215,7 +215,7 @@ func (s *Server) disableQuestionHandler(w http.ResponseWriter, r *http.Request) 
 
 	id := r.PathValue("id")
 
-	questionID, err := uuid.Parse(id)
+	questionID, err := uuid.FromString(id)
 	if err != nil {
 		s.Logger.ErrorContext(ctx, "failed to parse question UUID", slog.Any("error", err))
 		http.Error(w, "Bad Request", http.StatusBadRequest)
@@ -237,7 +237,7 @@ func (s *Server) enableQuestionHandler(w http.ResponseWriter, r *http.Request) {
 
 	id := r.PathValue("id")
 
-	questionID, err := uuid.Parse(id)
+	questionID, err := uuid.FromString(id)
 	if err != nil {
 		s.Logger.ErrorContext(ctx, "failed to parse question UUID", slog.Any("error", err))
 		http.Error(w, "Bad Request", http.StatusBadRequest)
