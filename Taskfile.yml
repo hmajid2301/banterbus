@@ -7,9 +7,12 @@ tasks:
       - go build -o ./tmp/main main.go
 
   run:
-    desc: Run the binary.
+    desc: Run the binary with optional environment variables.
+    summary: |
+      Run the binary with optional environment variables.
+      Configuration is done via environment variables, not CLI arguments.
     cmds:
-      - go run main.go
+      - go run -cover main.go
 
   dev:
     desc: Start the app in dev mode with live-reloading.
@@ -22,7 +25,7 @@ tasks:
     env:
       BANTERBUS_LOG_LEVEL: debug
     cmds:
-      - podman-compose up -d --force-recreate --remove-orphans
+      - podman-compose --profile monitoring --profile test --profile other up -d --force-recreate --remove-orphans
       - concurrently "air" "task watch"
 
   lint:
@@ -49,36 +52,62 @@ tasks:
   tests:unit:
     desc: Runs all the unit tests.
     cmds:
-      - gotestsum --format testname --hide-summary=skipped -- -coverprofile coverage.out -cover -covermode=atomic -skip '^TestIntegration' ./internal/... {{.CLI_ARGS}}
+      - mkdir -p coverage
+      - gotestsum --format testname --hide-summary=skipped -- -coverprofile coverage/unit.out -cover -covermode=atomic -skip '^TestIntegration' ./internal/... {{.CLI_ARGS}}
 
   tests:integration:
     desc: Runs all the integration tests.
     cmds:
-      - gotestsum --format testname --hide-summary=skipped -- -coverprofile coverage.out -cover -covermode=atomic -run ^TestIntegration ./internal/... {{.CLI_ARGS}}
+      - mkdir -p coverage
+      - gotestsum --format testname --hide-summary=skipped -- -coverprofile coverage/integration.out -cover -covermode=atomic -run ^TestIntegration ./internal/... {{.CLI_ARGS}}
 
   tests:e2e:
-    desc: Runs e2e tests with playwright.
+    desc: Runs e2e tests with playwright and collects coverage from the running server.
     env:
       SHOW_VOTING_SCREEN_FOR: 10s
       BANTERBUS_DISABLE_TELEMETRY: true
+      GOCOVERDIR: ./coverage/e2e
+      RUN_WITH_COVERAGE: true
+      BANTERBUS_WEBSERVER_PORT: 8081
+      BANTERBUS_WEBSERVER_HOST: 0.0.0.0
+      BANTERBUS_DB_HOST: localhost
+      BANTERBUS_DB_PORT: 5432
+      BANTERBUS_DB_USER: postgres
+      BANTERBUS_DB_PASSWORD: postgres
+      BANTERBUS_DB_NAME: postgres
+      BANTERBUS_REDIS_HOST: localhost
+      BANTERBUS_REDIS_PORT: 6379
+      BANTERBUS_PLAYWRIGHT_URL: http://localhost:8081
+      BANTERBUS_PLAYWRIGHT_HEADLESS: true
     cmds:
+      - mkdir -p coverage/e2e
       - |
         concurrently \
           --names "SERVER,TESTS" \
           --success first \
           "task run" --kill-others \
-          "until curl -sSf http://localhost:8080/health >/dev/null; do sleep 2; done && \
-           gotestsum --format testname --hide-summary=skipped --packages='./tests/e2e' -- \
-             -coverprofile coverage.out \
-             -cover -covermode=atomic {{.CLI_ARGS}}"
+           "until curl -sSf http://localhost:8081/health >/dev/null; do sleep 2; done && \
+            gotestsum --format testname --hide-summary=skipped --packages='./tests/e2e' -- \
+              -coverprofile coverage/e2e-tests.out \
+              -cover -covermode=atomic ${CLI_ARGS}"
 
   tests:e2e:quiet:
     desc: Runs e2e tests with playwright without any logging as this can be super verbose.
     env:
       BANTERBUS_LOG_DISABLED: true
       BANTERBUS_PLAYWRIGHT_HEADLESS: true
+      BANTERBUS_PLAYWRIGHT_URL: http://localhost:8081
+      BANTERBUS_WEBSERVER_PORT: 8081
+      BANTERBUS_WEBSERVER_HOST: 0.0.0.0
+      BANTERBUS_DB_HOST: localhost
+      BANTERBUS_DB_PORT: 5432
+      BANTERBUS_DB_USER: postgres
+      BANTERBUS_DB_PASSWORD: postgres
+      BANTERBUS_DB_NAME: postgres
+      BANTERBUS_REDIS_HOST: localhost
+      BANTERBUS_REDIS_PORT: 6379
     cmds:
-      - gotestsum --format dots -- ./tests/e2e/... {{.CLI_ARGS}}
+      - gotestsum --format dots -- ./tests/e2e/... ${CLI_ARGS}
 
   tests:smoke:
     desc: Runs e2e smoke tests with playwright, expected to run against a live instance i.e. dev or prod.
@@ -86,13 +115,38 @@ tasks:
       BANTERBUS_LOG_DISABLED: true
       BANTERBUS_PLAYWRIGHT_HEADLESS: true
     cmds:
-      - gotestsum --format standard-verbose -- ./tests/e2e/... -run '^TestSmoke' {{.CLI_ARGS}}
+      - gotestsum --format standard-verbose -- ./tests/e2e/... -run '^TestSmoke' ${CLI_ARGS}
 
   coverage:
-    desc: show coverage
+    desc: Combine and show coverage from all test types
     cmds:
-      - go tool covdata textfmt -i="coverage" -o combined-coverage.txt
-      - go tool cover -func=combined-coverage.txt -o coverage.xml
+      - mkdir -p coverage
+
+      - |
+        if [ -d "coverage/e2e" ] && [ "$(ls -A coverage/e2e 2>/dev/null)" ]; then
+          echo "Converting e2e server coverage data..."
+          go tool covdata textfmt -i=coverage/e2e -o coverage/e2e-server.out
+        else
+          echo "No E2E server coverage data found"
+          touch coverage/e2e-server.out
+        fi
+
+      - touch coverage/unit.out coverage/integration.out coverage/e2e-tests.out
+
+      - |
+        echo "mode: atomic" > coverage/combined.out
+        for file in coverage/unit.out coverage/integration.out coverage/e2e-tests.out coverage/e2e-server.out; do
+          if [ -f "$file" ] && [ -s "$file" ]; then
+            echo "Adding coverage from $file"
+            tail -n +2 "$file" >> coverage/combined.out 2>/dev/null || true
+          else
+            echo "Skipping empty or missing file: $file"
+          fi
+        done
+
+      - go tool cover -func=coverage/combined.out
+      - go tool cover -html=coverage/combined.out -o coverage/coverage.html
+      - echo "Coverage report generated at coverage/coverage.html"
 
   watch:
     desc: Watch for file changes and run commands, i.e. generate templates or tailwindcss
@@ -113,6 +167,7 @@ tasks:
       - templ generate
       - tailwindcss -i ./static/css/tailwind.css -o ./static/css/styles.css --minify
       - mockery
+      - go-enum --file=internal/store/db/enums.go
       - sqlc generate
       - gomod2nix generate
       - task: format

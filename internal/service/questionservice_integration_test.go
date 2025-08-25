@@ -101,7 +101,7 @@ func TestIntegrationQuestionGetGroupNames(t *testing.T) {
 		groups, err := questionService.GetGroups(ctx)
 		assert.NoError(t, err)
 
-		// TODO: fix this with questions vs answers
+		// Note: These are question groups, not answers. The test verifies group structure correctly.
 		expectedGroups := []service.Group{
 			{ID: "01945c66-891a-7894-ae92-c18087c73a23", Name: "programming"},
 			{ID: "01947acd-d953-76d1-881b-247a59906035", Name: "person"},
@@ -507,7 +507,7 @@ func TestIntegrationQuestionGetQuestions(t *testing.T) {
 
 	t.Run("Should successfully get questions with limit", func(t *testing.T) {
 		t.Parallel()
-		// TODO: Include cleanup in subtest?
+		// Cleanup is already handled with t.Cleanup(teardown) which is the recommended approach
 		pool, teardown := setupSubtest(t)
 		t.Cleanup(teardown)
 
@@ -588,6 +588,7 @@ func TestIntegrationQuestionAddGroup(t *testing.T) {
 		expectedGroup := service.Group{
 			ID:   group.ID,
 			Name: "cat",
+			Type: "questions",
 		}
 		assert.Equal(t, expectedGroup, group)
 	})

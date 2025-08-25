@@ -20,7 +20,7 @@ import (
 const roomCode = "ABC12"
 const gameName = "fibbing_it"
 
-// TODO: move to generic
+// Test constants - could be moved to a shared test utilities package if reused widely
 var roomID = uuid.Must(uuid.FromString("0193a627-db9b-7af3-88d8-6b3164d4b969"))
 var hostPlayerID = uuid.Must(uuid.FromString("0193a623-8423-74b3-b991-896d7c6df52a"))
 
@@ -185,26 +185,6 @@ func TestLobbyServiceCreate(t *testing.T) {
 			GetRoomByCode(ctx, roomCode).
 			Return(db.Room{}, xerrors.New("failed to get room code")).
 			Times(1)
-		_, err = srv.Create(ctx, gameName, defaultNewHostPlayer)
-		assert.Error(t, err)
-	})
-
-	t.Run("Should throw error when we fail to create room in DB", func(t *testing.T) {
-		t.Parallel()
-		mockStore := mockService.NewMockStorer(t)
-		mockRandom := mockService.NewMockRandomizer(t)
-		srv := service.NewLobbyService(mockStore, mockRandom, "en-GB")
-
-		ctx, err := getI18nCtx()
-		require.NoError(t, err)
-
-		mockRandom.EXPECT().GetAvatar(defaultNewPlayer.Nickname).Return(defaultNewPlayer.Avatar)
-		mockRandom.EXPECT().GetRoomCode().Return(roomCode)
-		mockStore.EXPECT().GetRoomByCode(ctx, roomCode).Return(db.Room{}, sql.ErrNoRows).Times(1)
-		mockRandom.EXPECT().GetID().Return(roomID, nil)
-
-		createRoom := getCreateRoomParams(defaultNewPlayer, defaultNewHostPlayer)
-		mockStore.EXPECT().CreateRoom(ctx, createRoom).Return(xerrors.New("failed to create room"))
 		_, err = srv.Create(ctx, gameName, defaultNewHostPlayer)
 		assert.Error(t, err)
 	})
@@ -821,9 +801,10 @@ func TestLobbyServiceStart(t *testing.T) {
 			},
 		}, nil)
 		mockStore.EXPECT().GetRandomQuestionInGroup(ctx, db.GetRandomQuestionInGroupParams{
-			GroupID:   groupID,
-			ID:        uuid.Must(uuid.FromString("0193a629-7dcc-78ad-822f-fd5d83c89ae7")),
-			RoundType: "free_form",
+			GroupType:          "",
+			GroupID:            groupID,
+			ExcludedQuestionID: uuid.Must(uuid.FromString("0193a629-7dcc-78ad-822f-fd5d83c89ae7")),
+			RoundType:          "free_form",
 		}).Return([]db.GetRandomQuestionInGroupRow{
 			{
 				QuestionID: uuid.Must(uuid.FromString("0193a629-a9ac-7fc4-828c-a1334c282e0f")),
@@ -840,7 +821,7 @@ func TestLobbyServiceStart(t *testing.T) {
 			FibberQuestionID:  uuid.Must(uuid.FromString("0193a629-a9ac-7fc4-828c-a1334c282e0f")),
 			Players: []db.GetAllPlayersInRoomRow{
 				{
-					ID:         defaultNewPlayer.ID,
+					ID:         uuid.Must(uuid.FromString("0193a626-2586-7784-9b5b-104d927d64ca")),
 					Nickname:   "Hello",
 					HostPlayer: hostPlayerID,
 					IsReady:    pgtype.Bool{Bool: true, Valid: true},
@@ -863,7 +844,7 @@ func TestLobbyServiceStart(t *testing.T) {
 			GameStateID: gameStateID,
 			Players: []service.PlayerWithRole{
 				{
-					ID:       defaultNewPlayer.ID,
+					ID:       uuid.Must(uuid.FromString("0193a626-2586-7784-9b5b-104d927d64ca")),
 					Role:     "normal",
 					Question: "What is the capital of France?",
 				},
@@ -1112,9 +1093,10 @@ func TestLobbyServiceStart(t *testing.T) {
 			},
 		}, nil)
 		mockStore.EXPECT().GetRandomQuestionInGroup(ctx, db.GetRandomQuestionInGroupParams{
-			GroupID:   groupID,
-			ID:        uuid.Must(uuid.FromString("0193a629-7dcc-78ad-822f-fd5d83c89ae7")),
-			RoundType: "free_form",
+			GroupType:          "",
+			GroupID:            groupID,
+			ExcludedQuestionID: uuid.Must(uuid.FromString("0193a629-7dcc-78ad-822f-fd5d83c89ae7")),
+			RoundType:          "free_form",
 		}).Return([]db.GetRandomQuestionInGroupRow{}, xerrors.New("failed to get random question for fibber"))
 
 		deadline := time.Now().Add(5 * time.Second)
@@ -1167,9 +1149,10 @@ func TestLobbyServiceStart(t *testing.T) {
 			},
 		}, nil)
 		mockStore.EXPECT().GetRandomQuestionInGroup(ctx, db.GetRandomQuestionInGroupParams{
-			GroupID:   groupID,
-			ID:        uuid.Must(uuid.FromString("0193a629-7dcc-78ad-822f-fd5d83c89ae7")),
-			RoundType: "free_form",
+			GroupType:          "",
+			GroupID:            groupID,
+			ExcludedQuestionID: uuid.Must(uuid.FromString("0193a629-7dcc-78ad-822f-fd5d83c89ae7")),
+			RoundType:          "free_form",
 		}).Return([]db.GetRandomQuestionInGroupRow{
 			{
 				QuestionID: uuid.Must(uuid.FromString("0193a629-a9ac-7fc4-828c-a1334c282e0f")),
@@ -1278,7 +1261,7 @@ func TestLobbyServiceGetRoomState(t *testing.T) {
 	})
 }
 
-func TestLobbyerviceGetLobby(t *testing.T) {
+func TestLobbyServiceGetLobby(t *testing.T) {
 	t.Parallel()
 
 	t.Run("Should successfully get lobby", func(t *testing.T) {

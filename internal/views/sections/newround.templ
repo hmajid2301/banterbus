@@ -1,0 +1,65 @@
+package sections
+
+import (
+	"context"
+	"fmt"
+	"github.com/invopop/ctxi18n/i18n"
+	"gitlab.com/hmajid2301/banterbus/internal/service"
+	"gitlab.com/hmajid2301/banterbus/internal/views/components"
+)
+
+templ NewRound(state service.NewRoundState) {
+	<div hx-swap-oob="innerHTML:#page">
+		<div>
+			<div class="flex flex-col justify-center items-center space-y-6 sm:space-y-8 text-text2 min-h-[50vh]">
+				<!-- Round announcement -->
+				<div class="space-y-4 text-center">
+					<h1 class="text-4xl font-bold animate-pulse sm:text-5xl md:text-6xl text-text">
+						{ i18n.T(ctx, "newround.title") }
+					</h1>
+					<div class="text-2xl sm:text-3xl md:text-4xl text-blue">
+						{ fmt.Sprintf("%s %d", i18n.T(ctx, "common.round"), state.Round) }
+					</div>
+				</div>
+				<!-- Round type display -->
+				<div class="space-y-2 text-center">
+					<div class="text-lg sm:text-xl text-text2">
+						{ i18n.T(ctx, "newround.type_label") }
+					</div>
+					<div class="py-3 px-6 text-xl font-semibold rounded-lg sm:text-2xl text-text bg-surface1">
+						{ getRoundTypeName(ctx, state.RoundType) }
+					</div>
+				</div>
+				<!-- Timer -->
+				<div class="space-y-2 text-center">
+					<div class="text-sm sm:text-base text-text2">
+						{ i18n.T(ctx, "newround.starting_in") }
+					</div>
+					@components.CircularTimer(components.CircularTimerProps{
+						InitialSeconds: int(state.Deadline.Seconds()),
+						Size:           "w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24",
+					})
+				</div>
+				<!-- Decorative elements -->
+				<div class="flex justify-center space-x-4 text-4xl animate-bounce">
+					<span>🎯</span>
+					<span>🎮</span>
+					<span>🎲</span>
+				</div>
+			</div>
+		</div>
+	</div>
+}
+
+func getRoundTypeName(ctx context.Context, roundType string) string {
+	switch roundType {
+	case "free_form":
+		return i18n.T(ctx, "roundtype.free_form")
+	case "multiple_choice":
+		return i18n.T(ctx, "roundtype.multiple_choice")
+	case "most_likely":
+		return i18n.T(ctx, "roundtype.most_likely")
+	default:
+		return roundType
+	}
+}

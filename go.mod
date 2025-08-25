@@ -9,6 +9,7 @@ require (
 	github.com/MicahParks/keyfunc/v3 v3.6.1
 	github.com/a-h/templ v0.3.943
 	github.com/exaring/otelpgx v0.9.3
+	github.com/getsentry/sentry-go v0.35.1
 	github.com/go-playground/validator/v10 v10.27.0
 	github.com/gobwas/ws v1.4.0
 	github.com/gofrs/uuid/v5 v5.3.2

@@ -1,0 +1,65 @@
+package components
+
+import "strconv"
+
+type CircularTimerProps struct {
+	InitialSeconds int
+	Size           string // e.g., "w-16 h-16"
+}
+
+templ CircularTimer(props CircularTimerProps) {
+	{{
+	if props.Size == "" {
+		props.Size = "w-16 h-16"
+	}
+	}}
+	<div
+		x-data={ getTimerData(props.InitialSeconds) }
+		x-init={ getTimerInit() }
+		class={ "relative", props.Size }
+	>
+		<!-- Background circle -->
+		<svg class="absolute inset-0 transform -rotate-90" viewBox="0 0 36 36">
+			<path
+				class="stroke-surface2"
+				stroke-width="2"
+				fill="none"
+				d="M18 2.0845
+					a 15.9155 15.9155 0 0 1 0 31.831
+					a 15.9155 15.9155 0 0 1 0 -31.831"
+			></path>
+			<!-- Progress circle -->
+			<path
+				class="stroke-blue"
+				stroke-width="2"
+				fill="none"
+				stroke-linecap="round"
+				:stroke-dasharray="`${progress}, 100`"
+				d="M18 2.0845
+					a 15.9155 15.9155 0 0 1 0 31.831
+					a 15.9155 15.9155 0 0 1 0 -31.831"
+			></path>
+		</svg>
+		<!-- Timer text -->
+		<div class="flex absolute inset-0 justify-center items-center">
+			<span x-text="timer" class="text-sm font-semibold text-white sm:text-base"></span>
+		</div>
+	</div>
+}
+
+func getTimerData(initialSeconds int) string {
+	return `{
+		timer: ` + strconv.Itoa(initialSeconds) + `,
+		initialTimer: ` + strconv.Itoa(initialSeconds) + `,
+		progress: 100
+	}`
+}
+
+func getTimerInit() string {
+	return `setInterval(() => { 
+		if (timer > 0) {
+			timer--;
+			progress = (timer / initialTimer) * 100;
+		}
+	}, 1000)`
+}

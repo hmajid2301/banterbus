@@ -32,6 +32,7 @@
             playwright-test
             playwright-driver
             ;
+          go-enum = prev.callPackage ./nix/go-enum.nix { };
         };
         pkgs = import nixpkgs {
           inherit system;
@@ -49,6 +50,7 @@
           gocover-cobertura
           go-task
           go-mockery
+          go-enum
           goreleaser
           golines
 
@@ -68,6 +70,7 @@
           ++ [
             gitlab-ci-local
             gum
+            attic-client
           ];
 
         # The current default sdk for macOS fails to compile go projects, so we use a newer one for now.

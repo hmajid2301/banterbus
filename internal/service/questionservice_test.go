@@ -1,6 +1,8 @@
 package service_test
 
 import (
+	"context"
+	"errors"
 	"fmt"
 	"testing"
 
@@ -289,7 +291,6 @@ func TestQuestionGetQuestions(t *testing.T) {
 
 func TestQuestionDisable(t *testing.T) {
 	t.Parallel()
-	var u uuid.UUID
 
 	t.Run("Should successfully disable question", func(t *testing.T) {
 		t.Parallel()
@@ -299,8 +300,7 @@ func TestQuestionDisable(t *testing.T) {
 
 		ctx := t.Context()
 
-		var err error
-		u, err = uuid.NewV7()
+		u, err := uuid.NewV7()
 		require.NoError(t, err)
 		mockStore.EXPECT().DisableQuestion(ctx, u).Return(db.Question{}, nil)
 
@@ -316,10 +316,9 @@ func TestQuestionDisable(t *testing.T) {
 
 		ctx := t.Context()
 
-		var err error
-		u, err = uuid.NewV7()
+		u, err := uuid.NewV7()
 		require.NoError(t, err)
-		mockStore.EXPECT().DisableQuestion(ctx, u).Return(db.Question{}, fmt.Errorf("failed to disable question"))
+		mockStore.EXPECT().DisableQuestion(ctx, u).Return(db.Question{}, errors.New("DB failed"))
 
 		err = srv.DisableQuestion(ctx, u)
 		assert.Error(t, err)
@@ -328,7 +327,6 @@ func TestQuestionDisable(t *testing.T) {
 
 func TestQuestionEnable(t *testing.T) {
 	t.Parallel()
-	var u uuid.UUID
 
 	t.Run("Should successfully enable question", func(t *testing.T) {
 		t.Parallel()
@@ -336,10 +334,9 @@ func TestQuestionEnable(t *testing.T) {
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewQuestionService(mockStore, mockRandom, "en-GB")
 
-		ctx := t.Context()
+		ctx := context.Background()
 
-		var err error
-		u, err = uuid.NewV7()
+		u, err := uuid.NewV7()
 		require.NoError(t, err)
 		mockStore.EXPECT().EnableQuestion(ctx, u).Return(db.Question{}, nil)
 
@@ -353,16 +350,16 @@ func TestQuestionEnable(t *testing.T) {
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewQuestionService(mockStore, mockRandom, "en-GB")
 
-		ctx := t.Context()
+		ctx := context.Background()
 
-		var err error
-		u, err = uuid.NewV7()
+		u, err := uuid.NewV7()
 		require.NoError(t, err)
 		mockStore.EXPECT().EnableQuestion(ctx, u).Return(db.Question{}, fmt.Errorf("failed to enable question"))
 
 		err = srv.EnableQuestion(ctx, u)
 		assert.Error(t, err)
 	})
+
 }
 
 func TestQuestionAddGroup(t *testing.T) {
@@ -391,6 +388,7 @@ func TestQuestionAddGroup(t *testing.T) {
 		expectedGroup := service.Group{
 			ID:   u.String(),
 			Name: "cat",
+			Type: "questions",
 		}
 		assert.Equal(t, expectedGroup, group)
 	})

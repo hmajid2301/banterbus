@@ -9,6 +9,10 @@ import (
 templ Join(languages map[string]string, environment string, roomCode string) {
 	@layouts.Base(languages, environment) {
 		<div class="flex flex-col my-1">
+			<div class="mb-6 text-center">
+				<h2 class="mb-2 text-2xl font-semibold sm:text-3xl text-text">Join Game Room</h2>
+				<p class="text-text2">Enter your nickname and the room code to join the game</p>
+			</div>
 			<div>
 				<form ws-send hx-vals='{ "message_type": "join_lobby" }'>
 					@components.TextInput(
@@ -17,7 +21,7 @@ templ Join(languages map[string]string, environment string, roomCode string) {
 							InputName:   "player_nickname",
 							Placeholder: i18n.T(ctx, "home.nickname_placeholder"),
 						},
-						templ.Attributes{},
+						templ.Attributes{"required": true, "autofocus": true},
 					)
 					@components.TextInput(
 						components.TextInputProps{
@@ -26,11 +30,11 @@ templ Join(languages map[string]string, environment string, roomCode string) {
 							Value:       roomCode,
 							Placeholder: i18n.T(ctx, "home.roomcode_placeholder"),
 						},
-						templ.Attributes{},
+						templ.Attributes{"required": true},
 					)
-					<div class="flex flex-row mt-12 space-x-4 w-full">
+					<div class="flex flex-col mt-8 space-y-4 w-full sm:flex-row sm:mt-12 sm:space-y-0 sm:space-x-4">
 						<div class="w-full">
-							@components.Button(components.ButtonProps{BackgroundColor: "bg-text2", TextColor: "text-black"}, templ.Attributes{}) {
+							@components.Button(components.ButtonProps{BackgroundColor: "bg-green", TextColor: "text-black"}, templ.Attributes{}) {
 								<i class="mr-2 hgi hgi-solid hgi-group"></i>
 								<p>{ i18n.T(ctx, "home.join_button_label") }</p>
 							}

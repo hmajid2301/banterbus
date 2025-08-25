@@ -36,33 +36,31 @@ func Score(state service.ScoreState, player service.PlayerWithScoring, maxScore 
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div hx-swap-oob=\"innerHTML:#page\"><div x-data=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div hx-swap-oob=\"innerHTML:#page\"><div><div class=\"flex flex-col justify-center items-center space-y-4 sm:space-y-6 text-text2\"><div class=\"text-lg sm:text-xl\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var2 string
-		templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(toJSON(map[string]any{"timer": int(state.Deadline.Seconds())}))
+		templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(strconv.Itoa(state.RoundNumber))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/sections/score.templ`, Line: 11, Col: 78}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/sections/score.templ`, Line: 13, Col: 69}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "\" x-init=\"setInterval(() => { if (timer > 0) timer--; }, 1000)\"><div class=\"flex flex-col justify-center items-center space-y-4 text-text2\"><div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, " / 3</div><h2 class=\"text-xl sm:text-2xl md:text-3xl\">Scoreboard</h2><div class=\"text-center\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var3 string
-		templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(strconv.Itoa(state.RoundNumber))
-		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/sections/score.templ`, Line: 13, Col: 42}
-		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
+		templ_7745c5c3_Err = components.CircularTimer(components.CircularTimerProps{
+			InitialSeconds: int(state.Deadline.Seconds()),
+			Size:           "w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16",
+		}).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, " / 3</div><h2>Scoreboard</h2><div class=\"text-right\"><div class=\"flex justify-center items-center w-16 h-16 rounded-full border-2 border-blue-500\"><p x-text=\"timer\"></p></div></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "</div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

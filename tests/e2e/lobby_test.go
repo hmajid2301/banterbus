@@ -23,8 +23,22 @@ func TestE2ELobby(t *testing.T) {
 
 		err = hostPlayerPage.GetByPlaceholder("Enter your nickname").Fill("HostPlayer")
 		require.NoError(t, err)
-		err = hostPlayerPage.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Start"}).Click()
+
+		startButton := hostPlayerPage.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Start"})
+		err = expect.Locator(startButton).ToBeVisible(playwright.LocatorAssertionsToBeVisibleOptions{
+			Timeout: playwright.Float(30000), // 30 second timeout for CI
+		})
 		require.NoError(t, err)
+
+		err = startButton.Click()
+		require.NoError(t, err)
+
+		err = expect.Locator(hostPlayerPage.Locator("input[name='room_code']")).
+			ToBeVisible(playwright.LocatorAssertionsToBeVisibleOptions{
+				Timeout: playwright.Float(30000), // 30 second timeout for CI
+			})
+		require.NoError(t, err)
+
 		err = otherPlayerPage.GetByPlaceholder("Enter your nickname").Fill("OtherPlayer")
 		require.NoError(t, err)
 		err = otherPlayerPage.GetByPlaceholder("ABC12").Fill("FAKE_CODE")
@@ -32,7 +46,10 @@ func TestE2ELobby(t *testing.T) {
 		err = otherPlayerPage.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Join"}).Click()
 		require.NoError(t, err)
 
-		err = expect.Locator(otherPlayerPage.Locator("text=failed to join room")).ToBeVisible()
+		err = expect.Locator(otherPlayerPage.Locator("text=failed to join room")).
+			ToBeVisible(playwright.LocatorAssertionsToBeVisibleOptions{
+				Timeout: playwright.Float(30000), // 30 second timeout for CI
+			})
 		require.NoError(t, err)
 	})
 
@@ -47,7 +64,14 @@ func TestE2ELobby(t *testing.T) {
 		require.NoError(t, err)
 		err = hostPlayerPage.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Start"}).Click()
 		require.NoError(t, err)
-		err = hostPlayerPage.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Copy Join Link"}).Click()
+
+		copyButton := hostPlayerPage.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Copy Join Link"})
+		err = expect.Locator(copyButton).ToBeVisible(playwright.LocatorAssertionsToBeVisibleOptions{
+			Timeout: playwright.Float(30000), // 30 second timeout for CI
+		})
+		require.NoError(t, err)
+
+		err = copyButton.Click()
 		require.NoError(t, err)
 
 		locator := hostPlayerPage.Locator("input[name='room_code']")
@@ -69,8 +93,15 @@ func TestE2ELobby(t *testing.T) {
 		err = otherPlayerPage.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Join"}).Click()
 		require.NoError(t, err)
 
-		expect.Locator(otherPlayerPage.GetByText(code)).ToBeVisible()
+		roomCodeInput := otherPlayerPage.Locator("input[name='room_code']")
+		err = expect.Locator(roomCodeInput).ToBeVisible(playwright.LocatorAssertionsToBeVisibleOptions{
+			Timeout: playwright.Float(30000),
+		})
 		require.NoError(t, err)
+
+		actualCode, err := roomCodeInput.InputValue()
+		require.NoError(t, err)
+		assert.Equal(t, code, actualCode)
 	})
 
 	t.Run("Should be able to update nickname and avatar in lobby", func(t *testing.T) {
@@ -96,15 +127,21 @@ func TestE2ELobby(t *testing.T) {
         }`, oldSrc), nil)
 		require.NoError(t, err)
 
-		err = hostPlayerPage.Locator("#update_nickname_form").
-			Locator(`input[name="player_nickname"]`).
-			Fill("test_nickname")
+		nicknameInput := hostPlayerPage.Locator("#update_nickname_form").Locator(`input[name="player_nickname"]`)
+		err = nicknameInput.Clear()
 		require.NoError(t, err)
-		err = hostPlayerPage.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Update Nickname"}).Click()
+
+		err = nicknameInput.Fill("test_nickname")
+		require.NoError(t, err)
+
+		err = nicknameInput.Press("Enter")
 		require.NoError(t, err)
 
 		newNickname := hostPlayerPage.Locator("#update_nickname_form").Locator(`input[name="player_nickname"]`)
-		err = expect.Locator(newNickname).ToHaveValue("test_nickname")
+		err = expect.Locator(newNickname).
+			ToHaveValue("test_nickname", playwright.LocatorAssertionsToHaveValueOptions{Timeout: playwright.Float(60000)})
+
+			// 60 second timeout
 		require.NoError(t, err)
 	})
 
@@ -118,10 +155,54 @@ func TestE2ELobby(t *testing.T) {
 		err = joinRoom(hostPlayerPage, playerPages[1:])
 		require.NoError(t, err)
 
-		err = hostPlayerPage.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Kick Player"}).Click()
+		err = expect.Locator(hostPlayerPage.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Ready"})).
+			ToBeVisible(playwright.LocatorAssertionsToBeVisibleOptions{
+				Timeout: playwright.Float(30000), // 30 second timeout for CI
+			})
 		require.NoError(t, err)
 
-		err = expect.Locator(otherPlayerPage.GetByText("you have been kicked from the room")).ToBeVisible()
+		kickButton := hostPlayerPage.Locator("button[aria-label='Kick Player']")
+		err = expect.Locator(kickButton).ToBeVisible(playwright.LocatorAssertionsToBeVisibleOptions{
+			Timeout: playwright.Float(30000), // 30 second timeout for CI
+		})
+		require.NoError(t, err)
+
+		err = kickButton.Click()
+		require.NoError(t, err)
+
+		hostPlayerPage.WaitForTimeout(1500)
+
+		modal := hostPlayerPage.Locator("#kick-player-modal")
+
+		err = modal.WaitFor(playwright.LocatorWaitForOptions{
+			State:   playwright.WaitForSelectorStateAttached,
+			Timeout: playwright.Float(5000),
+		})
+		require.NoError(t, err)
+
+		err = modal.WaitFor(playwright.LocatorWaitForOptions{
+			State:   playwright.WaitForSelectorStateVisible,
+			Timeout: playwright.Float(30000), // 30 second timeout for CI
+		})
+		require.NoError(t, err)
+
+		hostPlayerPage.WaitForTimeout(1000)
+
+		modalConfirmButton := modal.Locator("button.bg-red")
+		err = expect.Locator(modalConfirmButton).ToBeVisible(playwright.LocatorAssertionsToBeVisibleOptions{
+			Timeout: playwright.Float(5000),
+		})
+		require.NoError(t, err)
+
+		err = modalConfirmButton.Click()
+		require.NoError(t, err)
+
+		toastMessage := otherPlayerPage.GetByText("you have been kicked from the room", playwright.PageGetByTextOptions{
+			Exact: playwright.Bool(false),
+		})
+		err = expect.Locator(toastMessage).ToBeVisible(playwright.LocatorAssertionsToBeVisibleOptions{
+			Timeout: playwright.Float(30000), // 30 seconds for toast to appear
+		})
 		require.NoError(t, err)
 	})
 }

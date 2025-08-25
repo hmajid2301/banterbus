@@ -8,7 +8,7 @@ default:
   interruptible: true
 
 variables:
-  IMAGE_TAG: v0.1.8
+  IMAGE_TAG: v0.1.9
   BANTERBUS_CI_IMAGE: $CI_REGISTRY_IMAGE/ci:$IMAGE_TAG
   BANTERBUS_DB_URI: postgresql://postgres:postgres@docker:5432?sslmode=disable
   DOCKER_HOST: tcp://docker:2375
@@ -65,7 +65,34 @@ stages:
     reports:
       junit: report.xml
 
+.nix-setup:
+  before_script:
+    # Add attic cache if available
+    - |
+      if [ -n "$ATTIC_SERVER" ] && [ -n "$ATTIC_CACHE" ]; then
+        echo "Setting up attic cache..."
+        echo "substituters = $ATTIC_SERVER https://cache.nixos.org/" >> /etc/nix/nix.conf
+        echo "trusted-public-keys = $ATTIC_PUBLIC_KEY cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY=" >> /etc/nix/nix.conf
+        if [ -n "$ATTIC_AUTH_KEY" ]; then
+          echo "machine ${ATTIC_SERVER#https://} password $ATTIC_AUTH_KEY" > /etc/nix/netrc
+        fi
+      fi
+    - nix-env -iA nixpkgs.attic-client || echo "Failed to install attic-client, continuing..."
+
+.attic-cache:
+  after_script:
+    - |
+      if [ -n "$ATTIC_SERVER" ] && [ -n "$ATTIC_CACHE" ] && [ -n "$ATTIC_AUTH_KEY" ]; then
+        echo "Setting up attic push..."
+        attic login default "$ATTIC_SERVER" "$ATTIC_AUTH_KEY" || echo "Failed to login to attic"
+        attic use "$ATTIC_CACHE" || echo "Failed to use attic cache"
+        if [ -L result ]; then attic push "$ATTIC_CACHE" result; else echo "No result symlink found"; fi || echo "Failed to push to attic cache"
+      fi
+
 .docker:
+  # extends:
+  #   - .nix-setup
+  #   - .attic-cache
   variables:
     DOCKER_HOST: tcp://docker:2375
     DOCKER_DRIVER: overlay2
@@ -76,9 +103,10 @@ stages:
   rules:
     - if: $CI_PIPELINE_SOURCE == "schedule"
       when: never
-  script:
+  before_script:
     - echo "experimental-features = nix-command flakes" > /etc/nix/nix.conf
     - nix-env -iA nixpkgs.docker nixpkgs.go-task
+  script:
     - task docker:publish
 
 .k8s_deploy:
@@ -109,8 +137,6 @@ publish:docker:ci:
   extends:
     - .docker
   script:
-    - echo "experimental-features = nix-command flakes" > /etc/nix/nix.conf
-    - nix-env -iA nixpkgs.docker nixpkgs.go-task
     - task docker:publish
 
 download:dependency:
@@ -152,8 +178,13 @@ tests:integration:
   extends:
     - .test
   variables:
-    BANTERBUS_REDIS_ADDRESS: docker:6379
-    BANTERBUS_DB_URI: postgresql://postgres:postgres@docker:5432?sslmode=disable
+    BANTERBUS_REDIS_HOST: docker
+    BANTERBUS_REDIS_PORT: 6379
+    BANTERBUS_DB_HOST: docker
+    BANTERBUS_DB_PORT: 5432
+    BANTERBUS_DB_USER: postgres
+    BANTERBUS_DB_PASSWORD: postgres
+    BANTERBUS_DB_NAME: postgres
   script:
     - docker compose --profile test up -d --wait
     - task tests:integration -- ${GOTEST_EXTRA_ARGS}
@@ -167,110 +198,22 @@ test:e2e:
     BANTERBUS_LOG_LEVEL: WARN
     BANTERBUS_ENVIRONMENT: test
     BANTERBUS_REDIS_ADDRESS: docker:6379
-    BANTERBUS_DB_URI: postgresql://postgres:postgres@docker:5432?sslmode=disable
     BANTERBUS_DB_HOST: docker
-    BANTERBUS_DB_PORT: '5432'
+    BANTERBUS_DB_PORT: 5432
     BANTERBUS_DB_USERNAME: postgres
     BANTERBUS_DB_PASSWORD: postgres
     BANTERBUS_DB_NAME: banterbus
     BANTERBUS_JWKS_URL: http://docker:9091/default/jwks
     BANTERBUS_PLAYWRIGHT_HEADLESS: true
     OTEL_EXPORTER_OTLP_ENDPOINT: http://localhost:9999
-    OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: http://localhost:9999/v1/traces  
-    OTEL_EXPORTER_OTLP_METRICS_ENDPOINT: http://localhost:9999/v1/metrics
-    GOTEST_EXTRA_ARGS: '-test.parallel 10'
+    GOCOVERDIR: $CI_PROJECT_DIR/coverage/e2e
+    SHOW_VOTING_SCREEN_FOR: 10s
+    BANTERBUS_DISABLE_TELEMETRY: true
+    RUN_WITH_COVERAGE: true
+    BANTERBUS_PORT: 8080
+    BANTERBUS_HOST: 0.0.0.0
   script:
     - docker compose --profile test up -d --wait
-    - |
-      # Run migrations first by starting and stopping the app
-      echo "Running database migrations..."
-      timeout 30s task run || true
-      sleep 2
-    - |
-      # Populate main database with test data for e2e tests
-      cat > populate_db.go << 'EOF'
-      package main
-      
-      import (
-        "context"
-        "database/sql"
-        "embed"
-        "fmt"
-        "os"
-        "gitlab.com/hmajid2301/banterbus/internal/banterbustest"
-        "github.com/jackc/pgx/v5/pgxpool"
-        pgxUUID "github.com/vgarvardt/pgx-google-uuid/v5"
-        "github.com/jackc/pgx/v5"
-        "github.com/pressly/goose/v3"
-        _ "github.com/jackc/pgx/v5/stdlib"
-      )
-      
-      //go:embed internal/store/db/sqlc/migrations/*.sql
-      var migrations embed.FS
-      
-      func main() {
-        ctx := context.Background()
-        
-        // Use the same DB URI format as the tests
-        uri := fmt.Sprintf("postgresql://%s:%s@%s:%s/%s?sslmode=disable",
-          os.Getenv("BANTERBUS_DB_USERNAME"),
-          os.Getenv("BANTERBUS_DB_PASSWORD"), 
-          os.Getenv("BANTERBUS_DB_HOST"),
-          os.Getenv("BANTERBUS_DB_PORT"),
-          os.Getenv("BANTERBUS_DB_NAME"))
-        
-        fmt.Println("Connecting to:", uri)
-        
-        // Run migrations first
-        sqlDB, err := sql.Open("pgx", uri)
-        if err != nil {
-          fmt.Printf("Failed to open database: %v\n", err)
-          return
-        }
-        defer sqlDB.Close()
-        
-        goose.SetBaseFS(migrations)
-        if err := goose.SetDialect("postgres"); err != nil {
-          fmt.Printf("Failed to set goose dialect: %v\n", err)
-          return
-        }
-        
-        err = goose.Up(sqlDB, "internal/store/db/sqlc/migrations")
-        if err != nil {
-          fmt.Printf("Failed to run migrations: %v\n", err)
-          return
-        }
-        fmt.Println("Migrations completed successfully")
-        
-        // Now populate data
-        pgxConfig, err := pgxpool.ParseConfig(uri)
-        if err != nil {
-          fmt.Printf("Parse config error: %v\n", err)
-          return
-        }
-        
-        pgxConfig.AfterConnect = func(_ context.Context, conn *pgx.Conn) error {
-          pgxUUID.Register(conn.TypeMap())
-          return nil
-        }
-        
-        pool, err := pgxpool.NewWithConfig(ctx, pgxConfig)
-        if err != nil {
-          fmt.Printf("Pool creation error: %v\n", err)
-          return
-        }
-        defer pool.Close()
-        
-        err = banterbustest.FillWithDummyData(ctx, pool)
-        if err != nil {
-          fmt.Printf("Fill data error: %v\n", err)
-          return
-        }
-        
-        fmt.Println("Successfully populated database with test data")
-      }
-      EOF
-      go run populate_db.go
     - task tests:e2e -- ${GOTEST_EXTRA_ARGS}
   artifacts:
     when: always
@@ -292,12 +235,15 @@ combine:coverage:
     - if: $CI_COMMIT_BRANCH == "main"
   script:
     - task coverage
+    - gocover-cobertura < coverage/combined.out > coverage.xml || touch coverage.xml
   coverage: /total:\s+\(statements\)\s+\d+.\d+%/
   artifacts:
     reports:
       coverage_report:
         coverage_format: cobertura
         path: coverage.xml
+    paths:
+      - coverage/
 
 publish:docker:dev:
   stage: build
@@ -306,8 +252,6 @@ publish:docker:dev:
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
   script:
-    - echo "experimental-features = nix-command flakes" > /etc/nix/nix.conf
-    - nix-env -iA nixpkgs.docker nixpkgs.go-task
     - task docker:build
     - docker login -u "$CI_REGISTRY_USER" -p "$CI_JOB_TOKEN" "$CI_REGISTRY"
     - docker tag banterbus:latest $CI_REGISTRY_IMAGE:$CI_MERGE_REQUEST_IID

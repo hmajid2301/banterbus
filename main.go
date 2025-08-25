@@ -25,6 +25,7 @@ import (
 	"github.com/pressly/goose/v3"
 	pgxUUID "github.com/vgarvardt/pgx-google-uuid/v5"
 
+	"gitlab.com/hmajid2301/banterbus/internal/banterbustest"
 	"gitlab.com/hmajid2301/banterbus/internal/config"
 	"gitlab.com/hmajid2301/banterbus/internal/logging"
 	"gitlab.com/hmajid2301/banterbus/internal/service"
@@ -99,6 +100,15 @@ func mainLogic() error {
 	err = runDBMigrations(pool)
 	if err != nil {
 		return fmt.Errorf("failed to run migrations: %w", err)
+	}
+
+	// Populate test data if running in test environment
+	if conf.App.Environment == "test" {
+		logger.InfoContext(ctx, "populating test data")
+		err = populateTestData(ctx, pool)
+		if err != nil {
+			return fmt.Errorf("failed to populate test data: %w", err)
+		}
 	}
 
 	database := db.NewDB(pool, conf.App.Retries, conf.App.BaseDelay)
@@ -207,4 +217,8 @@ func runDBMigrations(pool *pgxpool.Pool) error {
 
 	err = goose.Up(db, "internal/store/db/sqlc/migrations")
 	return err
+}
+
+func populateTestData(ctx context.Context, pool *pgxpool.Pool) error {
+	return banterbustest.FillWithDummyData(ctx, pool)
 }

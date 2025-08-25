@@ -7,6 +7,9 @@ pt-PT:
     roomcode_label: "Código da Sala"
     fibber: "fibra"
     normal: "normal"
+    close: "Fechar"
+    cancel: "Cancelar"
+    confirm: "Confirmar"
   home:
     nickname_placeholder: "Insira o seu apelido"
     nickname_label: "Apelido"
@@ -17,6 +20,9 @@ pt-PT:
     ignore: "Ignorar"
   lobby:
     start_game_button: "Começar o jogo"
+    kick_player_title: "Expulsar Jogador"
+    kick_player_message: "Tem certeza de que deseja expulsar {player}? Eles serão removidos do jogo imediatamente."
+    kick_player_confirm: "Expulsar Jogador"
   role:
      sush: "Sush, não conte a ninguém!"
      you_are: "Tu és"
@@ -30,3 +36,11 @@ pt-PT:
     voted_for: "Todos vocês votaram"
     they_were: "Eles eram"
     you_failed: "Não conseguiu votar num único jogador ..."
+  newround:
+    title: "Nova Rodada!"
+    type_label: "Tipo de Rodada:"
+    starting_in: "Começando em..."
+  roundtype:
+    free_form: "Forma Livre"
+    multiple_choice: "Múltipla Escolha"
+    most_likely: "Mais Provável"

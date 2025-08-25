@@ -89,16 +89,16 @@ SELECT
     p.locale,
     r.room_code,
     r.host_player
-FROM players p
-JOIN rooms_players rp ON p.id = rp.player_id
-JOIN rooms r ON rp.room_id = r.id
+FROM players AS p
+JOIN rooms_players AS rp ON p.id = rp.player_id
+JOIN rooms AS r ON rp.room_id = r.id
 WHERE
     rp.room_id = (
         SELECT rp_inner.room_id
-        FROM rooms_players rp_inner
+        FROM rooms_players AS rp_inner
         WHERE rp_inner.player_id = $1
     )
-ORDER BY p.created_at;
+ORDER BY p.created_at ASC;
 
 -- name: GetAllPlayersByGameStateID :many
 SELECT
@@ -106,9 +106,9 @@ SELECT
     p.nickname,
     p.avatar,
     p.locale
-FROM players p
-JOIN rooms_players rp ON p.id = rp.player_id
-JOIN game_state gs ON rp.room_id = gs.room_id
+FROM players AS p
+JOIN rooms_players AS rp ON p.id = rp.player_id
+JOIN game_state AS gs ON rp.room_id = gs.room_id
 WHERE gs.id = $1
 ORDER BY p.created_at;
 
@@ -122,9 +122,9 @@ SELECT
     p.is_ready,
     r.room_code,
     r.host_player
-FROM players p
-JOIN rooms_players rp ON p.id = rp.player_id
-JOIN rooms r ON rp.room_id = r.id
+FROM players AS p
+JOIN rooms_players AS rp ON p.id = rp.player_id
+JOIN rooms AS r ON rp.room_id = r.id
 WHERE
     rp.room_id = (
         SELECT r_inner.id
@@ -145,8 +145,8 @@ SELECT
     gs.room_id,
     gs.submit_deadline,
     gs.state
-FROM game_state gs
-JOIN rooms_players rp ON gs.room_id = rp.room_id
+FROM game_state AS gs
+JOIN rooms_players AS rp ON gs.room_id = rp.room_id
 WHERE rp.player_id = $1;
 
 -- name: GetGameState :one
@@ -162,8 +162,8 @@ WHERE gs.id = $1;
 
 -- name: GetRoomByPlayerID :one
 SELECT r.*
-FROM rooms r
-JOIN rooms_players rp ON r.id = rp.room_id
+FROM rooms AS r
+JOIN rooms_players AS rp ON r.id = rp.room_id
 WHERE rp.player_id = $1;
 
 -- name: GetRoomByCode :one
@@ -174,9 +174,9 @@ WHERE room_code = $1;
 SELECT
     fir.*,
     gs.submit_deadline
-FROM fibbing_it_rounds fir
-JOIN game_state gs ON fir.game_state_id = gs.id
-JOIN rooms_players rp ON gs.room_id = rp.room_id
+FROM fibbing_it_rounds AS fir
+JOIN game_state AS gs ON fir.game_state_id = gs.id
+JOIN rooms_players AS rp ON gs.room_id = rp.room_id
 WHERE rp.player_id = $1
 ORDER BY fir.created_at DESC
 LIMIT 1;
@@ -185,8 +185,8 @@ LIMIT 1;
 SELECT
     fir.*,
     gs.submit_deadline
-FROM fibbing_it_rounds fir
-JOIN game_state gs ON fir.game_state_id = gs.id
+FROM fibbing_it_rounds AS fir
+JOIN game_state AS gs ON fir.game_state_id = gs.id
 WHERE gs.id = $1
 ORDER BY fir.created_at DESC
 LIMIT 1;
@@ -205,18 +205,18 @@ SELECT
     p.avatar,
     COALESCE(fia.answer, '') AS current_answer,
     COALESCE(fia.is_ready, FALSE) AS is_answer_ready
-FROM players p
-JOIN rooms_players rp ON p.id = rp.player_id
-JOIN rooms r ON rp.room_id = r.id
-JOIN game_state gs ON gs.room_id = r.id
-JOIN fibbing_it_rounds fr ON fr.game_state_id = gs.id
-LEFT JOIN questions q ON fr.normal_question_id = q.id
-LEFT JOIN questions_i18n qi ON q.id = qi.question_id AND qi.locale = 'en-GB'
+FROM players AS p
+JOIN rooms_players AS rp ON p.id = rp.player_id
+JOIN rooms AS r ON rp.room_id = r.id
+JOIN game_state AS gs ON gs.room_id = r.id
+JOIN fibbing_it_rounds AS fr ON fr.game_state_id = gs.id
+LEFT JOIN questions AS q ON fr.normal_question_id = q.id
+LEFT JOIN questions_i18n AS qi ON q.id = qi.question_id AND qi.locale = 'en-GB'
 LEFT JOIN
-    fibbing_it_player_roles fpr
+    fibbing_it_player_roles AS fpr
     ON p.id = fpr.player_id AND fr.id = fpr.round_id
 LEFT JOIN
-    fibbing_it_answers fia
+    fibbing_it_answers AS fia
     ON p.id = fia.player_id AND fr.id = fia.round_id
 WHERE p.id = $1
 ORDER BY fr.round DESC
@@ -240,14 +240,14 @@ SELECT
     fia.answer,
     COALESCE(voter_ready.is_ready, FALSE) AS is_ready,
     fpr.player_role AS role
-FROM fibbing_it_rounds fir
-JOIN questions q ON fir.normal_question_id = q.id
-JOIN questions_i18n qi ON q.id = qi.question_id AND qi.locale = 'en-GB'
-JOIN game_state gs ON fir.game_state_id = gs.id
-JOIN rooms_players rp ON rp.room_id = gs.room_id
-JOIN players p ON p.id = rp.player_id
+FROM fibbing_it_rounds AS fir
+JOIN questions AS q ON fir.normal_question_id = q.id
+JOIN questions_i18n AS qi ON q.id = qi.question_id AND qi.locale = 'en-GB'
+JOIN game_state AS gs ON fir.game_state_id = gs.id
+JOIN rooms_players AS rp ON rp.room_id = gs.room_id
+JOIN players AS p ON p.id = rp.player_id
 LEFT JOIN
-    fibbing_it_answers fia
+    fibbing_it_answers AS fia
     ON fia.round_id = fir.id AND fia.player_id = p.id
 LEFT JOIN (
     SELECT
@@ -266,10 +266,10 @@ LEFT JOIN (
     GROUP BY player_id
 ) voter_ready ON voter_ready.player_id = p.id
 LEFT JOIN
-    fibbing_it_player_roles fpr
+    fibbing_it_player_roles AS fpr
     ON p.id = fpr.player_id AND fir.id = fpr.round_id
 WHERE fir.id = $1
-ORDER BY COALESCE(vote_counts.votes, 0) DESC, p.nickname, p.created_at;
+ORDER BY COALESCE(vote_counts.votes, 0) DESC, p.nickname ASC, p.created_at ASC;
 
 -- name: ToggleAnswerIsReady :one
 UPDATE fibbing_it_answers SET is_ready = NOT is_ready
@@ -428,11 +428,11 @@ JOIN (
     FROM questions q
     JOIN questions_groups qg ON q.group_id = qg.id
     WHERE
-        qg.group_type = 'questions'
-        AND q.group_id = $1
+        (sqlc.arg(group_type)::text = '' OR qg.group_type = sqlc.arg(group_type))
+        AND q.group_id = sqlc.arg(group_id)
         AND q.enabled = TRUE
-        AND q.id != $2
-        AND q.round_type = $3
+        AND q.id != sqlc.arg(excluded_question_id)
+        AND q.round_type = sqlc.arg(round_type)
     ORDER BY RANDOM()
     LIMIT 1
 ) random_question ON qi.question_id = random_question.id;

@@ -3,6 +3,7 @@ package banterbustest
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"math/rand"
 	"os"
@@ -11,6 +12,7 @@ import (
 	"strings"
 
 	// INFO: Driver to connect to postgres to run DB migrations
+	"github.com/jackc/pgx/v5/pgconn"
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/mdobak/go-xerrors"
 	pgxUUID "github.com/vgarvardt/pgx-google-uuid/v5"
@@ -161,7 +163,22 @@ func FillWithDummyData(ctx context.Context, pool *pgxpool.Pool) error {
 			GroupType: group.Type,
 		})
 		if err != nil {
-			return err
+			// Skip if duplicate key error (group already exists)
+			if isDuplicateKeyError(err) {
+				// Get existing group to populate the mapping
+				existingGroups, err := queries.WithTx(tx).GetGroups(ctx)
+				if err != nil {
+					return err
+				}
+				for _, existing := range existingGroups {
+					if existing.GroupName == group.Name && existing.GroupType == group.Type {
+						questionGroup = existing
+						break
+					}
+				}
+			} else {
+				return err
+			}
 		}
 		if _, ok := groupNameToID[group.Name]; !ok {
 			groupNameToID[group.Name] = map[string]uuid.UUID{}
@@ -381,7 +398,7 @@ func FillWithDummyData(ctx context.Context, pool *pgxpool.Pool) error {
 			RoundType: q.Round,
 			GroupID:   groupID,
 		})
-		if err != nil {
+		if err != nil && !isDuplicateKeyError(err) {
 			return err
 		}
 
@@ -391,10 +408,19 @@ func FillWithDummyData(ctx context.Context, pool *pgxpool.Pool) error {
 			Locale:     q.Locale,
 			QuestionID: uuid.Must(uuid.FromString(q.QuestionID)),
 		})
-		if err != nil {
+		if err != nil && !isDuplicateKeyError(err) {
 			return err
 		}
 	}
 
 	return tx.Commit(ctx)
+}
+
+// isDuplicateKeyError checks if the error is a PostgreSQL duplicate key error
+func isDuplicateKeyError(err error) bool {
+	var pgErr *pgconn.PgError
+	if errors.As(err, &pgErr) {
+		return pgErr.Code == "23505" // unique_violation
+	}
+	return false
 }

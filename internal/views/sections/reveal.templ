@@ -4,30 +4,32 @@ import (
 	"context"
 	"github.com/invopop/ctxi18n/i18n"
 	"gitlab.com/hmajid2301/banterbus/internal/service"
+	"gitlab.com/hmajid2301/banterbus/internal/views/components"
 	"strconv"
 )
 
 templ Reveal(state service.RevealRoleState) {
 	<div hx-swap-oob="innerHTML:#page">
-		<div x-data={ toJSON(map[string]any{"timer": int(state.Deadline.Seconds())}) } x-init="setInterval(() => { if (timer > 0) timer--; }, 1000)">
-			<div class="flex flex-col justify-center items-center space-y-4 text-text2">
-				<div>{ strconv.Itoa(state.Round) } / 3</div>
-				<div class="text-right">
-					<div class="flex justify-center items-center w-16 h-16 rounded-full border-2 border-blue-500">
-						<p x-text="timer"></p>
-					</div>
+		<div>
+			<div class="flex flex-col justify-center items-center space-y-4 sm:space-y-6 text-text2">
+				<div class="text-lg sm:text-xl">{ strconv.Itoa(state.Round) } / 3</div>
+				<div class="text-center">
+					@components.CircularTimer(components.CircularTimerProps{
+						InitialSeconds: int(state.Deadline.Seconds()),
+						Size:           "w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16",
+					})
 				</div>
-				<div class="grid grid-cols-2 gap-16">
-					<div class="flex flex-col items-center">
+				<div class="flex flex-col items-center space-y-4 w-full">
+					<div class="flex flex-col items-center space-y-3">
 						if state.VotedForPlayerNickname != "" {
-							{ i18n.T(ctx, "reveal.voted_for") }
-							{ state.VotedForPlayerNickname }
-							<div class="w-20 h-20 rounded-full border-2 border-white bg-overlay0">
+							<div class="text-center">{ i18n.T(ctx, "reveal.voted_for") }</div>
+							<div class="font-semibold">{ state.VotedForPlayerNickname }</div>
+							<div class="w-16 h-16 rounded-full border-2 border-white sm:w-20 sm:h-20 bg-overlay0">
 								<img src={ state.VotedForPlayerAvatar } alt="avatar" class="w-full h-full rounded-full"/>
 							</div>
-							{ i18n.T(ctx, "reveal.they_were") } { toRoleI18N(ctx, state.VotedForPlayerRole) }
+							<div class="text-center">{ i18n.T(ctx, "reveal.they_were") } { toRoleI18N(ctx, state.VotedForPlayerRole) }</div>
 						} else {
-							<div class="">
+							<div class="text-lg text-center">
 								{ i18n.T(ctx, "reveal.you_failed") }
 							</div>
 						}

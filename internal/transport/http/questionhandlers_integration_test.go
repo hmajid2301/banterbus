@@ -236,7 +236,7 @@ func TestIntegrationGetQuestionsHandler(t *testing.T) {
 		srv.Close()
 	})
 
-	// TODO: enable with pagination
+	// Disabled pending pagination implementation for question listing endpoint
 	// t.Run("Should successfully get handler", func(t *testing.T) {
 	// 	ctx := t.Context()
 	// 	endpoint := fmt.Sprintf("%s/question", srv.URL)
@@ -258,4 +258,5 @@ func TestIntegrationGetQuestionsHandler(t *testing.T) {
 	// })
 }
 
-//  TODO: add more tests for rest of handlers
+// Additional tests needed for: POST /question, PUT /question/{id}, DELETE /question/{id},
+// GET /question/{id}, and error scenarios for each endpoint

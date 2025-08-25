@@ -137,6 +137,6 @@ func (k *KickPlayer) Handle(ctx context.Context, client *Client, sub *Subscriber
 	}
 
 	// TODO: take user back to home page instead of just an error
-	err = sub.updateClientAboutErr(ctx, playerToKickID, "You have been kicked from the room")
+	err = sub.updateClientAboutErr(ctx, playerToKickID, "you have been kicked from the room")
 	return err
 }

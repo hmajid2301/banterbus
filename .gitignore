@@ -85,3 +85,6 @@ tests/e2e/*.png
 tests/e2e/videos/
 .gitlab-ci-local
 *_templ.txt
+coverage/
+
+banterbus

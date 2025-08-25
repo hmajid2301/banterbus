@@ -122,15 +122,22 @@ func (q QuestionService) GetQuestions(
 	return questions, err
 }
 
-func (q QuestionService) AddGroup(ctx context.Context, name string) (Group, error) {
+func (q QuestionService) AddGroup(ctx context.Context, name string, groupType ...string) (Group, error) {
 	u, err := q.randomizer.GetID()
 	if err != nil {
 		return Group{}, err
 	}
+
+	// Use provided groupType or default to "questions"
+	gType := "questions"
+	if len(groupType) > 0 {
+		gType = groupType[0]
+	}
+
 	_, err = q.store.AddGroup(ctx, db.AddGroupParams{
 		ID:        u,
 		GroupName: name,
-		GroupType: "questions",
+		GroupType: gType,
 	})
 	if err != nil {
 		return Group{}, err
@@ -139,6 +146,7 @@ func (q QuestionService) AddGroup(ctx context.Context, name string) (Group, erro
 	return Group{
 		ID:   u.String(),
 		Name: name,
+		Type: gType,
 	}, nil
 }
 

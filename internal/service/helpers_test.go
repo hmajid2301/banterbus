@@ -29,7 +29,7 @@ func setupSubtest(t *testing.T) (*pgxpool.Pool, func()) {
 	}
 }
 
-// TODO: use this function
+// Helper function for creating test rooms - can be used to reduce test setup duplication
 func createRoom(ctx context.Context, srv *service.LobbyService) (service.Lobby, error) {
 	newPlayer := service.NewHostPlayer{
 		ID: defaultHostPlayerID,

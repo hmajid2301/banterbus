@@ -60,16 +60,24 @@ func beforeAll() error {
 	headless := os.Getenv("BANTERBUS_PLAYWRIGHT_HEADLESS") == "true"
 	browser, err = browserType.Launch(playwright.BrowserTypeLaunchOptions{
 		Headless: playwright.Bool(headless),
+		Args: []string{
+			"--no-sandbox",
+			"--disable-setuid-sandbox",
+			"--disable-dev-shm-usage",
+			"--disable-background-timer-throttling",
+			"--disable-backgrounding-occluded-windows",
+			"--disable-renderer-backgrounding",
+		},
 	})
 	if err != nil {
 		return fmt.Errorf("could not start browser: %v", err)
 	}
 
-	expect = playwright.NewPlaywrightAssertions(30000)
+	expect = playwright.NewPlaywrightAssertions(120000) // 2 minutes for CI
 
 	// Set webappURL from environment or default to localhost
 	if webappURL == "" {
-		webappURL = "http://localhost:8080"
+		webappURL = "http://localhost:8081"
 	}
 
 	return nil
@@ -132,9 +140,25 @@ func setupTest(t *testing.T, playerNum int) ([]playwright.Page, error) {
 			return nil, fmt.Errorf("page creation failed: %v", err)
 		}
 
-		_, err = page.Goto(webappURL)
+		// Set longer timeout for page operations - increased for CI
+		page.SetDefaultTimeout(120000) // 2 minutes for CI
+
+		// Navigate to the URL with extended timeout for CI
+		_, err = page.Goto(webappURL, playwright.PageGotoOptions{
+			WaitUntil: playwright.WaitUntilStateDomcontentloaded,
+			Timeout:   playwright.Float(120000), // 2 minutes timeout for CI
+		})
 		if err != nil {
 			return nil, fmt.Errorf("failed to go to URL: %v", err)
+		}
+
+		// Wait for page to be fully loaded and interactive
+		err = page.WaitForLoadState(playwright.PageWaitForLoadStateOptions{
+			State:   playwright.LoadStateNetworkidle,
+			Timeout: playwright.Float(60000), // 1 minute for network idle
+		})
+		if err != nil {
+			return nil, fmt.Errorf("failed to wait for page load: %v", err)
 		}
 		pages = append(pages, page)
 	}

@@ -20,12 +20,20 @@ func joinRoom(hostPlayerPage playwright.Page, otherPlayerPages []playwright.Page
 	}
 
 	locator := hostPlayerPage.Locator("input[name='room_code']")
+	err = expect.Locator(locator).ToBeVisible(playwright.LocatorAssertionsToBeVisibleOptions{
+		Timeout: playwright.Float(30000), // 30 seconds for room creation
+	})
+	if err != nil {
+		return fmt.Errorf("room code input not visible: %w", err)
+	}
+
 	// INFO: Retry mechanism to wait for the room code to be available
 	var code string
-	for i := 0; i < 5; i++ {
+	for i := 0; i < 10; i++ { // Increased attempts
 		code, err = locator.InputValue()
 		if err != nil {
-			fmt.Print("failed to get room code", err)
+			fmt.Printf("failed to get room code (attempt %d): %v\n", i+1, err)
+			time.Sleep(500 * time.Millisecond)
 			continue
 		}
 
@@ -33,7 +41,7 @@ func joinRoom(hostPlayerPage playwright.Page, otherPlayerPages []playwright.Page
 			break
 		}
 
-		time.Sleep(200 * time.Millisecond)
+		time.Sleep(500 * time.Millisecond) // Increased wait time
 	}
 
 	if code == "" {
@@ -59,25 +67,69 @@ func joinRoom(hostPlayerPage playwright.Page, otherPlayerPages []playwright.Page
 	return nil
 }
 
-func startGame(hostPlayerPage playwright.Page, otherPlayerPages []playwright.Page) error {
+func startGame(hostPlayerPage playwright.Page, otherPlayerPages []playwright.Page) (string, error) {
 	err := joinRoom(hostPlayerPage, otherPlayerPages)
 	if err != nil {
-		return err
+		return "", err
+	}
+
+	// Get room code before starting the game
+	roomCodeInput := hostPlayerPage.Locator("input[name='room_code']")
+	err = roomCodeInput.WaitFor(playwright.LocatorWaitForOptions{
+		State:   playwright.WaitForSelectorStateVisible,
+		Timeout: playwright.Float(10000),
+	})
+	if err != nil {
+		return "", fmt.Errorf("room code input not visible: %w", err)
+	}
+
+	code, err := roomCodeInput.InputValue()
+	if err != nil {
+		return "", fmt.Errorf("failed to get room code: %w", err)
 	}
 
 	for _, player := range append(otherPlayerPages, hostPlayerPage) {
-		err = player.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Ready"}).Click()
+		readyButton := player.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Ready"})
+		err = expect.Locator(readyButton).ToBeVisible(playwright.LocatorAssertionsToBeVisibleOptions{
+			Timeout: playwright.Float(30000), // 30 seconds
+		})
 		if err != nil {
-			return err
+			return "", fmt.Errorf("ready button not visible: %w", err)
 		}
+
+		err = readyButton.Click()
+		if err != nil {
+			return "", fmt.Errorf("failed to click ready: %w", err)
+		}
+
+		player.WaitForTimeout(1000)
 	}
 
-	err = hostPlayerPage.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Start Game"}).Click()
+	startGameButton := hostPlayerPage.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Start Game"})
+	err = expect.Locator(startGameButton).ToBeVisible(playwright.LocatorAssertionsToBeVisibleOptions{
+		Timeout: playwright.Float(30000), // 30 seconds
+	})
 	if err != nil {
-		return err
+		return "", fmt.Errorf("start game button not visible: %w", err)
 	}
 
-	return nil
+	err = startGameButton.Click()
+	if err != nil {
+		return "", fmt.Errorf("failed to click start game: %w", err)
+	}
+
+	roundElement := hostPlayerPage.Locator(":has-text('Round')").First()
+	err = roundElement.WaitFor(playwright.LocatorWaitForOptions{
+		Timeout: playwright.Float(60000), // 60 second timeout for game start in CI
+		State:   playwright.WaitForSelectorStateVisible,
+	})
+	if err != nil {
+		return "", fmt.Errorf("failed to wait for game to start: %w", err)
+	}
+
+	hostPlayerPage.WaitForTimeout(5000) // Increased for CI stability
+
+	return code, nil
 }
 
 func getPlayerRoles(
@@ -127,4 +179,23 @@ func getPlayerRoles(
 	}
 
 	return fibber, normals, nil
+}
+
+func reconnectToRoom(page playwright.Page, nickname, roomCode string) error {
+	err := page.GetByPlaceholder("Enter your nickname").Fill(nickname)
+	if err != nil {
+		return err
+	}
+
+	err = page.GetByPlaceholder("ABC12").Fill(roomCode)
+	if err != nil {
+		return err
+	}
+
+	err = page.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Join"}).Click()
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

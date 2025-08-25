@@ -406,9 +406,10 @@ func getQuestions(
 	}
 
 	fibberQuestions, err := store.GetRandomQuestionInGroup(ctx, db.GetRandomQuestionInGroupParams{
-		GroupID:   normalsQuestions[0].GroupID,
-		ID:        normalsQuestions[0].QuestionID,
-		RoundType: roundType,
+		GroupType:          "",
+		GroupID:            normalsQuestions[0].GroupID,
+		ExcludedQuestionID: normalsQuestions[0].QuestionID,
+		RoundType:          roundType,
 	})
 
 	if err == sql.ErrNoRows {
@@ -425,9 +426,10 @@ func getQuestions(
 			}
 
 			newFibber, err := store.GetRandomQuestionInGroup(ctx, db.GetRandomQuestionInGroupParams{
-				GroupID:   newNormals[0].GroupID,
-				ID:        newNormals[0].QuestionID,
-				RoundType: roundType,
+				GroupType:          "",
+				GroupID:            newNormals[0].GroupID,
+				ExcludedQuestionID: newNormals[0].QuestionID,
+				RoundType:          roundType,
 			})
 
 			if err == nil {

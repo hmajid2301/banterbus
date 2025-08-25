@@ -31,7 +31,7 @@ type QuestionServicer interface {
 	) ([]service.Question, error)
 	DisableQuestion(ctx context.Context, id uuid.UUID) error
 	EnableQuestion(ctx context.Context, id uuid.UUID) error
-	AddGroup(ctx context.Context, name string) (service.Group, error)
+	AddGroup(ctx context.Context, name string, groupType ...string) (service.Group, error)
 	GetGroups(ctx context.Context) ([]service.Group, error)
 }
 
@@ -255,7 +255,8 @@ func (s *Server) enableQuestionHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 type NewGroup struct {
-	Name string `json:"group_name" validate:"required"`
+	Name string `json:"group_name"           validate:"required"`
+	Type string `json:"group_type,omitempty"` // Optional, defaults to "questions"
 }
 
 func (s *Server) addGroupHandler(w http.ResponseWriter, r *http.Request) {
@@ -284,7 +285,7 @@ func (s *Server) addGroupHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err = s.QuestionService.AddGroup(ctx, newGroup.Name)
+	_, err = s.QuestionService.AddGroup(ctx, newGroup.Name, newGroup.Type)
 	if err != nil {
 		s.Logger.ErrorContext(ctx, "failed to add groups", slog.Any("error", err))
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)

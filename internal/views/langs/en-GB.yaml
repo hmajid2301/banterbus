@@ -7,6 +7,9 @@ en-GB:
     roomcode_label: "Room Code"
     fibber: "fibber"
     normal: "normal"
+    close: "Close"
+    cancel: "Cancel"
+    confirm: "Confirm"
   home:
     nickname_label: "Nickname"
     nickname_placeholder: "Enter your nickname"
@@ -17,6 +20,9 @@ en-GB:
     ignore: "Ignore"
   lobby:
     start_game_button: "Start Game"
+    kick_player_title: "Kick Player"
+    kick_player_message: "Are you sure you want to kick {player}? They will be removed from the game immediately."
+    kick_player_confirm: "Kick Player"
   role:
      sush: "Sush don't tell anyone!"
      you_are: "You are"
@@ -30,3 +36,11 @@ en-GB:
     voted_for: "You all voted for"
     they_were: "They were"
     you_failed: "You failed to vote for a single player ..."
+  newround:
+    title: "New Round!"
+    type_label: "Round Type:"
+    starting_in: "Starting in..."
+  roundtype:
+    free_form: "Free Form"
+    multiple_choice: "Multiple Choice"
+    most_likely: "Most Likely"

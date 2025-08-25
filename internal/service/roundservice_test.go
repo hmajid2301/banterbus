@@ -1528,9 +1528,10 @@ func TestRoundServiceUpdateStateToQuestion(t *testing.T) {
 				},
 			}, nil)
 			mockStore.EXPECT().GetRandomQuestionInGroup(ctx, db.GetRandomQuestionInGroupParams{
-				GroupID:   groupID,
-				ID:        uuid.Must(uuid.FromString("0193a629-7dcc-78ad-822f-fd5d83c89ae7")),
-				RoundType: tt.expectedType,
+				GroupType:          "",
+				GroupID:            groupID,
+				ExcludedQuestionID: uuid.Must(uuid.FromString("0193a629-7dcc-78ad-822f-fd5d83c89ae7")),
+				RoundType:          tt.expectedType,
 			}).Return([]db.GetRandomQuestionInGroupRow{
 				{
 					QuestionID: uuid.Must(uuid.FromString("0193a629-a9ac-7fc4-828c-a1334c282e0f")),
@@ -1627,7 +1628,7 @@ func TestRoundServiceUpdateStateToQuestion(t *testing.T) {
 			State: db.FibbingITQuestion.String(),
 		}, nil)
 
-		// TODO: add test for newRound = true
+		// Note: Test for newRound = true would require additional setup for round progression
 		_, err := srv.UpdateStateToQuestion(ctx, gameStateID, deadline, false)
 		assert.ErrorContains(t, err, "game state is not in FIBBING_IT_REVEAL_ROLE state or FIBBING_IT_SCORING state")
 	})
@@ -1850,9 +1851,10 @@ func TestRoundServiceUpdateStateToQuestion(t *testing.T) {
 			},
 		}, nil)
 		mockStore.EXPECT().GetRandomQuestionInGroup(ctx, db.GetRandomQuestionInGroupParams{
-			GroupID:   groupID,
-			ID:        uuid.Must(uuid.FromString("0193a629-7dcc-78ad-822f-fd5d83c89ae7")),
-			RoundType: "free_form",
+			GroupType:          "",
+			GroupID:            groupID,
+			ExcludedQuestionID: uuid.Must(uuid.FromString("0193a629-7dcc-78ad-822f-fd5d83c89ae7")),
+			RoundType:          "free_form",
 		}).Return([]db.GetRandomQuestionInGroupRow{
 			{},
 		}, xerrors.New("failed to get random question in group"))
@@ -1913,9 +1915,10 @@ func TestRoundServiceUpdateStateToQuestion(t *testing.T) {
 			},
 		}, nil)
 		mockStore.EXPECT().GetRandomQuestionInGroup(ctx, db.GetRandomQuestionInGroupParams{
-			GroupID:   groupID,
-			ID:        uuid.Must(uuid.FromString("0193a629-7dcc-78ad-822f-fd5d83c89ae7")),
-			RoundType: "free_form",
+			GroupType:          "",
+			GroupID:            groupID,
+			ExcludedQuestionID: uuid.Must(uuid.FromString("0193a629-7dcc-78ad-822f-fd5d83c89ae7")),
+			RoundType:          "free_form",
 		}).Return([]db.GetRandomQuestionInGroupRow{
 			{
 				QuestionID: uuid.Must(uuid.FromString("0193a629-a9ac-7fc4-828c-a1334c282e0f")),
@@ -1955,7 +1958,8 @@ func TestRoundServiceUpdateStateToScore(t *testing.T) {
 		FibberEvadeCapture: 150,
 	}
 
-	// TODO: add more test cases here maybe table tests
+	// Additional test cases could include: multiple voting rounds, edge cases for scoring,
+	// different round types, and boundary conditions. Table tests would improve maintainability.
 	t.Run("Should successfully update score state, fibber caught in one round of voting", func(t *testing.T) {
 		t.Parallel()
 		mockStore := mockService.NewMockStorer(t)

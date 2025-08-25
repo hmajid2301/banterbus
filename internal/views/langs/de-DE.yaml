@@ -7,6 +7,9 @@ de-DE:
     roomcode_label: "Raumcode"
     fibber: "Flunkerer"
     normal: "normal"
+    close: "Schließen"
+    cancel: "Abbrechen"
+    confirm: "Bestätigen"
   home:
     nickname_label: "Spitzname"
     nickname_placeholder: "Gib deinen Spitznamen ein"
@@ -17,6 +20,9 @@ de-DE:
     ignore: "Ignorieren"
   lobby:
     start_game_button: "Spiel starten"
+    kick_player_title: "Spieler entfernen"
+    kick_player_message: "Sind Sie sicher, dass Sie {player} entfernen möchten? Der Spieler wird sofort aus dem Spiel entfernt."
+    kick_player_confirm: "Spieler entfernen"
   role:
      sush: "Pssst, sag es niemandem!"
      you_are: "Du bist"
@@ -30,3 +36,11 @@ de-DE:
     voted_for: "Sie haben alle gestimmt für"
     they_were: "Sie waren"
     you_failed: "Sie haben es versäumt, für einen einzigen Spieler zu stimmen ..."
+  newround:
+    title: "Neue Runde!"
+    type_label: "Rundtyp:"
+    starting_in: "Beginnt in..."
+  roundtype:
+    free_form: "Freie Form"
+    multiple_choice: "Mehrfachauswahl"
+    most_likely: "Am wahrscheinlichsten"

@@ -2,11 +2,19 @@ package websockets
 
 import (
 	"context"
+	"encoding/json"
 	"slices"
 )
 
 // HandlerFunc defines a function that can handle WebSocket events
 type HandlerFunc func(ctx context.Context, client *Client, sub *Subscriber) error
+
+// WSHandler interface kept for compatibility with existing handler structs
+// These will be adapted to HandlerFunc
+type WSHandler interface {
+	Handle(ctx context.Context, client *Client, sub *Subscriber) error
+	Validate() error
+}
 
 // MiddlewareFunc defines a function that wraps a HandlerFunc
 type MiddlewareFunc func(HandlerFunc) HandlerFunc
@@ -154,4 +162,52 @@ type ErrValidation struct {
 
 func (e ErrValidation) Error() string {
 	return "validation failed: " + e.Err.Error()
+}
+
+// WSHandlerAdapter converts an existing WSHandler to HandlerFunc - pattern from example usage
+func WSHandlerAdapter[T WSHandler](createHandler func() T) HandlerFunc {
+	return func(ctx context.Context, client *Client, sub *Subscriber) error {
+		rawData, ok := ctx.Value("raw_json").([]byte)
+		if !ok {
+			return ErrNoRawJSONData{}
+		}
+
+		handler := createHandler()
+
+		if err := json.Unmarshal(rawData, handler); err != nil {
+			return ErrJSONUnmarshal{Err: err}
+		}
+
+		if err := handler.Validate(); err != nil {
+			return ErrValidation{Err: err}
+		}
+
+		return handler.Handle(ctx, client, sub)
+	}
+}
+
+// JSONHandlerWrapper creates a generic handler that unmarshals JSON and validates - pattern from example usage
+func JSONHandlerWrapper[T any](
+	handler func(ctx context.Context, client *Client, sub *Subscriber, data T) error,
+	validator func(T) error,
+) HandlerFunc {
+	return func(ctx context.Context, client *Client, sub *Subscriber) error {
+		rawData, ok := ctx.Value("raw_json").([]byte)
+		if !ok {
+			return ErrNoRawJSONData{}
+		}
+
+		var data T
+		if err := json.Unmarshal(rawData, &data); err != nil {
+			return ErrJSONUnmarshal{Err: err}
+		}
+
+		if validator != nil {
+			if err := validator(data); err != nil {
+				return ErrValidation{Err: err}
+			}
+		}
+
+		return handler(ctx, client, sub, data)
+	}
 }

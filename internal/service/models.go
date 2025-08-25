@@ -128,6 +128,7 @@ type Question struct {
 type Group struct {
 	ID   string
 	Name string
+	Type string
 }
 
 type QuestionTranslation struct {
@@ -137,4 +138,10 @@ type QuestionTranslation struct {
 
 type WinnerState struct {
 	Players []PlayerWithScoring
+}
+
+type NewRoundState struct {
+	Round     int
+	RoundType string
+	Deadline  time.Duration
 }

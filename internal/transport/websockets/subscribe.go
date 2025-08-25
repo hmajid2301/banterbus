@@ -52,13 +52,6 @@ type message struct {
 	MessageType string `json:"message_type"`
 }
 
-// WSHandler interface kept for compatibility with existing handler structs
-// These will be adapted to HandlerFunc
-type WSHandler interface {
-	Handle(ctx context.Context, client *Client, sub *Subscriber) error
-	Validate() error
-}
-
 var errConnectionClosed = xerrors.New("connection closed")
 
 func isConnectionError(err error) bool {
@@ -111,22 +104,51 @@ func NewSubscriber(
 
 // registerHandlers registers all WebSocket handlers with appropriate middleware
 func (s *Subscriber) registerHandlers() {
-	// Lobby handlers - no special middleware needed
-	s.handlerRegistry.Register("create_room", s.createRoomHandler)
-	s.handlerRegistry.Register("join_lobby", s.joinLobbyHandler)
-	s.handlerRegistry.Register("start_game", s.startGameHandler)
-	s.handlerRegistry.Register("kick_player", s.kickPlayerHandler)
+	// Lobby handlers - using WSHandlerAdapter pattern for clean JSON handling and validation
+	s.handlerRegistry.Register("create_room", WSHandlerAdapter(func() WSHandler { return &CreateRoom{} }))
+	s.handlerRegistry.Register("join_lobby", WSHandlerAdapter(func() WSHandler { return &JoinLobby{} }))
+	s.handlerRegistry.Register("start_game", WSHandlerAdapter(func() WSHandler { return &StartGame{} }))
+	s.handlerRegistry.Register("kick_player", WSHandlerAdapter(func() WSHandler { return &KickPlayer{} }))
 
-	// Player handlers - might need rate limiting in the future
-	s.handlerRegistry.Register("update_player_nickname", s.updateNicknameHandler)
-	s.handlerRegistry.Register("generate_new_avatar", s.generateNewAvatarHandler)
-	s.handlerRegistry.Register("toggle_player_is_ready", s.togglePlayerIsReadyHandler)
+	// Player handlers - demonstrating middleware composition
+	// Example: Add rate limiting for avatar generation to prevent spam
+	s.handlerRegistry.Register(
+		"update_player_nickname",
+		WSHandlerAdapter(func() WSHandler { return &UpdateNickname{} }),
+	)
+	s.handlerRegistry.Register(
+		"generate_new_avatar",
+		WSHandlerAdapter(func() WSHandler { return &GenerateNewAvatar{} }),
+	)
+	// Future: s.handlerRegistry.Register("generate_new_avatar", WSHandlerAdapter(func() WSHandler { return &GenerateNewAvatar{} }), RateLimitMiddleware(5))
+	s.handlerRegistry.Register(
+		"toggle_player_is_ready",
+		WSHandlerAdapter(func() WSHandler { return &TogglePlayerIsReady{} }),
+	)
 
-	// Game handlers - might need game state validation middleware
-	s.handlerRegistry.Register("submit_answer", s.submitAnswerHandler)
-	s.handlerRegistry.Register("toggle_answer_is_ready", s.toggleAnswerIsReadyHandler)
-	s.handlerRegistry.Register("submit_vote", s.submitVoteHandler)
-	s.handlerRegistry.Register("toggle_voting_is_ready", s.toggleVotingIsReadyHandler)
+	// Game handlers - clean separation of concerns with adapter pattern
+	s.handlerRegistry.Register("submit_answer", WSHandlerAdapter(func() WSHandler { return &SubmitAnswer{} }))
+	s.handlerRegistry.Register(
+		"toggle_answer_is_ready",
+		WSHandlerAdapter(func() WSHandler { return &ToggleAnswerIsReady{} }),
+	)
+	s.handlerRegistry.Register("submit_vote", WSHandlerAdapter(func() WSHandler { return &SubmitVote{} }))
+	s.handlerRegistry.Register(
+		"toggle_voting_is_ready",
+		WSHandlerAdapter(func() WSHandler { return &ToggleVotingIsReady{} }),
+	)
+
+	// Example of how to use JSONHandlerWrapper for new handlers:
+	// s.handlerRegistry.Register("custom_action", JSONHandlerWrapper(
+	//     func(ctx context.Context, client *Client, sub *Subscriber, data CustomActionRequest) error {
+	//         // Handle the custom action with strongly typed data
+	//         return nil
+	//     },
+	//     func(data CustomActionRequest) error {
+	//         // Validate the data
+	//         return data.Validate()
+	//     },
+	// ))
 }
 
 func (s *Subscriber) Subscribe(r *http.Request, w http.ResponseWriter) (err error) {
@@ -286,17 +308,16 @@ func (s *Subscriber) Subscribe(r *http.Request, w http.ResponseWriter) (err erro
 		// INFO: Send message to client.
 		case msg := <-client.messagesCh:
 			start := time.Now()
-			err = wsutil.WriteServerText(connection, []byte(msg.Payload))
+			err = s.sendMessageWithRetry(ctx, connection, []byte(msg.Payload), playerID, 3)
 			if err != nil {
 				if isConnectionError(err) {
-					s.logger.InfoContext(ctx, "client connection closed, stopping message loop",
-						slog.String("player_id", playerID.String()),
-						slog.Any("error", err))
+					s.logger.DebugContext(ctx, "client connection closed, stopping message loop",
+						slog.String("player_id", playerID.String()))
 					cancel()
 					return nil
 				}
 
-				s.logger.ErrorContext(ctx, "failed to write message", slog.Any("error", err))
+				s.logger.ErrorContext(ctx, "failed to write message after retries", slog.Any("error", err))
 
 				err = telemetry.IncrementMessageSentError(ctx)
 				if err != nil {
@@ -314,7 +335,7 @@ func (s *Subscriber) Subscribe(r *http.Request, w http.ResponseWriter) (err erro
 				}
 			}
 		case <-ctx.Done():
-			s.logger.InfoContext(ctx, "subscribe context done", slog.String("player_id", playerID.String()))
+			s.logger.DebugContext(ctx, "subscribe context done", slog.String("player_id", playerID.String()))
 			cancel()
 			return ctx.Err()
 		}
@@ -357,9 +378,8 @@ func (s *Subscriber) handleMessages(ctx context.Context, cancel context.CancelFu
 			err := s.handleMessage(ctx, client)
 			if err != nil {
 				if errors.Is(err, errConnectionClosed) || isConnectionError(err) {
-					s.logger.InfoContext(ctx, "client connection closed, stopping message handler",
-						slog.String("player_id", client.playerID.String()),
-						slog.Any("error", err))
+					s.logger.DebugContext(ctx, "client connection closed, stopping message handler",
+						slog.String("player_id", client.playerID.String()))
 					cancel()
 					return
 				}
@@ -414,6 +434,54 @@ func (s *Subscriber) handleMessage(ctx context.Context, client *Client) error {
 	}
 
 	return s.handleMessageData(ctx, client, data, start, messageStatus)
+}
+
+// sendMessageWithRetry attempts to send a message with retry logic for transient failures
+func (s *Subscriber) sendMessageWithRetry(
+	ctx context.Context,
+	connection net.Conn,
+	data []byte,
+	playerID uuid.UUID,
+	maxRetries int,
+) error {
+	var lastErr error
+
+	for attempt := 0; attempt <= maxRetries; attempt++ {
+		err := wsutil.WriteServerText(connection, data)
+		if err == nil {
+			// Success - log retry if it took more than one attempt
+			if attempt > 0 {
+				s.logger.DebugContext(ctx, "message sent successfully after retry",
+					slog.String("player_id", playerID.String()),
+					slog.Int("attempt", attempt+1))
+			}
+			return nil
+		}
+
+		// If it's a connection error, don't retry
+		if isConnectionError(err) {
+			return err
+		}
+
+		lastErr = err
+		if attempt < maxRetries {
+			s.logger.WarnContext(ctx, "failed to send message, retrying",
+				slog.String("player_id", playerID.String()),
+				slog.Int("attempt", attempt+1),
+				slog.Int("max_retries", maxRetries),
+				slog.Any("error", err))
+
+			// Small delay before retry
+			time.Sleep(time.Millisecond * 50)
+		}
+	}
+
+	s.logger.ErrorContext(ctx, "failed to send message after all retries",
+		slog.String("player_id", playerID.String()),
+		slog.Int("max_retries", maxRetries),
+		slog.Any("error", lastErr))
+
+	return lastErr
 }
 
 func (s *Subscriber) handleMessageData(
@@ -477,73 +545,4 @@ func (s *Subscriber) handleMessageData(
 	s.logger.DebugContext(ctx, "finished handling request")
 	span.SetStatus(codes.Ok, "handle_message_successful")
 	return nil
-}
-
-// Handler implementations that convert from old WSHandler pattern to new HandlerFunc pattern
-
-func (s *Subscriber) createRoomHandler(ctx context.Context, client *Client, sub *Subscriber) error {
-	return s.handleWithValidation(ctx, client, sub, &CreateRoom{})
-}
-
-func (s *Subscriber) joinLobbyHandler(ctx context.Context, client *Client, sub *Subscriber) error {
-	return s.handleWithValidation(ctx, client, sub, &JoinLobby{})
-}
-
-func (s *Subscriber) startGameHandler(ctx context.Context, client *Client, sub *Subscriber) error {
-	return s.handleWithValidation(ctx, client, sub, &StartGame{})
-}
-
-func (s *Subscriber) kickPlayerHandler(ctx context.Context, client *Client, sub *Subscriber) error {
-	return s.handleWithValidation(ctx, client, sub, &KickPlayer{})
-}
-
-func (s *Subscriber) updateNicknameHandler(ctx context.Context, client *Client, sub *Subscriber) error {
-	return s.handleWithValidation(ctx, client, sub, &UpdateNickname{})
-}
-
-func (s *Subscriber) generateNewAvatarHandler(ctx context.Context, client *Client, sub *Subscriber) error {
-	return s.handleWithValidation(ctx, client, sub, &GenerateNewAvatar{})
-}
-
-func (s *Subscriber) togglePlayerIsReadyHandler(ctx context.Context, client *Client, sub *Subscriber) error {
-	return s.handleWithValidation(ctx, client, sub, &TogglePlayerIsReady{})
-}
-
-func (s *Subscriber) submitAnswerHandler(ctx context.Context, client *Client, sub *Subscriber) error {
-	return s.handleWithValidation(ctx, client, sub, &SubmitAnswer{})
-}
-
-func (s *Subscriber) toggleAnswerIsReadyHandler(ctx context.Context, client *Client, sub *Subscriber) error {
-	return s.handleWithValidation(ctx, client, sub, &ToggleAnswerIsReady{})
-}
-
-func (s *Subscriber) submitVoteHandler(ctx context.Context, client *Client, sub *Subscriber) error {
-	return s.handleWithValidation(ctx, client, sub, &SubmitVote{})
-}
-
-func (s *Subscriber) toggleVotingIsReadyHandler(ctx context.Context, client *Client, sub *Subscriber) error {
-	return s.handleWithValidation(ctx, client, sub, &ToggleVotingIsReady{})
-}
-
-// handleWithValidation is a helper that handles JSON unmarshaling, validation, and execution
-func (s *Subscriber) handleWithValidation(
-	ctx context.Context,
-	client *Client,
-	sub *Subscriber,
-	handler WSHandler,
-) error {
-	rawData, ok := ctx.Value("raw_json").([]byte)
-	if !ok {
-		return ErrNoRawJSONData{}
-	}
-
-	if err := json.Unmarshal(rawData, handler); err != nil {
-		return ErrJSONUnmarshal{Err: err}
-	}
-
-	if err := handler.Validate(); err != nil {
-		return ErrValidation{Err: err}
-	}
-
-	return handler.Handle(ctx, client, sub)
 }

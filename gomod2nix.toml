@@ -37,6 +37,9 @@ schema = 3
   [mod."github.com/gabriel-vasile/mimetype"]
     version = "v1.4.9"
     hash = "sha256-75uELLqb01djHTe7KdXvUidBK7SuejarYouEUuxaj8Q="
+  [mod."github.com/getsentry/sentry-go"]
+    version = "v0.35.1"
+    hash = "sha256-dfCaMRLn+I7Yd8cm2W8YQOWQlFStK7Tpnf/WvglNQ0E="
   [mod."github.com/go-jose/go-jose/v3"]
     version = "v3.0.4"
     hash = "sha256-RrLHCu9l6k0XVobdZQJ9Sx/VTQcWjrdLR5BEG7yXTEQ="

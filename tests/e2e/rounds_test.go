@@ -23,7 +23,7 @@ func TestE2ERounds(t *testing.T) {
 		hostPlayerPage := playerPages[0]
 		otherPlayerPages := playerPages[1:]
 
-		err = startGame(hostPlayerPage, otherPlayerPages)
+		_, err = startGame(hostPlayerPage, otherPlayerPages)
 		require.NoError(t, err)
 
 		fibber, normals, err := getPlayerRoles(hostPlayerPage, otherPlayerPages)
@@ -163,7 +163,7 @@ func TestE2ERounds(t *testing.T) {
 		hostPlayerPage := playerPages[0]
 		otherPlayerPages := playerPages[1:]
 
-		err = startGame(hostPlayerPage, otherPlayerPages)
+		_, err = startGame(hostPlayerPage, otherPlayerPages)
 		require.NoError(t, err)
 
 		fibber, normals, err := getPlayerRoles(hostPlayerPage, otherPlayerPages)

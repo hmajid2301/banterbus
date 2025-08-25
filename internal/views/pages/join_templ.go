@@ -47,7 +47,7 @@ func Join(languages map[string]string, environment string, roomCode string) temp
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"flex flex-col my-1\"><div><form ws-send hx-vals='{ \"message_type\": \"join_lobby\" }'>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"flex flex-col my-1\"><div class=\"mb-6 text-center\"><h2 class=\"mb-2 text-2xl font-semibold sm:text-3xl text-text\">Join Game Room</h2><p class=\"text-text2\">Enter your nickname and the room code to join the game</p></div><div><form ws-send hx-vals='{ \"message_type\": \"join_lobby\" }'>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -57,7 +57,7 @@ func Join(languages map[string]string, environment string, roomCode string) temp
 					InputName:   "player_nickname",
 					Placeholder: i18n.T(ctx, "home.nickname_placeholder"),
 				},
-				templ.Attributes{},
+				templ.Attributes{"required": true, "autofocus": true},
 			).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
@@ -69,12 +69,12 @@ func Join(languages map[string]string, environment string, roomCode string) temp
 					Value:       roomCode,
 					Placeholder: i18n.T(ctx, "home.roomcode_placeholder"),
 				},
-				templ.Attributes{},
+				templ.Attributes{"required": true},
 			).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<div class=\"flex flex-row mt-12 space-x-4 w-full\"><div class=\"w-full\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<div class=\"flex flex-col mt-8 space-y-4 w-full sm:flex-row sm:mt-12 sm:space-y-0 sm:space-x-4\"><div class=\"w-full\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -97,7 +97,7 @@ func Join(languages map[string]string, environment string, roomCode string) temp
 				var templ_7745c5c3_Var4 string
 				templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "home.join_button_label"))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/pages/join.templ`, Line: 35, Col: 50}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/pages/join.templ`, Line: 39, Col: 50}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 				if templ_7745c5c3_Err != nil {
@@ -109,7 +109,7 @@ func Join(languages map[string]string, environment string, roomCode string) temp
 				}
 				return nil
 			})
-			templ_7745c5c3_Err = components.Button(components.ButtonProps{BackgroundColor: "bg-text2", TextColor: "text-black"}, templ.Attributes{}).Render(templ.WithChildren(ctx, templ_7745c5c3_Var3), templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = components.Button(components.ButtonProps{BackgroundColor: "bg-green", TextColor: "text-black"}, templ.Attributes{}).Render(templ.WithChildren(ctx, templ_7745c5c3_Var3), templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
