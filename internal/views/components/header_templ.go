@@ -51,7 +51,7 @@ func Header(languages map[string]string) templ.Component {
 		}
 		for key, language := range languages {
 			if language != i18n.T(ctx, "navbar.language") {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "<div class=\"relative p-2 cursor-pointer hover:text-black text-text2 hover:bg-text\"><a href=\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "<div class=\"relative p-2 cursor-pointer hover:text-white text-text2 hover:bg-blue\"><a href=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}

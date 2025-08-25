@@ -79,8 +79,8 @@ templ Lobby(code string, players []service.LobbyPlayer, currentPlayer service.Lo
 			InputName: "room_code",
 			Value:     code,
 		}, templ.Attributes{"disabled": true}) {
-			<button class="inline-flex absolute top-1/2 justify-center items-center p-2 rounded-lg text-text2 end-2 hover:text-surface0" aria-label="Copy Join Link" @click={ getClipboardString(code) }>
-				<i class="hgi hgi-solid hgi-clipboard"></i>
+			<button class="inline-flex absolute top-1/2 justify-center items-center p-2 rounded-lg text-text2 end-2 hover:text-blue" aria-label="Copy Join Link" @click={ getClipboardString(code) }>
+				<i class="hgi hgi-solid hgi-copy-01"></i>
 			</button>
 		}
 		<div>
@@ -128,7 +128,7 @@ templ Lobby(code string, players []service.LobbyPlayer, currentPlayer service.Lo
 							if player.IsReady {
 								<span class="py-1 px-3 text-xs font-bold text-black rounded-full bg-green">READY</span>
 							} else {
-								<span class="py-1 px-3 text-xs font-bold text-white rounded-full bg-red">NOT READY</span>
+								<span class="py-1 px-3 text-xs font-bold text-black rounded-full bg-red">NOT READY</span>
 							}
 						</div>
 					</div>

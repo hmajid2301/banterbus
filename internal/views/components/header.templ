@@ -60,7 +60,7 @@ templ Header(languages map[string]string) {
 						<div class="flex-auto mt-5 rounded-md shadow-lg bg-surface2">
 							for key, language := range languages {
 								if language != i18n.T(ctx, "navbar.language") {
-									<div class="relative p-2 cursor-pointer hover:text-black text-text2 hover:bg-text">
+									<div class="relative p-2 cursor-pointer hover:text-white text-text2 hover:bg-blue">
 										<a href={ templ.SafeURL(key) }>
 											{ language }
 										</a>
