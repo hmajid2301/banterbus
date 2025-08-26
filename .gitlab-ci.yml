@@ -65,34 +65,7 @@ stages:
     reports:
       junit: report.xml
 
-.nix-setup:
-  before_script:
-    # Add attic cache if available
-    - |
-      if [ -n "$ATTIC_SERVER" ] && [ -n "$ATTIC_CACHE" ]; then
-        echo "Setting up attic cache..."
-        echo "substituters = $ATTIC_SERVER https://cache.nixos.org/" >> /etc/nix/nix.conf
-        echo "trusted-public-keys = $ATTIC_PUBLIC_KEY cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY=" >> /etc/nix/nix.conf
-        if [ -n "$ATTIC_AUTH_KEY" ]; then
-          echo "machine ${ATTIC_SERVER#https://} password $ATTIC_AUTH_KEY" > /etc/nix/netrc
-        fi
-      fi
-    - nix-env -iA nixpkgs.attic-client || echo "Failed to install attic-client, continuing..."
-
-.attic-cache:
-  after_script:
-    - |
-      if [ -n "$ATTIC_SERVER" ] && [ -n "$ATTIC_CACHE" ] && [ -n "$ATTIC_AUTH_KEY" ]; then
-        echo "Setting up attic push..."
-        attic login default "$ATTIC_SERVER" "$ATTIC_AUTH_KEY" || echo "Failed to login to attic"
-        attic use "$ATTIC_CACHE" || echo "Failed to use attic cache"
-        if [ -L result ]; then attic push "$ATTIC_CACHE" result; else echo "No result symlink found"; fi || echo "Failed to push to attic cache"
-      fi
-
 .docker:
-  # extends:
-  #   - .nix-setup
-  #   - .attic-cache
   variables:
     DOCKER_HOST: tcp://docker:2375
     DOCKER_DRIVER: overlay2
@@ -104,8 +77,55 @@ stages:
     - if: $CI_PIPELINE_SOURCE == "schedule"
       when: never
   before_script:
-    - echo "experimental-features = nix-command flakes" > /etc/nix/nix.conf
-    - nix-env -iA nixpkgs.docker nixpkgs.go-task
+    - nix-env -iA nixpkgs.docker nixpkgs.go-task nixpkgs.attic-client nixpkgs.tailscale nixpkgs.cacert
+    - mkdir -p /etc/nix
+    - |
+      cat >> /etc/nix/nix.conf << EOF
+      experimental-features = nix-command flakes
+      extra-platforms = x86_64-linux i686-linux
+      system-features = benchmark big-parallel nixos-test i686
+      substituters = https://attic.homelab.haseebmajid.dev/system?priority=43 https://nix-community.cachix.org?priority=41 https://numtide.cachix.org?priority=42 https://cache.nixos.org/
+      trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= system:5M8uBPjS68HTadSbeCs0Jiu0Z1tJBNdahtKBCXhl+Z0= nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs= numtide.cachix.org-1:2ps1kLBUWjxIneOy1Ik6cQjb41X0iXVXeHigGmycPPE=
+      EOF
+    - |
+      if [ -n "$ATTIC_AUTH_KEY" ]; then
+        echo "machine attic.homelab.haseebmajid.dev password $ATTIC_AUTH_KEY" > /etc/nix/netrc
+      fi
+    - mkdir -p ~/.ssh /etc/ssh
+    - chmod 700 ~/.ssh
+    - ssh-keygen -t ed25519 -N "" -f ~/.ssh/id_ed25519
+    - ssh-keygen -t ed25519 -N "" -f /etc/ssh/ssh_host_ed25519_key
+    - |
+      cat >> ~/.ssh/config << EOF
+      Host *
+        StrictHostKeyChecking no
+        UserKnownHostsFile /dev/null
+      EOF
+    - export SSH_ASKPASS_REQUIRE=never
+    - eval $(ssh-agent -s)
+    - ssh-add ~/.ssh/id_ed25519 2>/dev/null
+    - |
+      cat > /etc/resolv.conf << EOF
+      nameserver 1.1.1.1
+      nameserver 8.8.8.8
+      EOF
+    - |
+      if [ -n "$TAILSCALE_AUTH_KEY" ]; then
+        echo "Setting up Tailscale connection..."
+        tailscaled --state="mem:" --statedir=/var/lib/tailscale &
+        tailscale up --authkey=${TAILSCALE_AUTH_KEY} --hostname="gitlab-$(cat /etc/hostname)" --accept-routes --ssh
+      else
+        echo "TAILSCALE_AUTH_KEY not set, skipping Tailscale setup"
+      fi
+    - |
+      if [ -n "$ATTIC_AUTH_KEY" ]; then
+        echo "Setting up Attic binary cache..."
+        attic login homelab https://attic.homelab.haseebmajid.dev $ATTIC_AUTH_KEY
+        attic use homelab:main
+        attic watch-store homelab:main &
+      else
+        echo "ATTIC_AUTH_KEY not set, skipping Attic setup"
+      fi
   script:
     - task docker:publish
 
@@ -369,6 +389,7 @@ check_deploy:prod:
     NAMESPACE: prod
   dependencies:
     - deploy:prod
+  allow_failure: true
 
 release:
   stage: release

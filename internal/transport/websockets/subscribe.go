@@ -83,14 +83,12 @@ func NewSubscriber(
 	config config.Config,
 	rules templ.Component,
 ) *Subscriber {
-	// Create base middleware chain
 	baseMiddleware := NewChain(
 		RecoveryMiddleware(),
 		LoggingMiddleware(),
 		AuthMiddleware(),
 	)
 
-	// Create handler registry with base middleware
 	registry := NewHandlerRegistry(baseMiddleware...)
 
 	s := &Subscriber{
@@ -104,12 +102,10 @@ func NewSubscriber(
 		rules:           rules,
 	}
 
-	// Register handlers with the new pattern
 	s.registerHandlers()
 	return s
 }
 
-// registerHandlers registers all WebSocket handlers with appropriate middleware
 func (s *Subscriber) registerHandlers() {
 	s.handlerRegistry.Register("create_room", WSHandlerAdapter(func() WSHandler { return &CreateRoom{} }))
 	s.handlerRegistry.Register("join_lobby", WSHandlerAdapter(func() WSHandler { return &JoinLobby{} }))
@@ -123,7 +119,6 @@ func (s *Subscriber) registerHandlers() {
 		"generate_new_avatar",
 		WSHandlerAdapter(func() WSHandler { return &GenerateNewAvatar{} }),
 	)
-	// Future: s.handlerRegistry.Register("generate_new_avatar", WSHandlerAdapter(func() WSHandler { return &GenerateNewAvatar{} }), RateLimitMiddleware(5))
 	s.handlerRegistry.Register(
 		"toggle_player_is_ready",
 		WSHandlerAdapter(func() WSHandler { return &TogglePlayerIsReady{} }),
@@ -139,18 +134,6 @@ func (s *Subscriber) registerHandlers() {
 		"toggle_voting_is_ready",
 		WSHandlerAdapter(func() WSHandler { return &ToggleVotingIsReady{} }),
 	)
-
-	// Example of how to use JSONHandlerWrapper for new handlers:
-	// s.handlerRegistry.Register("custom_action", JSONHandlerWrapper(
-	//     func(ctx context.Context, client *Client, sub *Subscriber, data CustomActionRequest) error {
-	//         // Handle the custom action with strongly typed data
-	//         return nil
-	//     },
-	//     func(data CustomActionRequest) error {
-	//         // Validate the data
-	//         return data.Validate()
-	//     },
-	// ))
 }
 
 func (s *Subscriber) Subscribe(r *http.Request, w http.ResponseWriter) (err error) {
@@ -356,11 +339,10 @@ func setPlayerIDCookie() *http.Cookie {
 		// Fallback to NewV4 if NewV7 fails
 		playerID = uuid.Must(uuid.NewV4())
 	}
-	playerIDStr := playerID.String()
 
 	cookie := &http.Cookie{
 		Name:     "player_id",
-		Value:    playerIDStr,
+		Value:    playerID.String(),
 		Path:     "/",
 		HttpOnly: true,
 		Secure:   true,
@@ -447,7 +429,6 @@ func (s *Subscriber) handleMessage(ctx context.Context, client *Client) error {
 	return s.handleMessageData(ctx, client, data, start, messageStatus)
 }
 
-// sendMessageWithRetry attempts to send a message with retry logic for transient failures
 func (s *Subscriber) sendMessageWithRetry(
 	ctx context.Context,
 	connection net.Conn,

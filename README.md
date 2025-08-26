@@ -56,4 +56,7 @@ More [information here](https://gitlab.com/hmajid2301/nix-go-htmx-tailwind-templ
         - CI Image
         - Service
 - Gitlab for CI/CD pipeline
+    - Enhanced with Tailscale and Attic for faster Nix builds
+    - Requires `TAILSCALE_AUTHKEY` and `ATTIC_AUTH_KEY` environment variables
+    - Falls back gracefully when environment variables are not available
 - Taskfiles as the task runner
