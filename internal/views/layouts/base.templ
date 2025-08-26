@@ -32,8 +32,11 @@ templ Base(languages map[string]string, environment string) {
 				}
 			</script>
 		</head>
-		<body>
+		<body data-environment={ environment }>
 			@components.Toast()
+			if environment == "test" || environment == "development" {
+				@traceDebugInfo()
+			}
 			<div
 				class="w-full min-h-screen text-lg bg-center bg-no-repeat bg-cover bg-mantle bg-background"
 				hx-ext="ws"
@@ -61,6 +64,7 @@ templ Base(languages map[string]string, environment string) {
 		<script src="/static/js/alpine.min.js"></script>
 		<script src="https://js.sentry-cdn.com/032c389ec88919d78c2f7b515d85401c.min.js" crossorigin="anonymous"></script>
 		@sentryLoad(environment)
+		@sentryTracingSetup()
 		<script defer>
             htmx.on("htmx:wsBeforeMessage", (evt) => {
                 try {
@@ -93,10 +97,155 @@ templ Base(languages map[string]string, environment string) {
 	</html>
 }
 
+templ traceDebugInfo() {
+	<div id="trace-debug" class="fixed top-0 right-0 z-50 p-2 font-mono text-xs text-white bg-black bg-opacity-50 rounded-bl">
+		<div>Frontend Trace ID: <span id="current-trace-id" class="font-bold text-yellow-300">Loading...</span></div>
+		<div class="mt-1 text-xs text-gray-300">Click to copy</div>
+	</div>
+	<script>
+		document.getElementById('trace-debug').addEventListener('click', () => {
+			const traceId = document.getElementById('current-trace-id').textContent;
+			if (traceId && traceId !== 'Loading...') {
+				navigator.clipboard.writeText(traceId);
+				// Show brief feedback
+				const originalText = document.getElementById('current-trace-id').textContent;
+				document.getElementById('current-trace-id').textContent = 'Copied!';
+				setTimeout(() => {
+					document.getElementById('current-trace-id').textContent = originalText;
+				}, 1000);
+			}
+		});
+	</script>
+}
+
+script sentryTracingSetup() {
+  window.sentryTracing = {
+    getCurrentTransaction() {
+      return Sentry.getCurrentHub().getScope()?.getTransaction();
+    },
+    
+    getTraceId() {
+      const transaction = this.getCurrentTransaction();
+      return transaction?.traceId || null;
+    },
+    
+    getSpanId() {
+      const transaction = this.getCurrentTransaction();
+      return transaction?.spanId || null;
+    },
+    
+    addTraceToWebSocketMessage(data) {
+      if (typeof data === 'string') {
+        try {
+          const message = JSON.parse(data);
+          const traceId = this.getTraceId();
+          const spanId = this.getSpanId();
+          if (traceId && spanId) {
+            message._trace = { traceId, spanId };
+          }
+          return JSON.stringify(message);
+        } catch (e) {
+          return data;
+        }
+      }
+      return data;
+    },
+    
+    setGameContext(playerId, roomCode) {
+      Sentry.configureScope((scope) => {
+        if (playerId) scope.setTag("player_id", playerId);
+        if (roomCode) scope.setTag("room_code", roomCode);
+      });
+    },
+    
+    updateDebugUI() {
+      const traceElement = document.getElementById('current-trace-id');
+      if (traceElement) {
+        const traceId = this.getTraceId();
+        if (traceId) {
+          traceElement.textContent = traceId;
+        }
+      }
+    }
+  };
+  
+  document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(() => window.sentryTracing.updateDebugUI(), 100);
+    
+    htmx.on('htmx:configRequest', (evt) => {
+      const transaction = Sentry.startTransaction({
+        name: `${evt.detail.verb} ${evt.detail.path}`,
+        op: 'http.client'
+      });
+      
+      const traceId = transaction.traceId;
+      const spanId = transaction.spanId;
+      
+      if (traceId && spanId) {
+        evt.detail.headers['sentry-trace'] = `${traceId}-${spanId}-1`;
+        
+        // Build baggage with environment and any available game context
+        let baggageItems = [
+          `sentry-trace_id=${traceId}`,
+          `sentry-environment=${document.body.dataset.environment}`
+        ];
+        
+        // Add game context from DOM if available
+        const roomCodeEl = document.querySelector('[data-room-code]');
+        if (roomCodeEl) {
+          baggageItems.push(`room_code=${roomCodeEl.dataset.roomCode}`);
+        }
+        
+        const playerIdEl = document.querySelector('[data-player-id]');
+        if (playerIdEl) {
+          baggageItems.push(`player_id=${playerIdEl.dataset.playerId}`);
+        }
+        
+        evt.detail.headers['baggage'] = baggageItems.join(',');
+      }
+      
+      setTimeout(() => {
+        transaction.finish();
+        window.sentryTracing.updateDebugUI();
+      }, 100);
+    });
+
+    const originalWebSocket = window.WebSocket;
+    window.WebSocket = function(url, protocols) {
+      const ws = new originalWebSocket(url, protocols);
+      
+      const originalSend = ws.send.bind(ws);
+      
+      ws.send = function(data) {
+        const transaction = Sentry.startTransaction({
+          name: 'websocket.send',
+          op: 'websocket.client'
+        });
+        
+        const tracedData = window.sentryTracing.addTraceToWebSocketMessage(data);
+        
+        const result = originalSend(tracedData);
+        transaction.finish();
+        window.sentryTracing.updateDebugUI();
+        
+        return result;
+      };
+      
+      return ws;
+    };
+  });
+}
+
 script sentryLoad(environment string) {
   Sentry.onLoad(function() {
     Sentry.init({
         environment: environment,
+        tracesSampleRate: 1.0,
+        integrations: [
+            new Sentry.BrowserTracing({
+                tracingOrigins: [window.location.hostname, /^\//],
+            }),
+        ],
     });
   });
 }

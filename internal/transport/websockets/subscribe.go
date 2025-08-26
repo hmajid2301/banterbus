@@ -24,6 +24,7 @@ import (
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
+	semconv "go.opentelemetry.io/otel/semconv/v1.26.0"
 	"go.opentelemetry.io/otel/trace"
 
 	"gitlab.com/hmajid2301/banterbus/internal/config"
@@ -49,7 +50,13 @@ type Websocketer interface {
 }
 
 type message struct {
-	MessageType string `json:"message_type"`
+	MessageType string        `json:"message_type"`
+	Trace       *TraceContext `json:"_trace,omitempty"`
+}
+
+type TraceContext struct {
+	TraceID string `json:"traceId"`
+	SpanID  string `json:"spanId"`
 }
 
 var errConnectionClosed = xerrors.New("connection closed")
@@ -104,14 +111,10 @@ func NewSubscriber(
 
 // registerHandlers registers all WebSocket handlers with appropriate middleware
 func (s *Subscriber) registerHandlers() {
-	// Lobby handlers - using WSHandlerAdapter pattern for clean JSON handling and validation
 	s.handlerRegistry.Register("create_room", WSHandlerAdapter(func() WSHandler { return &CreateRoom{} }))
 	s.handlerRegistry.Register("join_lobby", WSHandlerAdapter(func() WSHandler { return &JoinLobby{} }))
 	s.handlerRegistry.Register("start_game", WSHandlerAdapter(func() WSHandler { return &StartGame{} }))
 	s.handlerRegistry.Register("kick_player", WSHandlerAdapter(func() WSHandler { return &KickPlayer{} }))
-
-	// Player handlers - demonstrating middleware composition
-	// Example: Add rate limiting for avatar generation to prevent spam
 	s.handlerRegistry.Register(
 		"update_player_nickname",
 		WSHandlerAdapter(func() WSHandler { return &UpdateNickname{} }),
@@ -126,7 +129,6 @@ func (s *Subscriber) registerHandlers() {
 		WSHandlerAdapter(func() WSHandler { return &TogglePlayerIsReady{} }),
 	)
 
-	// Game handlers - clean separation of concerns with adapter pattern
 	s.handlerRegistry.Register("submit_answer", WSHandlerAdapter(func() WSHandler { return &SubmitAnswer{} }))
 	s.handlerRegistry.Register(
 		"toggle_answer_is_ready",
@@ -167,11 +169,17 @@ func (s *Subscriber) Subscribe(r *http.Request, w http.ResponseWriter) (err erro
 		}
 	}()
 
-	tracer := otel.Tracer("")
+	tracer := otel.Tracer("banterbus-websocket")
 	ctx, span := tracer.Start(
 		ctx,
-		"subscribe",
+		"websocket.subscribe",
 		trace.WithSpanKind(trace.SpanKindServer),
+		trace.WithAttributes(
+			semconv.NetworkTransportKey.String("tcp"),
+			semconv.NetworkTypeKey.String("ipv4"),
+			semconv.NetworkProtocolName("websocket"),
+			attribute.String("component", "websocket-subscriber"),
+		),
 	)
 
 	locale := s.config.App.DefaultLocale.String()
@@ -305,7 +313,7 @@ func (s *Subscriber) Subscribe(r *http.Request, w http.ResponseWriter) (err erro
 
 	for {
 		select {
-		// INFO: Send message to client.
+
 		case msg := <-client.messagesCh:
 			start := time.Now()
 			err = s.sendMessageWithRetry(ctx, connection, []byte(msg.Payload), playerID, 3)
@@ -368,12 +376,15 @@ func (s *Subscriber) handleMessages(ctx context.Context, cancel context.CancelFu
 		case <-ctx.Done():
 			return
 		default:
-			tracer := otel.Tracer("")
+			tracer := otel.Tracer("banterbus-websocket")
 			ctx, _ := tracer.Start(
 				ctx,
-				"handle_message",
-				trace.WithSpanKind(trace.SpanKindServer),
-				trace.WithAttributes(attribute.String("player_id", client.playerID.String())),
+				"websocket.handle_message",
+				trace.WithSpanKind(trace.SpanKindInternal),
+				trace.WithAttributes(
+					attribute.String("game.player_id", client.playerID.String()),
+					attribute.String("component", "websocket-handler"),
+				),
 			)
 			err := s.handleMessage(ctx, client)
 			if err != nil {
@@ -449,7 +460,6 @@ func (s *Subscriber) sendMessageWithRetry(
 	for attempt := 0; attempt <= maxRetries; attempt++ {
 		err := wsutil.WriteServerText(connection, data)
 		if err == nil {
-			// Success - log retry if it took more than one attempt
 			if attempt > 0 {
 				s.logger.DebugContext(ctx, "message sent successfully after retry",
 					slog.String("player_id", playerID.String()),
@@ -458,7 +468,6 @@ func (s *Subscriber) sendMessageWithRetry(
 			return nil
 		}
 
-		// If it's a connection error, don't retry
 		if isConnectionError(err) {
 			return err
 		}
@@ -471,7 +480,6 @@ func (s *Subscriber) sendMessageWithRetry(
 				slog.Int("max_retries", maxRetries),
 				slog.Any("error", err))
 
-			// Small delay before retry
 			time.Sleep(time.Millisecond * 50)
 		}
 	}
@@ -499,7 +507,54 @@ func (s *Subscriber) handleMessageData(
 		return fmt.Errorf("failed to unmarshal message: %w", err)
 	}
 
-	span := trace.SpanFromContext(ctx)
+	tracer := otel.Tracer("banterbus-websocket")
+	var span trace.Span
+	var sentryTraceID string
+
+	if message.Trace != nil && message.Trace.TraceID != "" {
+		sentryTraceID = message.Trace.TraceID
+
+		if len(message.Trace.TraceID) == 32 {
+			traceID, err := trace.TraceIDFromHex(message.Trace.TraceID)
+			if err == nil && len(message.Trace.SpanID) == 16 {
+				spanID, err := trace.SpanIDFromHex(message.Trace.SpanID)
+				if err == nil {
+					spanCtx := trace.NewSpanContext(trace.SpanContextConfig{
+						TraceID:    traceID,
+						SpanID:     spanID,
+						TraceFlags: trace.FlagsSampled,
+					})
+					ctx = trace.ContextWithSpanContext(ctx, spanCtx)
+				}
+			}
+		}
+
+		ctx, span = tracer.Start(ctx, fmt.Sprintf("ws.%s", message.MessageType),
+			trace.WithSpanKind(trace.SpanKindServer),
+			trace.WithAttributes(
+				semconv.MessagingOperationName("process"),
+				semconv.MessagingSystemKey.String("websocket"),
+				attribute.String("messaging.message.type", message.MessageType),
+				attribute.String("component", "websocket-handler"),
+				attribute.String("trace.source", "sentry"),
+				attribute.String("sentry.trace_id", sentryTraceID),
+				semconv.MessagingMessageBodySize(len(data)),
+			),
+		)
+	} else {
+		ctx, span = tracer.Start(ctx, fmt.Sprintf("ws.%s", message.MessageType),
+			trace.WithSpanKind(trace.SpanKindServer),
+			trace.WithAttributes(
+				semconv.MessagingOperationName("process"),
+				semconv.MessagingSystemKey.String("websocket"),
+				attribute.String("messaging.message.type", message.MessageType),
+				attribute.String("component", "websocket-handler"),
+				attribute.String("trace.source", "backend"),
+				semconv.MessagingMessageBodySize(len(data)),
+			),
+		)
+	}
+
 	defer func() {
 		latencyMs := float64(time.Since(start).Milliseconds())
 		err = telemetry.RecordRequestLatency(ctx, latencyMs, message.MessageType, messageStatus)
@@ -514,29 +569,46 @@ func (s *Subscriber) handleMessageData(
 		s.logger.WarnContext(ctx, "failed to increment message type metric", slog.Any("error", err))
 	}
 
+	telemetry.AddMessagingAttributes(ctx, message.MessageType, "process", len(data))
+	telemetry.AddWebSocketMetrics(ctx, message.MessageType, len(data), 1, "unicast")
+
 	span.SetAttributes(attribute.String("message_type", message.MessageType))
+
+	if client.playerID != uuid.Nil {
+		ctx = telemetry.AddPlayerToBaggage(ctx, client.playerID)
+		span.SetAttributes(attribute.String("game.player_id", client.playerID.String()))
+	}
+
 	s.logger.DebugContext(ctx, "handling message", slog.String("message_type", message.MessageType))
 
 	// Add raw JSON data to context for handlers to use
 	ctx = context.WithValue(ctx, "raw_json", data)
 
-	// Use the handler registry to handle the message
 	err = s.handlerRegistry.Handle(message.MessageType, ctx, client, s)
 	if err != nil {
 		var handlerNotFoundErr ErrHandlerNotFound
 		if errors.As(err, &handlerNotFoundErr) {
 			messageStatus = "fail_matching_handler"
+			telemetry.RecordHandlerError(ctx, message.MessageType, err, map[string]interface{}{
+				"error_type":   "handler_not_found",
+				"message_type": message.MessageType,
+			})
 		} else {
 			var validationErr ErrValidation
 			if errors.As(err, &validationErr) {
 				messageStatus = "fail_validate"
-				// Send validation error to client
+
+				telemetry.RecordValidationError(ctx, message.MessageType, validationErr.Err.Error(), "")
 				webSocketErr := s.updateClientAboutErr(ctx, client.playerID, validationErr.Err.Error())
 				if webSocketErr != nil {
 					return errors.Join(err, webSocketErr)
 				}
 			} else {
 				messageStatus = "fail_handler"
+				telemetry.RecordHandlerError(ctx, message.MessageType, err, map[string]interface{}{
+					"error_type":   "general_handler_error",
+					"message_type": message.MessageType,
+				})
 			}
 		}
 		return fmt.Errorf("error in handler function: %w", err)

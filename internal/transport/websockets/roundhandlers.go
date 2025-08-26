@@ -11,6 +11,7 @@ import (
 
 	"gitlab.com/hmajid2301/banterbus/internal/service"
 	"gitlab.com/hmajid2301/banterbus/internal/store/db"
+	"gitlab.com/hmajid2301/banterbus/internal/telemetry"
 )
 
 type RoundServicer interface {
@@ -49,20 +50,30 @@ type RoundServicer interface {
 }
 
 func (s *SubmitAnswer) Handle(ctx context.Context, client *Client, sub *Subscriber) error {
+	telemetry.AddPlayerActionAttributes(ctx, client.playerID.String(), "submit_answer", false, false)
+	telemetry.AddAnswerAttributes(
+		ctx,
+		client.playerID.String(),
+		s.Answer,
+		true,
+		[]string{},
+		time.Now().Format(time.RFC3339),
+	)
+
 	err := sub.roundService.SubmitAnswer(ctx, client.playerID, s.Answer, time.Now().UTC())
 	if err != nil {
+		telemetry.RecordBusinessLogicError(ctx, "submit_answer", err.Error(), telemetry.GameContext{
+			PlayerID: &client.playerID,
+		})
 		errStr := "Failed to submit answer"
 		clientErr := sub.updateClientAboutErr(ctx, client.playerID, errStr)
 		return errors.Join(clientErr, err)
 	}
 
-	// Get the current game state after the answer has been submitted
 	currentGameState, err := sub.roundService.GetGameState(ctx, client.playerID)
 	if err != nil {
 		sub.logger.ErrorContext(ctx, "failed to get game state after answer submission", slog.Any("error", err))
-		// Continue without sending toast if we can't get the state, better than crashing
 	} else if currentGameState != db.FibbingITQuestion {
-		// If the game state is no longer question, don't send the "Answer Submitted" toast
 		return nil
 	}
 
@@ -84,14 +95,10 @@ func (t *ToggleAnswerIsReady) Handle(ctx context.Context, client *Client, sub *S
 		return errors.Join(clientErr, err)
 	}
 
-	// Get current game state to check if we should update question display
 	currentGameState, err := sub.roundService.GetGameState(ctx, client.playerID)
 	if err != nil {
 		sub.logger.ErrorContext(ctx, "failed to get game state after toggle ready", slog.Any("error", err))
-		// Continue without error to avoid breaking the toggle functionality
 	} else if currentGameState == db.FibbingITQuestion {
-		// Only update question display if still in question state
-		// This prevents showing stale data during state transitions
 		questionState, err := sub.roundService.GetQuestionState(ctx, client.playerID)
 		if err != nil {
 			errStr := "Failed to get updated question state."
@@ -108,7 +115,6 @@ func (t *ToggleAnswerIsReady) Handle(ctx context.Context, client *Client, sub *S
 	}
 
 	if allReady {
-		// Get the game state ID from the current player's question state
 		questionState, err := sub.roundService.GetQuestionState(ctx, client.playerID)
 		if err != nil {
 			return err

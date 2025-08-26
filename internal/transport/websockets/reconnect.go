@@ -15,29 +15,35 @@ import (
 
 	"gitlab.com/hmajid2301/banterbus/internal/service"
 	"gitlab.com/hmajid2301/banterbus/internal/store/db"
+	"gitlab.com/hmajid2301/banterbus/internal/telemetry"
 	"gitlab.com/hmajid2301/banterbus/internal/views/sections"
 )
 
 const errStr = "Faled to reconnect to game"
 
 func (s Subscriber) Reconnect(ctx context.Context, playerID uuid.UUID) (bytes.Buffer, error) {
-	tracer := otel.Tracer("")
+	tracer := otel.Tracer("banterbus-websocket")
 	// TODO: share ctx attributes? use logs from otel
 	ctx = slogctx.Append(ctx, "player_id", playerID)
-	ctx, span := tracer.Start(
-		ctx,
-		"reconnect",
-		trace.WithSpanKind(trace.SpanKindServer),
-		trace.WithAttributes(attribute.String("player_id", playerID.String())),
+	ctx, span := telemetry.StartInternalSpan(ctx, tracer, "websocket.reconnect",
+		attribute.String("game.player_id", playerID.String()),
+		attribute.String("component", "websocket-reconnect"),
 	)
 	s.logger.DebugContext(ctx, "attempting to reconnect player")
+
+	telemetry.AddPlayerConnectionAttributes(ctx, playerID.String(), "websocket", true, "")
 
 	var buf bytes.Buffer
 	roomState, err := s.lobbyService.GetRoomState(ctx, playerID)
 	if err != nil {
+		telemetry.RecordBusinessLogicError(ctx, "get_room_state", err.Error(), telemetry.GameContext{
+			PlayerID: &playerID,
+		})
 		return buf, err
 	}
+
 	span.AddEvent("room_state", trace.WithAttributes(attribute.String("room_state", roomState.String())))
+	telemetry.AddRoomStateAttributes(ctx, roomState.String(), "", 0)
 
 	buf, err = s.reconnectOnRoomState(ctx, roomState, playerID)
 	if err != nil {

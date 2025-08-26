@@ -26,24 +26,26 @@ type QuestionState struct {
 	NextRound   bool
 }
 
-var tracer = otel.Tracer("")
+var tracer = otel.Tracer("banterbus-game-state")
 
 func (q *QuestionState) Start(ctx context.Context) {
-	const spanName = "fibbing_it.question_state.process"
+	const spanName = "game.question_state.process"
 	start := time.Now()
 
-	ctx, span := tracer.Start(
-		ctx,
-		spanName,
-		trace.WithSpanKind(trace.SpanKindServer),
-		trace.WithAttributes(
-			attribute.String("game.id", q.GameStateID.String()),
-			attribute.Bool("question_state.next_round", q.NextRound),
-			attribute.Int64("question_state.configured_duration_ms",
-				q.Subscriber.config.Timings.ShowQuestionScreenFor.Milliseconds()),
-		),
+	ctx, span := telemetry.StartInternalSpan(ctx, tracer, spanName,
+		attribute.String("game.state_id", q.GameStateID.String()),
+		attribute.String("game.state", "question"),
+		attribute.Bool("question_state.next_round", q.NextRound),
+		attribute.Int64("question_state.configured_duration_ms",
+			q.Subscriber.config.Timings.ShowQuestionScreenFor.Milliseconds()),
+		attribute.String("component", "game-state-machine"),
 	)
 	defer span.End()
+
+	telemetry.AddGameStateTransition(ctx, "", "FibbingITQuestion", "timer_start", &q.GameStateID)
+	telemetry.AddTimingAttributes(ctx, "question_timer",
+		q.Subscriber.config.Timings.ShowQuestionScreenFor.String(),
+		q.Subscriber.config.Timings.ShowQuestionScreenFor.String(), false)
 
 	err := telemetry.IncrementStateCount(ctx, "question")
 	if err != nil {
@@ -63,7 +65,6 @@ func (q *QuestionState) Start(ctx context.Context) {
 
 	questionState, err := q.Subscriber.roundService.UpdateStateToQuestion(ctx, q.GameStateID, deadline, q.NextRound)
 	if err != nil {
-		// Check if error indicates game completion (no more round types)
 		if err.Error() == "game completed - no more round types available" {
 			span.AddEvent("state_transition", trace.WithAttributes(
 				attribute.String("next_state", "winner"),
@@ -83,7 +84,6 @@ func (q *QuestionState) Start(ctx context.Context) {
 			attribute.String("error.type", "state_update_failure"),
 		))
 
-		// Check if this is a question availability issue (common during intensive testing)
 		if err.Error() == "no fibber questions available" || err.Error() == "no normal questions available" {
 			q.Subscriber.logger.WarnContext(
 				ctx,
@@ -128,7 +128,6 @@ func (q *QuestionState) Start(ctx context.Context) {
 
 	select {
 	case <-timer.C:
-		// Check current game state before transitioning
 		currentGameState, err := q.Subscriber.roundService.GetGameState(ctx, q.GameStateID)
 		if err != nil {
 			q.Subscriber.logger.ErrorContext(
@@ -137,10 +136,10 @@ func (q *QuestionState) Start(ctx context.Context) {
 				slog.Any("error", err),
 				slog.String("game_state_id", q.GameStateID.String()),
 			)
-			return // Don't proceed if we can't get the state
+			return
 		}
 
-		if currentGameState == db.FibbingITQuestion { // Only transition if still in question state
+		if currentGameState == db.FibbingITQuestion {
 			span.AddEvent("state_transition", trace.WithAttributes(
 				attribute.String("next_state", "voting"),
 				attribute.String("transition_reason", "timeout"),
@@ -201,7 +200,6 @@ func (v *VotingState) Start(ctx context.Context) {
 			attribute.String("error.type", "state_update_failure"),
 		))
 
-		// Check if this is a state transition race condition (common in tests)
 		if err.Error() == "game state is not in FIBBING_IT_QUESTION state" || err.Error() == "no rows in result set" {
 			v.Subscriber.logger.WarnContext(
 				ctx,
@@ -332,7 +330,6 @@ func (r *RevealState) Start(ctx context.Context) {
 			attribute.String("error.type", "state_update_failure"),
 		))
 
-		// Check if this is a state transition race condition
 		if err.Error() == "game state is not in FIBBING_IT_VOTING state" || err.Error() == "no rows in result set" {
 			r.Subscriber.logger.WarnContext(
 				ctx,
@@ -467,7 +464,6 @@ func (r *ScoringState) Start(ctx context.Context) {
 			attribute.String("error.type", "state_update_failure"),
 		))
 
-		// Check if this is a state transition race condition
 		if err.Error() == "game state is not in FIBBING_IT_REVEAL_ROLE state" ||
 			err.Error() == "no rows in result set" {
 			r.Subscriber.logger.WarnContext(
@@ -575,7 +571,6 @@ func (r *WinnerState) Start(ctx context.Context) {
 			attribute.String("error.type", "state_update_failure"),
 		))
 
-		// Check if this is a state transition race condition
 		if err.Error() == "game state is not in FIBBING_IT_SCORING_STATE state" ||
 			err.Error() == "no rows in result set" {
 			r.Subscriber.logger.WarnContext(

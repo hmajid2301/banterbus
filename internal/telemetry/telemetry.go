@@ -61,7 +61,7 @@ func SetupOTelSDK(
 		return shutdown, err
 	}
 
-	tracerProvider, err := newTraceProvider(ctx, res)
+	tracerProvider, err := newTraceProvider(ctx, res, environment)
 	if err != nil {
 		handleErr(err)
 		return shutdown, err
@@ -97,19 +97,26 @@ func newPropagator() propagation.TextMapPropagator {
 	)
 }
 
-func newTraceProvider(ctx context.Context, res *resource.Resource) (*trace.TracerProvider, error) {
-	traceExporter, err := otlptracehttp.New(ctx)
+func newTraceProvider(ctx context.Context, res *resource.Resource, environment string) (*trace.TracerProvider, error) {
+	var tracerOptions []trace.TracerProviderOption
+	tracerOptions = append(tracerOptions, trace.WithResource(res))
 
-	if err != nil {
-		return nil, err
+	// Use no-op exporter for test environment to avoid OTel collector dependency
+	if environment == "test" {
+		// For test environment, we still want tracing enabled but without export
+		tracerOptions = append(tracerOptions, trace.WithSampler(trace.AlwaysSample()))
+	} else {
+		// For non-test environments, use OTLP exporter
+		traceExporter, err := otlptracehttp.New(ctx)
+		if err != nil {
+			return nil, err
+		}
+		tracerOptions = append(tracerOptions, trace.WithBatcher(traceExporter,
+			trace.WithBatchTimeout(time.Second),
+		))
 	}
 
-	traceProvider := trace.NewTracerProvider(
-		trace.WithBatcher(traceExporter,
-			trace.WithBatchTimeout(time.Second),
-		),
-		trace.WithResource(res),
-	)
+	traceProvider := trace.NewTracerProvider(tracerOptions...)
 	otel.SetTracerProvider(traceProvider)
 	return traceProvider, nil
 }

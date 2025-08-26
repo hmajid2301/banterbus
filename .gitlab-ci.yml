@@ -195,7 +195,7 @@ test:e2e:
   extends:
     - .test
   variables:
-    BANTERBUS_LOG_LEVEL: WARN
+    BANTERBUS_LOG_LEVEL: INFO
     BANTERBUS_ENVIRONMENT: test
     BANTERBUS_REDIS_ADDRESS: docker:6379
     BANTERBUS_DB_HOST: docker
@@ -205,10 +205,10 @@ test:e2e:
     BANTERBUS_DB_NAME: banterbus
     BANTERBUS_JWKS_URL: http://docker:9091/default/jwks
     BANTERBUS_PLAYWRIGHT_HEADLESS: true
-    OTEL_EXPORTER_OTLP_ENDPOINT: http://localhost:9999
+    # Enable telemetry for trace IDs but no export needed (test environment uses no-op exporter)
+    BANTERBUS_DISABLE_TELEMETRY: false
     GOCOVERDIR: $CI_PROJECT_DIR/coverage/e2e
     SHOW_VOTING_SCREEN_FOR: 10s
-    BANTERBUS_DISABLE_TELEMETRY: true
     RUN_WITH_COVERAGE: true
     BANTERBUS_PORT: 8080
     BANTERBUS_HOST: 0.0.0.0

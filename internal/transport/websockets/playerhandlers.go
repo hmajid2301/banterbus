@@ -7,6 +7,7 @@ import (
 	"github.com/gofrs/uuid/v5"
 
 	"gitlab.com/hmajid2301/banterbus/internal/service"
+	"gitlab.com/hmajid2301/banterbus/internal/telemetry"
 )
 
 type PlayerServicer interface {
@@ -17,8 +18,13 @@ type PlayerServicer interface {
 }
 
 func (u *UpdateNickname) Handle(ctx context.Context, client *Client, sub *Subscriber) error {
+	telemetry.AddPlayerActionAttributes(ctx, client.playerID.String(), "update_nickname", false, false)
+
 	updatedRoom, err := sub.playerService.UpdateNickname(ctx, u.PlayerNickname, client.playerID)
 	if err != nil {
+		telemetry.RecordBusinessLogicError(ctx, "update_nickname", err.Error(), telemetry.GameContext{
+			PlayerID: &client.playerID,
+		})
 		errStr := "Failed to update nickname"
 		if err == service.ErrNicknameExists {
 			errStr = err.Error()
@@ -26,6 +32,8 @@ func (u *UpdateNickname) Handle(ctx context.Context, client *Client, sub *Subscr
 		clientErr := sub.updateClientAboutErr(ctx, client.playerID, errStr)
 		return errors.Join(clientErr, err)
 	}
+
+	telemetry.AddRoomStateAttributes(ctx, "Created", updatedRoom.Code, len(updatedRoom.Players))
 
 	err = sub.updateClientsAboutLobby(ctx, updatedRoom)
 	return err
@@ -45,12 +53,28 @@ func (g *GenerateNewAvatar) Handle(ctx context.Context, client *Client, sub *Sub
 
 // TODO: join errors in all handlers rather than fmt them
 func (t *TogglePlayerIsReady) Handle(ctx context.Context, client *Client, sub *Subscriber) error {
+	telemetry.AddPlayerActionAttributes(ctx, client.playerID.String(), "toggle_ready", false, false)
+
 	updatedRoom, err := sub.playerService.TogglePlayerIsReady(ctx, client.playerID)
 	if err != nil {
+		telemetry.RecordBusinessLogicError(ctx, "toggle_ready", err.Error(), telemetry.GameContext{
+			PlayerID: &client.playerID,
+		})
 		errStr := "Failed to toggle ready status"
 		clientErr := sub.updateClientAboutErr(ctx, client.playerID, errStr)
 		return errors.Join(clientErr, err)
 	}
+
+	var isReady bool
+	for _, player := range updatedRoom.Players {
+		if player.ID == client.playerID {
+			isReady = player.IsReady
+			break
+		}
+	}
+
+	telemetry.AddPlayerActionAttributes(ctx, client.playerID.String(), "toggle_ready_completed", false, isReady)
+	telemetry.AddRoomStateAttributes(ctx, "Created", updatedRoom.Code, len(updatedRoom.Players))
 
 	err = sub.updateClientsAboutLobby(ctx, updatedRoom)
 	return err

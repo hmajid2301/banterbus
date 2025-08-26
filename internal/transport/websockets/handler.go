@@ -80,12 +80,11 @@ func (e ErrHandlerNotFound) Error() string {
 
 // Common middleware functions
 
-// ValidationMiddleware creates middleware that validates the request using a validator function
 func ValidationMiddleware[T any](validator func(T) error) MiddlewareFunc {
 	return func(next HandlerFunc) HandlerFunc {
 		return func(ctx context.Context, client *Client, sub *Subscriber) error {
 			// Note: In practice, you'd need to pass the validated data to the handler
-			// This is a simplified version that assumes validation is done elsewhere
+
 			return next(ctx, client, sub)
 		}
 	}
