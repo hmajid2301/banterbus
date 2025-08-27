@@ -2,8 +2,8 @@ github.com/MicahParks/jwkset v0.9.6 h1:Tf8l2/MOby5Kh3IkrqzThPQKfLytMERoAsGZKlyYZ
 github.com/MicahParks/jwkset v0.9.6/go.mod h1:U2oRhRaLgDCLjtpGL2GseNKGmZtLs/3O7p+OZaL5vo0=
 github.com/MicahParks/keyfunc/v3 v3.6.1 h1:A8A5zGZ8XmRyxizSY7s5FLY/aSplrnEBLCOrC0D1ojM=
 github.com/MicahParks/keyfunc/v3 v3.6.1/go.mod h1:y6Ed3dMgNKTcpxbaQHD8mmrYDUZWJAxteddA6OQj+ag=
-github.com/a-h/templ v0.3.943 h1:o+mT/4yqhZ33F3ootBiHwaY4HM5EVaOJfIshvd5UNTY=
-github.com/a-h/templ v0.3.943/go.mod h1:oCZcnKRf5jjsGpf2yELzQfodLphd2mwecwG4Crk5HBo=
+github.com/a-h/templ v0.3.937 h1:Ta+0Tf9YuZplUyKTUxReV36FCRKtK6FRMWpmXERHDnM=
+github.com/a-h/templ v0.3.937/go.mod h1:oCZcnKRf5jjsGpf2yELzQfodLphd2mwecwG4Crk5HBo=
 github.com/bsm/ginkgo/v2 v2.12.0 h1:Ny8MWAHyOepLGlLKYmXG4IEkioBysk6GpaRTLC8zwWs=
 github.com/bsm/ginkgo/v2 v2.12.0/go.mod h1:SwYbGRRDovPVboqFv0tPTcG1sN61LM1Z4ARdbAV9g4c=
 github.com/bsm/gomega v1.27.10 h1:yeMWxP2pV2fG3FgAODIY8EiRE3dy0aeFYt4l7wh6yKA=

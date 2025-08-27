@@ -7,7 +7,7 @@ toolchain go1.24.5
 require (
 	github.com/MicahParks/jwkset v0.9.6
 	github.com/MicahParks/keyfunc/v3 v3.6.1
-	github.com/a-h/templ v0.3.943
+	github.com/a-h/templ v0.3.937
 	github.com/exaring/otelpgx v0.9.3
 	github.com/getsentry/sentry-go v0.35.1
 	github.com/go-playground/validator/v10 v10.27.0

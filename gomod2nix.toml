@@ -8,8 +8,8 @@ schema = 3
     version = "v3.6.1"
     hash = "sha256-7gtbvgRVONXZ/J9tDU63vuHSM2tXts9dunvb63gfhpI="
   [mod."github.com/a-h/templ"]
-    version = "v0.3.943"
-    hash = "sha256-1lqdcz0q13m8rNKFXp84kP69q8c5WHXNGhUklK6XUDk="
+    version = "v0.3.937"
+    hash = "sha256-JS/9MbOdMB44UOianP8GE0cg25wXn2NxCMKstw7pj6Y="
   [mod."github.com/cenkalti/backoff/v5"]
     version = "v5.0.3"
     hash = "sha256-bKq43PPD8RM6e7HePxHaO27traqm76bkvHcTVTQ+jeY="

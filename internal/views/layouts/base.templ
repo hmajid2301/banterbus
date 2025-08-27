@@ -22,7 +22,10 @@ templ Base(languages map[string]string, environment string) {
 					window.addEventListener("load", () => {
 						navigator.serviceWorker.register("/static/js/sw.js").then(
 							(registration) => {
-								console.log("ServiceWorker registration successful with scope: ", registration.scope);
+								console.log(
+									"ServiceWorker registration successful with scope: ",
+									registration.scope,
+								);
 							},
 							(err) => {
 								console.log("ServiceWorker registration failed: ", err);
@@ -66,34 +69,40 @@ templ Base(languages map[string]string, environment string) {
 		@sentryLoad(environment)
 		@sentryTracingSetup()
 		<script defer>
-            htmx.on("htmx:wsBeforeMessage", (evt) => {
-                try {
-                    const {message, type} = JSON.parse(event.detail.message);
-                    window.toast(message, type);
-                    if (type === "failure") {
-                        console.log(message);
-                        Sentry.captureException(message, {
-                           extra: {
-                             context: "User action failed",
-                           },
-                       });
-                    }
-                } catch (err) {
-                  Sentry.captureException(err, {
-                     extra: {
-                       context: "Failed to parse or handle message",
-                       rawMessage: event.detail.message,
-                     },
-                  });
-                }
-            });
-        </script>
+			htmx.on("htmx:wsBeforeMessage", (evt) => {
+				try {
+					const { message, type } = JSON.parse(event.detail.message);
+					window.toast(message, type);
+					if (type === "failure") {
+						console.log(message);
+						Sentry.captureException(message, {
+							extra: {
+								context: "User action failed",
+							},
+						});
+					}
+				} catch (err) {
+					Sentry.captureException(err, {
+						extra: {
+							context: "Failed to parse or handle message",
+							rawMessage: event.detail.message,
+						},
+					});
+				}
+			});
+		</script>
 		if environment == "prod" {
 			<script defer data-domain="banterbus.games" src="https://plausible.haseebmajid.dev/js/script.file-downloads.hash.outbound-links.pageview-props.tagged-events.js"></script>
 		} else {
 			<script defer data-domain="dev.banterbus.games" src="https://plausible.haseebmajid.dev/js/script.file-downloads.hash.outbound-links.pageview-props.tagged-events.js"></script>
 		}
-		<script>window.plausible = window.plausible || function() { (window.plausible.q = window.plausible.q || []).push(arguments) }</script>
+		<script>
+			window.plausible =
+				window.plausible ||
+				function () {
+					(window.plausible.q = window.plausible.q || []).push(arguments);
+				};
+		</script>
 	</html>
 }
 
@@ -103,15 +112,17 @@ templ traceDebugInfo() {
 		<div class="mt-1 text-xs text-gray-300">Click to copy</div>
 	</div>
 	<script>
-		document.getElementById('trace-debug').addEventListener('click', () => {
-			const traceId = document.getElementById('current-trace-id').textContent;
-			if (traceId && traceId !== 'Loading...') {
+		document.getElementById("trace-debug").addEventListener("click", () => {
+			const traceId = document.getElementById("current-trace-id").textContent;
+			if (traceId && traceId !== "Loading...") {
 				navigator.clipboard.writeText(traceId);
 				// Show brief feedback
-				const originalText = document.getElementById('current-trace-id').textContent;
-				document.getElementById('current-trace-id').textContent = 'Copied!';
+				const originalText =
+					document.getElementById("current-trace-id").textContent;
+				document.getElementById("current-trace-id").textContent = "Copied!";
 				setTimeout(() => {
-					document.getElementById('current-trace-id').textContent = originalText;
+					document.getElementById("current-trace-id").textContent =
+						originalText;
 				}, 1000);
 			}
 		});

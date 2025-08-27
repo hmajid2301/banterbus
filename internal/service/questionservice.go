@@ -24,9 +24,9 @@ func (q QuestionService) Add(
 	group string,
 	roundType string,
 ) (Question, error) {
-	// TODO: do not hardcode game name here
+	const gameName = "fibbing_it" // TODO: make this configurable
 	u, err := q.store.CreateQuestion(ctx, db.CreateQuestionArgs{
-		GameName:  "fibbing_it",
+		GameName:  gameName,
 		GroupName: group,
 		RoundType: roundType,
 		Text:      text,
