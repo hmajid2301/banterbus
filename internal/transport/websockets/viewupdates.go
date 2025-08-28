@@ -19,7 +19,6 @@ type Toast struct {
 	Type    string `json:"type"`
 }
 
-// TODO: rename these funcs
 func (s *Subscriber) updateClientsAboutLobby(ctx context.Context, lobby service.Lobby) error {
 	var buf bytes.Buffer
 	for _, player := range lobby.Players {
@@ -125,7 +124,6 @@ func (s *Subscriber) updateClientsAboutReveal(ctx context.Context, revealState s
 func (s *Subscriber) updateClientsAboutScore(ctx context.Context, scoreState service.ScoreState) error {
 	var buf bytes.Buffer
 
-	// TODO: should this be moved else where?
 	maxScore := 0
 	for _, player := range scoreState.Players {
 		if player.Score > maxScore {

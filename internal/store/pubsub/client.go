@@ -2,10 +2,10 @@ package pubsub
 
 import (
 	"context"
+	"fmt"
 	"sync"
 
 	"github.com/gofrs/uuid/v5"
-	"github.com/mdobak/go-xerrors"
 	"github.com/redis/go-redis/extra/redisotel/v9"
 	"github.com/redis/go-redis/v9"
 )
@@ -62,7 +62,7 @@ func (c Client) Close(id uuid.UUID) error {
 	pubsub, ok := c.Subscribers[idStr]
 	if !ok {
 		c.mu.Unlock()
-		return xerrors.New("ID %s not found", id)
+		return fmt.Errorf("ID %s not found", id)
 	}
 
 	// Clean up the subscriber from the map to prevent memory leak

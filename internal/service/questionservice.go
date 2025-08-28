@@ -8,6 +8,10 @@ import (
 	"gitlab.com/hmajid2301/banterbus/internal/store/db"
 )
 
+const (
+	DefaultGameName = "fibbing_it"
+)
+
 type QuestionService struct {
 	store         Storer
 	randomizer    Randomizer
@@ -24,9 +28,8 @@ func (q QuestionService) Add(
 	group string,
 	roundType string,
 ) (Question, error) {
-	const gameName = "fibbing_it" // TODO: make this configurable
 	u, err := q.store.CreateQuestion(ctx, db.CreateQuestionArgs{
-		GameName:  gameName,
+		GameName:  DefaultGameName,
 		GroupName: group,
 		RoundType: roundType,
 		Text:      text,
@@ -88,7 +91,8 @@ type GetQuestionFilters struct {
 	Enabled   string
 }
 
-// TODO: fix pagination
+// GetQuestions retrieves questions with filters and pagination
+// TODO: fix pagination - add total count, validate page bounds, improve offset calculation
 func (q QuestionService) GetQuestions(
 	ctx context.Context,
 	filters GetQuestionFilters,
@@ -96,7 +100,7 @@ func (q QuestionService) GetQuestions(
 	pageNum int32,
 ) ([]Question, error) {
 	offset := (pageNum - 1) * limit
-	// TODO: refactor query to include actual names i.e. Locale instead of column1
+	// TODO: refactor query to include actual column names (Locale instead of column1) for better readability
 	qq, err := q.store.GetQuestions(ctx, db.GetQuestionsParams{
 		Column1: filters.Locale,
 		Column2: filters.RoundType,

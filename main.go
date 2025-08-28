@@ -134,7 +134,7 @@ func mainLogic() error {
 		return fmt.Errorf("failed to create redis client: %w", err)
 	}
 
-	rules, err := views.RuleMarkdown()
+	rules, err := views.RuleMarkdown(conf.App.DefaultGame)
 	if err != nil {
 		return fmt.Errorf("failed to convert rules MD to HTML: %w", err)
 	}

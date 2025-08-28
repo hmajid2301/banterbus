@@ -4,10 +4,10 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/gofrs/uuid/v5"
-	"github.com/mdobak/go-xerrors"
 
 	"gitlab.com/hmajid2301/banterbus/internal/service"
 	"gitlab.com/hmajid2301/banterbus/internal/store/db"
@@ -101,6 +101,10 @@ func (j *JoinLobby) Handle(ctx context.Context, client *Client, sub *Subscriber)
 			if err == nil {
 				webSocketErr := sub.websocket.Publish(ctx, client.playerID, component.Bytes())
 				err = errors.Join(err, webSocketErr)
+			} else {
+				// Show the specific reconnection error to the user
+				clientErr := sub.updateClientAboutErr(ctx, client.playerID, err.Error())
+				return errors.Join(clientErr, err)
 			}
 		} else {
 			telemetry.RecordBusinessLogicError(ctx, "join_lobby", err.Error(), telemetry.GameContext{
@@ -146,7 +150,7 @@ func (s *StartGame) Handle(ctx context.Context, client *Client, sub *Subscriber)
 		})
 		errStr := "Failed to start game"
 		clientErr := sub.updateClientAboutErr(ctx, client.playerID, errStr)
-		return xerrors.Append(clientErr, err)
+		return errors.Join(clientErr, err)
 	}
 
 	telemetry.AddGameStateTransition(ctx, "Created", "Playing", "host_start", &questionState.GameStateID)
@@ -184,7 +188,7 @@ func (k *KickPlayer) Handle(ctx context.Context, client *Client, sub *Subscriber
 
 	err = sub.updateClientsAboutLobby(ctx, updatedRoom)
 	if err != nil {
-		return xerrors.New("failed to send kick error message to player", err)
+		return fmt.Errorf("failed to send kick error message to player: %w", err)
 	}
 
 	// TODO: take user back to home page instead of just an error

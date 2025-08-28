@@ -10,7 +10,6 @@ import (
 	"github.com/gofrs/uuid/v5"
 	"github.com/invopop/ctxi18n"
 	"github.com/jackc/pgx/v5/pgtype"
-	"github.com/mdobak/go-xerrors"
 
 	"gitlab.com/hmajid2301/banterbus/internal/store/db"
 )
@@ -96,7 +95,7 @@ func (r *LobbyService) Create(
 
 	err = r.store.CreateRoom(ctx, createRoom)
 	if err != nil {
-		return LobbyCreationResult{}, xerrors.Append(fmt.Errorf("failed to create room"), err)
+		return LobbyCreationResult{}, fmt.Errorf("failed to create room: %w", err)
 	}
 
 	lobby := Lobby{
@@ -148,7 +147,7 @@ func (r *LobbyService) Join(
 	}
 
 	if room.RoomState != db.Created.String() {
-		return LobbyJoinResult{}, xerrors.New("room is not in CREATED state")
+		return LobbyJoinResult{}, errors.New("room is not in CREATED state")
 	}
 
 	playersInRoom, err := r.store.GetAllPlayerByRoomCode(ctx, roomCode)
@@ -211,11 +210,11 @@ func (r *LobbyService) KickPlayer(
 	}
 
 	if room.HostPlayer != playerID {
-		return Lobby{}, playerToKickID, xerrors.New("player is not the host of the room")
+		return Lobby{}, playerToKickID, errors.New("player is not the host of the room")
 	}
 
 	if room.RoomState != db.Created.String() {
-		return Lobby{}, playerToKickID, xerrors.New("room is not in CREATED state")
+		return Lobby{}, playerToKickID, errors.New("room is not in CREATED state")
 	}
 
 	playersInRoom, err := r.store.GetAllPlayersInRoom(ctx, playerID)
@@ -233,7 +232,7 @@ func (r *LobbyService) KickPlayer(
 	}
 
 	if playerToKickID == uuid.Nil {
-		return Lobby{}, playerToKickID, xerrors.New(
+		return Lobby{}, playerToKickID, errors.New(
 			fmt.Sprintf("player with nickname %s not found", playerNicknameToKick),
 		)
 	}
@@ -262,11 +261,11 @@ func (r *LobbyService) Start(
 	}
 
 	if room.HostPlayer != playerID {
-		return QuestionState{}, xerrors.New("player is not the host of the room")
+		return QuestionState{}, errors.New("player is not the host of the room")
 	}
 
 	if room.RoomState != db.Created.String() {
-		return QuestionState{}, xerrors.New("room is not in CREATED state")
+		return QuestionState{}, errors.New("room is not in CREATED state")
 	}
 
 	playersInRoom, err := r.store.GetAllPlayersInRoom(ctx, playerID)
@@ -276,18 +275,18 @@ func (r *LobbyService) Start(
 
 	minimumPlayers := 2
 	if len(playersInRoom) < minimumPlayers {
-		return QuestionState{}, xerrors.New("not enough players to start the game")
+		return QuestionState{}, errors.New("not enough players to start the game")
 	}
 
 	for _, player := range playersInRoom {
 		if !player.IsReady.Bool {
-			return QuestionState{}, xerrors.New("not all players are ready: %s", player.ID)
+			return QuestionState{}, fmt.Errorf("not all players are ready: %s", player.ID)
 		}
 	}
 
-	normalsQuestions, fibberQuestions, err := getQuestions(ctx, r.store, room.GameName, "free_form")
+	normalsQuestions, fibberQuestions, err := getQuestions(ctx, r.store, room.GameName, RoundTypeFreeForm)
 	if err != nil {
-		return QuestionState{}, xerrors.New(err.Error())
+		return QuestionState{}, errors.New(err.Error())
 	}
 
 	randomFibberLoc := r.randomizer.GetFibberIndex(len(playersInRoom))
@@ -348,7 +347,7 @@ func (r *LobbyService) Start(
 		GameStateID: gameStateID,
 		Players:     players,
 		Round:       1,
-		RoundType:   "free_form",
+		RoundType:   RoundTypeFreeForm,
 		Deadline:    timeLeft,
 	}
 	return gameState, nil

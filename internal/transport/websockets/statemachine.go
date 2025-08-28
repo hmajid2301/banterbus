@@ -379,8 +379,7 @@ func (r *RevealState) Start(ctx context.Context) {
 
 	if finalRound || fibberFound {
 		nextState = db.FibbingItScoring
-		// TODO: turn this string into say ROUND_3
-		if revealState.RoundType == "most_likely" {
+		if revealState.RoundType == service.RoundTypeMostLikely {
 			nextState = db.FibbingItWinner
 		}
 	}

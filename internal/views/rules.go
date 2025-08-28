@@ -15,14 +15,15 @@ import (
 
 var Rules embed.FS
 
-func RuleMarkdown() (templ.Component, error) {
+func RuleMarkdown(gameName string) (templ.Component, error) {
 	_, err := fs.ReadDir(Rules, "rules")
 	if err != nil {
 		return templ.ComponentScript{}, err
 	}
 
-	// TODO: do not hardcode to just a single file (more games equals more rules)
-	file, err := Rules.Open("rules/fibbing_it.md")
+	// Support multiple games by using the game name to determine which rules file to load
+	filename := "rules/" + gameName + ".md"
+	file, err := Rules.Open(filename)
 	if err != nil {
 		return templ.ComponentScript{}, err
 	}

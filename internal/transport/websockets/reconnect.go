@@ -4,10 +4,10 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/a-h/templ"
 	"github.com/gofrs/uuid/v5"
-	"github.com/mdobak/go-xerrors"
 	slogctx "github.com/veqryn/slog-context"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
@@ -18,8 +18,6 @@ import (
 	"gitlab.com/hmajid2301/banterbus/internal/telemetry"
 	"gitlab.com/hmajid2301/banterbus/internal/views/sections"
 )
-
-const errStr = "Faled to reconnect to game"
 
 func (s Subscriber) Reconnect(ctx context.Context, playerID uuid.UUID) (bytes.Buffer, error) {
 	tracer := otel.Tracer("banterbus-websocket")
@@ -39,7 +37,11 @@ func (s Subscriber) Reconnect(ctx context.Context, playerID uuid.UUID) (bytes.Bu
 		telemetry.RecordBusinessLogicError(ctx, "get_room_state", err.Error(), telemetry.GameContext{
 			PlayerID: &playerID,
 		})
-		return buf, err
+		// Provide a more user-friendly error message for reconnection failures
+		if err.Error() == "sql: no rows in result set" || err.Error() == "no rows in result set" {
+			return buf, errors.New("You are not currently in any game. Please join a game first.")
+		}
+		return buf, fmt.Errorf("Failed to reconnect to game: %v", err)
 	}
 
 	span.AddEvent("room_state", trace.WithAttributes(attribute.String("room_state", roomState.String())))
@@ -67,7 +69,7 @@ func (s Subscriber) reconnectOnRoomState(
 	case db.Created:
 		lobby, err := s.lobbyService.GetLobby(ctx, playerID)
 		if err != nil {
-			clientErr := s.updateClientAboutErr(ctx, playerID, errStr)
+			clientErr := s.updateClientAboutErr(ctx, playerID, "Failed to reconnect to game")
 			return buf, errors.Join(clientErr, err)
 		}
 
@@ -85,13 +87,13 @@ func (s Subscriber) reconnectOnRoomState(
 			return buf, err
 		}
 	case db.Paused:
-		return buf, xerrors.New("cannot reconnect game to paused game, as this is not implemented")
+		return buf, errors.New("cannot reconnect game to paused game, as this is not implemented")
 	case db.Abandoned:
-		return buf, xerrors.New("cannot reconnect game is abandoned")
+		return buf, errors.New("cannot reconnect game is abandoned")
 	case db.Finished:
-		return buf, xerrors.New("cannot reconnect game is finished")
+		return buf, errors.New("cannot reconnect game is finished")
 	default:
-		return buf, xerrors.New("unknown room state: %s", roomState)
+		return buf, fmt.Errorf("unknown room state: %s", roomState)
 	}
 
 	err = component.Render(ctx, &buf)
@@ -105,7 +107,7 @@ func (s Subscriber) reconnectToPlayingGame(ctx context.Context, playerID uuid.UU
 	var component templ.Component
 	gameState, err := s.roundService.GetGameState(ctx, playerID)
 	if err != nil {
-		clientErr := s.updateClientAboutErr(ctx, playerID, errStr)
+		clientErr := s.updateClientAboutErr(ctx, playerID, "Failed to reconnect to game")
 		return component, errors.Join(clientErr, err)
 	}
 
@@ -113,7 +115,7 @@ func (s Subscriber) reconnectToPlayingGame(ctx context.Context, playerID uuid.UU
 	case db.FibbingITQuestion:
 		question, err := s.roundService.GetQuestionState(ctx, playerID)
 		if err != nil {
-			clientErr := s.updateClientAboutErr(ctx, playerID, errStr)
+			clientErr := s.updateClientAboutErr(ctx, playerID, "Failed to reconnect to game")
 			return component, errors.Join(clientErr, err)
 		}
 
@@ -122,14 +124,14 @@ func (s Subscriber) reconnectToPlayingGame(ctx context.Context, playerID uuid.UU
 	case db.FibbingItVoting:
 		voting, err := s.roundService.GetVotingState(ctx, playerID)
 		if err != nil {
-			clientErr := s.updateClientAboutErr(ctx, playerID, errStr)
+			clientErr := s.updateClientAboutErr(ctx, playerID, "Failed to reconnect to game")
 			return component, errors.Join(clientErr, err)
 		}
 		component = sections.Voting(voting, voting.Players[0])
 	case db.FibbingItRevealRole:
 		reveal, err := s.roundService.GetRevealState(ctx, playerID)
 		if err != nil {
-			clientErr := s.updateClientAboutErr(ctx, playerID, errStr)
+			clientErr := s.updateClientAboutErr(ctx, playerID, "Failed to reconnect to game")
 			return component, errors.Join(clientErr, err)
 		}
 		component = sections.Reveal(reveal)
@@ -141,7 +143,7 @@ func (s Subscriber) reconnectToPlayingGame(ctx context.Context, playerID uuid.UU
 
 		score, err := s.roundService.GetScoreState(ctx, scoring, playerID)
 		if err != nil {
-			clientErr := s.updateClientAboutErr(ctx, playerID, errStr)
+			clientErr := s.updateClientAboutErr(ctx, playerID, "Failed to reconnect to game")
 			return component, errors.Join(clientErr, err)
 		}
 
@@ -156,7 +158,7 @@ func (s Subscriber) reconnectToPlayingGame(ctx context.Context, playerID uuid.UU
 	case db.FibbingItWinner:
 		state, err := s.roundService.GetWinnerState(ctx, playerID)
 		if err != nil {
-			clientErr := s.updateClientAboutErr(ctx, playerID, errStr)
+			clientErr := s.updateClientAboutErr(ctx, playerID, "Failed to reconnect to game")
 			return component, errors.Join(clientErr, err)
 		}
 
@@ -168,7 +170,7 @@ func (s Subscriber) reconnectToPlayingGame(ctx context.Context, playerID uuid.UU
 		}
 		component = sections.Winner(state, maxScore)
 	default:
-		return component, xerrors.New("unknown game state: %s", gameState)
+		return component, fmt.Errorf("unknown game state: %s", gameState)
 	}
 
 	return component, nil

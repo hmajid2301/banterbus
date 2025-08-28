@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/invopop/ctxi18n/i18n"
-	"github.com/mdobak/go-xerrors"
 	"github.com/sethvargo/go-envconfig"
 )
 
@@ -45,6 +44,8 @@ type App struct {
 	Environment      string
 	LogLevel         slog.Level
 	DefaultLocale    i18n.Code
+	DefaultGame      string
+	MaxRounds        int
 	AutoReconnect    bool
 	Retries          int
 	BaseDelay        time.Duration
@@ -82,6 +83,8 @@ type In struct {
 	Host             string `env:"BANTERBUS_WEBSERVER_HOST, default=0.0.0.0"`
 	Port             int    `env:"BANTERBUS_WEBSERVER_PORT, default=8080"`
 	DefaultLocale    string `env:"BANTERBUS_DEFAULT_LOCALE, default=en-GB"`
+	DefaultGame      string `env:"BANTERBUS_DEFAULT_GAME, default=fibbing_it"`
+	MaxRounds        int    `env:"BANTERBUS_MAX_ROUNDS, default=3"`
 	AutoReconnect    bool   `env:"BANTERBUS_AUTO_RECONNECT, default=false"`
 	DisableTelemetry bool   `env:"BANTERBUS_DISABLE_TELEMETRY, default=false"`
 
@@ -138,6 +141,8 @@ func LoadConfig(ctx context.Context) (Config, error) {
 			Environment:      input.Environment,
 			LogLevel:         parseLogLevel(input.LogLevel),
 			DefaultLocale:    i18n.Code(input.DefaultLocale),
+			DefaultGame:      input.DefaultGame,
+			MaxRounds:        input.MaxRounds,
 			AutoReconnect:    input.AutoReconnect,
 			BaseDelay:        time.Millisecond * time.Duration(input.BaseDelay),
 			Retries:          input.Retries,
@@ -162,12 +167,12 @@ func LoadConfig(ctx context.Context) (Config, error) {
 
 func validateServerConfig(cfg In) error {
 	if cfg.Port < 1 || cfg.Port > 65535 {
-		return xerrors.New("expected port to be between 1 and 65535 but received: %d", cfg.Port)
+		return fmt.Errorf("expected port to be between 1 and 65535 but received: %d", cfg.Port)
 	}
 
 	hostIP := net.ParseIP(cfg.Host)
 	if hostIP == nil {
-		return xerrors.New("expected valid IPv4 address but received: %v", hostIP)
+		return fmt.Errorf("expected valid IPv4 address but received: %v", hostIP)
 	}
 
 	return nil

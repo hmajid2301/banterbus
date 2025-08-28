@@ -32,7 +32,7 @@ func TestStateMachine(t *testing.T) {
 	conf, err := config.LoadConfig(ctx)
 	require.NoError(t, err)
 
-	rules, err := views.RuleMarkdown()
+	rules, err := views.RuleMarkdown("fibbing_it")
 	require.NoError(t, err)
 
 	conf.Timings.ShowQuestionScreenFor = time.Millisecond * 1

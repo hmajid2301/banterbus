@@ -18,7 +18,6 @@ import (
 	"github.com/gobwas/ws/wsutil"
 	"github.com/gofrs/uuid/v5"
 	"github.com/invopop/ctxi18n"
-	"github.com/mdobak/go-xerrors"
 	"github.com/redis/go-redis/v9"
 	slogctx "github.com/veqryn/slog-context"
 	"go.opentelemetry.io/otel"
@@ -59,7 +58,7 @@ type TraceContext struct {
 	SpanID  string `json:"spanId"`
 }
 
-var errConnectionClosed = xerrors.New("connection closed")
+var errConnectionClosed = errors.New("connection closed")
 
 func isConnectionError(err error) bool {
 	if err == nil {
@@ -286,14 +285,6 @@ func (s *Subscriber) Subscribe(r *http.Request, w http.ResponseWriter) (err erro
 
 	go s.handleMessages(ctx, cancel, client)
 
-	// TODO: workout what to do with this?
-	// writeTimeout := 10
-	// err = connection.SetWriteDeadline(time.Now().Add(time.Second * time.Duration(writeTimeout)))
-	// if err != nil {
-	// 	s.logger.ErrorContext(ctx, "failed to set timeout", slog.Any("error", err))
-	// 	return err
-	// }
-
 	for {
 		select {
 
@@ -359,7 +350,7 @@ func (s *Subscriber) handleMessages(ctx context.Context, cancel context.CancelFu
 			return
 		default:
 			tracer := otel.Tracer("banterbus-websocket")
-			ctx, _ := tracer.Start(
+			ctx, span := tracer.Start(
 				ctx,
 				"websocket.handle_message",
 				trace.WithSpanKind(trace.SpanKindInternal),
@@ -369,6 +360,7 @@ func (s *Subscriber) handleMessages(ctx context.Context, cancel context.CancelFu
 				),
 			)
 			err := s.handleMessage(ctx, client)
+			span.End()
 			if err != nil {
 				if errors.Is(err, errConnectionClosed) || isConnectionError(err) {
 					s.logger.DebugContext(ctx, "client connection closed, stopping message handler",

@@ -8,6 +8,7 @@ import (
 	"math"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/gofrs/uuid/v5"
@@ -134,9 +135,36 @@ type Question struct {
 func (s *Server) getQuestionsHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	// TODO: validate round_type and group_name
 	roundType := r.URL.Query().Get("round_type")
 	groupName := r.URL.Query().Get("group_name")
+
+	if roundType != "" {
+		validRoundTypes := []string{
+			service.RoundTypeFreeForm,
+			service.RoundTypeMultipleChoice,
+			service.RoundTypeMostLikely,
+		}
+		isValidRoundType := false
+		for _, validType := range validRoundTypes {
+			if roundType == validType {
+				isValidRoundType = true
+				break
+			}
+		}
+		if !isValidRoundType {
+			http.Error(
+				w,
+				"Invalid round_type. Valid values: free_form, multiple_choice, most_likely",
+				http.StatusBadRequest,
+			)
+			return
+		}
+	}
+
+	if groupName != "" && len(strings.TrimSpace(groupName)) == 0 {
+		http.Error(w, "Invalid group_name: cannot be empty or whitespace", http.StatusBadRequest)
+		return
+	}
 	limitQuery := r.URL.Query().Get("limit")
 	pageNumQuery := r.URL.Query().Get("page_num")
 

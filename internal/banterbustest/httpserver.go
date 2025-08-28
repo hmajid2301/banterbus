@@ -17,7 +17,6 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/invopop/ctxi18n"
 	"github.com/invopop/ctxi18n/i18n"
-	"github.com/mdobak/go-xerrors"
 
 	"gitlab.com/hmajid2301/banterbus/internal/config"
 	"gitlab.com/hmajid2301/banterbus/internal/logging"
@@ -70,7 +69,7 @@ func NewTestServer() (*httptest.Server, error) {
 	conf.Timings.ShowRevealScreenFor = time.Second * time.Duration(showScreenFor)
 	conf.App.AutoReconnect = false
 
-	rules, err := views.RuleMarkdown()
+	rules, err := views.RuleMarkdown("fibbing_it")
 	if err != nil {
 		return nil, fmt.Errorf("failed to convert rules MD to HTML: %w", err)
 	}
@@ -86,7 +85,7 @@ func NewTestServer() (*httptest.Server, error) {
 	)
 	err = ctxi18n.LoadWithDefault(views.Locales, "en-GB")
 	if err != nil {
-		return nil, xerrors.New("error loading locales", err)
+		return nil, fmt.Errorf("error loading locales: %w", err)
 	}
 
 	port := 8198

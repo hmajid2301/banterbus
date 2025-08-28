@@ -51,7 +51,6 @@ func (g *GenerateNewAvatar) Handle(ctx context.Context, client *Client, sub *Sub
 	return err
 }
 
-// TODO: join errors in all handlers rather than fmt them
 func (t *TogglePlayerIsReady) Handle(ctx context.Context, client *Client, sub *Subscriber) error {
 	telemetry.AddPlayerActionAttributes(ctx, client.playerID.String(), "toggle_ready", false, false)
 
