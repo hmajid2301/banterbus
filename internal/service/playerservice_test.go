@@ -3,7 +3,6 @@ package service_test
 import (
 	"testing"
 
-	"github.com/gofrs/uuid/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/mdobak/go-xerrors"
 	"github.com/stretchr/testify/assert"
@@ -13,7 +12,8 @@ import (
 	"gitlab.com/hmajid2301/banterbus/internal/store/db"
 )
 
-var playerID = uuid.Must(uuid.FromString("0193a625-dad1-7095-9abb-bebdad739381"))
+// Import constants from lobbyservice_test.go to maintain consistency
+
 var avatarURL = "https://api.dicebear.com/9.x/bottts-neutral/svg?radius=20&seed=randomSeed"
 
 func TestPlayerServiceUpdateNickname(t *testing.T) {

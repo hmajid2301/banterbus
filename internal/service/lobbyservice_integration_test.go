@@ -13,12 +13,6 @@ import (
 	db "gitlab.com/hmajid2301/banterbus/internal/store/db"
 )
 
-var defaultHostPlayerID, _ = uuid.FromString("0193a5e6-50db-7082-b0dd-42d7c88dd3ba")
-var defaultOtherPlayerID, _ = uuid.FromString("0193a5f3-8fbe-7748-89ab-cbd4fe0fb5f1")
-
-const defaultHostNickname = "host_player"
-const defaultOtherPlayerNickname = "another_player"
-
 func TestIntegrationLobbyCreate(t *testing.T) {
 	t.Parallel()
 

@@ -17,26 +17,44 @@ import (
 	"gitlab.com/hmajid2301/banterbus/internal/store/db"
 )
 
-const roomCode = "ABC12"
-const gameName = "fibbing_it"
+var (
+	defaultHostPlayerID        = uuid.Must(uuid.FromString("0193a62a-4dff-774c-850a-b1fe78e2a8d1"))
+	defaultOtherPlayerID       = uuid.Must(uuid.FromString("0193a62a-4dff-774c-850a-b1fe78e2a8d2"))
+	roomID                     = uuid.Must(uuid.FromString("0193a62a-4dff-774c-850a-b1fe78e2a8d3"))
+	roundID                    = uuid.Must(uuid.FromString("0193a62a-4dff-774c-850a-b1fe78e2a8d4"))
+	hostPlayerID               = uuid.Must(uuid.FromString("0193a62a-4dff-774c-850a-b1fe78e2a8d5"))
+	playerID                   = uuid.Must(uuid.FromString("0193a625-dad1-7095-9abb-bebdad739381"))
+	roomCode                   = "ABCD"
+	gameName                   = "fibbing_it"
+	defaultHostNickname        = "Host Player"
+	defaultOtherPlayerNickname = "Other Player"
+)
 
-// Test constants - could be moved to a shared test utilities package if reused widely
-var roomID = uuid.Must(uuid.FromString("0193a627-db9b-7af3-88d8-6b3164d4b969"))
-var hostPlayerID = uuid.Must(uuid.FromString("0193a623-8423-74b3-b991-896d7c6df52a"))
+var (
+	defaultNewPlayer = service.NewPlayer{
+		ID:       defaultHostPlayerID,
+		Nickname: "Host Player",
+		Avatar:   "https://api.dicebear.com/9.x/bottts-neutral/svg?radius=20&seed=Host Player",
+	}
+
+	defaultNewHostPlayer = service.NewHostPlayer{
+		ID:       defaultHostPlayerID,
+		Nickname: "Host Player",
+	}
+)
+
+var hostPlayer = service.NewHostPlayer{
+	ID:       defaultHostPlayerID,
+	Nickname: "test",
+}
+
+var testHostPlayer = service.NewHostPlayer{
+	ID:       defaultHostPlayerID,
+	Nickname: defaultHostNickname,
+}
 
 func TestLobbyServiceCreate(t *testing.T) {
 	t.Parallel()
-
-	defaultNewHostPlayer := service.NewHostPlayer{
-		ID:       uuid.Must(uuid.FromString("0193a626-2586-7784-9b5b-104d927d64ca")),
-		Nickname: "Majiy00",
-	}
-
-	defaultNewPlayer := service.NewPlayer{
-		ID:       defaultNewHostPlayer.ID,
-		Nickname: defaultNewHostPlayer.Nickname,
-		Avatar:   "https://api.dicebear.com/9.x/bottts-neutral/svg?radius=20&seed=Majiy00",
-	}
 
 	t.Run("Should create room successfully", func(t *testing.T) {
 		t.Parallel()

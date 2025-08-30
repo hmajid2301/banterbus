@@ -8,11 +8,11 @@ type CreateRoom struct {
 }
 
 func (c *CreateRoom) Validate() error {
-	if c.GameName == "" {
-		return errors.New("game_name is required")
+	if c.GameName == "" || len(c.GameName) > 50 {
+		return errors.New("game_name is required and must be <= 50 characters")
 	}
-	if c.PlayerNickname == "" {
-		return errors.New("player_nickname is required")
+	if c.PlayerNickname == "" || len(c.PlayerNickname) > 30 {
+		return errors.New("player_nickname is required and must be <= 30 characters")
 	}
 	return nil
 }
@@ -23,11 +23,11 @@ type JoinLobby struct {
 }
 
 func (j *JoinLobby) Validate() error {
-	if j.RoomCode == "" {
-		return errors.New("room_code is required")
+	if j.RoomCode == "" || len(j.RoomCode) > 10 {
+		return errors.New("room_code is required and must be <= 10 characters")
 	}
-	if j.PlayerNickname == "" {
-		return errors.New("player_nickname is required")
+	if j.PlayerNickname == "" || len(j.PlayerNickname) > 30 {
+		return errors.New("player_nickname is required and must be <= 30 characters")
 	}
 	return nil
 }
@@ -48,8 +48,8 @@ type UpdateNickname struct {
 }
 
 func (u *UpdateNickname) Validate() error {
-	if u.PlayerNickname == "" {
-		return errors.New("player_nickname is required")
+	if u.PlayerNickname == "" || len(u.PlayerNickname) > 30 {
+		return errors.New("player_nickname is required and must be <= 30 characters")
 	}
 	return nil
 }

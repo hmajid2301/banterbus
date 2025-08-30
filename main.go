@@ -139,7 +139,7 @@ func mainLogic() error {
 		return fmt.Errorf("failed to convert rules MD to HTML: %w", err)
 	}
 
-	subscriber := websockets.NewSubscriber(lobbyService, playerService, roundService, logger, redisClient, conf, rules)
+	subscriber := websockets.NewSubscriber(lobbyService, playerService, roundService, logger, &redisClient, conf, rules)
 
 	// TODO: should we stop startup if this is failing?
 	storage, err := jwkset.NewStorageFromHTTP(conf.JWT.JWKSURL, jwkset.HTTPClientStorageOptions{Ctx: ctx})

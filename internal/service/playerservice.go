@@ -53,6 +53,10 @@ func (p *PlayerService) UpdateNickname(ctx context.Context, nickname string, pla
 		return Lobby{}, err
 	}
 
+	if len(players) == 0 {
+		return Lobby{}, errors.New("no players found in room")
+	}
+
 	lobby := getLobbyPlayers(players, players[0].RoomCode)
 	return lobby, err
 }
@@ -84,6 +88,10 @@ func (p *PlayerService) GenerateNewAvatar(ctx context.Context, playerID uuid.UUI
 		return Lobby{}, err
 	}
 
+	if len(players) == 0 {
+		return Lobby{}, errors.New("no players found in room")
+	}
+
 	lobby := getLobbyPlayers(players, players[0].RoomCode)
 	return lobby, err
 }
@@ -106,6 +114,10 @@ func (p *PlayerService) TogglePlayerIsReady(ctx context.Context, playerID uuid.U
 	players, err := p.store.GetAllPlayersInRoom(ctx, playerID)
 	if err != nil {
 		return Lobby{}, err
+	}
+
+	if len(players) == 0 {
+		return Lobby{}, errors.New("no players found in room")
 	}
 
 	lobby := getLobbyPlayers(players, players[0].RoomCode)

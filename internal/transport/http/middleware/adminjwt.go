@@ -7,7 +7,7 @@ import (
 )
 
 type MyClaims struct {
-	groups []string
+	Groups []string `json:"groups"`
 	jwt.RegisteredClaims
 }
 
@@ -36,7 +36,7 @@ func (m Middleware) ValidateAdminJWT(next http.Handler) http.Handler {
 		}
 
 		isAdmin := false
-		for _, g := range claims.groups {
+		for _, g := range claims.Groups {
 			if g == m.AdminGroup {
 				isAdmin = true
 			}

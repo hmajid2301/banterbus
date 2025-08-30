@@ -3,6 +3,7 @@ package pubsub
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"sync"
 
 	"github.com/gofrs/uuid/v5"
@@ -34,28 +35,23 @@ func NewRedisClient(address string, retries int) (Client, error) {
 	}, nil
 }
 
-func (c Client) Subscribe(ctx context.Context, id uuid.UUID) <-chan *redis.Message {
-	s := c.Redis.Subscribe(ctx, id.String())
+func (c *Client) Subscribe(ctx context.Context, id uuid.UUID) <-chan *redis.Message {
 	idStr := id.String()
 
 	c.mu.Lock()
-	c.Subscribers[idStr] = s
-	c.mu.Unlock()
+	defer c.mu.Unlock()
 
+	s := c.Redis.Subscribe(ctx, idStr)
+	c.Subscribers[idStr] = s
 	return s.Channel()
 }
 
-func (c Client) Publish(ctx context.Context, id uuid.UUID, msg []byte) error {
+func (c *Client) Publish(ctx context.Context, id uuid.UUID, msg []byte) error {
 	cmd := c.Redis.Publish(ctx, id.String(), msg)
-
-	err := cmd.Err()
-	if err != nil {
-		return err
-	}
-	return nil
+	return cmd.Err()
 }
 
-func (c Client) Close(id uuid.UUID) error {
+func (c *Client) Close(id uuid.UUID) error {
 	idStr := id.String()
 
 	c.mu.Lock()
@@ -65,9 +61,20 @@ func (c Client) Close(id uuid.UUID) error {
 		return fmt.Errorf("ID %s not found", id)
 	}
 
-	// Clean up the subscriber from the map to prevent memory leak
 	delete(c.Subscribers, idStr)
 	c.mu.Unlock()
 
-	return pubsub.Close()
+	// Safely close the pubsub with panic recovery
+	var closeErr error
+	func() {
+		defer func() {
+			if r := recover(); r != nil {
+				closeErr = fmt.Errorf("panic during pubsub close: %v", r)
+				slog.Error("PubSub close panic recovered", "error", r)
+			}
+		}()
+		closeErr = pubsub.Close()
+	}()
+
+	return closeErr
 }

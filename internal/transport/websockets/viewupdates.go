@@ -20,8 +20,8 @@ type Toast struct {
 }
 
 func (s *Subscriber) updateClientsAboutLobby(ctx context.Context, lobby service.Lobby) error {
-	var buf bytes.Buffer
 	for _, player := range lobby.Players {
+		var buf bytes.Buffer
 		component := sections.Lobby(lobby.Code, lobby.Players, player, s.rules)
 		err := component.Render(ctx, &buf)
 		if err != nil {
@@ -68,8 +68,8 @@ func (s *Subscriber) updateClientsAboutQuestion(
 	gameState service.QuestionState,
 	showModal bool,
 ) error {
-	var buf bytes.Buffer
 	for _, player := range gameState.Players {
+		var buf bytes.Buffer
 		component := sections.Question(gameState, player, showModal)
 		err := component.Render(ctx, &buf)
 		if err != nil {
@@ -86,8 +86,8 @@ func (s *Subscriber) updateClientsAboutQuestion(
 }
 
 func (s *Subscriber) updateClientsAboutVoting(ctx context.Context, votingState service.VotingState) error {
-	var buf bytes.Buffer
 	for _, player := range votingState.Players {
+		var buf bytes.Buffer
 		component := sections.Voting(votingState, player)
 		err := component.Render(ctx, &buf)
 		if err != nil {
@@ -104,8 +104,8 @@ func (s *Subscriber) updateClientsAboutVoting(ctx context.Context, votingState s
 }
 
 func (s *Subscriber) updateClientsAboutReveal(ctx context.Context, revealState service.RevealRoleState) error {
-	var buf bytes.Buffer
 	for _, id := range revealState.PlayerIDs {
+		var buf bytes.Buffer
 		component := sections.Reveal(revealState)
 		err := component.Render(ctx, &buf)
 		if err != nil {
@@ -122,8 +122,6 @@ func (s *Subscriber) updateClientsAboutReveal(ctx context.Context, revealState s
 }
 
 func (s *Subscriber) updateClientsAboutScore(ctx context.Context, scoreState service.ScoreState) error {
-	var buf bytes.Buffer
-
 	maxScore := 0
 	for _, player := range scoreState.Players {
 		if player.Score > maxScore {
@@ -132,6 +130,7 @@ func (s *Subscriber) updateClientsAboutScore(ctx context.Context, scoreState ser
 	}
 
 	for _, player := range scoreState.Players {
+		var buf bytes.Buffer
 		component := sections.Score(scoreState, player, maxScore)
 		err := component.Render(ctx, &buf)
 		if err != nil {
@@ -148,8 +147,6 @@ func (s *Subscriber) updateClientsAboutScore(ctx context.Context, scoreState ser
 }
 
 func (s *Subscriber) updateClientsAboutWinner(ctx context.Context, winnerState service.WinnerState) error {
-	var buf bytes.Buffer
-
 	maxScore := 0
 	for _, player := range winnerState.Players {
 		if player.Score > maxScore {
@@ -158,6 +155,7 @@ func (s *Subscriber) updateClientsAboutWinner(ctx context.Context, winnerState s
 	}
 
 	for _, player := range winnerState.Players {
+		var buf bytes.Buffer
 		component := sections.Winner(winnerState, maxScore)
 		err := component.Render(ctx, &buf)
 		if err != nil {

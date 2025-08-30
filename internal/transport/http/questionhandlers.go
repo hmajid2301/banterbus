@@ -111,6 +111,21 @@ func (s *Server) addQuestionTranslationHandler(w http.ResponseWriter, r *http.Re
 	id := r.PathValue("id")
 	locale := r.PathValue("locale")
 
+	// Validate locale parameter to prevent path traversal
+	allowedLocales := []string{"en-GB", "de-DE", "pt-PT"}
+	validLocale := false
+	for _, validLoc := range allowedLocales {
+		if locale == validLoc {
+			validLocale = true
+			break
+		}
+	}
+	if !validLocale {
+		s.Logger.WarnContext(ctx, "invalid locale parameter", slog.String("locale", locale))
+		http.Error(w, "Invalid locale", http.StatusBadRequest)
+		return
+	}
+
 	questionID, err := uuid.FromString(id)
 	if err != nil {
 		s.Logger.ErrorContext(ctx, "failed to parse question UUID", slog.Any("error", err))

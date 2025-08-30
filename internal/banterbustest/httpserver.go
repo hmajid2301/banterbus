@@ -79,7 +79,7 @@ func NewTestServer() (*httptest.Server, error) {
 		playerServicer,
 		roundServicer,
 		logger,
-		redisClient,
+		&redisClient,
 		conf,
 		rules,
 	)

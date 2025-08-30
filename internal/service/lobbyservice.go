@@ -369,6 +369,10 @@ func (r *LobbyService) GetLobby(ctx context.Context, playerID uuid.UUID) (Lobby,
 		return Lobby{}, err
 	}
 
+	if len(players) == 0 {
+		return Lobby{}, errors.New("no players found in room")
+	}
+
 	room := getLobbyPlayers(players, players[0].RoomCode)
 	return room, err
 }

@@ -125,13 +125,6 @@ func TestRoundServiceSubmitAnswer(t *testing.T) {
 		now := time.Now()
 		ctx := t.Context()
 
-		roomID, err := uuid.NewV7()
-		require.NoError(t, err)
-		roundID, err := uuid.NewV7()
-		require.NoError(t, err)
-		playerID, err := uuid.NewV7()
-		require.NoError(t, err)
-
 		mockStore.EXPECT().GetRoomByPlayerID(ctx, playerID).Return(db.Room{
 			ID:        roomID,
 			RoomState: db.Playing.String(),

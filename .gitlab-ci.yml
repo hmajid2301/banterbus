@@ -8,7 +8,7 @@ default:
   interruptible: true
 
 variables:
-  IMAGE_TAG: v0.1.10
+  IMAGE_TAG: v0.1.11
   BANTERBUS_CI_IMAGE: $CI_REGISTRY_IMAGE/ci:$IMAGE_TAG
   BANTERBUS_DB_URI: postgresql://postgres:postgres@docker:5432?sslmode=disable
   DOCKER_HOST: tcp://docker:2375

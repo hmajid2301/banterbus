@@ -81,23 +81,17 @@ RETURNING *;
 -- name: GetAllPlayersInRoom :many
 SELECT
     p.id,
-    p.created_at,
-    p.updated_at,
-    p.avatar,
     p.nickname,
-    p.is_ready,
+    p.avatar,
     p.locale,
-    r.room_code,
-    r.host_player
+    p.is_ready,
+    r.host_player,
+    r.room_code
 FROM players AS p
 JOIN rooms_players AS rp ON p.id = rp.player_id
 JOIN rooms AS r ON rp.room_id = r.id
-WHERE
-    rp.room_id = (
-        SELECT rp_inner.room_id
-        FROM rooms_players AS rp_inner
-        WHERE rp_inner.player_id = $1
-    )
+JOIN rooms_players AS rp_lookup ON rp.room_id = rp_lookup.room_id
+WHERE rp_lookup.player_id = $1
 ORDER BY p.created_at ASC;
 
 -- name: GetAllPlayersByGameStateID :many
@@ -276,33 +270,23 @@ UPDATE fibbing_it_answers SET is_ready = NOT is_ready
 WHERE player_id = $1 RETURNING *;
 
 -- name: GetAllPlayerAnswerIsReady :one
-SELECT
-    COUNT(*)
-    = SUM(CASE WHEN COALESCE(fa.is_ready, FALSE) THEN 1 ELSE 0 END)
-        AS all_players_ready
-FROM rooms_players rp
-LEFT JOIN fibbing_it_answers fa
-    ON fa.player_id = rp.player_id AND fa.round_id = (
-        SELECT fir.id
-        FROM fibbing_it_rounds fir
-        WHERE
-            fir.game_state_id = (
-                SELECT gs.id
-                FROM game_state gs
-                WHERE gs.room_id = rp.room_id
-                ORDER BY gs.created_at DESC
-                LIMIT 1
-            )
-        ORDER BY fir.created_at DESC
-        LIMIT 1
-    )
-JOIN game_state gs ON gs.room_id = rp.room_id
-WHERE rp.room_id = (
-    SELECT room_id
-    FROM rooms_players rp
-    WHERE rp.player_id = $1
+WITH latest_round AS (
+    SELECT
+        fir.id AS round_id,
+        gs.room_id
+    FROM game_state gs
+    JOIN fibbing_it_rounds fir ON fir.game_state_id = gs.id
+    JOIN rooms_players rp_lookup ON gs.room_id = rp_lookup.room_id
+    WHERE rp_lookup.player_id = $1
+    ORDER BY gs.created_at DESC, fir.created_at DESC
     LIMIT 1
-);
+)
+
+SELECT COUNT(rp.*) = SUM(CASE WHEN COALESCE(fa.is_ready, FALSE) THEN 1 ELSE 0 END) AS all_players_ready
+FROM rooms_players rp
+CROSS JOIN latest_round lr
+LEFT JOIN fibbing_it_answers fa ON fa.player_id = rp.player_id AND fa.round_id = lr.round_id
+WHERE rp.room_id = lr.room_id;
 
 -- name: ToggleVotingIsReady :one
 UPDATE fibbing_it_votes SET is_ready = NOT is_ready
@@ -337,6 +321,14 @@ INSERT INTO fibbing_it_scores (id, player_id, score, round_id) VALUES (
 ) RETURNING *;
 
 -- name: GetAllVotesForRoundByGameStateID :many
+WITH latest_round_type AS (
+    SELECT round_type
+    FROM fibbing_it_rounds
+    WHERE game_state_id = $1
+    ORDER BY round DESC
+    LIMIT 1
+)
+
 SELECT
     v.player_id AS voter_id,
     p1.nickname AS voter_nickname,
@@ -350,19 +342,10 @@ FROM fibbing_it_votes v
 JOIN players p1 ON v.player_id = p1.id
 JOIN players p2 ON v.voted_for_player_id = p2.id
 JOIN fibbing_it_rounds fr ON v.round_id = fr.id
-JOIN
-    fibbing_it_player_roles r
-    ON fr.id = r.round_id AND r.player_role = 'fibber'
+JOIN fibbing_it_player_roles r ON fr.id = r.round_id AND r.player_role = 'fibber'
 JOIN players p3 ON r.player_id = p3.id
-WHERE
-    fr.game_state_id = $1
-    AND fr.round_type = (
-        SELECT round_type
-        FROM fibbing_it_rounds
-        WHERE game_state_id = $1
-        ORDER BY round DESC
-        LIMIT 1
-    )
+CROSS JOIN latest_round_type lrt
+WHERE fr.game_state_id = $1 AND fr.round_type = lrt.round_type
 ORDER BY v.round_id DESC;
 
 -- name: GetTotalScoresByGameStateID :many

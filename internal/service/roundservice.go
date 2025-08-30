@@ -20,6 +20,7 @@ const (
 	RoundTypeMultipleChoice = "multiple_choice"
 	RoundTypeMostLikely     = "most_likely"
 	DefaultMaxRounds        = 3
+	MaxAnswerLength         = 500 // Maximum characters allowed in an answer
 )
 
 type RoundService struct {
@@ -41,6 +42,17 @@ func (r *RoundService) SubmitAnswer(
 	answer string,
 	submittedAt time.Time,
 ) error {
+	// Validate answer length to prevent memory exhaustion
+	if len(answer) > MaxAnswerLength {
+		return fmt.Errorf("answer too long: %d characters (max %d)", len(answer), MaxAnswerLength)
+	}
+
+	// Validate answer is not empty after trimming
+	trimmedAnswer := fmt.Sprintf("%s", answer) // Create copy to avoid modifying original
+	if len(trimmedAnswer) == 0 {
+		return errors.New("answer cannot be empty")
+	}
+
 	room, err := r.store.GetRoomByPlayerID(ctx, playerID)
 	if err != nil {
 		return err

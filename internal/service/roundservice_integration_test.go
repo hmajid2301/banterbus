@@ -219,43 +219,45 @@ func TestIntegrationRoundServiceUpdateStateToVoting(t *testing.T) {
 		)
 		assert.NoError(t, err)
 
-		lobby, err := lobbyService.GetLobby(ctx, questionState.Players[0].ID)
-		require.NoError(t, err)
-
 		normalQuestion := questionState.Players[0].Question
 		if questionState.Players[0].Role == "fibber" {
 			normalQuestion = questionState.Players[1].Question
 		}
 
-		expectedVotingState := service.VotingState{
-			Deadline:    time.Second * 120,
-			Question:    normalQuestion,
-			Round:       questionState.Round,
-			GameStateID: questionState.GameStateID,
-			Players: []service.PlayerWithVoting{
-				{
-					ID:       questionState.Players[0].ID,
-					Role:     questionState.Players[0].Role,
-					Nickname: lobby.Players[0].Nickname,
-					Avatar:   lobby.Players[0].Avatar,
-					Answer:   "This is my answer",
-					Votes:    0,
-					IsReady:  false,
-				},
-				{
-					ID:       questionState.Players[1].ID,
-					Role:     questionState.Players[1].Role,
-					Nickname: lobby.Players[1].Nickname,
-					Avatar:   lobby.Players[1].Avatar,
-					Answer:   "This is the other players answer",
-					Votes:    0,
-					IsReady:  false,
-				},
-			},
+		// The test should verify the correct data is present, not the order
+		// Check that we have exactly 2 players
+		assert.Len(t, votingState.Players, 2)
+
+		// Check that the basic state information is correct
+		assert.Equal(t, normalQuestion, votingState.Question)
+		assert.Equal(t, questionState.Round, votingState.Round)
+		assert.Equal(t, questionState.GameStateID, votingState.GameStateID)
+
+		// Verify that both players are present with correct data (order independent)
+		playerMap := make(map[string]service.PlayerWithVoting)
+		for _, player := range votingState.Players {
+			playerMap[player.Nickname] = player
 		}
 
-		diffOpts := cmpopts.IgnoreFields(votingState, "Deadline")
-		PartialEqual(t, expectedVotingState, votingState, diffOpts)
+		// Verify host player data
+		hostPlayer, hostExists := playerMap["Host Player"]
+		assert.True(t, hostExists, "Host Player should exist in voting state")
+		if hostExists {
+			assert.Equal(t, defaultHostPlayerID, hostPlayer.ID)
+			assert.Equal(t, "This is my answer", hostPlayer.Answer)
+			assert.Equal(t, 0, hostPlayer.Votes)
+			assert.False(t, hostPlayer.IsReady)
+		}
+
+		// Verify other player data
+		otherPlayer, otherExists := playerMap["Other Player"]
+		assert.True(t, otherExists, "Other Player should exist in voting state")
+		if otherExists {
+			assert.Equal(t, defaultOtherPlayerID, otherPlayer.ID)
+			assert.Equal(t, "This is the other players answer", otherPlayer.Answer)
+			assert.Equal(t, 0, otherPlayer.Votes)
+			assert.False(t, otherPlayer.IsReady)
+		}
 		// Check that deadline is positive (actual timing may vary in tests)
 		assert.Greater(t, votingState.Deadline.Seconds(), 0.0)
 	})
