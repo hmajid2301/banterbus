@@ -19,11 +19,11 @@ import (
 	"github.com/invopop/ctxi18n/i18n"
 
 	"gitlab.com/hmajid2301/banterbus/internal/config"
-	"gitlab.com/hmajid2301/banterbus/internal/logging"
 	"gitlab.com/hmajid2301/banterbus/internal/service"
 	"gitlab.com/hmajid2301/banterbus/internal/service/randomizer"
 	"gitlab.com/hmajid2301/banterbus/internal/store/db"
 	"gitlab.com/hmajid2301/banterbus/internal/store/pubsub"
+	"gitlab.com/hmajid2301/banterbus/internal/telemetry"
 	transporthttp "gitlab.com/hmajid2301/banterbus/internal/transport/http"
 	"gitlab.com/hmajid2301/banterbus/internal/transport/websockets"
 	"gitlab.com/hmajid2301/banterbus/internal/views"
@@ -124,6 +124,6 @@ func setupLogger() *slog.Logger {
 		return slog.New(handler)
 	}
 
-	logger := logging.New()
+	logger := telemetry.NewLogger()
 	return logger
 }

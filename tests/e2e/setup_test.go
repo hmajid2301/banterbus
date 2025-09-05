@@ -1,34 +1,5 @@
 package e2e
 
-// E2E Test Tracing Guide
-// ======================
-//
-// This package includes built-in support for correlating E2E tests with server logs using trace IDs.
-//
-// How it works:
-// 1. Frontend generates trace IDs and propagates them to backend via HTTP headers and WebSocket messages
-// 2. In test/dev environments, trace IDs are displayed in the top-right corner of each page
-// 3. E2E tests can extract these trace IDs and log them for easy correlation
-// 4. All server logs include the trace_id field, making it easy to filter logs for a specific test
-//
-// Usage in tests:
-//   func TestSomething(t *testing.T) {
-//       pages, err := setupTest(t, 2)
-//       require.NoError(t, err)
-//
-//       // Extract and log trace ID at key points for debugging
-//       logTraceIDForTest(t, pages[0], "After page load")
-//
-//       // ... test actions ...
-//
-//       logTraceIDForTest(t, pages[0], "After game creation")
-//   }
-//
-// Log correlation:
-//   1. Run your E2E test and note the trace ID from the test logs
-//   2. Search server logs for that trace ID to see all related server activity
-//   3. Example: `grep "trace_id\":\"abc123..." server.log`
-
 import (
 	"fmt"
 	"log"
@@ -102,9 +73,8 @@ func beforeAll() error {
 		return fmt.Errorf("could not start browser: %v", err)
 	}
 
-	expect = playwright.NewPlaywrightAssertions(120000) // 2 minutes for CI
+	expect = playwright.NewPlaywrightAssertions(2000)
 
-	// Set webappURL from environment or default to localhost
 	if webappURL == "" {
 		webappURL = "http://localhost:8081"
 	}
@@ -112,7 +82,6 @@ func beforeAll() error {
 	return nil
 }
 
-// sanitizeTestName converts a test name to a filename-safe string
 func sanitizeTestName(testName string) string {
 	reg := regexp.MustCompile(`[<>:"/\\|?*]`)
 	sanitized := reg.ReplaceAllString(testName, "_")
@@ -124,17 +93,6 @@ func sanitizeTestName(testName string) string {
 	}
 
 	return sanitized
-}
-
-func extractTraceIDFromPage(page playwright.Page) (string, error) {
-	traceElement := page.Locator("#current-trace-id")
-	if count, err := traceElement.Count(); err == nil && count > 0 {
-		if traceID, err := traceElement.InnerText(); err == nil && traceID != "" {
-			return traceID, nil
-		}
-	}
-
-	return "", fmt.Errorf("trace ID element not found or empty")
 }
 
 func afterAll() {
@@ -159,7 +117,7 @@ func setupTest(t *testing.T, playerNum int) ([]playwright.Page, error) {
 	for i := range playerNum {
 		tempVideoDir := filepath.Join("videos", "temp", fmt.Sprintf("%s_%d", testName, i))
 		if err := os.MkdirAll(tempVideoDir, 0755); err != nil {
-			return nil, fmt.Errorf("failed to create temp video dir: %v", err)
+			return nil, fmt.Errorf("failed to create temp video dir: %w", err)
 		}
 
 		context, err := browser.NewContext(playwright.BrowserNewContextOptions{
@@ -171,39 +129,39 @@ func setupTest(t *testing.T, playerNum int) ([]playwright.Page, error) {
 			Permissions: []string{"clipboard-read", "clipboard-write"},
 		})
 		if err != nil {
-			return nil, fmt.Errorf("context creation failed: %v", err)
+			return nil, fmt.Errorf("context creation failed: %w", err)
 		}
 		contexts = append(contexts, context)
 
 		page, err := context.NewPage()
 		if err != nil {
-			return nil, fmt.Errorf("page creation failed: %v", err)
+			return nil, fmt.Errorf("page creation failed: %w", err)
 		}
 
-		// Set longer timeout for page operations - increased for CI
-		page.SetDefaultTimeout(120000) // 2 minutes for CI
+		page.SetDefaultTimeout(2000)
 
-		// Navigate to the URL with extended timeout for CI
 		_, err = page.Goto(webappURL, playwright.PageGotoOptions{
 			WaitUntil: playwright.WaitUntilStateDomcontentloaded,
-			Timeout:   playwright.Float(120000), // 2 minutes timeout for CI
 		})
 		if err != nil {
-			return nil, fmt.Errorf("failed to go to URL: %v", err)
+			return nil, fmt.Errorf("failed to go to URL: %w", err)
 		}
 
-		// Wait for page to be fully loaded and interactive
 		err = page.WaitForLoadState(playwright.PageWaitForLoadStateOptions{
-			State:   playwright.LoadStateNetworkidle,
-			Timeout: playwright.Float(60000), // 1 minute for network idle
+			State: playwright.LoadStateNetworkidle,
 		})
 		if err != nil {
-			return nil, fmt.Errorf("failed to wait for page load: %v", err)
+			return nil, fmt.Errorf("failed to wait for page load: %w", err)
 		}
+
+		err = page.Locator(`input[name="test_name"]`).Fill(testName)
+		if err != nil {
+			return nil, fmt.Errorf("failed to set test name: %w", err)
+		}
+
 		pages = append(pages, page)
 	}
 
-	// Setup cleanup that renames video files and extracts trace info
 	t.Cleanup(func() {
 		statusDir := "passed"
 		if t.Failed() {
@@ -211,18 +169,13 @@ func setupTest(t *testing.T, playerNum int) ([]playwright.Page, error) {
 		}
 		finalBaseDir := filepath.Join("videos", statusDir)
 
-		// Extract trace ID from the first page if available
-		var traceID string
-		if len(pages) > 0 {
-			if id, err := extractTraceIDFromPage(pages[0]); err == nil {
-				traceID = id
-				log.Printf("Test %s completed with trace ID: %s", testName, traceID)
-			} else {
-				log.Printf("Failed to extract trace ID from page: %v", err)
-			}
-		}
-
 		for i, context := range contexts {
+			if t.Failed() {
+				screenshotPath := filepath.Join("videos", statusDir, fmt.Sprintf("%s_player_%d.png", testName, i+1))
+				if _, err := pages[i].Screenshot(playwright.PageScreenshotOptions{Path: &screenshotPath}); err != nil {
+					log.Printf("Failed to take screenshot: %v", err)
+				}
+			}
 			if err := context.Close(); err != nil {
 				log.Printf("Context close error: %v", err)
 			}
@@ -256,10 +209,4 @@ func setupTest(t *testing.T, playerNum int) ([]playwright.Page, error) {
 	})
 
 	return pages, nil
-}
-
-func logTraceIDForTest(t *testing.T, page playwright.Page, action string) {
-	if traceID, err := extractTraceIDFromPage(page); err == nil {
-		t.Logf("%s - Test: %s, Trace ID: %s", action, t.Name(), traceID)
-	}
 }

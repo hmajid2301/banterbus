@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 
 	"github.com/a-h/templ"
 	"github.com/gofrs/uuid/v5"
@@ -38,7 +39,9 @@ func (s Subscriber) Reconnect(ctx context.Context, playerID uuid.UUID) (bytes.Bu
 			PlayerID: &playerID,
 		})
 		// Provide a more user-friendly error message for reconnection failures
-		if err.Error() == "sql: no rows in result set" || err.Error() == "no rows in result set" {
+		if errors.Is(err, service.ErrPlayerNotInGame) {
+			s.logger.WarnContext(ctx, "reconnection attempt for player not in any game",
+				slog.String("player_id", playerID.String()))
 			return buf, errors.New("You are not currently in any game. Please join a game first.")
 		}
 		return buf, fmt.Errorf("Failed to reconnect to game: %v", err)

@@ -4,10 +4,10 @@ import (
 	"log/slog"
 	"net/http"
 
-	"github.com/a-h/templ"
-
 	"gitlab.com/hmajid2301/banterbus/internal/views"
 	"gitlab.com/hmajid2301/banterbus/internal/views/pages"
+
+	"github.com/a-h/templ"
 )
 
 // TODO: Simplified handler struct?

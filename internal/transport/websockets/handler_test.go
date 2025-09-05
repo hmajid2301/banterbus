@@ -8,6 +8,7 @@ import (
 )
 
 func TestHandlerChain(t *testing.T) {
+	t.Parallel()
 	handler := func(ctx context.Context, client *Client, sub *Subscriber) error {
 		if ctx.Value("middleware_ran") == nil {
 			t.Error("middleware did not run")
@@ -40,6 +41,7 @@ func TestHandlerChain(t *testing.T) {
 }
 
 func TestHandlerRegistry(t *testing.T) {
+	t.Parallel()
 	testHandler := func(ctx context.Context, client *Client, sub *Subscriber) error {
 		return nil
 	}
@@ -82,6 +84,7 @@ func IsError(err error, target interface{}) bool {
 }
 
 func TestMiddlewareOrder(t *testing.T) {
+	t.Parallel()
 	var order []string
 
 	middleware1 := func(next HandlerFunc) HandlerFunc {

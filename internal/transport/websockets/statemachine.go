@@ -3,6 +3,7 @@ package websockets
 import (
 	"context"
 	"log/slog"
+	"strings"
 	"time"
 
 	"github.com/gofrs/uuid/v5"
@@ -85,9 +86,16 @@ func (q *QuestionState) Start(ctx context.Context) {
 		))
 
 		if err.Error() == "no fibber questions available" || err.Error() == "no normal questions available" {
-			q.Subscriber.logger.WarnContext(
+			q.Subscriber.logger.ErrorContext(
 				ctx,
 				"question availability issue during testing, game likely in cleanup",
+				slog.Any("error", err),
+				slog.String("game_state_id", q.GameStateID.String()),
+			)
+		} else if strings.Contains(err.Error(), "current state: FibbingITQuestion") {
+			q.Subscriber.logger.ErrorContext(
+				ctx,
+				"race condition detected: already in question state, ignoring duplicate transition",
 				slog.Any("error", err),
 				slog.String("game_state_id", q.GameStateID.String()),
 			)

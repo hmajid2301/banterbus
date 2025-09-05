@@ -335,6 +335,20 @@ func AddRoomCodeToBaggage(ctx context.Context, roomCode string) context.Context 
 	return baggage.ContextWithBaggage(ctx, bag)
 }
 
+func AddTestNameToBaggage(ctx context.Context, testName string) context.Context {
+	member, err := baggage.NewMember("test_name", testName)
+	if err != nil {
+		return ctx
+	}
+
+	bag, err := baggage.FromContext(ctx).SetMember(member)
+	if err != nil {
+		return ctx
+	}
+
+	return baggage.ContextWithBaggage(ctx, bag)
+}
+
 func GetPlayerIDFromBaggage(ctx context.Context) *uuid.UUID {
 	bag := baggage.FromContext(ctx)
 	member := bag.Member("player_id")

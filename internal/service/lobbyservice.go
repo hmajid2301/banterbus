@@ -22,6 +22,7 @@ type LobbyService struct {
 
 var ErrNicknameExists = errors.New("nickname already exists in room")
 var ErrPlayerAlreadyInRoom = errors.New("player is already in the room")
+var ErrPlayerNotInGame = errors.New("player is not currently in any game")
 
 func NewLobbyService(store Storer, randomizer Randomizer, defaultLocale string) *LobbyService {
 	return &LobbyService{store: store, randomizer: randomizer, defaultLocale: defaultLocale}
@@ -356,6 +357,9 @@ func (r *LobbyService) Start(
 func (r *LobbyService) GetRoomState(ctx context.Context, playerID uuid.UUID) (db.RoomState, error) {
 	room, err := r.store.GetRoomByPlayerID(ctx, playerID)
 	if err != nil {
+		if err.Error() == "sql: no rows in result set" || err.Error() == "no rows in result set" {
+			return db.Created, ErrPlayerNotInGame
+		}
 		return db.Created, err
 	}
 
@@ -366,6 +370,9 @@ func (r *LobbyService) GetRoomState(ctx context.Context, playerID uuid.UUID) (db
 func (r *LobbyService) GetLobby(ctx context.Context, playerID uuid.UUID) (Lobby, error) {
 	players, err := r.store.GetAllPlayersInRoom(ctx, playerID)
 	if err != nil {
+		if err.Error() == "sql: no rows in result set" || err.Error() == "no rows in result set" {
+			return Lobby{}, ErrPlayerNotInGame
+		}
 		return Lobby{}, err
 	}
 

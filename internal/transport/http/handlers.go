@@ -119,8 +119,10 @@ func (s *Server) setupHTTPRoutes(config ServerConfig, keyfunc jwt.Keyfunc, stati
 		return r.URL.Path != "/health" && r.URL.Path != "/readiness" && !strings.HasPrefix(r.URL.Path, "/static")
 	}
 
-	// Apply logging middleware to the entire router
-	routes := m.Logging(router)
+	// Apply middleware chain to the entire router
+	// IMPORTANT: Tracing must come before Logging so that /ws requests get traced
+	routes := m.Tracing(router)
+	routes = m.Logging(routes)
 
 	handler := otelhttp.NewHandler(
 		routes,

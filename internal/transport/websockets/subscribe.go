@@ -22,6 +22,7 @@ import (
 	slogctx "github.com/veqryn/slog-context"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/baggage"
 	"go.opentelemetry.io/otel/codes"
 	semconv "go.opentelemetry.io/otel/semconv/v1.26.0"
 	"go.opentelemetry.io/otel/trace"
@@ -49,13 +50,20 @@ type Websocketer interface {
 }
 
 type message struct {
-	MessageType string        `json:"message_type"`
-	Trace       *TraceContext `json:"_trace,omitempty"`
+	MessageType string            `json:"message_type"`
+	Headers     map[string]string `json:"HEADERS,omitempty"`
+	Trace       *TraceContext     `json:"_trace,omitempty"`
+	TestContext *TestContext      `json:"test_context,omitempty"`
 }
 
 type TraceContext struct {
 	TraceID string `json:"traceId"`
 	SpanID  string `json:"spanId"`
+}
+
+type TestContext struct {
+	TestName string `json:"testName"`
+	TestID   string `json:"testId"`
 }
 
 var errConnectionClosed = errors.New("connection closed")
@@ -136,7 +144,15 @@ func (s *Subscriber) registerHandlers() {
 }
 
 func (s *Subscriber) Subscribe(r *http.Request, w http.ResponseWriter) (err error) {
-	ctx := context.Background()
+	ctx := r.Context()
+
+	// Extract test name from baggage and add to structured logging context
+	bag := baggage.FromContext(ctx)
+	testNameMember := bag.Member("test_name")
+	if testNameMember.Value() != "" {
+		ctx = slogctx.Append(ctx, "test_name", testNameMember.Value())
+	}
+
 	ctx, cancel := context.WithCancel(ctx)
 	start := time.Now()
 
@@ -152,16 +168,23 @@ func (s *Subscriber) Subscribe(r *http.Request, w http.ResponseWriter) (err erro
 	}()
 
 	tracer := otel.Tracer("banterbus-websocket")
+	spanAttrs := []attribute.KeyValue{
+		semconv.NetworkTransportKey.String("tcp"),
+		semconv.NetworkTypeKey.String("ipv4"),
+		semconv.NetworkProtocolName("websocket"),
+		attribute.String("component", "websocket-subscriber"),
+	}
+
+	// Add test name to span if available in baggage
+	if testNameMember.Value() != "" {
+		spanAttrs = append(spanAttrs, attribute.String("test_name", testNameMember.Value()))
+	}
+
 	ctx, span := tracer.Start(
 		ctx,
 		"websocket.subscribe",
 		trace.WithSpanKind(trace.SpanKindServer),
-		trace.WithAttributes(
-			semconv.NetworkTransportKey.String("tcp"),
-			semconv.NetworkTypeKey.String("ipv4"),
-			semconv.NetworkProtocolName("websocket"),
-			attribute.String("component", "websocket-subscriber"),
-		),
+		trace.WithAttributes(spanAttrs...),
 	)
 
 	locale := s.config.App.DefaultLocale.String()
@@ -359,7 +382,8 @@ func (s *Subscriber) handleMessages(ctx context.Context, cancel context.CancelFu
 					attribute.String("component", "websocket-handler"),
 				),
 			)
-			err := s.handleMessage(ctx, client)
+			var err error
+			ctx, err = s.handleMessage(ctx, client)
 			span.End()
 			if err != nil {
 				if errors.Is(err, errConnectionClosed) || isConnectionError(err) {
@@ -388,26 +412,26 @@ func (s *Subscriber) handleMessages(ctx context.Context, cancel context.CancelFu
 	}
 }
 
-func (s *Subscriber) handleMessage(ctx context.Context, client *Client) error {
+func (s *Subscriber) handleMessage(ctx context.Context, client *Client) (context.Context, error) {
 	start := time.Now()
 	messageStatus := "success"
-	ctx = slogctx.Append(ctx, "player_id", client.playerID)
+	ctx = slogctx.Append(ctx, "player_id", client.playerID.String())
 
 	hdr, r, err := wsutil.NextReader(client.connection, ws.StateServerSide)
 	if err != nil {
 		if err == io.EOF {
-			return errConnectionClosed
+			return ctx, errConnectionClosed
 		} else if opErr, ok := err.(*net.OpError); ok && opErr.Err.Error() == "use of closed network connection" {
-			return errConnectionClosed
+			return ctx, errConnectionClosed
 		} else if isConnectionError(err) {
-			return errConnectionClosed
+			return ctx, errConnectionClosed
 		}
 
-		return fmt.Errorf("failed to get next message: %w", err)
+		return ctx, fmt.Errorf("failed to get next message: %w", err)
 	}
 
 	if hdr.OpCode == ws.OpClose {
-		return errConnectionClosed
+		return ctx, errConnectionClosed
 	}
 
 	span := trace.SpanFromContext(ctx)
@@ -415,7 +439,7 @@ func (s *Subscriber) handleMessage(ctx context.Context, client *Client) error {
 
 	data, err := io.ReadAll(r)
 	if err != nil {
-		return fmt.Errorf("failed to read message: %w", err)
+		return ctx, fmt.Errorf("failed to read message: %w", err)
 	}
 
 	return s.handleMessageData(ctx, client, data, start, messageStatus)
@@ -471,13 +495,15 @@ func (s *Subscriber) handleMessageData(
 	data []byte,
 	start time.Time,
 	messageStatus string,
-) error {
+) (context.Context, error) {
+
 	var message message
 	err := json.Unmarshal(data, &message)
 	s.logger.DebugContext(ctx, "received message", slog.Any("message", message))
+
 	if err != nil {
 		messageStatus = "fail_unmarshal_message"
-		return fmt.Errorf("failed to unmarshal message: %w", err)
+		return ctx, fmt.Errorf("failed to unmarshal message: %w", err)
 	}
 
 	tracer := otel.Tracer("banterbus-websocket")
@@ -497,7 +523,9 @@ func (s *Subscriber) handleMessageData(
 						SpanID:     spanID,
 						TraceFlags: trace.FlagsSampled,
 					})
-					ctx = trace.ContextWithSpanContext(ctx, spanCtx)
+					bag := baggage.FromContext(ctx)
+					ctxWithSpan := trace.ContextWithSpanContext(ctx, spanCtx)
+					ctx = baggage.ContextWithBaggage(ctxWithSpan, bag)
 				}
 			}
 		}
@@ -552,6 +580,27 @@ func (s *Subscriber) handleMessageData(
 		span.SetAttributes(attribute.String("game.player_id", client.playerID.String()))
 	}
 
+	// Extract test name from HEADERS field (HTMX WebSocket extension approach)
+	var testName string
+
+	if message.Headers != nil {
+		if headerTestName, exists := message.Headers["X-Test-Name"]; exists && headerTestName != "" {
+			testName = headerTestName
+		}
+	}
+
+	// Fallback to message-level test context if available
+	if testName == "" && message.TestContext != nil && message.TestContext.TestName != "" {
+		testName = message.TestContext.TestName
+	}
+
+	// Apply test name to context and telemetry if found
+	if testName != "" {
+		ctx = telemetry.AddTestNameToBaggage(ctx, testName)
+		ctx = slogctx.Append(ctx, "test_name", testName)
+		span.SetAttributes(attribute.String("test_name", testName))
+	}
+
 	s.logger.DebugContext(ctx, "handling message", slog.String("message_type", message.MessageType))
 
 	// Add raw JSON data to context for handlers to use
@@ -574,7 +623,7 @@ func (s *Subscriber) handleMessageData(
 				telemetry.RecordValidationError(ctx, message.MessageType, validationErr.Err.Error(), "")
 				webSocketErr := s.updateClientAboutErr(ctx, client.playerID, validationErr.Err.Error())
 				if webSocketErr != nil {
-					return errors.Join(err, webSocketErr)
+					return ctx, errors.Join(err, webSocketErr)
 				}
 			} else {
 				messageStatus = "fail_handler"
@@ -584,10 +633,10 @@ func (s *Subscriber) handleMessageData(
 				})
 			}
 		}
-		return fmt.Errorf("error in handler function: %w", err)
+		return ctx, fmt.Errorf("error in handler function: %w", err)
 	}
 
 	s.logger.DebugContext(ctx, "finished handling request")
 	span.SetStatus(codes.Ok, "handle_message_successful")
-	return nil
+	return ctx, nil
 }

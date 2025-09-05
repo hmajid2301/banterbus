@@ -78,18 +78,6 @@ func (e ErrHandlerNotFound) Error() string {
 	return "handler not found for message type: " + e.MessageType
 }
 
-// Common middleware functions
-
-func ValidationMiddleware[T any](validator func(T) error) MiddlewareFunc {
-	return func(next HandlerFunc) HandlerFunc {
-		return func(ctx context.Context, client *Client, sub *Subscriber) error {
-			// Note: In practice, you'd need to pass the validated data to the handler
-
-			return next(ctx, client, sub)
-		}
-	}
-}
-
 // LoggingMiddleware logs request and response information
 func LoggingMiddleware() MiddlewareFunc {
 	return func(next HandlerFunc) HandlerFunc {
@@ -139,8 +127,6 @@ func (e ErrPanicRecovered) Error() string {
 	return "panic recovered in websocket handler"
 }
 
-// Additional error types
-
 type ErrNoRawJSONData struct{}
 
 func (e ErrNoRawJSONData) Error() string {
@@ -163,7 +149,6 @@ func (e ErrValidation) Error() string {
 	return "validation failed: " + e.Err.Error()
 }
 
-// WSHandlerAdapter converts an existing WSHandler to HandlerFunc - pattern from example usage
 func WSHandlerAdapter[T WSHandler](createHandler func() T) HandlerFunc {
 	return func(ctx context.Context, client *Client, sub *Subscriber) error {
 		rawData, ok := ctx.Value("raw_json").([]byte)
@@ -185,7 +170,6 @@ func WSHandlerAdapter[T WSHandler](createHandler func() T) HandlerFunc {
 	}
 }
 
-// JSONHandlerWrapper creates a generic handler that unmarshals JSON and validates - pattern from example usage
 func JSONHandlerWrapper[T any](
 	handler func(ctx context.Context, client *Client, sub *Subscriber, data T) error,
 	validator func(T) error,

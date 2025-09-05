@@ -88,3 +88,8 @@ tests/e2e/videos/
 coverage/
 
 banterbus
+# Kamal deployment files
+
+# Kamal deployment files
+.env.kamal
+.kamal/secrets.local

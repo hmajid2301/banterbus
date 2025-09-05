@@ -65,18 +65,14 @@ tasks:
     desc: Runs e2e tests with playwright and collects coverage from the running server.
     env:
       SHOW_VOTING_SCREEN_FOR: 10s
-      BANTERBUS_DISABLE_TELEMETRY: true
       GOCOVERDIR: ./coverage/e2e
       RUN_WITH_COVERAGE: true
+      BANTERBUS_ENVIRONMENT: test
       BANTERBUS_WEBSERVER_PORT: 8081
       BANTERBUS_WEBSERVER_HOST: 0.0.0.0
       BANTERBUS_DB_HOST: localhost
-      BANTERBUS_DB_PORT: 5432
       BANTERBUS_DB_USER: postgres
       BANTERBUS_DB_PASSWORD: postgres
-      BANTERBUS_DB_NAME: postgres
-      BANTERBUS_REDIS_HOST: localhost
-      BANTERBUS_REDIS_PORT: 6379
       BANTERBUS_PLAYWRIGHT_URL: http://localhost:8081
       BANTERBUS_PLAYWRIGHT_HEADLESS: true
     cmds:
@@ -85,7 +81,7 @@ tasks:
         concurrently \
           --names "SERVER,TESTS" \
           --success first \
-          "task run" --kill-others \
+          "BANTERBUS_ENVIRONMENT=test task run" --kill-others \
            "until curl -sSf http://localhost:8081/health >/dev/null; do sleep 2; done && \
             gotestsum --format testname --hide-summary=skipped --packages='./tests/e2e' -- \
               -coverprofile coverage/e2e-tests.out \
@@ -100,12 +96,8 @@ tasks:
       BANTERBUS_WEBSERVER_PORT: 8081
       BANTERBUS_WEBSERVER_HOST: 0.0.0.0
       BANTERBUS_DB_HOST: localhost
-      BANTERBUS_DB_PORT: 5432
       BANTERBUS_DB_USER: postgres
       BANTERBUS_DB_PASSWORD: postgres
-      BANTERBUS_DB_NAME: postgres
-      BANTERBUS_REDIS_HOST: localhost
-      BANTERBUS_REDIS_PORT: 6379
     cmds:
       - gotestsum --format dots -- ./tests/e2e/... ${CLI_ARGS}
 

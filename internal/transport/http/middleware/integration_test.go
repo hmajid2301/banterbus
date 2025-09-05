@@ -11,6 +11,7 @@ import (
 )
 
 func TestMiddlewareIntegration(t *testing.T) {
+	t.Parallel()
 	// Create a test middleware that adds a header
 	authMiddleware := func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -117,6 +118,7 @@ func TestMiddlewareIntegration(t *testing.T) {
 }
 
 func TestMiddlewareChainOrder(t *testing.T) {
+	t.Parallel()
 	var order []string
 
 	// Middleware that records execution order
@@ -161,6 +163,7 @@ func TestMiddlewareChainOrder(t *testing.T) {
 }
 
 func TestRealMiddlewareIntegration(t *testing.T) {
+	t.Parallel()
 	// Create a mock logger
 	logger := slog.Default()
 

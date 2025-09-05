@@ -7,6 +7,7 @@ import (
 )
 
 func TestChain(t *testing.T) {
+	t.Parallel()
 	// Create a simple handler
 	finalHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
@@ -56,6 +57,7 @@ func TestChain(t *testing.T) {
 }
 
 func TestGroup(t *testing.T) {
+	t.Parallel()
 	// Create base middleware
 	baseMiddleware := func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -97,6 +99,7 @@ func TestGroup(t *testing.T) {
 }
 
 func TestRouter(t *testing.T) {
+	t.Parallel()
 	// Create base middleware
 	baseMiddleware := func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

@@ -61,6 +61,9 @@
           concurrently
           nodePackages.prettier
 
+          nixpacks
+          kamal
+
           sqlfluff
           rustywind
         ];
@@ -73,14 +76,12 @@
             gum
             attic-client
           ];
-
-        callPackage = pkgs.callPackage;
       in
       rec {
-        packages.default = callPackage ./. {
+        packages.default = pkgs.callPackage ./. {
           inherit (gomod2nix.legacyPackages.${system}) buildGoApplication;
         };
-        devShells.default = callPackage ./shell.nix {
+        devShells.default = pkgs.callPackage ./shell.nix {
           inherit (gomod2nix.legacyPackages.${system}) mkGoEnv gomod2nix;
           inherit pre-commit-hooks;
           inherit devShellPackages;

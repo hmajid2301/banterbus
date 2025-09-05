@@ -34,23 +34,19 @@ func TestE2ERounds(t *testing.T) {
 			require.NoError(t, err)
 		}
 
-		err = fibber.Locator("#submit_answer_form").Locator(`input[name="answer"]`).Fill("I am not a fibber")
+		err = submitAnswerForPlayer(fibber, "I am not a fibber")
 		require.NoError(t, err)
 
-		err = fibber.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Submit Answer"}).Click()
-		require.NoError(t, err)
+		fibber.WaitForTimeout(500)
 
 		err = fibber.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Ready"}).Click()
 		require.NoError(t, err)
 
 		for i, normal := range normals {
-			err = normal.Locator("#submit_answer_form").
-				Locator(`input[name="answer"]`).
-				Fill(fmt.Sprintf("I am a normal player %d", i))
+			err = submitAnswerForPlayer(normal, fmt.Sprintf("I am a normal player %d", i))
 			require.NoError(t, err)
 
-			err = normal.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Submit Answer"}).Click()
-			require.NoError(t, err)
+			normal.WaitForTimeout(500)
 
 			err = normal.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Ready"}).Click()
 			require.NoError(t, err)
@@ -175,23 +171,21 @@ func TestE2ERounds(t *testing.T) {
 		}
 
 		for i := 0; i < 2; i++ {
-			err = fibber.Locator("#submit_answer_form").Locator(`input[name="answer"]`).Fill("I am not a fibber")
+			err = submitAnswerForPlayer(fibber, "I am not a fibber")
 			require.NoError(t, err)
 
-			err = fibber.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Submit Answer"}).Click()
-			require.NoError(t, err)
+			// Wait a bit for the form to process
+			fibber.WaitForTimeout(500)
 
 			err = fibber.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Ready"}).Click()
 			require.NoError(t, err)
 
-			for i, normal := range normals {
-				err = normal.Locator("#submit_answer_form").
-					Locator(`input[name="answer"]`).
-					Fill(fmt.Sprintf("I am a normal player %d", i))
+			for j, normal := range normals {
+				err = submitAnswerForPlayer(normal, fmt.Sprintf("I am a normal player %d", j))
 				require.NoError(t, err)
 
-				err = normal.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Submit Answer"}).Click()
-				require.NoError(t, err)
+				// Wait a bit for the form to process
+				normal.WaitForTimeout(500)
 
 				err = normal.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Ready"}).Click()
 				require.NoError(t, err)

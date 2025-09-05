@@ -153,7 +153,7 @@ func Voting(state service.VotingState, currentPlayer service.PlayerWithVoting) t
 		}
 		for _, player := range state.Players {
 			if currentPlayer.ID.String() != player.ID.String() {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "<div class=\"flex flex-col items-center p-4 rounded-lg border bg-overlay0 border-text2\"><form id=\"vote_for_player\" hx-vals='{\"message_type\": \"submit_vote\" }' ws-send><button class=\"flex flex-col items-center cursor-pointer\" aria-label=\"Submit Vote\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "<div class=\"flex flex-col items-center p-4 rounded-lg border bg-overlay0 border-text2\"><form id=\"vote_for_player\" hx-vals='{\"message_type\": \"submit_vote\" }' ws-send><button type=\"submit\" hx-include=\"this\" class=\"flex flex-col items-center cursor-pointer\" aria-label=\"Submit Vote\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -265,7 +265,7 @@ func Voting(state service.VotingState, currentPlayer service.PlayerWithVoting) t
 				}
 				return nil
 			})
-			templ_7745c5c3_Err = components.Button(components.ButtonProps{TextColor: "text-black", BackgroundColor: "bg-text2"}, templ.Attributes{}).Render(templ.WithChildren(ctx, templ_7745c5c3_Var15), templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = components.Button(components.ButtonProps{TextColor: "text-black", BackgroundColor: "bg-text2"}, templ.Attributes{"type": "submit", "hx-include": "this"}).Render(templ.WithChildren(ctx, templ_7745c5c3_Var15), templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -293,7 +293,7 @@ func Voting(state service.VotingState, currentPlayer service.PlayerWithVoting) t
 				}
 				return nil
 			})
-			templ_7745c5c3_Err = components.Button(components.ButtonProps{}, templ.Attributes{}).Render(templ.WithChildren(ctx, templ_7745c5c3_Var17), templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = components.Button(components.ButtonProps{}, templ.Attributes{"type": "submit", "hx-include": "this"}).Render(templ.WithChildren(ctx, templ_7745c5c3_Var17), templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

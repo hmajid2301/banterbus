@@ -1,7 +1,6 @@
 package service_test
 
 import (
-	"context"
 	"errors"
 	"strings"
 	"testing"
@@ -25,11 +24,10 @@ func TestAnswerLengthValidation(t *testing.T) {
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
-		ctx := context.Background()
+		ctx := t.Context()
 		playerID, err := uuid.NewV7()
 		require.NoError(t, err)
 
-		// Create an answer that exceeds the 500 character limit
 		longAnswer := strings.Repeat("a", 501)
 
 		err = srv.SubmitAnswer(ctx, playerID, longAnswer, time.Now())
@@ -45,23 +43,17 @@ func TestAnswerLengthValidation(t *testing.T) {
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
-		ctx := context.Background()
+		ctx := t.Context()
 		playerID, err := uuid.NewV7()
 		require.NoError(t, err)
 
-		// Create an answer that is exactly at the limit
 		validAnswer := strings.Repeat("a", 500)
 
-		// Mock the expected database calls to simulate a valid game state
-		// The service will call GetRoomByPlayerID first
 		mockStore.EXPECT().GetRoomByPlayerID(ctx, playerID).Return(
-			// Return an error to fail the test after validation passes
-			// This proves that validation logic completed successfully
 			db.Room{}, errors.New("simulated db error"))
 
 		err = srv.SubmitAnswer(ctx, playerID, validAnswer, time.Now())
 
-		// The error should be our simulated DB error, NOT about length validation
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "simulated db error")
 		assert.NotContains(t, err.Error(), "answer too long")
@@ -73,7 +65,7 @@ func TestAnswerLengthValidation(t *testing.T) {
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
-		ctx := context.Background()
+		ctx := t.Context()
 		playerID, err := uuid.NewV7()
 		require.NoError(t, err)
 

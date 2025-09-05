@@ -55,7 +55,7 @@ func Base(languages map[string]string, environment string) templ.Component {
 			return templ_7745c5c3_Err
 		}
 		if environment == "test" || environment == "development" {
-			templ_7745c5c3_Err = traceDebugInfo().Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = testNameInput().Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -76,34 +76,22 @@ func Base(languages map[string]string, environment string) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "</div></div></div></div></section></div></body><script src=\"/static/js/htmx.min.js\"></script><script src=\"/static/js/htmx.ws.js\"></script><script src=\"/static/js/alpine.min.js\"></script><script src=\"https://js.sentry-cdn.com/032c389ec88919d78c2f7b515d85401c.min.js\" crossorigin=\"anonymous\"></script>")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = sentryLoad(environment).Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = sentryTracingSetup().Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "<script defer>\n\t\t\thtmx.on(\"htmx:wsBeforeMessage\", (evt) => {\n\t\t\t\ttry {\n\t\t\t\t\tconst { message, type } = JSON.parse(event.detail.message);\n\t\t\t\t\twindow.toast(message, type);\n\t\t\t\t\tif (type === \"failure\") {\n\t\t\t\t\t\tconsole.log(message);\n\t\t\t\t\t\tSentry.captureException(message, {\n\t\t\t\t\t\t\textra: {\n\t\t\t\t\t\t\t\tcontext: \"User action failed\",\n\t\t\t\t\t\t\t},\n\t\t\t\t\t\t});\n\t\t\t\t\t}\n\t\t\t\t} catch (err) {\n\t\t\t\t\tSentry.captureException(err, {\n\t\t\t\t\t\textra: {\n\t\t\t\t\t\t\tcontext: \"Failed to parse or handle message\",\n\t\t\t\t\t\t\trawMessage: event.detail.message,\n\t\t\t\t\t\t},\n\t\t\t\t\t});\n\t\t\t\t}\n\t\t\t});\n\t\t</script>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "</div></div></div></div></section></div></body><script src=\"/static/js/htmx.min.js\"></script><script src=\"/static/js/htmx.ws.js\"></script><script src=\"/static/js/alpine.min.js\" defer></script><script src=\"/static/js/toast.js\"></script><script>\n\t\t\thtmx.on(\"htmx:wsConfigSend\", (evt) => {\n\t\t\t\tconst testNameInput = document.querySelector('input[name=\"test_name\"]');\n\t\t\t\tif (testNameInput && testNameInput.value) {\n\t\t\t\t\tevt.detail.headers = evt.detail.headers || {};\n\t\t\t\t\tevt.detail.headers[\"X-Test-Name\"] = testNameInput.value;\n\t\t\t\t}\n\t\t\t});\n\n\t\t\thtmx.on(\"htmx:wsBeforeMessage\", (evt) => {\n\t\t\t\ttry {\n\t\t\t\t\tconst { message, type } = JSON.parse(event.detail.message);\n\t\t\t\t\twindow.toast(message, type);\n\t\t\t\t\tif (type === \"failure\") {\n\t\t\t\t\t\tconsole.log(message);\n\t\t\t\t\t\tSentry.captureException(message, {\n\t\t\t\t\t\t\textra: {\n\t\t\t\t\t\t\t\tcontext: \"User action failed\",\n\t\t\t\t\t\t\t},\n\t\t\t\t\t\t});\n\t\t\t\t\t}\n\t\t\t\t} catch (err) {\n\t\t\t\t\tSentry.captureException(err, {\n\t\t\t\t\t\textra: {\n\t\t\t\t\t\t\tcontext: \"Failed to parse or handle message\",\n\t\t\t\t\t\t\trawMessage: event.detail.message,\n\t\t\t\t\t\t},\n\t\t\t\t\t});\n\t\t\t\t}\n\t\t\t});\n\t\t</script>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		if environment == "prod" {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "<script defer data-domain=\"banterbus.games\" src=\"https://plausible.haseebmajid.dev/js/script.file-downloads.hash.outbound-links.pageview-props.tagged-events.js\"></script>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "<script defer data-domain=\"banterbus.games\" src=\"https://plausible.haseebmajid.dev/js/script.file-downloads.hash.outbound-links.pageview-props.tagged-events.js\"></script>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		} else {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "<script defer data-domain=\"dev.banterbus.games\" src=\"https://plausible.haseebmajid.dev/js/script.file-downloads.hash.outbound-links.pageview-props.tagged-events.js\"></script>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "<script defer data-domain=\"dev.banterbus.games\" src=\"https://plausible.haseebmajid.dev/js/script.file-downloads.hash.outbound-links.pageview-props.tagged-events.js\"></script>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "<script>\n\t\t\twindow.plausible =\n\t\t\t\twindow.plausible ||\n\t\t\t\tfunction () {\n\t\t\t\t\t(window.plausible.q = window.plausible.q || []).push(arguments);\n\t\t\t\t};\n\t\t</script></html>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "<script>\n\t\t\twindow.plausible =\n\t\t\t\twindow.plausible ||\n\t\t\t\tfunction () {\n\t\t\t\t\t(window.plausible.q = window.plausible.q || []).push(arguments);\n\t\t\t\t};\n\t\t</script></html>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -111,7 +99,7 @@ func Base(languages map[string]string, environment string) templ.Component {
 	})
 }
 
-func traceDebugInfo() templ.Component {
+func testNameInput() templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -132,136 +120,12 @@ func traceDebugInfo() templ.Component {
 			templ_7745c5c3_Var3 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "<div id=\"trace-debug\" class=\"fixed top-0 right-0 z-50 p-2 font-mono text-xs text-white bg-black bg-opacity-50 rounded-bl\"><div>Frontend Trace ID: <span id=\"current-trace-id\" class=\"font-bold text-yellow-300\">Loading...</span></div><div class=\"mt-1 text-xs text-gray-300\">Click to copy</div></div><script>\n\t\tdocument.getElementById(\"trace-debug\").addEventListener(\"click\", () => {\n\t\t\tconst traceId = document.getElementById(\"current-trace-id\").textContent;\n\t\t\tif (traceId && traceId !== \"Loading...\") {\n\t\t\t\tnavigator.clipboard.writeText(traceId);\n\t\t\t\t// Show brief feedback\n\t\t\t\tconst originalText =\n\t\t\t\t\tdocument.getElementById(\"current-trace-id\").textContent;\n\t\t\t\tdocument.getElementById(\"current-trace-id\").textContent = \"Copied!\";\n\t\t\t\tsetTimeout(() => {\n\t\t\t\t\tdocument.getElementById(\"current-trace-id\").textContent =\n\t\t\t\t\t\toriginalText;\n\t\t\t\t}, 1000);\n\t\t\t}\n\t\t});\n\t</script>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "<div id=\"test-name-input\" class=\"fixed right-0 top-12 z-50 p-2 font-mono text-xs text-white bg-blue-900 bg-opacity-80 rounded-bl\"><div class=\"flex flex-col space-y-2\"><label for=\"test-name-field\" class=\"text-xs text-gray-200\">Test Name:</label> <input type=\"text\" name=\"test_name\" placeholder=\"Enter test name...\" class=\"py-1 px-2 text-xs text-black bg-white rounded border\"></div></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		return nil
 	})
-}
-
-func sentryTracingSetup() templ.ComponentScript {
-	return templ.ComponentScript{
-		Name: `__templ_sentryTracingSetup_7c59`,
-		Function: `function __templ_sentryTracingSetup_7c59(){window.sentryTracing = {
-    getCurrentTransaction() {
-      return Sentry.getCurrentHub().getScope()?.getTransaction();
-    },
-    
-    getTraceId() {
-      const transaction = this.getCurrentTransaction();
-      return transaction?.traceId || null;
-    },
-    
-    getSpanId() {
-      const transaction = this.getCurrentTransaction();
-      return transaction?.spanId || null;
-    },
-    
-    addTraceToWebSocketMessage(data) {
-      if (typeof data === 'string') {
-        try {
-          const message = JSON.parse(data);
-          const traceId = this.getTraceId();
-          const spanId = this.getSpanId();
-          if (traceId && spanId) {
-            message._trace = { traceId, spanId };
-          }
-          return JSON.stringify(message);
-        } catch (e) {
-          return data;
-        }
-      }
-      return data;
-    },
-    
-    setGameContext(playerId, roomCode) {
-      Sentry.configureScope((scope) => {
-        if (playerId) scope.setTag("player_id", playerId);
-        if (roomCode) scope.setTag("room_code", roomCode);
-      });
-    },
-    
-    updateDebugUI() {
-      const traceElement = document.getElementById('current-trace-id');
-      if (traceElement) {
-        const traceId = this.getTraceId();
-        if (traceId) {
-          traceElement.textContent = traceId;
-        }
-      }
-    }
-  };
-  
-  document.addEventListener('DOMContentLoaded', () => {
-    setTimeout(() => window.sentryTracing.updateDebugUI(), 100);
-    
-    htmx.on('htmx:configRequest', (evt) => {
-      const transaction = Sentry.startTransaction({
-        name: ` + "`" + `${evt.detail.verb} ${evt.detail.path}` + "`" + `,
-        op: 'http.client'
-      });
-      
-      const traceId = transaction.traceId;
-      const spanId = transaction.spanId;
-      
-      if (traceId && spanId) {
-        evt.detail.headers['sentry-trace'] = ` + "`" + `${traceId}-${spanId}-1` + "`" + `;
-        
-        // Build baggage with environment and any available game context
-        let baggageItems = [
-          ` + "`" + `sentry-trace_id=${traceId}` + "`" + `,
-          ` + "`" + `sentry-environment=${document.body.dataset.environment}` + "`" + `
-        ];
-        
-        // Add game context from DOM if available
-        const roomCodeEl = document.querySelector('[data-room-code]');
-        if (roomCodeEl) {
-          baggageItems.push(` + "`" + `room_code=${roomCodeEl.dataset.roomCode}` + "`" + `);
-        }
-        
-        const playerIdEl = document.querySelector('[data-player-id]');
-        if (playerIdEl) {
-          baggageItems.push(` + "`" + `player_id=${playerIdEl.dataset.playerId}` + "`" + `);
-        }
-        
-        evt.detail.headers['baggage'] = baggageItems.join(',');
-      }
-      
-      setTimeout(() => {
-        transaction.finish();
-        window.sentryTracing.updateDebugUI();
-      }, 100);
-    });
-
-    const originalWebSocket = window.WebSocket;
-    window.WebSocket = function(url, protocols) {
-      const ws = new originalWebSocket(url, protocols);
-      
-      const originalSend = ws.send.bind(ws);
-      
-      ws.send = function(data) {
-        const transaction = Sentry.startTransaction({
-          name: 'websocket.send',
-          op: 'websocket.client'
-        });
-        
-        const tracedData = window.sentryTracing.addTraceToWebSocketMessage(data);
-        
-        const result = originalSend(tracedData);
-        transaction.finish();
-        window.sentryTracing.updateDebugUI();
-        
-        return result;
-      };
-      
-      return ws;
-    };
-  });
-}`,
-		Call:       templ.SafeScript(`__templ_sentryTracingSetup_7c59`),
-		CallInline: templ.SafeScriptInline(`__templ_sentryTracingSetup_7c59`),
-	}
 }
 
 func sentryLoad(environment string) templ.ComponentScript {

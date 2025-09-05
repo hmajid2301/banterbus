@@ -8,25 +8,25 @@ import (
 
 	hostMetrics "go.opentelemetry.io/contrib/instrumentation/host"
 	runtimeMetrics "go.opentelemetry.io/contrib/instrumentation/runtime"
+	"go.opentelemetry.io/contrib/processors/minsev"
 	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploghttp"
 	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetrichttp"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
+	"go.opentelemetry.io/otel/log/global"
 	"go.opentelemetry.io/otel/propagation"
+	"go.opentelemetry.io/otel/sdk/log"
 	"go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/resource"
 	"go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.26.0"
 )
 
-func SetupOTelSDK(
+func Setup(
 	ctx context.Context,
 	environment string,
-	disableTelemetry bool,
+	logLevel minsev.Severity,
 ) (shutdown func(context.Context) error, err error) {
-	if disableTelemetry {
-		return func(ctx context.Context) error { return nil }, nil
-	}
-
 	var shutdownFuncs []func(context.Context) error
 
 	shutdown = func(ctx context.Context) error {
@@ -45,7 +45,6 @@ func SetupOTelSDK(
 	prop := newPropagator()
 	otel.SetTextMapPropagator(prop)
 
-	// TODO: use ldflags to make these dynamic
 	res, err := resource.New(
 		ctx,
 		resource.WithHost(),
@@ -69,7 +68,7 @@ func SetupOTelSDK(
 	shutdownFuncs = append(shutdownFuncs, tracerProvider.Shutdown)
 	otel.SetTracerProvider(tracerProvider)
 
-	meterProvider, err := newMeterProvider(ctx, res)
+	meterProvider, err := newMeterProvider(ctx, res, environment)
 	if err != nil {
 		handleErr(err)
 		return shutdown, err
@@ -77,15 +76,15 @@ func SetupOTelSDK(
 
 	shutdownFuncs = append(shutdownFuncs, meterProvider.Shutdown)
 	otel.SetMeterProvider(meterProvider)
-	//
-	// logProvider, err := newLogProvider(ctx, res)
-	// if err != nil {
-	// 	handleErr(err)
-	// 	return shutdown, err
-	// }
-	//
-	// shutdownFuncs = append(shutdownFuncs, logProvider.Shutdown)
-	// global.SetLoggerProvider(logProvider)
+
+	logProvider, err := newLoggerProvider(ctx, res, logLevel)
+	if err != nil {
+		handleErr(err)
+		return shutdown, err
+	}
+
+	shutdownFuncs = append(shutdownFuncs, logProvider.Shutdown)
+	global.SetLoggerProvider(logProvider)
 
 	return shutdown, err
 }
@@ -101,12 +100,9 @@ func newTraceProvider(ctx context.Context, res *resource.Resource, environment s
 	var tracerOptions []trace.TracerProviderOption
 	tracerOptions = append(tracerOptions, trace.WithResource(res))
 
-	// Use no-op exporter for test environment to avoid OTel collector dependency
 	if environment == "test" {
-		// For test environment, we still want tracing enabled but without export
 		tracerOptions = append(tracerOptions, trace.WithSampler(trace.AlwaysSample()))
 	} else {
-		// For non-test environments, use OTLP exporter
 		traceExporter, err := otlptracehttp.New(ctx)
 		if err != nil {
 			return nil, err
@@ -121,37 +117,48 @@ func newTraceProvider(ctx context.Context, res *resource.Resource, environment s
 	return traceProvider, nil
 }
 
-func newMeterProvider(ctx context.Context, res *resource.Resource) (*metric.MeterProvider, error) {
-	metricExporter, err := otlpmetrichttp.New(ctx)
-	if err != nil {
-		return nil, err
+func newMeterProvider(ctx context.Context, res *resource.Resource, environment string) (*metric.MeterProvider, error) {
+	var meterProvider *metric.MeterProvider
+
+	if environment == "test" {
+		meterProvider = metric.NewMeterProvider(metric.WithResource(res))
+	} else {
+		metricExporter, err := otlpmetrichttp.New(ctx)
+		if err != nil {
+			return nil, err
+		}
+
+		reader := metric.NewPeriodicReader(metricExporter, metric.WithProducer(runtimeMetrics.NewProducer()))
+		meterProvider = metric.NewMeterProvider(metric.WithReader(reader), metric.WithResource(res))
+
+		if err = hostMetrics.Start(hostMetrics.WithMeterProvider(meterProvider)); err != nil {
+			return nil, fmt.Errorf("failed to start host metrics: %w", err)
+		}
 	}
 
-	reader := metric.NewPeriodicReader(metricExporter, metric.WithProducer(runtimeMetrics.NewProducer()))
-	meterProvider := metric.NewMeterProvider(metric.WithReader(reader), metric.WithResource(res))
-
-	if err = runtimeMetrics.Start(runtimeMetrics.WithMeterProvider(meterProvider)); err != nil {
-		return nil, fmt.Errorf("failed to start runtime metrics: %v", err)
-	}
-
-	if err = hostMetrics.Start(hostMetrics.WithMeterProvider(meterProvider)); err != nil {
-		return nil, fmt.Errorf("failed to start host metrics: %v", err)
+	if err := runtimeMetrics.Start(runtimeMetrics.WithMeterProvider(meterProvider)); err != nil {
+		return nil, fmt.Errorf("failed to start runtime metrics: %w", err)
 	}
 
 	otel.SetMeterProvider(meterProvider)
 	return meterProvider, nil
 }
 
-// TODO: enable when the slogotel logger has more control over say log level adding source etc
-// func newLogProvider(ctx context.Context, res *resource.Resource) (*log.LoggerProvider, error) {
-// 	logExporter, err := otlploghttp.New(ctx)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-//
-// 	loggerProvider := log.NewLoggerProvider(
-// 		log.WithProcessor(log.NewBatchProcessor(logExporter)),
-// 		log.WithResource(res),
-// 	)
-// 	return loggerProvider, nil
-// }
+func newLoggerProvider(
+	ctx context.Context,
+	res *resource.Resource,
+	logLevel minsev.Severity,
+) (*log.LoggerProvider, error) {
+	exporter, err := otlploghttp.New(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	p := log.NewBatchProcessor(exporter)
+	processor := minsev.NewLogProcessor(p, logLevel)
+	provider := log.NewLoggerProvider(
+		log.WithProcessor(processor),
+		log.WithResource(res),
+	)
+	return provider, nil
+}

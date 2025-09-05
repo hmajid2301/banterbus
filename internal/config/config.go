@@ -3,12 +3,13 @@ package config
 import (
 	"context"
 	"fmt"
-	"log/slog"
 	"net"
+	"strings"
 	"time"
 
 	"github.com/invopop/ctxi18n/i18n"
 	"github.com/sethvargo/go-envconfig"
+	"go.opentelemetry.io/contrib/processors/minsev"
 )
 
 // INFO: we need another struct for actual config values once we've passed the input ones
@@ -41,15 +42,14 @@ type JWT struct {
 }
 
 type App struct {
-	Environment      string
-	LogLevel         slog.Level
-	DefaultLocale    i18n.Code
-	DefaultGame      string
-	MaxRounds        int
-	AutoReconnect    bool
-	Retries          int
-	BaseDelay        time.Duration
-	DisableTelemetry bool
+	Environment   string
+	LogLevel      minsev.Severity
+	DefaultLocale i18n.Code
+	DefaultGame   string
+	MaxRounds     int
+	AutoReconnect bool
+	Retries       int
+	BaseDelay     time.Duration
 }
 
 type Timings struct {
@@ -78,15 +78,14 @@ type In struct {
 	Retries   int `env:"BANTERBUS_RETRIES, default=3"`
 	BaseDelay int `env:"BANTERBUS_BASE_DELAY_IN_MS, default=100"`
 
-	Environment      string `env:"BANTERBUS_ENVIRONMENT, default=production"`
-	LogLevel         string `env:"BANTERBUS_LOG_LEVEL, default=info"`
-	Host             string `env:"BANTERBUS_WEBSERVER_HOST, default=0.0.0.0"`
-	Port             int    `env:"BANTERBUS_WEBSERVER_PORT, default=8080"`
-	DefaultLocale    string `env:"BANTERBUS_DEFAULT_LOCALE, default=en-GB"`
-	DefaultGame      string `env:"BANTERBUS_DEFAULT_GAME, default=fibbing_it"`
-	MaxRounds        int    `env:"BANTERBUS_MAX_ROUNDS, default=3"`
-	AutoReconnect    bool   `env:"BANTERBUS_AUTO_RECONNECT, default=false"`
-	DisableTelemetry bool   `env:"BANTERBUS_DISABLE_TELEMETRY, default=false"`
+	Environment   string `env:"BANTERBUS_ENVIRONMENT, default=production"`
+	LogLevel      string `env:"BANTERBUS_LOG_LEVEL, default=info"`
+	Host          string `env:"BANTERBUS_WEBSERVER_HOST, default=0.0.0.0"`
+	Port          int    `env:"BANTERBUS_WEBSERVER_PORT, default=8080"`
+	DefaultLocale string `env:"BANTERBUS_DEFAULT_LOCALE, default=en-GB"`
+	DefaultGame   string `env:"BANTERBUS_DEFAULT_GAME, default=fibbing_it"`
+	MaxRounds     int    `env:"BANTERBUS_MAX_ROUNDS, default=3"`
+	AutoReconnect bool   `env:"BANTERBUS_AUTO_RECONNECT, default=false"`
 
 	JWKSURL    string `env:"BANTERBUS_JWKS_URL"`
 	AdminGroup string `env:"BANTERBUS_JWT_ADMIN_GROUP"`
@@ -138,15 +137,14 @@ func LoadConfig(ctx context.Context) (Config, error) {
 			AdminGroup: input.AdminGroup,
 		},
 		App: App{
-			Environment:      input.Environment,
-			LogLevel:         parseLogLevel(input.LogLevel),
-			DefaultLocale:    i18n.Code(input.DefaultLocale),
-			DefaultGame:      input.DefaultGame,
-			MaxRounds:        input.MaxRounds,
-			AutoReconnect:    input.AutoReconnect,
-			BaseDelay:        time.Millisecond * time.Duration(input.BaseDelay),
-			Retries:          input.Retries,
-			DisableTelemetry: input.DisableTelemetry,
+			Environment:   input.Environment,
+			LogLevel:      parseLogLevel(input.LogLevel),
+			DefaultLocale: i18n.Code(input.DefaultLocale),
+			DefaultGame:   input.DefaultGame,
+			MaxRounds:     input.MaxRounds,
+			AutoReconnect: input.AutoReconnect,
+			BaseDelay:     time.Millisecond * time.Duration(input.BaseDelay),
+			Retries:       input.Retries,
 		},
 		Timings: Timings{
 			ShowQuestionScreenFor:   input.ShowQuestionScreenFor,
@@ -178,17 +176,17 @@ func validateServerConfig(cfg In) error {
 	return nil
 }
 
-func parseLogLevel(logLevel string) slog.Level {
-	switch logLevel {
+func parseLogLevel(logLevel string) minsev.Severity {
+	switch strings.ToLower(logLevel) {
 	case "debug":
-		return slog.LevelDebug
+		return minsev.SeverityDebug
 	case "info":
-		return slog.LevelInfo
+		return minsev.SeverityInfo
 	case "warn":
-		return slog.LevelWarn
+		return minsev.SeverityWarn
 	case "error":
-		return slog.LevelError
+		return minsev.SeverityError
 	default:
-		return slog.LevelInfo
+		return minsev.SeverityInfo
 	}
 }

@@ -477,7 +477,7 @@ func TestIntegrationLobbyGetRoomState(t *testing.T) {
 		require.NoError(t, err)
 
 		_, err = srv.GetRoomState(ctx, uuid.Must(uuid.NewV4()))
-		assert.ErrorContains(t, err, "no rows in result set")
+		assert.ErrorContains(t, err, "player is not currently in any game")
 	})
 }
 

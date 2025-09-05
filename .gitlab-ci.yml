@@ -129,20 +129,6 @@ stages:
   script:
     - task docker:publish
 
-.k8s_deploy:
-  stage: deploy
-  image:
-    name: ghcr.io/fluxcd/flux-cli:v2.4.0
-    entrypoint: ['']
-  timeout: 10m
-  script:
-    - IMAGE=$(cat image_name.txt)
-    - echo "Trying to deploy this image to pod" $IMAGE
-    - kubectl config use-context hmajid2301/k3s-config:ms01
-    - flux reconcile image repository banterbus
-    - kubectl wait --for=jsonpath='{.spec.template.spec.containers[0].image}'="$(cat image_name.txt)" deployment/banterbus -n $NAMESPACE --timeout=600s
-    - kubectl wait --for=condition=available --timeout=600s deployment/banterbus -n $NAMESPACE
-
 
 publish:docker:ci:
   stage: pre
@@ -216,7 +202,7 @@ test:e2e:
     - .test
   variables:
     BANTERBUS_LOG_LEVEL: INFO
-    BANTERBUS_ENVIRONMENT: test
+    BANTERBUS_ENVIRONMENT: ci-test
     BANTERBUS_REDIS_ADDRESS: docker:6379
     BANTERBUS_DB_HOST: docker
     BANTERBUS_DB_PORT: 5432
@@ -225,13 +211,15 @@ test:e2e:
     BANTERBUS_DB_NAME: banterbus
     BANTERBUS_JWKS_URL: http://docker:9091/default/jwks
     BANTERBUS_PLAYWRIGHT_HEADLESS: true
-    # Enable telemetry for trace IDs but no export needed (test environment uses no-op exporter)
-    BANTERBUS_DISABLE_TELEMETRY: false
     GOCOVERDIR: $CI_PROJECT_DIR/coverage/e2e
     SHOW_VOTING_SCREEN_FOR: 10s
     RUN_WITH_COVERAGE: true
     BANTERBUS_PORT: 8080
     BANTERBUS_HOST: 0.0.0.0
+    OTEL_EXPORTER_OTLP_ENDPOINT: https://otel-collector.haseebmajid.dev
+    OTEL_SERVICE_NAME: banterbus
+    OTEL_SERVICE_VERSION: $CI_COMMIT_SHA
+    OTEL_RESOURCE_ATTRIBUTES: deployment.environment=ci,service.namespace=e2e-tests,ci.job_id=$CI_JOB_ID,ci.pipeline_id=$CI_PIPELINE_ID,ci.commit_sha=$CI_COMMIT_SHA,ci.merge_request_iid=$CI_MERGE_REQUEST_IID
   script:
     - docker compose --profile test up -d --wait
     - task tests:e2e -- ${GOTEST_EXTRA_ARGS}
@@ -280,16 +268,6 @@ publish:docker:dev:
   artifacts:
     paths:
       - image_name.txt
-
-check_deploy:dev:
-  extends: .k8s_deploy
-  rules:
-    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-  variables:
-    NAMESPACE: dev
-  dependencies:
-    - publish:docker:dev
-  allow_failure: true
 
 # smoke:tests:dev:e2e:
 #   extends:
@@ -378,18 +356,6 @@ deploy:prod:
   artifacts:
     paths:
       - image_name.txt
-
-check_deploy:prod:
-  extends: .k8s_deploy
-  rules:
-    - if: $CI_PIPELINE_SOURCE == "schedule"
-      when: never
-    - if: $CI_COMMIT_TAG || $CI_COMMIT_BRANCH == "main"
-  variables:
-    NAMESPACE: prod
-  dependencies:
-    - deploy:prod
-  allow_failure: true
 
 release:
   stage: release

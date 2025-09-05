@@ -1,7 +1,6 @@
 package service_test
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"testing"
@@ -15,7 +14,7 @@ import (
 	"gitlab.com/hmajid2301/banterbus/internal/store/db"
 )
 
-func TestQuestionAdd(t *testing.T) {
+func TestQuestionServiceAdd(t *testing.T) {
 	t.Parallel()
 
 	t.Run("Should successfully add new question", func(t *testing.T) {
@@ -77,7 +76,7 @@ func TestQuestionAdd(t *testing.T) {
 	})
 }
 
-func TestQuestionAddTranslation(t *testing.T) {
+func TestQuestionServiceAddTranslation(t *testing.T) {
 	t.Parallel()
 	var u uuid.UUID
 	var questionID uuid.UUID
@@ -145,7 +144,7 @@ func TestQuestionAddTranslation(t *testing.T) {
 	})
 }
 
-func TestQuestionGetGroups(t *testing.T) {
+func TestQuestionServiceGetGroups(t *testing.T) {
 	t.Parallel()
 	var u uuid.UUID
 
@@ -200,7 +199,7 @@ func TestQuestionGetGroups(t *testing.T) {
 	})
 }
 
-func TestQuestionGetQuestions(t *testing.T) {
+func TestQuestionServiceGetQuestions(t *testing.T) {
 	t.Parallel()
 
 	t.Run("Should successfully get questions", func(t *testing.T) {
@@ -289,7 +288,7 @@ func TestQuestionGetQuestions(t *testing.T) {
 	})
 }
 
-func TestQuestionDisable(t *testing.T) {
+func TestQuestionServiceDisableQuestion(t *testing.T) {
 	t.Parallel()
 
 	t.Run("Should successfully disable question", func(t *testing.T) {
@@ -325,7 +324,7 @@ func TestQuestionDisable(t *testing.T) {
 	})
 }
 
-func TestQuestionEnable(t *testing.T) {
+func TestQuestionServiceEnableQuestion(t *testing.T) {
 	t.Parallel()
 
 	t.Run("Should successfully enable question", func(t *testing.T) {
@@ -334,7 +333,7 @@ func TestQuestionEnable(t *testing.T) {
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewQuestionService(mockStore, mockRandom, "en-GB")
 
-		ctx := context.Background()
+		ctx := t.Context()
 
 		u, err := uuid.NewV7()
 		require.NoError(t, err)
@@ -350,7 +349,7 @@ func TestQuestionEnable(t *testing.T) {
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewQuestionService(mockStore, mockRandom, "en-GB")
 
-		ctx := context.Background()
+		ctx := t.Context()
 
 		u, err := uuid.NewV7()
 		require.NoError(t, err)
@@ -362,7 +361,7 @@ func TestQuestionEnable(t *testing.T) {
 
 }
 
-func TestQuestionAddGroup(t *testing.T) {
+func TestQuestionServiceAddGroup(t *testing.T) {
 	t.Parallel()
 
 	t.Run("Should successfully add new group", func(t *testing.T) {

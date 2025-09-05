@@ -5,9 +5,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"time"
 
 	"github.com/gofrs/uuid/v5"
+	"go.opentelemetry.io/otel/baggage"
+	"go.opentelemetry.io/otel/trace"
 
 	"gitlab.com/hmajid2301/banterbus/internal/service"
 	"gitlab.com/hmajid2301/banterbus/internal/store/db"
@@ -164,11 +167,29 @@ func (s *StartGame) Handle(ctx context.Context, client *Client, sub *Subscriber)
 	}
 
 	go func() {
+		// Use background context for statemachine to prevent cancellation when players disconnect
+		stateCtx := context.Background()
+
+		// Copy baggage and trace info from original context
+		if ctx != nil {
+			if span := trace.SpanFromContext(ctx); span != nil && span.SpanContext().IsValid() {
+				stateCtx = trace.ContextWithSpan(stateCtx, span)
+			}
+			if bag := baggage.FromContext(ctx); bag.Len() > 0 {
+				stateCtx = baggage.ContextWithBaggage(stateCtx, bag)
+				sub.logger.InfoContext(
+					stateCtx,
+					"propagating baggage to statemachine",
+					slog.String("test_name", bag.Member("test_name").Value()),
+				)
+			}
+		}
+
 		q := QuestionState{
 			GameStateID: questionState.GameStateID,
 			Subscriber:  *sub,
 		}
-		q.Start(ctx)
+		q.Start(stateCtx)
 	}()
 	return nil
 }

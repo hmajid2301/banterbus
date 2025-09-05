@@ -27,7 +27,6 @@ import (
 
 	"gitlab.com/hmajid2301/banterbus/internal/banterbustest"
 	"gitlab.com/hmajid2301/banterbus/internal/config"
-	"gitlab.com/hmajid2301/banterbus/internal/logging"
 	"gitlab.com/hmajid2301/banterbus/internal/service"
 	"gitlab.com/hmajid2301/banterbus/internal/service/randomizer"
 	"gitlab.com/hmajid2301/banterbus/internal/store/db"
@@ -49,7 +48,7 @@ func main() {
 
 	err := mainLogic()
 	if err != nil {
-		logger := logging.New()
+		logger := telemetry.NewLogger()
 		logger.ErrorContext(context.Background(), "failed to start app", slog.Any("error", err))
 		exitCode = 1
 	}
@@ -65,17 +64,17 @@ func mainLogic() error {
 		return fmt.Errorf("failed to load config: %w", err)
 	}
 
-	otelShutdown, err := telemetry.SetupOTelSDK(ctx, conf.App.Environment, conf.App.DisableTelemetry)
+	telemtryShtudown, err := telemetry.Setup(ctx, conf.App.Environment, conf.App.LogLevel)
 	if err != nil {
 		return fmt.Errorf("failed to setup otel: %w", err)
 	}
 
 	defer func() {
-		err = errors.Join(err, otelShutdown(context.Background()))
+		err = errors.Join(err, telemtryShtudown(ctx))
 	}()
 
 	// TODO: take these values from otel? instrument via otel?
-	logger := logging.New()
+	logger := telemetry.NewLogger()
 
 	// TODO: refactor this
 	pgxConfig, err := pgxpool.ParseConfig(conf.DB.URI)
@@ -102,7 +101,7 @@ func mainLogic() error {
 		return fmt.Errorf("failed to run migrations: %w", err)
 	}
 
-	// Populate test data if running in test environment
+	// INFO: Populate test data if running in test environment
 	if conf.App.Environment == "test" {
 		logger.InfoContext(ctx, "populating test data")
 		err = populateTestData(ctx, pool)

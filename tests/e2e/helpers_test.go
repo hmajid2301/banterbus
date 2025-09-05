@@ -127,9 +127,68 @@ func startGame(hostPlayerPage playwright.Page, otherPlayerPages []playwright.Pag
 		return "", fmt.Errorf("failed to wait for game to start: %w", err)
 	}
 
-	hostPlayerPage.WaitForTimeout(5000) // Increased for CI stability
+	// Wait for the question form to be visible
+	questionForm := hostPlayerPage.Locator("#submit_answer_form")
+	err = questionForm.WaitFor(playwright.LocatorWaitForOptions{
+		State:   playwright.WaitForSelectorStateVisible,
+		Timeout: playwright.Float(30000),
+	})
+	if err != nil {
+		return "", fmt.Errorf("failed to wait for question form: %w", err)
+	}
+
+	hostPlayerPage.WaitForTimeout(2000) // Brief wait for stability
 
 	return code, nil
+}
+
+func submitAnswerForPlayer(player playwright.Page, answer string) error {
+	answerForm := player.Locator("#submit_answer_form")
+	err := answerForm.WaitFor(playwright.LocatorWaitForOptions{
+		State:   playwright.WaitForSelectorStateVisible,
+		Timeout: playwright.Float(30000),
+	})
+	if err != nil {
+		return fmt.Errorf("answer form not visible: %w", err)
+	}
+
+	inputField := player.Locator("#submit_answer_form").Locator(`input[name="answer"]`)
+	err = inputField.WaitFor(playwright.LocatorWaitForOptions{
+		State:   playwright.WaitForSelectorStateVisible,
+		Timeout: playwright.Float(2000),
+	})
+
+	if err != nil {
+		answerButton := player.GetByRole("button", playwright.PageGetByRoleOptions{Name: answer})
+		err = answerButton.WaitFor(playwright.LocatorWaitForOptions{
+			State:   playwright.WaitForSelectorStateVisible,
+			Timeout: playwright.Float(10000),
+		})
+		if err != nil {
+			return fmt.Errorf("answer button '%s' not found: %w", answer, err)
+		}
+		return answerButton.Click()
+	} else {
+		err = inputField.Fill(answer)
+		if err != nil {
+			return fmt.Errorf("failed to fill answer: %w", err)
+		}
+
+		submitButton := player.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Submit Answer"})
+		err = submitButton.WaitFor(playwright.LocatorWaitForOptions{
+			State:   playwright.WaitForSelectorStateVisible,
+			Timeout: playwright.Float(5000),
+		})
+		if err != nil {
+			return fmt.Errorf("submit button not found: %w", err)
+		}
+
+		err = submitButton.Click()
+		if err != nil {
+			return fmt.Errorf("failed to click submit button: %w", err)
+		}
+		return nil
+	}
 }
 
 func getPlayerRoles(
@@ -140,9 +199,12 @@ func getPlayerRoles(
 	normals := []playwright.Page{}
 
 	submitButton := hostPlayerPage.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Ready"})
-	err := submitButton.WaitFor()
+	err := submitButton.WaitFor(playwright.LocatorWaitForOptions{
+		State:   playwright.WaitForSelectorStateVisible,
+		Timeout: playwright.Float(30000),
+	})
 	if err != nil {
-		return fibber, normals, fmt.Errorf("failed to find 'Submit Answer' button: %w", err)
+		return fibber, normals, fmt.Errorf("failed to find Ready button: %w", err)
 	}
 
 	fibberFound := false
@@ -154,19 +216,26 @@ func getPlayerRoles(
 				continue
 			}
 
-			fibberText := player.GetByText("You are fibber")
-			isFibber, err := fibberText.IsVisible()
+			roleText := player.Locator("span:has-text('You are')")
+			err := roleText.WaitFor(playwright.LocatorWaitForOptions{
+				State:   playwright.WaitForSelectorStateVisible,
+				Timeout: playwright.Float(5000),
+			})
 			if err != nil {
-				return fibber, normals, err
+				return fibber, normals, fmt.Errorf("failed to find role text for player: %w", err)
 			}
 
-			if !isFibber {
+			roleTextContent, err := roleText.TextContent()
+			if err != nil {
+				return fibber, normals, fmt.Errorf("failed to get role text content: %w", err)
+			}
+
+			if roleTextContent == "You are fibber" || roleTextContent == "You are the fibber" {
+				fibber = player
+				fibberFound = true
+			} else {
 				normals = append(normals, player)
-				continue
 			}
-
-			fibber = player
-			fibberFound = true
 		}
 
 		if fibberFound {

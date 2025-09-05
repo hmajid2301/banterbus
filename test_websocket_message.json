@@ -1,0 +1,14 @@
+{
+  "message_type": "join_lobby",
+  "player_nickname": "TestPlayer",
+  "room_code": "ABCD",
+  "HEADERS": {
+    "X-Test-Name": "TestJoinLobbyFlow",
+    "Content-Type": "application/json",
+    "User-Agent": "Mozilla/5.0 (Test Browser)"
+  },
+  "_trace": {
+    "traceId": "39d0ffd61a1d9075e1bfb8b3dfc4d8a4",
+    "spanId": "bdc576034ca16842"
+  }
+}

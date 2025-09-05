@@ -12,6 +12,16 @@ templ Role(role string, showRole bool) {
 		x-init="setTimeout(() => showModal = false, 15000)"
 		@keydown.escape="showModal = false"
 	>
+		<div class="flex items-center space-x-2">
+			if role == "fibber" {
+				<i class="text-red-500 hgi hgi-solid hgi-alien"></i>
+			} else {
+				<i class="text-blue-500 hgi hgi-solid hgi-user"></i>
+			}
+			<span class="text-sm font-medium">
+				{ i18n.T(ctx, "role.you_are") } { toRoleI18N(ctx, role) }
+			</span>
+		</div>
 		<button type="button" @click="showModal = true; setTimeout(() => showModal = false, 15000)">
 			<i class="hgi hgi-solid hgi-information-circle"></i>
 		</button>

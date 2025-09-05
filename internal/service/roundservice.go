@@ -464,7 +464,7 @@ func (r *RoundService) UpdateStateToQuestion(
 	if err != nil {
 		return QuestionState{}, err
 	} else if gameState != db.FibbingItRevealRole && gameState != db.FibbingItScoring {
-		return QuestionState{}, errors.New("game state is not in FIBBING_IT_REVEAL_ROLE state or FIBBING_IT_SCORING state")
+		return QuestionState{}, fmt.Errorf("game state is not in FIBBING_IT_REVEAL_ROLE state or FIBBING_IT_SCORING state, current state: %s", gameState.String())
 	}
 
 	_, err = r.store.UpdateGameState(ctx, db.UpdateGameStateParams{

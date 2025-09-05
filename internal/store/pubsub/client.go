@@ -64,7 +64,6 @@ func (c *Client) Close(id uuid.UUID) error {
 	delete(c.Subscribers, idStr)
 	c.mu.Unlock()
 
-	// Safely close the pubsub with panic recovery
 	var closeErr error
 	func() {
 		defer func() {

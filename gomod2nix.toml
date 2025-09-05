@@ -8,8 +8,8 @@ schema = 3
     version = "v3.6.1"
     hash = "sha256-7gtbvgRVONXZ/J9tDU63vuHSM2tXts9dunvb63gfhpI="
   [mod."github.com/a-h/templ"]
-    version = "v0.3.937"
-    hash = "sha256-JS/9MbOdMB44UOianP8GE0cg25wXn2NxCMKstw7pj6Y="
+    version = "v0.3.943"
+    hash = "sha256-1lqdcz0q13m8rNKFXp84kP69q8c5WHXNGhUklK6XUDk="
   [mod."github.com/cenkalti/backoff/v5"]
     version = "v5.0.3"
     hash = "sha256-bKq43PPD8RM6e7HePxHaO27traqm76bkvHcTVTQ+jeY="
@@ -134,14 +134,14 @@ schema = 3
     version = "v3.24.3"
     hash = "sha256-kBcchMFba8ow5GI5xTZfrjAy+N1418jmepfnGrbi7U8="
   [mod."github.com/redis/go-redis/extra/rediscmd/v9"]
-    version = "v9.12.1"
-    hash = "sha256-CvHtXtDAIcDpZT5YGodILF7sTosI1+U4RlPuHyCAq2s="
+    version = "v9.13.0"
+    hash = "sha256-CLu1qqXPiHc/C/XkqCqU0TXbC3M2Lqi/hN2nDB1qvSI="
   [mod."github.com/redis/go-redis/extra/redisotel/v9"]
-    version = "v9.12.1"
-    hash = "sha256-JEKY5emgwG9NLf0qUfRVhQlfEPFW2B0p6HJE2fTSSG4="
+    version = "v9.13.0"
+    hash = "sha256-hDBTf7ylde1FnnzpkyT/V6n5kqDwWHDpwvRNbC5m5YM="
   [mod."github.com/redis/go-redis/v9"]
-    version = "v9.12.1"
-    hash = "sha256-MHwOv3RaZ5Bq/pOL/hXd0kErXQeo1NwdCpRtRD6De1U="
+    version = "v9.13.0"
+    hash = "sha256-1y1fT+leOHZpKABVGk+fw3Wt/AHMNWvfY0Cr5/3zhuY="
   [mod."github.com/samber/lo"]
     version = "v1.51.0"
     hash = "sha256-Vgixn+tB/Rb8G2NTS3PuZO7iaXvmZtMaSvLETJhWIWM="
@@ -158,8 +158,8 @@ schema = 3
     version = "v0.3.0"
     hash = "sha256-1ZnFRHAaQjralGKVRoCbiwCXXB3w4kS3f+2hK9S8lbU="
   [mod."github.com/shirou/gopsutil/v4"]
-    version = "v4.25.7"
-    hash = "sha256-4uHSABtC2kBpHRSGmg00NGUuNTczCn8qKXR36ValJpU="
+    version = "v4.25.8"
+    hash = "sha256-dHPZ+S6nLlGyUzcJt+x89WdxFZ7KKm5LACXF5/7OLsM="
   [mod."github.com/stretchr/objx"]
     version = "v0.5.2"
     hash = "sha256-VKYxrrFb1nkX6Wu3tE5DoP9+fCttwSl9pgLN6567nck="
@@ -199,9 +199,15 @@ schema = 3
   [mod."go.opentelemetry.io/contrib/instrumentation/runtime"]
     version = "v0.63.0"
     hash = "sha256-yvd32st0gspwDpLGEL3m9cbw3qk48F9zt8B7aSxZH80="
+  [mod."go.opentelemetry.io/contrib/processors/minsev"]
+    version = "v0.11.0"
+    hash = "sha256-lMjE1fIp3UC9KB2jZZ0/akIq9OIipZnM0ShknJAH4Jg="
   [mod."go.opentelemetry.io/otel"]
     version = "v1.38.0"
     hash = "sha256-OU4EVEGwbopbYZLDBfAelR/4yjzfV+UVp4UFt3UvkOE="
+  [mod."go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploghttp"]
+    version = "v0.14.0"
+    hash = "sha256-nsUAPk/kn1qzxlcRmie0HCo68sWpFlmnATd3Kq/pSb8="
   [mod."go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetrichttp"]
     version = "v1.38.0"
     hash = "sha256-kz7NykL1xLHfyl1OYZg/6Ted5JHWaTTaBl/zisU9BQE="
@@ -220,6 +226,9 @@ schema = 3
   [mod."go.opentelemetry.io/otel/sdk"]
     version = "v1.38.0"
     hash = "sha256-Qxqf7LEbS8Znp8qeQPbgm0jeFVhZNwV2d5zuKysIKIQ="
+  [mod."go.opentelemetry.io/otel/sdk/log"]
+    version = "v0.14.0"
+    hash = "sha256-/D8QOFQjLZcC0uUesclVA6SAarFswisFoxgWqiNKqr0="
   [mod."go.opentelemetry.io/otel/sdk/metric"]
     version = "v1.38.0"
     hash = "sha256-Nahjgwhfx9NOJaM87fVpNFgzMOtJYPMehXKCswV59vI="
@@ -227,8 +236,8 @@ schema = 3
     version = "v1.38.0"
     hash = "sha256-gNXUPmsPAw6JVH3YT/xwmRpn5QoDxyzc9kLe/5ldo0o="
   [mod."go.opentelemetry.io/proto/otlp"]
-    version = "v1.7.1"
-    hash = "sha256-5VjS+8TB2E4qIsq/U5myaCDokQtQcBebMuOMp6/DIRE="
+    version = "v1.8.0"
+    hash = "sha256-0Gn4MNxfbgv7zNxFyci6WaTeQA0ynMyXWKrIEEhN//o="
   [mod."go.uber.org/multierr"]
     version = "v1.11.0"
     hash = "sha256-Lb6rHHfR62Ozg2j2JZy3MKOMKdsfzd1IYTR57r3Mhp0="
