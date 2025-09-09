@@ -12,16 +12,19 @@ pkgs.dockerTools.buildImage {
       package
       pkgs.cacert
     ];
-    pathsToLink = ["/bin"];
+    pathsToLink = [ "/bin" ];
   };
   config = {
     ExposedPorts = {
-      "8080/tcp" = {};
+      "8080/tcp" = { };
     };
-    Cmd = ["${package}/bin/banterbus"];
+    Cmd = [ "${package}/bin/banterbus" ];
     Env = [
       "SSL_CERT_FILE=${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt"
       "SSL_CERT_DIR=${pkgs.cacert}/etc/ssl/certs/"
     ];
+    Labels = {
+      service = "banterbus";
+    };
   };
 }

@@ -134,7 +134,7 @@ func (s *Server) setupHTTPRoutes(config ServerConfig, keyfunc jwt.Keyfunc, stati
 }
 
 func (s *Server) Serve(ctx context.Context) error {
-	s.Logger.InfoContext(ctx, "starting server")
+	s.Logger.InfoContext(ctx, "serving server")
 	err := s.Server.ListenAndServe()
 	if err != nil {
 		return err

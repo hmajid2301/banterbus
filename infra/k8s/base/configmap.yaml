@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: banterbus-config
+data:
+  BANTERBUS_ENVIRONMENT: "production"
+  BANTERBUS_LOG_LEVEL: "info"
+  BANTERBUS_WEBSERVER_HOST: "0.0.0.0"
+  BANTERBUS_WEBSERVER_PORT: "8080"
+  BANTERBUS_DB_PORT: "5432"
+  BANTERBUS_DB_NAME: "banterbus"
+  BANTERBUS_REDIS_ADDRESS: "redis.homelab.haseebmajid.dev:6379"
+  OTEL_SERVICE_NAME: "banterbus"
+  OTEL_RESOURCE_ATTRIBUTES: "deployment.environment=production"

@@ -38,8 +38,8 @@ stages:
       when: never
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
   before_script:
-    # INFO: Used to create directory, needed for tests and linter
-    - mkdir -p /tmp
+    # INFO: Create directories needed for tests and linter
+    - mkdir -p /tmp coverage
 
 .test:
   extends:
@@ -57,7 +57,7 @@ stages:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
     - if: $CI_COMMIT_BRANCH == "main"
   before_script:
-    - mkdir -p $CI_PROJECT_DIR/coverage /tmp  $CI_PROJECT_DIR/e2e/screenshots
+    - mkdir -p /tmp $CI_PROJECT_DIR/coverage $CI_PROJECT_DIR/videos
     - docker login -u "$CI_DEPENDENCY_PROXY_USER" -p "$CI_DEPENDENCY_PROXY_PASSWORD" "$CI_DEPENDENCY_PROXY_SERVER"
   artifacts:
     paths:
@@ -202,7 +202,7 @@ test:e2e:
     - .test
   variables:
     BANTERBUS_LOG_LEVEL: INFO
-    BANTERBUS_ENVIRONMENT: ci-test
+    BANTERBUS_ENVIRONMENT: test
     BANTERBUS_REDIS_ADDRESS: docker:6379
     BANTERBUS_DB_HOST: docker
     BANTERBUS_DB_PORT: 5432
@@ -214,8 +214,8 @@ test:e2e:
     GOCOVERDIR: $CI_PROJECT_DIR/coverage/e2e
     SHOW_VOTING_SCREEN_FOR: 10s
     RUN_WITH_COVERAGE: true
-    BANTERBUS_PORT: 8080
-    BANTERBUS_HOST: 0.0.0.0
+    BANTERBUS_WEBSERVER_PORT: 8081
+    BANTERBUS_WEBSERVER_HOST: 0.0.0.0
     OTEL_EXPORTER_OTLP_ENDPOINT: https://otel-collector.haseebmajid.dev
     OTEL_SERVICE_NAME: banterbus
     OTEL_SERVICE_VERSION: $CI_COMMIT_SHA
@@ -229,8 +229,7 @@ test:e2e:
       junit: report.xml
     paths:
       - coverage
-      - tests/e2e/videos/*
-      - tests/e2e/*.png
+      - videos/*
 
 combine:coverage:
   stage: build
@@ -253,18 +252,24 @@ combine:coverage:
     paths:
       - coverage/
 
+# TODO: Use attic cache
 publish:docker:dev:
   stage: build
   extends:
     - .docker
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == "deploy"
   script:
     - task docker:build
     - docker login -u "$CI_REGISTRY_USER" -p "$CI_JOB_TOKEN" "$CI_REGISTRY"
     - docker tag banterbus:latest $CI_REGISTRY_IMAGE:$CI_MERGE_REQUEST_IID
     - docker push $CI_REGISTRY_IMAGE:$CI_MERGE_REQUEST_IID
-    - echo "$CI_REGISTRY_IMAGE:$CI_MERGE_REQUEST_IID" > image_name.txt
+    - docker tag banterbus:latest $CI_REGISTRY_IMAGE:deploy-$CI_COMMIT_SHA
+    - docker push $CI_REGISTRY_IMAGE:deploy-$CI_COMMIT_SHA
+    - docker tag banterbus:latest $CI_REGISTRY_IMAGE:deploy-latest
+    - docker push $CI_REGISTRY_IMAGE:deploy-latest
+    - echo "$CI_REGISTRY_IMAGE:deploy-$CI_COMMIT_SHA" > image_name.txt
   artifacts:
     paths:
       - image_name.txt
@@ -324,38 +329,6 @@ get:mr:iid:
   artifacts:
     reports:
       dotenv: build.env
-
-deploy:prod:
-  stage: deploy
-  image: docker:latest
-  services:
-    - docker:dind
-  variables:
-    DOCKER_HOST: tcp://docker:2375
-    DOCKER_DRIVER: overlay2
-    DOCKER_TLS_CERTDIR: ""
-  needs: ["get:mr:iid"]
-  rules:
-    - if: $CI_PIPELINE_SOURCE == "schedule"
-      when: never
-    - if: $CI_COMMIT_TAG || $CI_COMMIT_BRANCH == "main"
-  environment:
-    name: production
-  before_script:
-    - export IMAGE="$CI_REGISTRY_IMAGE:prod-$CI_COMMIT_SHA-$(date +%s)"
-    - echo $IMAGE > image_name.txt
-  script:
-    - echo "Pulling MR image $CI_REGISTRY_IMAGE:$MR_IID"
-    - docker login -u "$CI_REGISTRY_USER" -p "$CI_JOB_TOKEN" "$CI_REGISTRY"
-    - docker pull $CI_REGISTRY_IMAGE:$MR_IID
-    - echo "Tagging as production image $IMAGE"
-    - docker tag $CI_REGISTRY_IMAGE:$MR_IID $IMAGE
-    - echo "Pushing production image to registry"
-    - docker push $IMAGE
-    - echo "Production image $IMAGE"
-  artifacts:
-    paths:
-      - image_name.txt
 
 release:
   stage: release

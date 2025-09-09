@@ -37,7 +37,7 @@ templ Base(languages map[string]string, environment string) {
 		</head>
 		<body data-environment={ environment }>
 			@components.Toast()
-			if environment == "test" || environment == "development" {
+			if environment == "test" || environment == "local" {
 				@testNameInput()
 			}
 			<div

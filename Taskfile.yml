@@ -81,7 +81,7 @@ tasks:
         concurrently \
           --names "SERVER,TESTS" \
           --success first \
-          "BANTERBUS_ENVIRONMENT=test task run" --kill-others \
+          "task run" --kill-others \
            "until curl -sSf http://localhost:8081/health >/dev/null; do sleep 2; done && \
             gotestsum --format testname --hide-summary=skipped --packages='./tests/e2e' -- \
               -coverprofile coverage/e2e-tests.out \
@@ -100,6 +100,35 @@ tasks:
       BANTERBUS_DB_PASSWORD: postgres
     cmds:
       - gotestsum --format dots -- ./tests/e2e/... ${CLI_ARGS}
+
+  tests:e2e:single:
+    desc: Interactively select and run a single e2e test or subtest using gum
+    env:
+      BANTERBUS_PLAYWRIGHT_HEADLESS: false
+    cmds:
+      - |
+        TEMP_FILE=$(mktemp)
+        grep -h "^func Test" tests/e2e/*.go | \
+          grep -v "TestMain" | \
+          sed 's/func \(Test[^(]*\).*/\1/' >> "$TEMP_FILE"
+
+        for file in tests/e2e/*.go; do
+          MAIN_TEST=$(grep "^func Test" "$file" | grep -v "TestMain" | sed 's/func \(Test[^(]*\).*/\1/')
+          if [ ! -z "$MAIN_TEST" ]; then
+            grep 't\.Run(' "$file" | \
+              sed 's/.*t\.Run("\([^"]*\)".*/'"$MAIN_TEST"'\/\1/' >> "$TEMP_FILE"
+          fi
+        done
+
+        TEST_NAME=$(cat "$TEMP_FILE" | sort | gum filter --placeholder "Select e2e test or subtest to run")
+        rm "$TEMP_FILE"
+        if [ -z "$TEST_NAME" ]; then
+          echo "No test selected. Exiting."
+          exit 0
+        fi
+        echo "Running test: $TEST_NAME"
+
+        CLI_ARGS="-run \"${TEST_NAME}\" -v" task tests:e2e
 
   tests:smoke:
     desc: Runs e2e smoke tests with playwright, expected to run against a live instance i.e. dev or prod.

@@ -54,7 +54,7 @@ func Base(languages map[string]string, environment string) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		if environment == "test" || environment == "development" {
+		if environment == "test" || environment == "local" {
 			templ_7745c5c3_Err = testNameInput().Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err

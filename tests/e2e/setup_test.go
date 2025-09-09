@@ -121,7 +121,12 @@ func setupTest(t *testing.T, playerNum int) ([]playwright.Page, error) {
 		}
 
 		context, err := browser.NewContext(playwright.BrowserNewContextOptions{
-			RecordVideo: &playwright.RecordVideo{Dir: tempVideoDir},
+			RecordVideo: &playwright.RecordVideo{Dir: tempVideoDir,
+				Size: &playwright.Size{
+					Width:  960,
+					Height: 1280,
+				},
+			},
 			Viewport: &playwright.Size{
 				Width:  960,
 				Height: 1280,

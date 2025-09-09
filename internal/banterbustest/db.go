@@ -10,6 +10,7 @@ import (
 	"path"
 	"runtime"
 	"strings"
+	"time"
 
 	// INFO: Driver to connect to postgres to run DB migrations
 	"github.com/jackc/pgx/v5/pgconn"
@@ -138,12 +139,15 @@ type Group struct {
 }
 
 func FillWithDummyData(ctx context.Context, pool *pgxpool.Pool) error {
+	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	defer cancel()
+
+	queries := db.New(pool)
+
 	tx, err := pool.BeginTx(ctx, pgx.TxOptions{})
 	if err != nil {
 		return err
 	}
-
-	queries := db.New(pool)
 	groups := []Group{
 		{ID: "01945c66-891a-7894-ae92-c18087c73a23", Name: "programming", Type: "questions"},
 		{ID: "01945c66-891c-7942-9a2a-339a62a74800", Name: "horse", Type: "questions"},
