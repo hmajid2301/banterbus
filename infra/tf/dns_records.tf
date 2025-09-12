@@ -1,56 +1,62 @@
-resource "cloudflare_dns_record" "root" {
+# Cloudflare Tunnel DNS Records for banterbus.games
+# Using single tunnel for both dev and prod environments
+# Tunnel hostname is dynamically generated from OpenBao data
+
+# Production domain (banterbus.games)
+resource "cloudflare_record" "prod_apex" {
   zone_id = var.zone_id
   name    = "@"
   type    = "CNAME"
-  content = "banterbus.fly.dev"
+  content = local.tunnel_hostname  # Dynamically generated from OpenBao
   ttl     = 1
-  proxied = false
+  proxied = true  # Enable Cloudflare proxy for SSL and performance
 }
 
-resource "cloudflare_dns_record" "wildcard" {
+# Production wildcard (*.banterbus.games)
+resource "cloudflare_record" "prod_wildcard" {
   zone_id = var.zone_id
   name    = "*"
   type    = "CNAME"
-  content = "banterbus.fly.dev"
+  content = local.tunnel_hostname
   ttl     = 1
-  proxied = false
+  proxied = true
 }
 
-# Dev APEX record (dev.banterbus.app)
-resource "cloudflare_dns_record" "dev_apex" {
+# Development domain (dev.banterbus.games)
+resource "cloudflare_record" "dev_apex" {
   zone_id = var.zone_id
   name    = "dev"
   type    = "CNAME"
-  content = "banterbus-dev.fly.dev"
+  content = local.tunnel_hostname  # Same tunnel for dev
   ttl     = 1
-  proxied = false
+  proxied = true
 }
 
-# Dev WILDCARD (*.dev.banterbus.app)
-resource "cloudflare_dns_record" "dev_wildcard" {
+# Development wildcard (*.dev.banterbus.games)
+resource "cloudflare_record" "dev_wildcard" {
   zone_id = var.zone_id
   name    = "*.dev"
   type    = "CNAME"
-  content = "banterbus-dev.fly.dev"
+  content = local.tunnel_hostname  # Same tunnel for dev
   ttl     = 1
-  proxied = false
+  proxied = true
 }
 
-# ACME challenge records for SSL certificates
-resource "cloudflare_dns_record" "acme_challenge" {
+# ACME challenge records for SSL certificates (if using cert-manager)
+resource "cloudflare_record" "acme_challenge" {
   zone_id = var.zone_id
   name    = "_acme-challenge"
   type    = "CNAME"
-  content = "banterbus.app.fly.dev"
+  content = local.tunnel_hostname
   ttl     = 1
-  proxied = false
+  proxied = false  # ACME challenges should not be proxied
 }
 
-resource "cloudflare_dns_record" "acme_challenge_dev" {
+resource "cloudflare_record" "acme_challenge_dev" {
   zone_id = var.zone_id
   name    = "_acme-challenge.dev"
   type    = "CNAME"
-  content = "dev.banterbus.app.fly.dev"
+  content = local.tunnel_hostname
   ttl     = 1
   proxied = false
 }

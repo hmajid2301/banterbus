@@ -25,9 +25,7 @@ task dev
 
 ## Stack
 
-This app is using the following technologies, built using this [template](https://gitlab.com/hmajid2301/nix-go-htmx-tailwind-template).
-
-More [information here](https://gitlab.com/hmajid2301/nix-go-htmx-tailwind-template#features)
+This app is using the following stack
 
 ### Backend
 
@@ -60,3 +58,14 @@ More [information here](https://gitlab.com/hmajid2301/nix-go-htmx-tailwind-templ
     - Requires `TAILSCALE_AUTHKEY` and `ATTIC_AUTH_KEY` environment variables
     - Falls back gracefully when environment variables are not available
 - Taskfiles as the task runner
+
+### Infra
+
+- Terraform/OpenTofu for infrastructure management
+    - Automated tunnel hostname generation from OpenBao
+    - Cloudflare DNS record management
+    - Database and secret management
+- K8S
+    - GitOps w/ Flux
+      - Main repo: https://gitlab.com/hmajid2301/k8s-gitops)
+    - BanterBus specific code

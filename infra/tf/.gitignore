@@ -5,6 +5,13 @@ cdktf.log
 *terraform.*.tfstate*
 generated
 
+# Terraform variable files
+*.tfvars
+*.tfvars.json
+terraform.tfvars
+terraform.tfvars.auto
+!terraform.tfvars.example
+
 # src https://github.com/github/gitignore/blob/master/Go.gitignore
 # Binaries for programs and plugins
 *.exe

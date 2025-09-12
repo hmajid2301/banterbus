@@ -1,0 +1,18 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: banterbus
+spec:
+  replicas: 3
+  template:
+    spec:
+      containers:
+      - name: banterbus
+        image: registry.gitlab.com/banterbus/banterbus:prod-f3f84fda-1734567890 # {"$imagepolicy": "flux-system:banterbus-prod"}
+        resources:
+          requests:
+            cpu: 500m
+            memory: 512Mi
+          limits:
+            cpu: 1000m
+            memory: 1Gi

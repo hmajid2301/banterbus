@@ -129,6 +129,36 @@ stages:
   script:
     - task docker:publish
 
+.k8s_deploy:
+  image:
+    name: ghcr.io/fluxcd/flux-cli:v2.4.0
+    entrypoint: ['']
+  variables:
+    KUBE_CONTEXT: hmajid2301/k8s-gitops:k8s
+  before_script:
+    - kubectl config get-contexts
+    - kubectl config use-context $KUBE_CONTEXT
+    - kubectl version --client
+  script:
+    - |
+      echo "Reconciling Flux image repository for banterbus"
+      flux reconcile image repository banterbus --timeout=2m || echo "Flux reconcile failed or not available, continuing..."
+    - |
+      echo "Waiting for deployment to be ready in namespace: $NAMESPACE"
+      if kubectl get deployment banterbus -n $NAMESPACE >/dev/null 2>&1; then
+        echo "Found deployment banterbus in namespace $NAMESPACE"
+        echo "Expected image: $(cat image_name.txt)"
+        kubectl wait --for=jsonpath='{.spec.template.spec.containers[0].image}'="$(cat image_name.txt)" deployment/banterbus -n $NAMESPACE --timeout=600s
+        kubectl wait --for=condition=available --timeout=600s deployment/banterbus -n $NAMESPACE
+        kubectl get pods -n $NAMESPACE -l app=banterbus
+        echo "Deployment banterbus is ready!"
+      else
+        echo "Deployment banterbus not found in namespace $NAMESPACE"
+        echo "Available deployments:"
+        kubectl get deployments -n $NAMESPACE
+        exit 1
+      fi
+
 
 publish:docker:ci:
   stage: pre
@@ -252,7 +282,6 @@ combine:coverage:
     paths:
       - coverage/
 
-# TODO: Use attic cache
 publish:docker:dev:
   stage: build
   extends:
@@ -263,16 +292,37 @@ publish:docker:dev:
   script:
     - task docker:build
     - docker login -u "$CI_REGISTRY_USER" -p "$CI_JOB_TOKEN" "$CI_REGISTRY"
-    - docker tag banterbus:latest $CI_REGISTRY_IMAGE:$CI_MERGE_REQUEST_IID
-    - docker push $CI_REGISTRY_IMAGE:$CI_MERGE_REQUEST_IID
-    - docker tag banterbus:latest $CI_REGISTRY_IMAGE:deploy-$CI_COMMIT_SHA
-    - docker push $CI_REGISTRY_IMAGE:deploy-$CI_COMMIT_SHA
-    - docker tag banterbus:latest $CI_REGISTRY_IMAGE:deploy-latest
-    - docker push $CI_REGISTRY_IMAGE:deploy-latest
-    - echo "$CI_REGISTRY_IMAGE:deploy-$CI_COMMIT_SHA" > image_name.txt
+    - export DEV_TAG="dev-$CI_COMMIT_SHA-$(date +%s)"
+    - |
+      if [ "$CI_PIPELINE_SOURCE" = "merge_request_event" ]; then
+        docker tag banterbus:latest $CI_REGISTRY_IMAGE:$CI_MERGE_REQUEST_IID
+        docker push $CI_REGISTRY_IMAGE:$CI_MERGE_REQUEST_IID
+      fi
+    - |
+      if [ "$CI_COMMIT_BRANCH" = "deploy" ]; then
+        docker tag banterbus:latest $CI_REGISTRY_IMAGE:deploy-$CI_COMMIT_SHA
+        docker push $CI_REGISTRY_IMAGE:deploy-$CI_COMMIT_SHA
+        docker tag banterbus:latest $CI_REGISTRY_IMAGE:deploy-latest
+        docker push $CI_REGISTRY_IMAGE:deploy-latest
+      fi
+    - docker tag banterbus:latest $CI_REGISTRY_IMAGE:$DEV_TAG
+    - docker push $CI_REGISTRY_IMAGE:$DEV_TAG
+    - echo "$CI_REGISTRY_IMAGE:$DEV_TAG" > image_name.txt
   artifacts:
     paths:
       - image_name.txt
+
+check_deploy:dev:
+  extends: .k8s_deploy
+  stage: deploy
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == "deploy"
+  variables:
+    NAMESPACE: dev
+  dependencies:
+    - publish:docker:dev
+  allow_failure: true
 
 # smoke:tests:dev:e2e:
 #   extends:
@@ -329,6 +379,50 @@ get:mr:iid:
   artifacts:
     reports:
       dotenv: build.env
+
+deploy:prod:
+  stage: deploy
+  image: docker:latest
+  services:
+    - docker:dind
+  variables:
+    DOCKER_HOST: tcp://docker:2375
+    DOCKER_DRIVER: overlay2
+    DOCKER_TLS_CERTDIR: ""
+  needs: ["get:mr:iid"]
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+      when: never
+    - if: $CI_COMMIT_TAG || $CI_COMMIT_BRANCH == "main"
+  environment:
+    name: production
+  before_script:
+    - export PROD_TAG="prod-$CI_COMMIT_SHA-$(date +%s)"
+    - echo $CI_REGISTRY_IMAGE:$PROD_TAG > image_name.txt
+  script:
+    - echo "Pulling MR image $CI_REGISTRY_IMAGE:$MR_IID"
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_JOB_TOKEN" "$CI_REGISTRY"
+    - docker pull $CI_REGISTRY_IMAGE:$MR_IID
+    - echo "Tagging as production image $CI_REGISTRY_IMAGE:$PROD_TAG"
+    - docker tag $CI_REGISTRY_IMAGE:$MR_IID $CI_REGISTRY_IMAGE:$PROD_TAG
+    - echo "Pushing production image to registry"
+    - docker push $CI_REGISTRY_IMAGE:$PROD_TAG
+    - echo "Production image $CI_REGISTRY_IMAGE:$PROD_TAG"
+  artifacts:
+    paths:
+      - image_name.txt
+
+check_deploy:prod:
+  extends: .k8s_deploy
+  stage: deploy
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+      when: never
+    - if: $CI_COMMIT_TAG || $CI_COMMIT_BRANCH == "main"
+  variables:
+    NAMESPACE: prod
+  dependencies:
+    - deploy:prod
 
 release:
   stage: release

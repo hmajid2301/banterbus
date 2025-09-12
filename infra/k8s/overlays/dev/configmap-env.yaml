@@ -1,8 +1,10 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: banterbus-config
+  name: banterbus-config-env
 data:
   BANTERBUS_ENVIRONMENT: "development"
   BANTERBUS_LOG_LEVEL: "debug"
+  BANTERBUS_DB_NAME: "banterbus_dev"
+  BANTERBUS_DB_USERNAME: "banterbus_dev"
   OTEL_RESOURCE_ATTRIBUTES: "deployment.environment=development,service.namespace=dev"

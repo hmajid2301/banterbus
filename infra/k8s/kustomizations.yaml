@@ -1,0 +1,40 @@
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: banterbus-dev
+  namespace: flux-system
+spec:
+  interval: 5m0s
+  path: "./infra/k8s/overlays/dev"
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: banterbus
+    namespace: flux-system
+
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: banterbus-prod
+  namespace: flux-system
+spec:
+  interval: 5m0s
+  path: "./infra/k8s/overlays/prod"
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: banterbus
+    namespace: flux-system
+
+---
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: GitRepository
+metadata:
+  name: banterbus
+  namespace: flux-system
+spec:
+  interval: 1m0s
+  ref:
+    branch: main
+  url: https://gitlab.com/banterbus/banterbus.git

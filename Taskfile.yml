@@ -230,3 +230,39 @@ tasks:
     desc: Run gitlab ci locally
     cmds:
       - job=$(gitlab-ci-local --list-all | tail -n +4 | awk '{print $1}' | gum filter --placeholder "Select job") && gitlab-ci-local "$job"
+
+  tf:init:
+    desc: Initialize Terraform/OpenTofu in infra/tf
+    dir: infra/tf
+    cmds:
+      - tofu init
+
+  tf:validate:
+    desc: Validate Terraform/OpenTofu configuration
+    dir: infra/tf
+    cmds:
+      - tofu validate
+
+  tf:plan:
+    desc: Plan Terraform/OpenTofu changes
+    dir: infra/tf
+    cmds:
+      - tofu plan
+
+  tf:apply:
+    desc: Apply Terraform/OpenTofu changes
+    dir: infra/tf
+    cmds:
+      - tofu apply
+
+  tf:destroy:
+    desc: Destroy Terraform/OpenTofu resources
+    dir: infra/tf
+    cmds:
+      - tofu destroy
+
+  tf:output:
+    desc: Show Terraform/OpenTofu outputs
+    dir: infra/tf
+    cmds:
+      - tofu output

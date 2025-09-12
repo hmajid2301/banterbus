@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: banterbus-config-env
+data:
+  BANTERBUS_ENVIRONMENT: "production"
+  BANTERBUS_LOG_LEVEL: "info"
+  BANTERBUS_DB_NAME: "banterbus_prod"
+  BANTERBUS_DB_USERNAME: "banterbus_prod"
+  OTEL_RESOURCE_ATTRIBUTES: "deployment.environment=production,service.namespace=homelab"

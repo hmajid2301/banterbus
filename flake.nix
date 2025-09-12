@@ -61,8 +61,9 @@
           concurrently
           nodePackages.prettier
 
+          opentofu
+
           nixpacks
-          kamal
 
           sqlfluff
           rustywind

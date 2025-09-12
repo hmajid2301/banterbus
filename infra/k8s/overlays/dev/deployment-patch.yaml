@@ -3,15 +3,9 @@ kind: Deployment
 metadata:
   name: banterbus
 spec:
-  replicas: 1
+  replicas: 2
   template:
     spec:
       containers:
-        - name: banterbus
-          resources:
-            limits:
-              cpu: 500m
-              memory: 512Mi
-            requests:
-              cpu: 250m
-              memory: 256Mi
+      - name: banterbus
+        image: registry.gitlab.com/banterbus/banterbus:dev-f3f84fda-1734567890 # {"$imagepolicy": "flux-system:banterbus-dev"}

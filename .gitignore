@@ -88,8 +88,24 @@ tests/e2e/videos/
 coverage/
 
 banterbus
-# Kamal deployment files
 
-# Kamal deployment files
-.env.kamal
-.kamal/secrets.local
+# Terraform
+*.tfstate
+*.tfstate.*
+*.tfplan
+*.tfplan.*
+.terraform/
+.terraform.lock.hcl
+terraform.tfvars
+!terraform.tfvars.example
+*.auto.tfvars
+*.auto.tfvars.json
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+.terraformrc
+terraform.rc
+crash.log
+crash.*.log
+.terraform.tfstate.lock.info

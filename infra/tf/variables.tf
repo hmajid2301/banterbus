@@ -16,17 +16,21 @@ variable "access_token" {
 variable "cloudflare_api_token" {
   description = "Cloudflare API token"
   type        = string
+  sensitive   = true
 }
 
 variable "zone_id" {
-  description = "Cloudflare Zone ID for banterbus domain"
+  description = "Cloudflare Zone ID for banterbus.games domain"
   type        = string
 }
 
-variable "grafana_cloud_access_policy_token" {
-  description = "Grafana cloud access policy token"
-  type        = string
-}
+# Cloudflare tunnel hostname is now dynamically generated from OpenBao
+# See openbao.tf for the data source and local.tunnel_hostname
+
+# variable "grafana_cloud_access_policy_token" {
+#   description = "Grafana cloud access policy token"
+#   type        = string
+# }
 
 variable "postgres_host" {
   description = "PostgreSQL host"
@@ -51,31 +55,48 @@ variable "postgres_username" {
 }
 
 variable "postgres_password" {
-  description = "PostgreSQL password"
+  description = "PostgreSQL password (deprecated - use cert auth)"
+  type        = string
+  sensitive   = true
+  default     = ""
+}
+
+
+# variable "sentry_auth_token" {
+#   description = "Sentry authentication token"
+#   type        = string
+#   sensitive   = true
+# }
+
+# variable "sentry_organization" {
+#   description = "Sentry organization name"
+#   type        = string
+#   default     = "banterbus"
+# }
+
+# variable "betterstack_api_token" {
+#   description = "API token for Better Stack"
+#   type        = string
+#   sensitive   = true
+# }
+
+# OpenBao Variables
+variable "openbao_address" {
+  description = "OpenBao server address"
+  type        = string
+  default     = "https://openbao.homelab.haseebmajid.dev"
+}
+
+variable "openbao_token" {
+  description = "OpenBao authentication token"
   type        = string
   sensitive   = true
 }
 
-variable "sentry_auth_token" {
-  description = "Sentry authentication token"
-  type        = string
-  sensitive   = true
-}
 
-variable "sentry_organization" {
-  description = "Sentry organization name"
-  type        = string
-  default     = "banterbus"
-}
+# variable "alloy_endpoint" {
+#   description = "Alloy homelab endpoint"
+#   type        = string
+#   default     = "alloy.homelab.haseebmajid.dev"
+# }
 
-variable "betterstack_api_token" {
-  description = "BetterStack API token"
-  type        = string
-  sensitive   = true
-}
-
-variable "alloy_endpoint" {
-  description = "Alloy homelab endpoint"
-  type        = string
-  default     = "alloy.homelab.haseebmajid.dev"
-}

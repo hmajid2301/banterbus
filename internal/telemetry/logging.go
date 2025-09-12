@@ -19,7 +19,6 @@ func NewLogger() *slog.Logger {
 	otelHandler := otelslog.NewHandler("banterbus", otelslog.WithSource(true))
 	fanoutHandler := slogmulti.Fanout(stdoutHandler, otelHandler)
 
-	// Wrap with slogctx to extract context values like test_name
 	ctxHandler := slogctx.NewHandler(fanoutHandler, nil)
 
 	logger := slog.New(ctxHandler)
