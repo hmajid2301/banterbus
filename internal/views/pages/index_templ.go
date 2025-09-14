@@ -10,8 +10,8 @@ import (
 	templruntime "github.com/a-h/templ/runtime"
 	"github.com/invopop/ctxi18n/i18n"
 
-	"gitlab.com/hmajid2301/banterbus/internal/views/components"
-	"gitlab.com/hmajid2301/banterbus/internal/views/layouts"
+	"gitlab.com/banterbus/banterbus/internal/views/components"
+	"gitlab.com/banterbus/banterbus/internal/views/layouts"
 )
 
 func Index(languages map[string]string, environment string) templ.Component {
@@ -73,7 +73,7 @@ func Index(languages map[string]string, environment string) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<div class=\"flex flex-row mt-12 space-x-4 w-full\"><div class=\"w-full\" @click=\"action = JSON.stringify({ message_type: 'create_room', game_name: 'fibbing_it' })\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<div class=\"flex flex-col mt-12 space-y-4 w-full sm:flex-row sm:space-y-0 sm:space-x-4\"><div class=\"w-full\" @click=\"action = JSON.stringify({ message_type: 'create_room', game_name: 'fibbing_it' })\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

@@ -11,8 +11,8 @@ import (
 	"github.com/a-h/templ"
 	templruntime "github.com/a-h/templ/runtime"
 
-	"gitlab.com/hmajid2301/banterbus/internal/service"
-	"gitlab.com/hmajid2301/banterbus/internal/views/components"
+	"gitlab.com/banterbus/banterbus/internal/service"
+	"gitlab.com/banterbus/banterbus/internal/views/components"
 )
 
 func Score(state service.ScoreState, player service.PlayerWithScoring, maxScore int) templ.Component {
@@ -36,7 +36,7 @@ func Score(state service.ScoreState, player service.PlayerWithScoring, maxScore 
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div hx-swap-oob=\"innerHTML:#page\"><div><div class=\"flex flex-col justify-center items-center space-y-4 sm:space-y-6 text-text2\"><div class=\"text-lg sm:text-xl\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div hx-swap-oob=\"innerHTML:#page\"><div class=\"mx-auto w-full max-w-4xl\"><div class=\"flex flex-col justify-center items-center space-y-3 sm:space-y-4 text-text2\"><div class=\"text-lg sm:text-xl\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -60,7 +60,7 @@ func Score(state service.ScoreState, player service.PlayerWithScoring, maxScore 
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "</div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "</div><div class=\"w-full max-w-2xl\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -68,7 +68,7 @@ func Score(state service.ScoreState, player service.PlayerWithScoring, maxScore 
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "</div></div></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "</div></div></div></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

@@ -50,7 +50,6 @@ pkgs.mkShell {
     export BANTERBUS_DB_PASSWORD=postgres
     export BANTERBUS_DB_NAME=postgres
     export BANTERBUS_REDIS_ADDRESS="localhost:6379"
-    export BANTERBUS_PLAYWRIGHT_HEADLESS=false
     export BANTERBUS_ENVIRONMENT=local
     export BANTERBUS_AUTO_RECONNECT=true
     export BANTERBUS_JWKS_URL=http://localhost:9091/default/jwks

@@ -9,10 +9,10 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"gitlab.com/hmajid2301/banterbus/internal/config"
-	"gitlab.com/hmajid2301/banterbus/internal/service"
-	"gitlab.com/hmajid2301/banterbus/internal/service/randomizer"
-	db "gitlab.com/hmajid2301/banterbus/internal/store/db"
+	"gitlab.com/banterbus/banterbus/internal/config"
+	"gitlab.com/banterbus/banterbus/internal/service"
+	"gitlab.com/banterbus/banterbus/internal/service/randomizer"
+	db "gitlab.com/banterbus/banterbus/internal/store/db"
 )
 
 func TestIntegrationRoundServiceSubmitAnswer(t *testing.T) {

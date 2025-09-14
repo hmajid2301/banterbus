@@ -39,14 +39,14 @@ func TestIntegrationNewRedisClient(t *testing.T) {
 func TestIntegrationClientOperations(t *testing.T) {
 	t.Parallel()
 
-	client, err := NewRedisClient("localhost:6379", 1)
-	require.NoError(t, err)
-
-	ctx := t.Context()
-	testID := uuid.Must(uuid.NewV7())
-
 	t.Run("Should subscribe to channel", func(t *testing.T) {
 		t.Parallel()
+
+		client, err := NewRedisClient("localhost:6379", 1)
+		require.NoError(t, err)
+
+		ctx := t.Context()
+		testID := uuid.Must(uuid.NewV7())
 
 		ch := client.Subscribe(ctx, testID)
 
@@ -57,8 +57,14 @@ func TestIntegrationClientOperations(t *testing.T) {
 	t.Run("Should publish message", func(t *testing.T) {
 		t.Parallel()
 
+		client, err := NewRedisClient("localhost:6379", 1)
+		require.NoError(t, err)
+
+		ctx := t.Context()
+		testID := uuid.Must(uuid.NewV7())
+
 		message := []byte("test message")
-		err := client.Publish(ctx, testID, message)
+		err = client.Publish(ctx, testID, message)
 
 		if err != nil {
 			assert.Error(t, err)
@@ -70,10 +76,16 @@ func TestIntegrationClientOperations(t *testing.T) {
 	t.Run("Should close subscription", func(t *testing.T) {
 		t.Parallel()
 
+		client, err := NewRedisClient("localhost:6379", 1)
+		require.NoError(t, err)
+
+		ctx := t.Context()
+		testID := uuid.Must(uuid.NewV7())
+
 		_ = client.Subscribe(ctx, testID)
 		assert.Contains(t, client.Subscribers, testID.String())
 
-		err := client.Close(testID)
+		err = client.Close(testID)
 		assert.NoError(t, err)
 		assert.NotContains(t, client.Subscribers, testID.String())
 	})
@@ -81,8 +93,11 @@ func TestIntegrationClientOperations(t *testing.T) {
 	t.Run("Should handle close of non-existent subscription", func(t *testing.T) {
 		t.Parallel()
 
+		client, err := NewRedisClient("localhost:6379", 1)
+		require.NoError(t, err)
+
 		nonExistentID := uuid.Must(uuid.NewV7())
-		err := client.Close(nonExistentID)
+		err = client.Close(nonExistentID)
 
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "not found")

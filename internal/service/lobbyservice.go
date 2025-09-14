@@ -11,7 +11,7 @@ import (
 	"github.com/invopop/ctxi18n"
 	"github.com/jackc/pgx/v5/pgtype"
 
-	"gitlab.com/hmajid2301/banterbus/internal/store/db"
+	"gitlab.com/banterbus/banterbus/internal/store/db"
 )
 
 type LobbyService struct {

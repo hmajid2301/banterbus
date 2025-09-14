@@ -12,10 +12,10 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"gitlab.com/hmajid2301/banterbus/internal/banterbustest"
-	"gitlab.com/hmajid2301/banterbus/internal/config"
-	"gitlab.com/hmajid2301/banterbus/internal/service"
-	"gitlab.com/hmajid2301/banterbus/internal/views"
+	"gitlab.com/banterbus/banterbus/internal/banterbustest"
+	"gitlab.com/banterbus/banterbus/internal/config"
+	"gitlab.com/banterbus/banterbus/internal/service"
+	"gitlab.com/banterbus/banterbus/internal/views"
 )
 
 func setupSubtest(t *testing.T) (*pgxpool.Pool, func()) {

@@ -9,8 +9,8 @@ import (
 	"github.com/a-h/templ"
 	templruntime "github.com/a-h/templ/runtime"
 
-	"gitlab.com/hmajid2301/banterbus/internal/service"
-	"gitlab.com/hmajid2301/banterbus/internal/views/components"
+	"gitlab.com/banterbus/banterbus/internal/service"
+	"gitlab.com/banterbus/banterbus/internal/views/components"
 )
 
 func Winner(state service.WinnerState, maxScore int) templ.Component {
@@ -34,20 +34,20 @@ func Winner(state service.WinnerState, maxScore int) templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div hx-swap-oob=\"innerHTML:#page\"><div><div class=\"flex flex-col justify-center items-center space-y-4 text-text2\"><div class=\"grid grid-cols-2 gap-16\"><div>The winner is ")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div hx-swap-oob=\"innerHTML:#page\"><div class=\"mx-auto w-full max-w-5xl\"><div class=\"flex flex-col justify-center items-center space-y-4 text-text2\"><div class=\"grid grid-cols-1 gap-8 w-full lg:grid-cols-2 lg:gap-16\"><div class=\"flex justify-center items-center\"><div class=\"text-center\"><h2 class=\"mb-4 text-2xl sm:text-3xl md:text-4xl\">The winner is</h2><p class=\"text-xl font-bold sm:text-2xl md:text-3xl text-gold\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var2 string
 		templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(state.Players[0].Nickname)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/sections/winner.templ`, Line: 14, Col: 47}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/sections/winner.templ`, Line: 16, Col: 97}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "</div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "</p></div></div><div class=\"mx-auto w-full max-w-2xl\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -55,7 +55,7 @@ func Winner(state service.WinnerState, maxScore int) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "</div></div></div></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "</div></div></div></div></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

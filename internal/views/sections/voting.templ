@@ -2,8 +2,8 @@ package sections
 
 import (
 	"github.com/invopop/ctxi18n/i18n"
-	"gitlab.com/hmajid2301/banterbus/internal/service"
-	"gitlab.com/hmajid2301/banterbus/internal/views/components"
+	"gitlab.com/banterbus/banterbus/internal/service"
+	"gitlab.com/banterbus/banterbus/internal/views/components"
 	"strconv"
 )
 
@@ -25,7 +25,7 @@ templ Voting(state service.VotingState, currentPlayer service.PlayerWithVoting) 
 						if currentPlayer.ID.String() == player.ID.String() {
 							<div class="flex flex-col items-center">
 								{ player.Nickname }
-								<div class="w-20 h-20 rounded-full border-2 border-white bg-overlay0">
+								<div class="w-24 h-24 rounded-full border-2 border-white sm:w-20 sm:h-20 bg-overlay0">
 									<img src={ player.Avatar } alt="avatar" class="w-full h-full rounded-full"/>
 								</div>
 								Answer { player.Answer }
@@ -36,11 +36,11 @@ templ Voting(state service.VotingState, currentPlayer service.PlayerWithVoting) 
 					// INFO: Render the rest of the players that you can vote for
 					for _, player := range state.Players {
 						if currentPlayer.ID.String() != player.ID.String() {
-							<div class="flex flex-col items-center p-4 rounded-lg border bg-overlay0 border-text2">
+							<div class="flex flex-col items-center p-4 rounded-lg border sm:p-6 bg-overlay0 border-text2">
 								<form id="vote_for_player" hx-vals='{"message_type": "submit_vote" }' ws-send>
 									<button type="submit" hx-include="this" class="flex flex-col items-center cursor-pointer" aria-label="Submit Vote">
 										{ player.Nickname }
-										<div class="w-20 h-20 rounded-full bg-surface1">
+										<div class="w-24 h-24 rounded-full sm:w-20 sm:h-20 bg-surface1">
 											<img src={ player.Avatar } alt="avatar" class="w-full h-full rounded-full"/>
 										</div>
 										<p>

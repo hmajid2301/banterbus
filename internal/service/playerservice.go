@@ -7,7 +7,7 @@ import (
 	"github.com/gofrs/uuid/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 
-	"gitlab.com/hmajid2301/banterbus/internal/store/db"
+	"gitlab.com/banterbus/banterbus/internal/store/db"
 )
 
 type PlayerService struct {

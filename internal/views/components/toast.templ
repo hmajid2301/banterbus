@@ -22,7 +22,7 @@ templ Toast() {
 						x-transition:leave-start="opacity-100 scale-100"
 						x-transition:leave-end="opacity-0 scale-90"
 						:class="toast.type === 'success' ? 'bg-green': 'bg-red'"
-						class="flex relative gap-2 items-center py-7 px-5 rounded-lg border shadow-sm border-border min-w-[384px]"
+						class="flex relative gap-2 items-center py-7 px-5 rounded-lg border shadow-sm border-border min-w-[200px] max-w-[384px] sm:min-w-[300px]"
 					>
 						<button @click="dismiss(toast.id)" class="absolute top-3 right-3">
 							<i class="hgi hgi-solid hgi-cancel-01"></i>

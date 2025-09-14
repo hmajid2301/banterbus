@@ -2,30 +2,30 @@ package components
 
 import (
 	"fmt"
-	"gitlab.com/hmajid2301/banterbus/internal/service"
+	"gitlab.com/banterbus/banterbus/internal/service"
 	"strconv"
 )
 
 templ Scoreboard(players []service.PlayerWithScoring, maxScore int) {
-	<div class="space-y-6">
+	<div class="space-y-4">
 		for i, p := range players {
-			<div class="flex items-center p-6 rounded-lg bg-surface1">
-				<div class="relative mr-6 w-16 h-16 sm:w-20 sm:h-20">
-					<img src={ p.Avatar } alt={ p.Avatar } class="w-16 h-16 rounded-full sm:w-20 sm:h-20"/>
+			<div class="flex items-center p-4 rounded-lg bg-surface1">
+				<div class="relative mr-4 w-12 h-12 sm:w-16 sm:h-16">
+					<img src={ p.Avatar } alt="Player avatar" class="w-12 h-12 rounded-full sm:w-16 sm:h-16"/>
 					if i == 0 {
-						<i class="absolute -top-1 -right-1 text-lg hgi hgi-solid hgi-medal-first-place text-gold"></i>
+						<i class="absolute -top-1 -right-1 text-base hgi hgi-solid hgi-medal-first-place text-gold"></i>
 					} else if i == 1 {
-						<i class="absolute -top-1 -right-1 text-lg hgi hgi-solid hgi-medal-second-place text-silver"></i>
+						<i class="absolute -top-1 -right-1 text-base hgi hgi-solid hgi-medal-second-place text-silver"></i>
 					} else if i == 2 {
-						<i class="absolute -top-1 -right-1 text-lg hgi hgi-solid hgi-medal-third-place text-bronze"></i>
+						<i class="absolute -top-1 -right-1 text-base hgi hgi-solid hgi-medal-third-place text-bronze"></i>
 					}
 				</div>
 				<div class="flex-grow">
-					<div class="flex justify-between items-center mb-4">
-						<span class="py-3 text-lg font-semibold">{ p.Nickname }</span>
-						<span class="text-xl font-bold font-button">{ strconv.Itoa(p.Score) }</span>
+					<div class="flex justify-between items-center mb-2">
+						<span class="py-2 text-base font-semibold">{ p.Nickname }</span>
+						<span class="text-lg font-bold font-button">{ strconv.Itoa(p.Score) }</span>
 					</div>
-					<div class="w-full h-8 bg-gray-200 rounded-full">
+					<div class="w-full h-12 bg-gray-200 rounded-full">
 						<div class={ scoreBarClass(p.Score, maxScore, i) } style={ calculateWidth(p.Score, maxScore) }></div>
 					</div>
 				</div>
@@ -40,7 +40,7 @@ func scoreBarClass(score int, maxScore int, index int) string {
 	}
 
 	colour := colours[index]
-	return fmt.Sprintf("h-8 rounded-full %s", colour)
+	return fmt.Sprintf("h-12 rounded-full %s", colour)
 }
 
 func calculateWidth(score, maxScore int) string {

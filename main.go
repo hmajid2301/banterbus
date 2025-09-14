@@ -25,16 +25,16 @@ import (
 	"github.com/pressly/goose/v3"
 	pgxUUID "github.com/vgarvardt/pgx-google-uuid/v5"
 
-	"gitlab.com/hmajid2301/banterbus/internal/banterbustest"
-	"gitlab.com/hmajid2301/banterbus/internal/config"
-	"gitlab.com/hmajid2301/banterbus/internal/service"
-	"gitlab.com/hmajid2301/banterbus/internal/service/randomizer"
-	"gitlab.com/hmajid2301/banterbus/internal/store/db"
-	"gitlab.com/hmajid2301/banterbus/internal/store/pubsub"
-	"gitlab.com/hmajid2301/banterbus/internal/telemetry"
-	transporthttp "gitlab.com/hmajid2301/banterbus/internal/transport/http"
-	"gitlab.com/hmajid2301/banterbus/internal/transport/websockets"
-	"gitlab.com/hmajid2301/banterbus/internal/views"
+	"gitlab.com/banterbus/banterbus/internal/banterbustest"
+	"gitlab.com/banterbus/banterbus/internal/config"
+	"gitlab.com/banterbus/banterbus/internal/service"
+	"gitlab.com/banterbus/banterbus/internal/service/randomizer"
+	"gitlab.com/banterbus/banterbus/internal/store/db"
+	"gitlab.com/banterbus/banterbus/internal/store/pubsub"
+	"gitlab.com/banterbus/banterbus/internal/telemetry"
+	transporthttp "gitlab.com/banterbus/banterbus/internal/transport/http"
+	"gitlab.com/banterbus/banterbus/internal/transport/websockets"
+	"gitlab.com/banterbus/banterbus/internal/views"
 )
 
 //go:embed internal/store/db/sqlc/migrations/*.sql

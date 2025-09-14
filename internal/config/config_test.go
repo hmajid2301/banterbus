@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"go.opentelemetry.io/contrib/processors/minsev"
 
-	"gitlab.com/hmajid2301/banterbus/internal/config"
+	"gitlab.com/banterbus/banterbus/internal/config"
 )
 
 func TestLoadConfig(t *testing.T) {

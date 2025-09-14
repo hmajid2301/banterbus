@@ -18,15 +18,15 @@ import (
 	"github.com/invopop/ctxi18n"
 	"github.com/invopop/ctxi18n/i18n"
 
-	"gitlab.com/hmajid2301/banterbus/internal/config"
-	"gitlab.com/hmajid2301/banterbus/internal/service"
-	"gitlab.com/hmajid2301/banterbus/internal/service/randomizer"
-	"gitlab.com/hmajid2301/banterbus/internal/store/db"
-	"gitlab.com/hmajid2301/banterbus/internal/store/pubsub"
-	"gitlab.com/hmajid2301/banterbus/internal/telemetry"
-	transporthttp "gitlab.com/hmajid2301/banterbus/internal/transport/http"
-	"gitlab.com/hmajid2301/banterbus/internal/transport/websockets"
-	"gitlab.com/hmajid2301/banterbus/internal/views"
+	"gitlab.com/banterbus/banterbus/internal/config"
+	"gitlab.com/banterbus/banterbus/internal/service"
+	"gitlab.com/banterbus/banterbus/internal/service/randomizer"
+	"gitlab.com/banterbus/banterbus/internal/store/db"
+	"gitlab.com/banterbus/banterbus/internal/store/pubsub"
+	"gitlab.com/banterbus/banterbus/internal/telemetry"
+	transporthttp "gitlab.com/banterbus/banterbus/internal/transport/http"
+	"gitlab.com/banterbus/banterbus/internal/transport/websockets"
+	"gitlab.com/banterbus/banterbus/internal/views"
 )
 
 func NewTestServer() (*httptest.Server, error) {

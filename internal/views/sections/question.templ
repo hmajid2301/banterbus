@@ -3,32 +3,32 @@ package sections
 import (
 	"encoding/json"
 	"github.com/invopop/ctxi18n/i18n"
-	"gitlab.com/hmajid2301/banterbus/internal/service"
-	"gitlab.com/hmajid2301/banterbus/internal/views/components"
+	"gitlab.com/banterbus/banterbus/internal/service"
+	"gitlab.com/banterbus/banterbus/internal/views/components"
 	"strconv"
 )
 
 templ Question(gameState service.QuestionState, currentPlayer service.PlayerWithRole, showRole bool) {
 	<div hx-swap-oob="innerHTML:#page">
 		<div>
-			<div class="flex flex-col space-y-6 sm:space-y-8 md:space-y-10 text-text2">
+			<div class="flex flex-col space-y-6 sm:space-y-8 md:space-y-10 text-text2" data-player-role={ currentPlayer.Role }>
 				<div class="flex flex-col justify-between items-center space-y-4 sm:flex-row sm:space-y-0">
-					<div class="order-2 sm:order-1">
+					<div class="order-1 sm:order-1">
 						@components.Role(currentPlayer.Role, showRole)
 					</div>
-					<p class="order-1 text-lg text-center sm:order-2 sm:text-xl md:text-2xl">{ i18n.T(ctx, "question.round") } { strconv.Itoa(gameState.Round) } / 3</p>
-					<div class="order-3 text-center sm:text-right">
+					<p class="order-2 text-lg text-center sm:order-2 sm:text-xl md:text-2xl">{ i18n.T(ctx, "question.round") } { strconv.Itoa(gameState.Round) } / 3</p>
+					<div class="order-3 text-center sm:order-3 sm:text-right">
 						@components.CircularTimer(components.CircularTimerProps{
 							InitialSeconds: int(gameState.Deadline.Seconds()),
 							Size:           "w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16",
 						})
 					</div>
 				</div>
-				<p class="text-2xl leading-tight text-center sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl">{ currentPlayer.Question }</p>
+				<p class="text-xl leading-tight text-center sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl">{ currentPlayer.Question }</p>
 				<form id="submit_answer_form" ws-send hx-vals='{"message_type": "submit_answer"}'>
 					if len(currentPlayer.PossibleAnswers) > 0 {
 						for _, answer := range currentPlayer.PossibleAnswers {
-							<div class="flex justify-between items-center my-5">
+							<div class="flex justify-between items-center my-3 sm:my-5">
 								// TODO: see if we can simplify this
 								if answer == currentPlayer.CurrentAnswer {
 									@components.Button(components.ButtonProps{

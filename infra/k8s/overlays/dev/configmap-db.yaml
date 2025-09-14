@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: banterbus-db-config
+data:
+  BANTERBUS_DB_USERNAME: "banterbus_dev"
+  BANTERBUS_DB_NAME: "banterbus_dev"

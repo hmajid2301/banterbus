@@ -44,7 +44,7 @@ func Button(button ButtonProps, attrs templ.Attributes) templ.Component {
 		if button.BackgroundColor == "" {
 			button.BackgroundColor = "bg-surface2"
 		}
-		var templ_7745c5c3_Var2 = []any{"flex flex-row p-3 text-3xl justify-center items-center w-full space-x-2 rounded-lg rounded-b-lg font-button shadow-custom-border fill-transparent", button.TextColor, button.BackgroundColor}
+		var templ_7745c5c3_Var2 = []any{"flex flex-row p-3 text-xl sm:text-2xl md:text-3xl justify-center items-center w-full space-x-2 rounded-lg rounded-b-lg font-button shadow-custom-border fill-transparent", button.TextColor, button.BackgroundColor}
 		templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var2...)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err

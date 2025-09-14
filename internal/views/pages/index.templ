@@ -2,8 +2,8 @@ package pages
 
 import (
 	"github.com/invopop/ctxi18n/i18n"
-	"gitlab.com/hmajid2301/banterbus/internal/views/components"
-	"gitlab.com/hmajid2301/banterbus/internal/views/layouts"
+	"gitlab.com/banterbus/banterbus/internal/views/components"
+	"gitlab.com/banterbus/banterbus/internal/views/layouts"
 )
 
 templ Index(languages map[string]string, environment string) {
@@ -27,7 +27,7 @@ templ Index(languages map[string]string, environment string) {
 						},
 						templ.Attributes{},
 					)
-					<div class="flex flex-row mt-12 space-x-4 w-full">
+					<div class="flex flex-col mt-12 space-y-4 w-full sm:flex-row sm:space-y-0 sm:space-x-4">
 						<div class="w-full" @click="action = JSON.stringify({ message_type: 'create_room', game_name: 'fibbing_it' })">
 							@components.Button(components.ButtonProps{}, templ.Attributes{}) {
 								<i class="mr-2 hgi hgi-solid hgi-play"></i>

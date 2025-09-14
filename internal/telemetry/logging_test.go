@@ -6,7 +6,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"gitlab.com/hmajid2301/banterbus/internal/telemetry"
+	"gitlab.com/banterbus/banterbus/internal/telemetry"
 
 	"go.opentelemetry.io/otel/sdk/trace"
 )

@@ -14,9 +14,9 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
-	"gitlab.com/hmajid2301/banterbus/internal/service"
-	mockService "gitlab.com/hmajid2301/banterbus/internal/service/mocks"
-	"gitlab.com/hmajid2301/banterbus/internal/store/db"
+	"gitlab.com/banterbus/banterbus/internal/service"
+	mockService "gitlab.com/banterbus/banterbus/internal/service/mocks"
+	"gitlab.com/banterbus/banterbus/internal/store/db"
 )
 
 func TestRoundServiceSubmitAnswer(t *testing.T) {
@@ -724,7 +724,7 @@ func TestRoundServiceUpdateStateToVoting(t *testing.T) {
 		assert.Error(t, err)
 	})
 
-	t.Run("Should fail because state FIBBING_IT_VOTING", func(t *testing.T) {
+	t.Run("Should succeed because already in FIBBING_IT_VOTING state (idempotent)", func(t *testing.T) {
 		t.Parallel()
 		mockStore := mockService.NewMockStorer(t)
 		mockRandom := mockService.NewMockRandomizer(t)
@@ -737,8 +737,34 @@ func TestRoundServiceUpdateStateToVoting(t *testing.T) {
 			State: db.FibbingItVoting.String(),
 		}, nil)
 
-		_, err := srv.UpdateStateToVoting(ctx, gameStateID, now)
-		assert.ErrorContains(t, err, "game state is not in FIBBING_IT_QUESTION state")
+		// Mock the call to GetVotingState for idempotent behavior
+		roundID := uuid.Must(uuid.NewV4())
+		mockStore.EXPECT().GetLatestRoundByPlayerID(ctx, gameStateID).Return(db.GetLatestRoundByPlayerIDRow{
+			ID:             roundID,
+			Round:          1,
+			SubmitDeadline: pgtype.Timestamp{Time: now, Valid: true},
+		}, nil)
+
+		playerID := uuid.Must(uuid.NewV4())
+		mockStore.EXPECT().GetVotingState(ctx, roundID).Return([]db.GetVotingStateRow{
+			{
+				Round:          1,
+				GameStateID:    gameStateID,
+				Question:       "Test question",
+				SubmitDeadline: pgtype.Timestamp{Time: now, Valid: true},
+				PlayerID:       playerID,
+				Nickname:       "TestPlayer",
+				Avatar:         "avatar1",
+				Votes:          0,
+				Answer:         pgtype.Text{String: "Test answer", Valid: true},
+				IsReady:        true,
+				Role:           pgtype.Text{String: "normal", Valid: true},
+			},
+		}, nil)
+
+		result, err := srv.UpdateStateToVoting(ctx, gameStateID, now)
+		assert.NoError(t, err)
+		assert.NotNil(t, result)
 	})
 
 	t.Run("Should fail because update game state", func(t *testing.T) {
@@ -1766,7 +1792,7 @@ func TestRoundServiceUpdateStateToQuestion(t *testing.T) {
 		assert.Error(t, err)
 	})
 
-	t.Run("Should fail to update state to question because we are in incorrect game state", func(t *testing.T) {
+	t.Run("Should succeed because already in FIBBING_IT_QUESTION state (idempotent)", func(t *testing.T) {
 		t.Parallel()
 		mockStore := mockService.NewMockStorer(t)
 		mockRandom := mockService.NewMockRandomizer(t)
@@ -1774,14 +1800,32 @@ func TestRoundServiceUpdateStateToQuestion(t *testing.T) {
 
 		ctx := t.Context()
 		deadline := time.Now().Add(5 * time.Second).UTC()
+		playerID := uuid.Must(uuid.NewV4())
 
 		mockStore.EXPECT().GetGameState(ctx, gameStateID).Return(db.GameState{
 			State: db.FibbingITQuestion.String(),
 		}, nil)
 
-		// Note: Test for newRound = true would require additional setup for round progression
-		_, err := srv.UpdateStateToQuestion(ctx, gameStateID, deadline, false)
-		assert.ErrorContains(t, err, "game state is not in FIBBING_IT_REVEAL_ROLE state or FIBBING_IT_SCORING state")
+		// Mock GetCurrentQuestionByPlayerID for the idempotent check in GetQuestionState
+		mockStore.EXPECT().GetCurrentQuestionByPlayerID(ctx, gameStateID).Return(
+			db.GetCurrentQuestionByPlayerIDRow{
+				GameStateID:    gameStateID,
+				PlayerID:       playerID,
+				Question:       pgtype.Text{String: "Test question", Valid: true},
+				RoundType:      "free_form",
+				Round:          1,
+				SubmitDeadline: pgtype.Timestamp{Time: deadline, Valid: true},
+				Nickname:       "TestPlayer",
+				Role:           pgtype.Text{String: "normal", Valid: true},
+				Avatar:         "avatar1",
+				CurrentAnswer:  "",
+				IsAnswerReady:  false,
+			}, nil,
+		)
+
+		result, err := srv.UpdateStateToQuestion(ctx, gameStateID, deadline, false)
+		assert.NoError(t, err)
+		assert.NotNil(t, result)
 	})
 
 	t.Run(

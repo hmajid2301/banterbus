@@ -13,8 +13,8 @@ import (
 	templruntime "github.com/a-h/templ/runtime"
 	"github.com/invopop/ctxi18n/i18n"
 
-	"gitlab.com/hmajid2301/banterbus/internal/service"
-	"gitlab.com/hmajid2301/banterbus/internal/views/components"
+	"gitlab.com/banterbus/banterbus/internal/service"
+	"gitlab.com/banterbus/banterbus/internal/views/components"
 )
 
 func Reveal(state service.RevealRoleState) templ.Component {
@@ -93,7 +93,7 @@ func Reveal(state service.RevealRoleState) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "</div><div class=\"w-16 h-16 rounded-full border-2 border-white sm:w-20 sm:h-20 bg-overlay0\"><img src=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "</div><div class=\"w-20 h-20 rounded-full border-2 border-white sm:w-24 sm:h-24 bg-overlay0\"><img src=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

@@ -4,8 +4,8 @@ import (
 	"log/slog"
 	"net/http"
 
-	"gitlab.com/hmajid2301/banterbus/internal/views"
-	"gitlab.com/hmajid2301/banterbus/internal/views/pages"
+	"gitlab.com/banterbus/banterbus/internal/views"
+	"gitlab.com/banterbus/banterbus/internal/views/pages"
 
 	"github.com/a-h/templ"
 )

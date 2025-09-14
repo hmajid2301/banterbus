@@ -12,7 +12,7 @@ import (
 var activeConnectionsCount int64
 
 func IncrementSubscribers(ctx context.Context) error {
-	m := otel.Meter("gitlab.com/hmajid2301/banterbus")
+	m := otel.Meter("gitlab.com/banterbus/banterbus")
 
 	counter, err := m.Int64Counter("websocket.connections.total",
 		metric.WithDescription("Total number of WebSocket connections established"),
@@ -27,7 +27,7 @@ func IncrementSubscribers(ctx context.Context) error {
 }
 
 func ActiveConnections(_ context.Context) error {
-	m := otel.Meter("gitlab.com/hmajid2301/banterbus")
+	m := otel.Meter("gitlab.com/banterbus/banterbus")
 
 	gauge, err := m.Int64ObservableGauge("websocket.connections.active",
 		metric.WithDescription("Total number of active websocket connections."),
@@ -60,7 +60,7 @@ func DecrementActiveConnections() {
 }
 
 func RecordConnectionDuration(ctx context.Context, time float64) error {
-	m := otel.Meter("gitlab.com/hmajid2301/banterbus")
+	m := otel.Meter("gitlab.com/banterbus/banterbus")
 
 	histogram, err := m.Float64Histogram("websocket.connection.duration",
 		metric.WithDescription("Time taken for a subscription to be closed."),
@@ -75,7 +75,7 @@ func RecordConnectionDuration(ctx context.Context, time float64) error {
 }
 
 func RecordRequestLatency(ctx context.Context, latency float64, messageType string, status string) error {
-	m := otel.Meter("gitlab.com/hmajid2301/banterbus")
+	m := otel.Meter("gitlab.com/banterbus/banterbus")
 
 	histogram, err := m.Float64Histogram("message.processing.duration",
 		metric.WithDescription("Time taken to handle message from client."),
@@ -95,7 +95,7 @@ func RecordRequestLatency(ctx context.Context, latency float64, messageType stri
 }
 
 func RecordMessageSendLatency(ctx context.Context, latency float64) error {
-	m := otel.Meter("gitlab.com/hmajid2301/banterbus")
+	m := otel.Meter("gitlab.com/banterbus/banterbus")
 
 	histogram, err := m.Float64Histogram("message.sent.duration",
 		metric.WithDescription("Time taken to send message from client."),
@@ -114,7 +114,7 @@ func RecordMessageSendLatency(ctx context.Context, latency float64) error {
 }
 
 func IncrementMessageSent(ctx context.Context) error {
-	m := otel.Meter("gitlab.com/hmajid2301/banterbus")
+	m := otel.Meter("gitlab.com/banterbus/banterbus")
 
 	counter, err := m.Int64Counter("message.sent.total",
 		metric.WithDescription("Total number of messages sent."),
@@ -129,7 +129,7 @@ func IncrementMessageSent(ctx context.Context) error {
 }
 
 func IncrementMessageSentError(ctx context.Context) error {
-	m := otel.Meter("gitlab.com/hmajid2301/banterbus")
+	m := otel.Meter("gitlab.com/banterbus/banterbus")
 
 	counter, err := m.Int64Counter("message.sent.errors.total",
 		metric.WithDescription("Total number of messages sent which throw an error."),
@@ -144,7 +144,7 @@ func IncrementMessageSentError(ctx context.Context) error {
 }
 
 func IncrementMessageReceived(ctx context.Context, messageType string) error {
-	m := otel.Meter("gitlab.com/hmajid2301/banterbus")
+	m := otel.Meter("gitlab.com/banterbus/banterbus")
 
 	counter, err := m.Int64Counter("message.received.total",
 		metric.WithDescription("Total number of messages received."),
@@ -159,7 +159,7 @@ func IncrementMessageReceived(ctx context.Context, messageType string) error {
 }
 
 func IncrementMessageReceivedError(ctx context.Context) error {
-	m := otel.Meter("gitlab.com/hmajid2301/banterbus")
+	m := otel.Meter("gitlab.com/banterbus/banterbus")
 
 	counter, err := m.Int64Counter("message.received.errors.total",
 		metric.WithDescription("Total number of messages received which throw an error."),
@@ -174,7 +174,7 @@ func IncrementMessageReceivedError(ctx context.Context) error {
 }
 
 func IncrementReconnectionCount(ctx context.Context) error {
-	m := otel.Meter("gitlab.com/hmajid2301/banterbus")
+	m := otel.Meter("gitlab.com/banterbus/banterbus")
 
 	counter, err := m.Int64Counter("connection.reconnect.total",
 		metric.WithDescription("Total number of clients which reconnected."),
@@ -189,7 +189,7 @@ func IncrementReconnectionCount(ctx context.Context) error {
 }
 
 func IncrementHandshakeFailures(ctx context.Context, reason string) error {
-	m := otel.Meter("gitlab.com/hmajid2301/banterbus")
+	m := otel.Meter("gitlab.com/banterbus/banterbus")
 
 	counter, err := m.Int64Counter(
 		"handshake.failure.total",

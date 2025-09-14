@@ -12,9 +12,9 @@ import (
 	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/trace"
 
-	"gitlab.com/hmajid2301/banterbus/internal/service"
-	"gitlab.com/hmajid2301/banterbus/internal/store/db"
-	"gitlab.com/hmajid2301/banterbus/internal/telemetry"
+	"gitlab.com/banterbus/banterbus/internal/service"
+	"gitlab.com/banterbus/banterbus/internal/store/db"
+	"gitlab.com/banterbus/banterbus/internal/telemetry"
 )
 
 type State interface {
@@ -99,6 +99,28 @@ func (q *QuestionState) Start(ctx context.Context) {
 				slog.Any("error", err),
 				slog.String("game_state_id", q.GameStateID.String()),
 			)
+		} else if err.Error() == "no rows in result set" {
+			// Check if context is cancelled, which indicates intentional cleanup
+			select {
+			case <-ctx.Done():
+				q.Subscriber.logger.ErrorContext(
+					ctx,
+					"game state deleted during context cancellation, stopping state machine",
+					slog.Any("error", err),
+					slog.String("game_state_id", q.GameStateID.String()),
+				)
+				return
+			default:
+				// Context not cancelled, this might be a transient database issue
+				q.Subscriber.logger.WarnContext(
+					ctx,
+					"temporary database issue detected, retrying after delay",
+					slog.Any("error", err),
+					slog.String("game_state_id", q.GameStateID.String()),
+				)
+				// Add a small delay before continuing
+				time.Sleep(100 * time.Millisecond)
+			}
 		} else {
 			q.Subscriber.logger.ErrorContext(
 				ctx,
@@ -138,12 +160,39 @@ func (q *QuestionState) Start(ctx context.Context) {
 	case <-timer.C:
 		currentGameState, err := q.Subscriber.roundService.GetGameState(ctx, q.GameStateID)
 		if err != nil {
-			q.Subscriber.logger.ErrorContext(
-				ctx,
-				"failed to get game state before voting transition",
-				slog.Any("error", err),
-				slog.String("game_state_id", q.GameStateID.String()),
-			)
+			if err.Error() == "no rows in result set" {
+				// Check if context is cancelled, which indicates intentional cleanup
+				select {
+				case <-ctx.Done():
+					q.Subscriber.logger.ErrorContext(
+						ctx,
+						"game state deleted during context cancellation, stopping state machine",
+						slog.Any("error", err),
+						slog.String("game_state_id", q.GameStateID.String()),
+					)
+					return
+				default:
+					// Context not cancelled, this might be a transient database issue
+					q.Subscriber.logger.WarnContext(
+						ctx,
+						"temporary database issue during voting transition, retrying with voting state",
+						slog.Any("error", err),
+						slog.String("game_state_id", q.GameStateID.String()),
+					)
+					// Proceed to start voting state anyway - it will handle the retry logic
+					time.Sleep(1 * time.Second)
+					v := &VotingState{GameStateID: q.GameStateID, Subscriber: q.Subscriber}
+					go v.Start(ctx)
+					return
+				}
+			} else {
+				q.Subscriber.logger.ErrorContext(
+					ctx,
+					"failed to get game state before voting transition",
+					slog.Any("error", err),
+					slog.String("game_state_id", q.GameStateID.String()),
+				)
+			}
 			return
 		}
 
@@ -208,10 +257,35 @@ func (v *VotingState) Start(ctx context.Context) {
 			attribute.String("error.type", "state_update_failure"),
 		))
 
-		if err.Error() == "game state is not in FIBBING_IT_QUESTION state" || err.Error() == "no rows in result set" {
+		if err.Error() == "no rows in result set" {
+			// Check if context is cancelled, which indicates intentional cleanup
+			select {
+			case <-ctx.Done():
+				v.Subscriber.logger.ErrorContext(
+					ctx,
+					"game state deleted during context cancellation, stopping voting state",
+					slog.Any("error", err),
+					slog.String("game_state_id", v.GameStateID.String()),
+				)
+				return
+			default:
+				// Context not cancelled, this might be a transient database issue
+				v.Subscriber.logger.WarnContext(
+					ctx,
+					"temporary database issue during voting state start, retrying after delay",
+					slog.Any("error", err),
+					slog.String("game_state_id", v.GameStateID.String()),
+				)
+				time.Sleep(1 * time.Second)
+				// Retry by starting a new voting state
+				v2 := &VotingState{GameStateID: v.GameStateID, Subscriber: v.Subscriber}
+				go v2.Start(ctx)
+				return
+			}
+		} else if err.Error() == "game state is not in FIBBING_IT_QUESTION state" {
 			v.Subscriber.logger.WarnContext(
 				ctx,
-				"state transition race condition detected, game likely cleaned up",
+				"state transition race condition detected, game already transitioned",
 				slog.Any("error", err),
 				slog.String("game_state_id", v.GameStateID.String()),
 			)
@@ -338,10 +412,35 @@ func (r *RevealState) Start(ctx context.Context) {
 			attribute.String("error.type", "state_update_failure"),
 		))
 
-		if err.Error() == "game state is not in FIBBING_IT_VOTING state" || err.Error() == "no rows in result set" {
+		if err.Error() == "no rows in result set" {
+			// Check if context is cancelled, which indicates intentional cleanup
+			select {
+			case <-ctx.Done():
+				r.Subscriber.logger.ErrorContext(
+					ctx,
+					"game state deleted during context cancellation, stopping reveal state",
+					slog.Any("error", err),
+					slog.String("game_state_id", r.GameStateID.String()),
+				)
+				return
+			default:
+				// Context not cancelled, this might be a transient database issue
+				r.Subscriber.logger.WarnContext(
+					ctx,
+					"temporary database issue during reveal state start, retrying after delay",
+					slog.Any("error", err),
+					slog.String("game_state_id", r.GameStateID.String()),
+				)
+				time.Sleep(1 * time.Second)
+				// Retry by starting a new reveal state
+				r2 := &RevealState{GameStateID: r.GameStateID, Subscriber: r.Subscriber}
+				go r2.Start(ctx)
+				return
+			}
+		} else if err.Error() == "game state is not in FIBBING_IT_VOTING state" {
 			r.Subscriber.logger.WarnContext(
 				ctx,
-				"state transition race condition detected for reveal state",
+				"state transition race condition detected, game already transitioned",
 				slog.Any("error", err),
 				slog.String("game_state_id", r.GameStateID.String()),
 			)
@@ -471,11 +570,35 @@ func (r *ScoringState) Start(ctx context.Context) {
 			attribute.String("error.type", "state_update_failure"),
 		))
 
-		if err.Error() == "game state is not in FIBBING_IT_REVEAL_ROLE state" ||
-			err.Error() == "no rows in result set" {
+		if err.Error() == "no rows in result set" {
+			// Check if context is cancelled, which indicates intentional cleanup
+			select {
+			case <-ctx.Done():
+				r.Subscriber.logger.ErrorContext(
+					ctx,
+					"game state deleted during context cancellation, stopping scoring state",
+					slog.Any("error", err),
+					slog.String("game_state_id", r.GameStateID.String()),
+				)
+				return
+			default:
+				// Context not cancelled, this might be a transient database issue
+				r.Subscriber.logger.WarnContext(
+					ctx,
+					"temporary database issue during scoring state start, retrying after delay",
+					slog.Any("error", err),
+					slog.String("game_state_id", r.GameStateID.String()),
+				)
+				time.Sleep(1 * time.Second)
+				// Retry by starting a new scoring state
+				r2 := &ScoringState{GameStateID: r.GameStateID, Subscriber: r.Subscriber}
+				go r2.Start(ctx)
+				return
+			}
+		} else if err.Error() == "game state is not in FIBBING_IT_REVEAL_ROLE state" {
 			r.Subscriber.logger.WarnContext(
 				ctx,
-				"state transition race condition detected for scoring state",
+				"state transition race condition detected, game already transitioned",
 				slog.Any("error", err),
 				slog.String("game_state_id", r.GameStateID.String()),
 			)
@@ -578,11 +701,35 @@ func (r *WinnerState) Start(ctx context.Context) {
 			attribute.String("error.type", "state_update_failure"),
 		))
 
-		if err.Error() == "game state is not in FIBBING_IT_SCORING_STATE state" ||
-			err.Error() == "no rows in result set" {
+		if err.Error() == "no rows in result set" {
+			// Check if context is cancelled, which indicates intentional cleanup
+			select {
+			case <-ctx.Done():
+				r.Subscriber.logger.ErrorContext(
+					ctx,
+					"game state deleted during context cancellation, stopping winner state",
+					slog.Any("error", err),
+					slog.String("game_state_id", r.GameStateID.String()),
+				)
+				return
+			default:
+				// Context not cancelled, this might be a transient database issue
+				r.Subscriber.logger.WarnContext(
+					ctx,
+					"temporary database issue during winner state start, retrying after delay",
+					slog.Any("error", err),
+					slog.String("game_state_id", r.GameStateID.String()),
+				)
+				time.Sleep(1 * time.Second)
+				// Retry by starting a new winner state
+				r2 := &WinnerState{GameStateID: r.GameStateID, Subscriber: r.Subscriber}
+				go r2.Start(ctx)
+				return
+			}
+		} else if err.Error() == "game state is not in FIBBING_IT_SCORING_STATE state" {
 			r.Subscriber.logger.WarnContext(
 				ctx,
-				"state transition race condition detected for winner state",
+				"state transition race condition detected, game already transitioned",
 				slog.Any("error", err),
 				slog.String("game_state_id", r.GameStateID.String()),
 			)

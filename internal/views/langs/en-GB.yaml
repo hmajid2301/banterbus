@@ -24,8 +24,9 @@ en-GB:
     kick_player_message: "Are you sure you want to kick {player}? They will be removed from the game immediately."
     kick_player_confirm: "Kick Player"
   role:
-     sush: "Sush don't tell anyone!"
-     you_are: "You are"
+    sush: "Sush don't tell anyone!"
+    you_are: "You are"
+    view_role: "View Role"
   question:
     round: "Round"
     answer_placeholder: "Enter your answer here ..."

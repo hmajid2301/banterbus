@@ -1,19 +1,24 @@
 package sections
 
 import (
-	"gitlab.com/hmajid2301/banterbus/internal/service"
-	"gitlab.com/hmajid2301/banterbus/internal/views/components"
+	"gitlab.com/banterbus/banterbus/internal/service"
+	"gitlab.com/banterbus/banterbus/internal/views/components"
 )
 
 templ Winner(state service.WinnerState, maxScore int) {
 	<div hx-swap-oob="innerHTML:#page">
-		<div>
+		<div class="mx-auto w-full max-w-5xl">
 			<div class="flex flex-col justify-center items-center space-y-4 text-text2">
-				<div class="grid grid-cols-2 gap-16">
-					<div>
-						The winner is { state.Players[0].Nickname }
+				<div class="grid grid-cols-1 gap-8 w-full lg:grid-cols-2 lg:gap-16">
+					<div class="flex justify-center items-center">
+						<div class="text-center">
+							<h2 class="mb-4 text-2xl sm:text-3xl md:text-4xl">The winner is</h2>
+							<p class="text-xl font-bold sm:text-2xl md:text-3xl text-gold">{ state.Players[0].Nickname }</p>
+						</div>
 					</div>
-					@components.Scoreboard(state.Players, maxScore)
+					<div class="mx-auto w-full max-w-2xl">
+						@components.Scoreboard(state.Players, maxScore)
+					</div>
 				</div>
 			</div>
 		</div>

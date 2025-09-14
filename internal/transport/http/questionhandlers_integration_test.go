@@ -10,8 +10,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"gitlab.com/hmajid2301/banterbus/internal/banterbustest"
-	transporthttp "gitlab.com/hmajid2301/banterbus/internal/transport/http"
+	"gitlab.com/banterbus/banterbus/internal/banterbustest"
+	transporthttp "gitlab.com/banterbus/banterbus/internal/transport/http"
 )
 
 func TestIntegrationAddQuestionHandler(t *testing.T) {

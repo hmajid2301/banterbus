@@ -25,7 +25,7 @@ tasks:
     env:
       BANTERBUS_LOG_LEVEL: debug
     cmds:
-      - podman-compose --profile monitoring --profile test --profile other up -d --force-recreate --remove-orphans
+      - docker compose --profile monitoring --profile test --profile other up -d --force-recreate --remove-orphans --wait
       - concurrently "air" "task watch"
 
   lint:
@@ -38,7 +38,7 @@ tasks:
     env:
       LOCATIONS: "./internal/ ./tests/ main.go"
     cmds:
-      - goimports -local gitlab.com/hmajid2301/banterbus -w $LOCATIONS
+      - goimports -local gitlab.com/banterbus/banterbus -w $LOCATIONS
       - golines -m 120 -w $LOCATIONS
       - sqlfluff format internal/store/db/sqlc/ --dialect postgres --disable-progress-bar
       - templ fmt internal/views
@@ -64,17 +64,23 @@ tasks:
   tests:e2e:
     desc: Runs e2e tests with playwright and collects coverage from the running server.
     env:
-      SHOW_VOTING_SCREEN_FOR: 10s
+      SHOW_VOTING_SCREEN_FOR: 5s
+      SHOW_REVEAL_SCREEN_FOR: 5s
+      SHOW_QUESTION_SCREEN_FOR: 15s
+      SHOW_SCORE_SCREEN_FOR: 5s
+
       GOCOVERDIR: ./coverage/e2e
       RUN_WITH_COVERAGE: true
+
       BANTERBUS_ENVIRONMENT: test
       BANTERBUS_WEBSERVER_PORT: 8081
       BANTERBUS_WEBSERVER_HOST: 0.0.0.0
       BANTERBUS_DB_HOST: localhost
       BANTERBUS_DB_USER: postgres
       BANTERBUS_DB_PASSWORD: postgres
+
       BANTERBUS_PLAYWRIGHT_URL: http://localhost:8081
-      BANTERBUS_PLAYWRIGHT_HEADLESS: true
+      BANTERBUS_AUTO_RECONNECT: false
     cmds:
       - mkdir -p coverage/e2e
       - |
@@ -91,7 +97,6 @@ tasks:
     desc: Runs e2e tests with playwright without any logging as this can be super verbose.
     env:
       BANTERBUS_LOG_DISABLED: true
-      BANTERBUS_PLAYWRIGHT_HEADLESS: true
       BANTERBUS_PLAYWRIGHT_URL: http://localhost:8081
       BANTERBUS_WEBSERVER_PORT: 8081
       BANTERBUS_WEBSERVER_HOST: 0.0.0.0
@@ -103,8 +108,6 @@ tasks:
 
   tests:e2e:single:
     desc: Interactively select and run a single e2e test or subtest using gum
-    env:
-      BANTERBUS_PLAYWRIGHT_HEADLESS: false
     cmds:
       - |
         TEMP_FILE=$(mktemp)
@@ -134,7 +137,6 @@ tasks:
     desc: Runs e2e smoke tests with playwright, expected to run against a live instance i.e. dev or prod.
     env:
       BANTERBUS_LOG_DISABLED: true
-      BANTERBUS_PLAYWRIGHT_HEADLESS: true
     cmds:
       - gotestsum --format standard-verbose -- ./tests/e2e/... -run '^TestSmoke' ${CLI_ARGS}
 

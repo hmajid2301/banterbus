@@ -9,9 +9,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"gitlab.com/hmajid2301/banterbus/internal/service"
-	mockService "gitlab.com/hmajid2301/banterbus/internal/service/mocks"
-	"gitlab.com/hmajid2301/banterbus/internal/store/db"
+	"gitlab.com/banterbus/banterbus/internal/service"
+	mockService "gitlab.com/banterbus/banterbus/internal/service/mocks"
+	"gitlab.com/banterbus/banterbus/internal/store/db"
 )
 
 func TestQuestionServiceAdd(t *testing.T) {
@@ -78,8 +78,6 @@ func TestQuestionServiceAdd(t *testing.T) {
 
 func TestQuestionServiceAddTranslation(t *testing.T) {
 	t.Parallel()
-	var u uuid.UUID
-	var questionID uuid.UUID
 
 	t.Run("Should successfully add new question translation", func(t *testing.T) {
 		t.Parallel()
@@ -93,9 +91,9 @@ func TestQuestionServiceAddTranslation(t *testing.T) {
 		locale := "pt-PT"
 
 		var err error
-		u, err = uuid.NewV7()
+		u, err := uuid.NewV7()
 		require.NoError(t, err)
-		questionID, err = uuid.NewV7()
+		questionID, err := uuid.NewV7()
 		require.NoError(t, err)
 		mockRandom.EXPECT().GetID().Return(u, nil)
 		mockStore.EXPECT().AddQuestionTranslation(ctx, db.AddQuestionTranslationParams{
@@ -127,9 +125,9 @@ func TestQuestionServiceAddTranslation(t *testing.T) {
 		locale := "pt-PT"
 
 		var err error
-		u, err = uuid.NewV7()
+		u, err := uuid.NewV7()
 		require.NoError(t, err)
-		questionID, err = uuid.NewV7()
+		questionID, err := uuid.NewV7()
 		require.NoError(t, err)
 		mockRandom.EXPECT().GetID().Return(u, nil)
 		mockStore.EXPECT().AddQuestionTranslation(ctx, db.AddQuestionTranslationParams{
@@ -146,7 +144,6 @@ func TestQuestionServiceAddTranslation(t *testing.T) {
 
 func TestQuestionServiceGetGroups(t *testing.T) {
 	t.Parallel()
-	var u uuid.UUID
 
 	t.Run("Should successfully get all group", func(t *testing.T) {
 		t.Parallel()
@@ -157,7 +154,7 @@ func TestQuestionServiceGetGroups(t *testing.T) {
 		ctx := t.Context()
 
 		var err error
-		u, err = uuid.NewV7()
+		u, err := uuid.NewV7()
 		require.NoError(t, err)
 		mockStore.EXPECT().GetGroups(ctx).Return([]db.QuestionsGroup{
 			{

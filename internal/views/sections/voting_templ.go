@@ -12,8 +12,8 @@ import (
 	templruntime "github.com/a-h/templ/runtime"
 	"github.com/invopop/ctxi18n/i18n"
 
-	"gitlab.com/hmajid2301/banterbus/internal/service"
-	"gitlab.com/hmajid2301/banterbus/internal/views/components"
+	"gitlab.com/banterbus/banterbus/internal/service"
+	"gitlab.com/banterbus/banterbus/internal/views/components"
 )
 
 func Voting(state service.VotingState, currentPlayer service.PlayerWithVoting) templ.Component {
@@ -93,7 +93,7 @@ func Voting(state service.VotingState, currentPlayer service.PlayerWithVoting) t
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "<div class=\"w-20 h-20 rounded-full border-2 border-white bg-overlay0\"><img src=\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "<div class=\"w-24 h-24 rounded-full border-2 border-white sm:w-20 sm:h-20 bg-overlay0\"><img src=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -153,7 +153,7 @@ func Voting(state service.VotingState, currentPlayer service.PlayerWithVoting) t
 		}
 		for _, player := range state.Players {
 			if currentPlayer.ID.String() != player.ID.String() {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "<div class=\"flex flex-col items-center p-4 rounded-lg border bg-overlay0 border-text2\"><form id=\"vote_for_player\" hx-vals='{\"message_type\": \"submit_vote\" }' ws-send><button type=\"submit\" hx-include=\"this\" class=\"flex flex-col items-center cursor-pointer\" aria-label=\"Submit Vote\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "<div class=\"flex flex-col items-center p-4 rounded-lg border sm:p-6 bg-overlay0 border-text2\"><form id=\"vote_for_player\" hx-vals='{\"message_type\": \"submit_vote\" }' ws-send><button type=\"submit\" hx-include=\"this\" class=\"flex flex-col items-center cursor-pointer\" aria-label=\"Submit Vote\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -166,7 +166,7 @@ func Voting(state service.VotingState, currentPlayer service.PlayerWithVoting) t
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "<div class=\"w-20 h-20 rounded-full bg-surface1\"><img src=\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "<div class=\"w-24 h-24 rounded-full sm:w-20 sm:h-20 bg-surface1\"><img src=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}

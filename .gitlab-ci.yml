@@ -57,7 +57,7 @@ stages:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
     - if: $CI_COMMIT_BRANCH == "main"
   before_script:
-    - mkdir -p /tmp $CI_PROJECT_DIR/coverage $CI_PROJECT_DIR/videos
+    - mkdir -p /tmp $CI_PROJECT_DIR/coverage $CI_PROJECT_DIR/tests/e2e/videos
     - docker login -u "$CI_DEPENDENCY_PROXY_USER" -p "$CI_DEPENDENCY_PROXY_PASSWORD" "$CI_DEPENDENCY_PROXY_SERVER"
   artifacts:
     paths:
@@ -121,7 +121,7 @@ stages:
       if [ -n "$ATTIC_AUTH_KEY" ]; then
         echo "Setting up Attic binary cache..."
         attic login homelab https://attic.homelab.haseebmajid.dev $ATTIC_AUTH_KEY
-        attic use homelab:main
+        attic use homelab:main || true
         attic watch-store homelab:main &
       else
         echo "ATTIC_AUTH_KEY not set, skipping Attic setup"
@@ -133,11 +133,24 @@ stages:
   image:
     name: ghcr.io/fluxcd/flux-cli:v2.4.0
     entrypoint: ['']
-  variables:
-    KUBE_CONTEXT: hmajid2301/k8s-gitops:k8s
   before_script:
     - kubectl config get-contexts
-    - kubectl config use-context $KUBE_CONTEXT
+    - |
+      # Check what contexts are available and use the first one if our target isn't found
+      AVAILABLE_CONTEXTS=$(kubectl config get-contexts -o name 2>/dev/null || echo "")
+      TARGET_CONTEXT="hmajid2301/k8s-gitops:k8s"
+      
+      if echo "$AVAILABLE_CONTEXTS" | grep -q "$TARGET_CONTEXT"; then
+        echo "Using target context: $TARGET_CONTEXT"
+        kubectl config use-context "$TARGET_CONTEXT"
+      elif [ -n "$AVAILABLE_CONTEXTS" ]; then
+        FIRST_CONTEXT=$(echo "$AVAILABLE_CONTEXTS" | head -n1)
+        echo "Target context not found, using first available: $FIRST_CONTEXT"
+        kubectl config use-context "$FIRST_CONTEXT"
+      else
+        echo "No contexts available. This might be a GitLab Agent configuration issue."
+        exit 1
+      fi
     - kubectl version --client
   script:
     - |
@@ -246,6 +259,7 @@ test:e2e:
     RUN_WITH_COVERAGE: true
     BANTERBUS_WEBSERVER_PORT: 8081
     BANTERBUS_WEBSERVER_HOST: 0.0.0.0
+    BANTERBUS_PLAYWRIGHT_URL: http://localhost:8081
     OTEL_EXPORTER_OTLP_ENDPOINT: https://otel-collector.haseebmajid.dev
     OTEL_SERVICE_NAME: banterbus
     OTEL_SERVICE_VERSION: $CI_COMMIT_SHA
@@ -253,13 +267,16 @@ test:e2e:
   script:
     - docker compose --profile test up -d --wait
     - task tests:e2e -- ${GOTEST_EXTRA_ARGS}
+  after_script:
+    - ls -al tests/e2e/videos/
   artifacts:
-    when: always
-    reports:
-      junit: report.xml
-    paths:
-      - coverage
-      - videos/*
+     when: always
+     reports:
+       junit: report.xml
+     paths:
+       - coverage
+       - tests/e2e/videos
+       - tests/e2e/*.png
 
 combine:coverage:
   stage: build

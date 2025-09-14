@@ -9,7 +9,7 @@ import (
 	"github.com/a-h/templ"
 	templruntime "github.com/a-h/templ/runtime"
 
-	"gitlab.com/hmajid2301/banterbus/internal/views/components"
+	"gitlab.com/banterbus/banterbus/internal/views/components"
 )
 
 func Base(languages map[string]string, environment string) templ.Component {
@@ -54,7 +54,7 @@ func Base(languages map[string]string, environment string) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		if environment == "test" || environment == "local" {
+		if environment != "production" {
 			templ_7745c5c3_Err = testNameInput().Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
@@ -68,7 +68,7 @@ func Base(languages map[string]string, environment string) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "<section class=\"flex flex-col justify-center items-center min-h-screen\"><div class=\"py-10 px-20 max-w-3xl rounded-xl bg-surface0\"><div class=\"flex flex-col justify-center items-center\"><div class=\"flex flex-col items-center space-y-10\"><h1 class=\"text-8xl tracking-tighter text-center text-text font-header text-shadow-custom\">Banter Bus</h1><div id=\"page\" class=\"mt-5 w-full font-main\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "<section class=\"flex flex-col justify-center items-center min-h-screen\"><div class=\"py-10 px-4 max-w-3xl rounded-xl sm:px-8 md:px-20 bg-surface0\"><div class=\"flex flex-col justify-center items-center\"><div class=\"flex flex-col items-center space-y-10\"><h1 class=\"text-4xl tracking-tighter text-center sm:text-6xl md:text-8xl text-text font-header text-shadow-custom\">Banter Bus</h1><div id=\"page\" class=\"mt-5 w-full font-main\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

@@ -9,9 +9,9 @@ import (
 
 	"github.com/gofrs/uuid/v5"
 
-	"gitlab.com/hmajid2301/banterbus/internal/service"
-	"gitlab.com/hmajid2301/banterbus/internal/store/db"
-	"gitlab.com/hmajid2301/banterbus/internal/telemetry"
+	"gitlab.com/banterbus/banterbus/internal/service"
+	"gitlab.com/banterbus/banterbus/internal/store/db"
+	"gitlab.com/banterbus/banterbus/internal/telemetry"
 )
 
 type RoundServicer interface {

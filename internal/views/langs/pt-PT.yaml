@@ -24,8 +24,9 @@ pt-PT:
     kick_player_message: "Tem certeza de que deseja expulsar {player}? Eles serão removidos do jogo imediatamente."
     kick_player_confirm: "Expulsar Jogador"
   role:
-     sush: "Sush, não conte a ninguém!"
-     you_are: "Tu és"
+    sush: "Sush, não conte a ninguém!"
+    you_are: "Tu és"
+    view_role: "Ver Papel"
   question:
     round: "Redondo"
     answer_placeholder: "Digite sua resposta aqui..."

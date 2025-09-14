@@ -1,6 +1,6 @@
 package layouts
 
-import "gitlab.com/hmajid2301/banterbus/internal/views/components"
+import "gitlab.com/banterbus/banterbus/internal/views/components"
 
 templ Base(languages map[string]string, environment string) {
 	<!DOCTYPE html>
@@ -37,7 +37,7 @@ templ Base(languages map[string]string, environment string) {
 		</head>
 		<body data-environment={ environment }>
 			@components.Toast()
-			if environment == "test" || environment == "local" {
+			if environment != "production" {
 				@testNameInput()
 			}
 			<div
@@ -47,10 +47,10 @@ templ Base(languages map[string]string, environment string) {
 			>
 				@components.Header(languages)
 				<section class="flex flex-col justify-center items-center min-h-screen">
-					<div class="py-10 px-20 max-w-3xl rounded-xl bg-surface0">
+					<div class="py-10 px-4 max-w-3xl rounded-xl sm:px-8 md:px-20 bg-surface0">
 						<div class="flex flex-col justify-center items-center">
 							<div class="flex flex-col items-center space-y-10">
-								<h1 class="text-8xl tracking-tighter text-center text-text font-header text-shadow-custom">
+								<h1 class="text-4xl tracking-tighter text-center sm:text-6xl md:text-8xl text-text font-header text-shadow-custom">
 									Banter Bus
 								</h1>
 								<div id="page" class="mt-5 w-full font-main">

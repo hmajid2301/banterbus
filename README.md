@@ -1,5 +1,3 @@
-<img src="docs/logo-outlined.png" alt="Logo" width="250">
-
 # Banter Bus
 
 Banter Bus is a web application video game, inspired by other party games like JackBox.
@@ -15,7 +13,7 @@ To set up the app you can do:
 If you use Nix flakes and direnv setup you can simply do:
 
 ```bash
-git clone https://gitlab.com/hmajid2301/banterbus
+git clone https://gitlab.com/banterbus/banterbus
 cd banterbus
 direnv allow
 
@@ -55,7 +53,7 @@ This app is using the following stack
         - Service
 - Gitlab for CI/CD pipeline
     - Enhanced with Tailscale and Attic for faster Nix builds
-    - Requires `TAILSCALE_AUTHKEY` and `ATTIC_AUTH_KEY` environment variables
+    - Requires `TAILSCALE_AUTH_KEY` and `ATTIC_AUTH_KEY` environment variables
     - Falls back gracefully when environment variables are not available
 - Taskfiles as the task runner
 
@@ -67,5 +65,5 @@ This app is using the following stack
     - Database and secret management
 - K8S
     - GitOps w/ Flux
-      - Main repo: https://gitlab.com/hmajid2301/k8s-gitops)
+      - Main repo: https://gitlab.com/banterbus/k8s-gitops)
     - BanterBus specific code

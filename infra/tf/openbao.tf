@@ -72,6 +72,6 @@ data "vault_kv_secret_v2" "cloudflare_tunnel" {
 locals {
   tunnel_name = data.vault_kv_secret_v2.cloudflare_tunnel.data["tunnel_name"]
   tunnel_id   = data.vault_kv_secret_v2.cloudflare_tunnel.data["tunnel_id"]
-  tunnel_hostname = "tunnel-${local.tunnel_name}-${substr(local.tunnel_id, 0, 8)}.cfargotunnel.com"
+  tunnel_hostname = "${local.tunnel_id}.cfargotunnel.com"
 }
 

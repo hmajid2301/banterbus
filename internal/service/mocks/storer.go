@@ -10,7 +10,7 @@ import (
 	"github.com/gofrs/uuid/v5"
 	mock "github.com/stretchr/testify/mock"
 
-	"gitlab.com/hmajid2301/banterbus/internal/store/db"
+	"gitlab.com/banterbus/banterbus/internal/store/db"
 )
 
 // NewMockStorer creates a new instance of MockStorer. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.

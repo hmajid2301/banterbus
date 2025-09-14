@@ -1,40 +1,16 @@
 all: false
-filename: "mock_{{ .InterfaceName | lower }}.go"
+filename: "{{ .InterfaceName | lower }}.go"
 dir: '{{.InterfaceDir}}/mocks'
 packages:
-  gitlab.com/hmajid2301/banterbus/internal/service:
+  gitlab.com/banterbus/banterbus/internal/service:
     interfaces:
-      Randomizer: 
-        config:
-          dir: 'internal/service/mocks'
-          filename: 'mock_randomizer.go'
+      Randomizer:
       Storer:
-        config:
-          dir: 'internal/service/mocks'  
-          filename: 'mock_storer.go'
-  gitlab.com/hmajid2301/banterbus/internal/transport/websockets:
+  gitlab.com/banterbus/banterbus/internal/transport/websockets:
     interfaces:
       LobbyServicer:
-        config:
-          dir: 'internal/transport/websockets/mocks'
-          filename: 'mock_lobbyservicer.go'
       PlayerServicer:
-        config:
-          dir: 'internal/transport/websockets/mocks'
-          filename: 'mock_playerservicer.go'
       RoundServicer:
-        config:
-          dir: 'internal/transport/websockets/mocks'
-          filename: 'mock_roundservicer.go'
       State:
-        config:
-          dir: 'internal/transport/websockets/mocks'
-          filename: 'mock_state.go'
       WSHandler:
-        config:
-          dir: 'internal/transport/websockets/mocks'
-          filename: 'mock_wshandler.go'
       Websocketer:
-        config:
-          dir: 'internal/transport/websockets/mocks'
-          filename: 'mock_websocketer.go'

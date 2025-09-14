@@ -24,8 +24,9 @@ de-DE:
     kick_player_message: "Sind Sie sicher, dass Sie {player} entfernen möchten? Der Spieler wird sofort aus dem Spiel entfernt."
     kick_player_confirm: "Spieler entfernen"
   role:
-     sush: "Pssst, sag es niemandem!"
-     you_are: "Du bist"
+    sush: "Pssst, sag es niemandem!"
+    you_are: "Du bist"
+    view_role: "Rolle ansehen"
   question:
     round: "Runden"
     answer_placeholder: "Geben Sie hier Ihre Antwort ein ..."

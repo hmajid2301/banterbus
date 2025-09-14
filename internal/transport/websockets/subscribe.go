@@ -27,8 +27,8 @@ import (
 	semconv "go.opentelemetry.io/otel/semconv/v1.26.0"
 	"go.opentelemetry.io/otel/trace"
 
-	"gitlab.com/hmajid2301/banterbus/internal/config"
-	"gitlab.com/hmajid2301/banterbus/internal/telemetry"
+	"gitlab.com/banterbus/banterbus/internal/config"
+	"gitlab.com/banterbus/banterbus/internal/telemetry"
 )
 
 // TODO: give this struct a better name, it doesn't really have much to with subscribing users anymore.

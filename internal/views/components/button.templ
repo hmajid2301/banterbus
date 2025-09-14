@@ -15,7 +15,7 @@ templ Button(button ButtonProps, attrs templ.Attributes) {
 		button.BackgroundColor = "bg-surface2"
 	}
 	}}
-	<button aria-label={ button.Label } class={ "flex flex-row p-3 text-3xl justify-center items-center w-full space-x-2 rounded-lg rounded-b-lg font-button shadow-custom-border fill-transparent", button.TextColor, button.BackgroundColor } { attrs... }>
+	<button aria-label={ button.Label } class={ "flex flex-row p-3 text-xl sm:text-2xl md:text-3xl justify-center items-center w-full space-x-2 rounded-lg rounded-b-lg font-button shadow-custom-border fill-transparent", button.TextColor, button.BackgroundColor } { attrs... }>
 		{ children... }
 	</button>
 }

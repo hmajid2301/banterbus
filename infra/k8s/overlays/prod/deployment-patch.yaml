@@ -8,7 +8,7 @@ spec:
     spec:
       containers:
       - name: banterbus
-        image: registry.gitlab.com/banterbus/banterbus:prod-f3f84fda-1734567890 # {"$imagepolicy": "flux-system:banterbus-prod"}
+        image: registry.gitlab.com/banterbus/banterbus:prod
         resources:
           requests:
             cpu: 500m

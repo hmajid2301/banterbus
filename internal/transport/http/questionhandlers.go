@@ -13,7 +13,7 @@ import (
 	"github.com/go-playground/validator/v10"
 	"github.com/gofrs/uuid/v5"
 
-	"gitlab.com/hmajid2301/banterbus/internal/service"
+	"gitlab.com/banterbus/banterbus/internal/service"
 )
 
 type QuestionServicer interface {

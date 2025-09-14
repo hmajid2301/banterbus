@@ -53,7 +53,7 @@ func Setup(
 			semconv.ServiceNamespaceKey.String(environment),
 			semconv.ServiceNameKey.String("banterbus"),
 		),
-		// resource.WithSchemaURL("https://gitlab.com/hmajid2301/banterbus"),
+		// resource.WithSchemaURL("https://gitlab.com/banterbus/banterbus"),
 	)
 	if err != nil {
 		handleErr(err)

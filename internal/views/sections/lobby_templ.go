@@ -12,8 +12,8 @@ import (
 	templruntime "github.com/a-h/templ/runtime"
 	"github.com/invopop/ctxi18n/i18n"
 
-	"gitlab.com/hmajid2301/banterbus/internal/service"
-	"gitlab.com/hmajid2301/banterbus/internal/views/components"
+	"gitlab.com/banterbus/banterbus/internal/service"
+	"gitlab.com/banterbus/banterbus/internal/views/components"
 )
 
 func Lobby(code string, players []service.LobbyPlayer, currentPlayer service.LobbyPlayer, rulesContent templ.Component) templ.Component {
@@ -37,14 +37,14 @@ func Lobby(code string, players []service.LobbyPlayer, currentPlayer service.Lob
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div hx-swap-oob=\"innerHTML:#page\"><div id=\"kick-player-modal\" class=\"fixed inset-0 z-50\" x-data=\"{ show: false, kickNickname: '', kickRoomCode: '' }\" x-show=\"show\" @show-kick-modal.document=\"kickNickname = window.kickData.nickname; kickRoomCode = window.kickData.roomCode; show = true\" @keydown.escape.window=\"show = false\" x-transition:enter=\"ease-out duration-300\" x-transition:enter-start=\"opacity-0\" x-transition:enter-end=\"opacity-100\" x-transition:leave=\"ease-in duration-200\" x-transition:leave-start=\"opacity-100\" x-transition:leave-end=\"opacity-0\"><div class=\"fixed inset-0 bg-black bg-opacity-50 transition-opacity\" @click=\"show = false\"></div><div class=\"flex fixed inset-0 justify-center items-center p-4\"><div class=\"relative p-6 w-full max-w-md rounded-lg shadow-xl transition-all transform bg-surface0\" x-transition:enter=\"ease-out duration-300\" x-transition:enter-start=\"opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95\" x-transition:enter-end=\"opacity-100 translate-y-0 sm:scale-100\" x-transition:leave=\"ease-in duration-200\" x-transition:leave-start=\"opacity-100 translate-y-0 sm:scale-100\" x-transition:leave-end=\"opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95\" @click.stop><div class=\"flex justify-between items-center mb-4\"><h3 class=\"text-lg font-semibold text-text\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div hx-swap-oob=\"innerHTML:#page\"><div id=\"kick-player-modal\" class=\"fixed inset-0 z-50\" x-data=\"{ show: false, kickNickname: '', kickRoomCode: '' }\" x-show=\"show\" @show-kick-modal.document=\"kickNickname = window.kickData.nickname; kickRoomCode = window.kickData.roomCode; show = true; $nextTick(() => $refs.modal.focus())\" @keydown.escape.window=\"show = false\" x-transition:enter=\"ease-out duration-300\" x-transition:enter-start=\"opacity-0\" x-transition:enter-end=\"opacity-100\" x-transition:leave=\"ease-in duration-200\" x-transition:leave-start=\"opacity-100\" x-transition:leave-end=\"opacity-0\" role=\"dialog\" aria-modal=\"true\" aria-labelledby=\"kick-modal-title\" aria-describedby=\"kick-modal-description\"><div class=\"fixed inset-0 bg-black bg-opacity-50 transition-opacity\" @click=\"show = false\"></div><div class=\"flex fixed inset-0 justify-center items-center p-4\"><div x-ref=\"modal\" class=\"relative p-6 w-full max-w-md bg-black rounded-lg shadow-xl transition-all transform\" x-transition:enter=\"ease-out duration-300\" x-transition:enter-start=\"opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95\" x-transition:enter-end=\"opacity-100 translate-y-0 sm:scale-100\" x-transition:leave=\"ease-in duration-200\" x-transition:leave-start=\"opacity-100 translate-y-0 sm:scale-100\" x-transition:leave-end=\"opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95\" @click.stop tabindex=\"-1\"><div class=\"flex justify-between items-center mb-4\"><h3 id=\"kick-modal-title\" class=\"text-lg font-semibold text-text\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var2 string
 		templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "lobby.kick_player_title"))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/sections/lobby.templ`, Line: 43, Col: 47}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/sections/lobby.templ`, Line: 49, Col: 47}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
 		if templ_7745c5c3_Err != nil {
@@ -57,33 +57,33 @@ func Lobby(code string, players []service.LobbyPlayer, currentPlayer service.Lob
 		var templ_7745c5c3_Var3 string
 		templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "common.close"))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/sections/lobby.templ`, Line: 48, Col: 47}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/sections/lobby.templ`, Line: 54, Col: 47}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "\"><i class=\"hgi hgi-solid hgi-cancel-01\"></i></button></div><div class=\"mb-6\"><p class=\"text-text2\"><span x-text=\"`Are you sure you want to kick ${kickNickname}? They will be removed from the game immediately.`\"></span></p></div><div class=\"flex justify-end space-x-3\"><button class=\"py-2 px-4 text-sm font-medium rounded-md focus:ring-2 focus:ring-offset-2 focus:outline-none text-text2 bg-surface1 hover:bg-surface2 focus:ring-blue\" @click=\"show = false\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "\"><i class=\"hgi hgi-solid hgi-cancel-01\"></i></button></div><div class=\"mb-6\"><p id=\"kick-modal-description\" class=\"text-text2\"><span x-text=\"`Are you sure you want to kick ${kickNickname}? They will be removed from the game immediately.`\"></span></p></div><div class=\"flex justify-end space-x-3\"><button class=\"py-2 px-4 text-sm font-medium rounded-md focus:ring-2 focus:ring-offset-2 focus:outline-none text-text2 bg-surface1 hover:bg-surface2 focus:ring-blue\" @click=\"show = false\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var4 string
 		templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "common.cancel"))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/sections/lobby.templ`, Line: 63, Col: 37}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/sections/lobby.templ`, Line: 69, Col: 37}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "</button> <button class=\"py-2 px-4 text-sm font-medium text-white rounded-md hover:bg-red-600 focus:ring-2 focus:ring-offset-2 focus:outline-none bg-red focus:ring-red\" ws-send x-bind:hx-vals=\"JSON.stringify({message_type: 'kick_player', room_code: kickRoomCode, player_nickname_to_kick: kickNickname})\" @click=\"show = false\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "</button> <button class=\"py-2 px-4 text-sm font-medium text-black rounded-md hover:bg-red-600 focus:ring-2 focus:ring-offset-2 focus:outline-none bg-red focus:ring-red\" ws-send x-bind:hx-vals=\"JSON.stringify({message_type: 'kick_player', room_code: kickRoomCode, player_nickname_to_kick: kickNickname})\" @click=\"show = false\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var5 string
 		templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "lobby.kick_player_confirm"))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/sections/lobby.templ`, Line: 71, Col: 49}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/sections/lobby.templ`, Line: 77, Col: 49}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 		if templ_7745c5c3_Err != nil {
@@ -112,7 +112,7 @@ func Lobby(code string, players []service.LobbyPlayer, currentPlayer service.Lob
 			var templ_7745c5c3_Var7 string
 			templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(getClipboardString(code))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/sections/lobby.templ`, Line: 82, Col: 185}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/sections/lobby.templ`, Line: 88, Col: 185}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
 			if templ_7745c5c3_Err != nil {
@@ -145,12 +145,12 @@ func Lobby(code string, players []service.LobbyPlayer, currentPlayer service.Lob
 			return templ_7745c5c3_Err
 		}
 		for _, player := range players {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "<div class=\"flex flex-col\"><div class=\"flex relative flex-row justify-between items-center p-2 space-x-2 w-full rounded-lg bg-surface1\"><div class=\"relative w-20 h-20 rounded-full border-2 border-white bg-overlay0\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "<div class=\"flex flex-col\"><div class=\"flex relative flex-col justify-between items-center p-2 space-y-2 w-full rounded-lg sm:flex-row sm:space-y-0 sm:space-x-2 bg-surface1\"><div class=\"relative w-24 h-24 rounded-full border-2 border-white sm:w-20 sm:h-20 bg-overlay0\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			if player.IsHost {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "<div class=\"absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2\"><i class=\"text-yellow-500 hgi hgi-solid hgi-crown\"></i></div>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "<div class=\"absolute -top-2 -left-2 sm:top-0 sm:left-1/2 sm:transform sm:-translate-x-1/2 sm:-translate-y-1/2\"><i class=\"text-lg text-yellow-500 sm:text-base hgi hgi-solid hgi-crown\"></i></div>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -163,13 +163,13 @@ func Lobby(code string, players []service.LobbyPlayer, currentPlayer service.Lob
 				var templ_7745c5c3_Var8 string
 				templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(getKickModalClick(player.Nickname, code))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/sections/lobby.templ`, Line: 102, Col: 58}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/sections/lobby.templ`, Line: 108, Col: 58}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "\" class=\"absolute top-0 right-0 p-1 text-black bg-white rounded-full hover:bg-surface2 hover:text-text2\"><i class=\"text-sm text-red-500 hgi hgi-solid hgi-delete-02\"></i></button> ")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "\" class=\"absolute top-0 right-0 p-2 text-black bg-white rounded-full hover:bg-surface2 hover:text-text2\"><i class=\"text-sm text-red-500 hgi hgi-solid hgi-delete-02\"></i></button> ")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -181,7 +181,7 @@ func Lobby(code string, players []service.LobbyPlayer, currentPlayer service.Lob
 			var templ_7745c5c3_Var9 string
 			templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(player.Avatar)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/sections/lobby.templ`, Line: 108, Col: 31}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/sections/lobby.templ`, Line: 114, Col: 31}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 			if templ_7745c5c3_Err != nil {
@@ -192,7 +192,7 @@ func Lobby(code string, players []service.LobbyPlayer, currentPlayer service.Lob
 				return templ_7745c5c3_Err
 			}
 			if currentPlayer == player {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "<form id=\"update_avatar_form\" hx-vals='{\"message_type\": \"generate_new_avatar\" }' ws-send><button class=\"absolute right-0 bottom-0 p-1 text-black bg-white rounded-full hover:bg-surface2 hover:text-text2\" aria-label=\"Update Avatar\"><i class=\"text-sm hgi hgi-solid hgi-redo-02\"></i></button></form>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "<form id=\"update_avatar_form\" hx-vals='{\"message_type\": \"generate_new_avatar\" }' ws-send><button class=\"absolute right-0 bottom-0 p-2 text-black bg-white rounded-full hover:bg-surface2 hover:text-text2\" aria-label=\"Update Avatar\"><i class=\"text-sm hgi hgi-solid hgi-redo-02\"></i></button></form>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -209,7 +209,7 @@ func Lobby(code string, players []service.LobbyPlayer, currentPlayer service.Lob
 				var templ_7745c5c3_Var10 string
 				templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(player.Nickname)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/sections/lobby.templ`, Line: 120, Col: 74}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/sections/lobby.templ`, Line: 126, Col: 74}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
 				if templ_7745c5c3_Err != nil {
@@ -227,7 +227,7 @@ func Lobby(code string, players []service.LobbyPlayer, currentPlayer service.Lob
 				var templ_7745c5c3_Var11 string
 				templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(player.Nickname)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/sections/lobby.templ`, Line: 124, Col: 61}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/sections/lobby.templ`, Line: 130, Col: 61}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
 				if templ_7745c5c3_Err != nil {
@@ -258,7 +258,7 @@ func Lobby(code string, players []service.LobbyPlayer, currentPlayer service.Lob
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, "<div class=\"flex flex-row items-center space-x-2 w-full\"><form id=\"toggle_ready_form\" hx-vals='{\"message_type\": \"toggle_player_is_ready\" }' ws-send class=\"w-full\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, "<div class=\"flex flex-col items-center space-y-2 w-full sm:flex-row sm:space-y-0 sm:space-x-2\"><form id=\"toggle_ready_form\" hx-vals='{\"message_type\": \"toggle_player_is_ready\" }' ws-send class=\"w-full\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -278,7 +278,7 @@ func Lobby(code string, players []service.LobbyPlayer, currentPlayer service.Lob
 				var templ_7745c5c3_Var13 string
 				templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "common.not_ready_button"))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/sections/lobby.templ`, Line: 140, Col: 47}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/sections/lobby.templ`, Line: 146, Col: 47}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
 				if templ_7745c5c3_Err != nil {
@@ -306,7 +306,7 @@ func Lobby(code string, players []service.LobbyPlayer, currentPlayer service.Lob
 				var templ_7745c5c3_Var15 string
 				templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "common.ready_button"))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/sections/lobby.templ`, Line: 144, Col: 43}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/sections/lobby.templ`, Line: 150, Col: 43}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var15))
 				if templ_7745c5c3_Err != nil {
@@ -331,7 +331,7 @@ func Lobby(code string, players []service.LobbyPlayer, currentPlayer service.Lob
 			var templ_7745c5c3_Var16 string
 			templ_7745c5c3_Var16, templ_7745c5c3_Err = templ.JoinStringErrs(code)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/sections/lobby.templ`, Line: 150, Col: 57}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/sections/lobby.templ`, Line: 156, Col: 57}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var16))
 			if templ_7745c5c3_Err != nil {
@@ -356,7 +356,7 @@ func Lobby(code string, players []service.LobbyPlayer, currentPlayer service.Lob
 				var templ_7745c5c3_Var18 string
 				templ_7745c5c3_Var18, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "lobby.start_game_button"))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/sections/lobby.templ`, Line: 152, Col: 47}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/sections/lobby.templ`, Line: 158, Col: 47}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var18))
 				if templ_7745c5c3_Err != nil {

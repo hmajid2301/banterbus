@@ -10,11 +10,10 @@ import (
 )
 
 func TestE2EReconnect(t *testing.T) {
-	t.Parallel()
 
 	playerNum := 2
 	t.Run("Should be able to reconnect to room with just one player", func(t *testing.T) {
-		t.Parallel()
+
 		playerPages, err := setupTest(t, playerNum)
 		require.NoError(t, err)
 		hostPlayerPage := playerPages[0]
@@ -31,7 +30,7 @@ func TestE2EReconnect(t *testing.T) {
 		roomCodeInput := hostPlayerPage.Locator("input[name='room_code']")
 		err = roomCodeInput.WaitFor(playwright.LocatorWaitForOptions{
 			State:   playwright.WaitForSelectorStateVisible,
-			Timeout: playwright.Float(30000),
+			Timeout: playwright.Float(5000),
 		})
 		require.NoError(t, err)
 
@@ -40,13 +39,13 @@ func TestE2EReconnect(t *testing.T) {
 
 		_, err = hostPlayerPage.Reload(playwright.PageReloadOptions{
 			WaitUntil: playwright.WaitUntilStateDomcontentloaded,
-			Timeout:   playwright.Float(60000),
+			Timeout:   playwright.Float(5000),
 		})
 		require.NoError(t, err)
 
 		err = hostPlayerPage.WaitForLoadState(playwright.PageWaitForLoadStateOptions{
 			State:   playwright.LoadStateNetworkidle,
-			Timeout: playwright.Float(30000),
+			Timeout: playwright.Float(5000),
 		})
 		require.NoError(t, err)
 
@@ -68,7 +67,7 @@ func TestE2EReconnect(t *testing.T) {
 	})
 
 	t.Run("Should be able to reconnect with started game showing questions", func(t *testing.T) {
-		t.Parallel()
+
 		playerPages, err := setupTest(t, playerNum)
 		require.NoError(t, err)
 
@@ -97,13 +96,13 @@ func TestE2EReconnect(t *testing.T) {
 
 		_, err = hostPlayerPage.Reload(playwright.PageReloadOptions{
 			WaitUntil: playwright.WaitUntilStateDomcontentloaded,
-			Timeout:   playwright.Float(60000),
+			Timeout:   playwright.Float(5000),
 		})
 		require.NoError(t, err)
 
 		err = hostPlayerPage.WaitForLoadState(playwright.PageWaitForLoadStateOptions{
 			State:   playwright.LoadStateNetworkidle,
-			Timeout: playwright.Float(30000),
+			Timeout: playwright.Float(5000),
 		})
 		require.NoError(t, err)
 
@@ -116,7 +115,7 @@ func TestE2EReconnect(t *testing.T) {
 	})
 
 	t.Run("Should be able to reconnect during scoring phase", func(t *testing.T) {
-		t.Parallel()
+
 		playerPages, err := setupTest(t, 3)
 		require.NoError(t, err)
 
@@ -154,7 +153,7 @@ func TestE2EReconnect(t *testing.T) {
 			}
 
 			lastErr = expect.Locator(votingUI).ToBeVisible(playwright.LocatorAssertionsToBeVisibleOptions{
-				Timeout: playwright.Float(60000),
+				Timeout: playwright.Float(5000),
 			})
 			if lastErr == nil {
 				break
@@ -181,13 +180,13 @@ func TestE2EReconnect(t *testing.T) {
 
 		_, err = hostPlayerPage.Reload(playwright.PageReloadOptions{
 			WaitUntil: playwright.WaitUntilStateDomcontentloaded,
-			Timeout:   playwright.Float(60000),
+			Timeout:   playwright.Float(5000),
 		})
 		require.NoError(t, err)
 
 		err = hostPlayerPage.WaitForLoadState(playwright.PageWaitForLoadStateOptions{
 			State:   playwright.LoadStateNetworkidle,
-			Timeout: playwright.Float(30000),
+			Timeout: playwright.Float(5000),
 		})
 		require.NoError(t, err)
 
@@ -196,7 +195,7 @@ func TestE2EReconnect(t *testing.T) {
 
 		reconnectedGameUI := hostPlayerPage.Locator("text=/Scoreboard|New Round!|You all voted for|Ready/").First()
 		err = expect.Locator(reconnectedGameUI).ToBeVisible(playwright.LocatorAssertionsToBeVisibleOptions{
-			Timeout: playwright.Float(30000),
+			Timeout: playwright.Float(5000),
 		})
 		require.NoError(t, err)
 	})

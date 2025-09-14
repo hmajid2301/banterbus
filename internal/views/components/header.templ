@@ -33,7 +33,7 @@ templ Header(languages map[string]string) {
 						:aria-expanded="open"
 						:aria-controls="$id('dropdown-button')"
 						type="button"
-						class="flex flex-row p-3 space-x-4 rounded-lg rounded-b-lg shadow-custom-border bg-surface2 text-text fill-transparent"
+						class="flex flex-row p-2 space-x-2 rounded-lg rounded-b-lg sm:p-3 sm:space-x-4 shadow-custom-border bg-surface2 text-text fill-transparent"
 					>
 						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20">
 							<circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.5"></circle>
@@ -55,7 +55,7 @@ templ Header(languages map[string]string) {
 						x-on:click.outside="close($refs.button)"
 						:id="$id('dropdown-button')"
 						style="display: none;"
-						class="flex absolute left-0 z-10 w-full"
+						class="flex absolute left-0 z-10 w-full sm:w-48"
 					>
 						<div class="flex-auto mt-5 rounded-md shadow-lg bg-surface2">
 							for key, language := range languages {
@@ -71,9 +71,9 @@ templ Header(languages map[string]string) {
 					</div>
 				</div>
 			</div>
-			<img class="w-auto h-16" src="/static/images/logo-outline.svg" alt="Logo"/>
+			<img class="w-auto h-12 sm:h-16" src="/static/images/logo-outline.svg" alt="Logo"/>
 			<div class="flex flex-1 justify-end">
-				<button disabled type="button" class="flex flex-row p-3 space-x-4 rounded-lg rounded-b-lg shadow-custom-border bg-surface2 text-text fill-transparent">
+				<button disabled type="button" class="flex flex-row p-2 space-x-2 rounded-lg rounded-b-lg sm:p-3 sm:space-x-4 shadow-custom-border bg-surface2 text-text fill-transparent">
 					<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
 						<path fill-rule="evenodd" clip-rule="evenodd" d="M12 1.25C6.06294 1.25 1.25 6.06294 1.25 12C1.25 17.937 6.06293 22.75 12 22.75C12.0515 22.75 12.1103 22.7509 12.175 22.7518L12.1754 22.7518C12.5352 22.7572 13.0737 22.7651 13.5177 22.6409C13.8057 22.5603 14.1315 22.4079 14.382 22.1074C14.6396 21.7982 14.75 21.4139 14.75 21C14.75 20.159 14.3186 19.5207 14.0232 19.0836L13.9905 19.0351C13.7467 18.6736 13.5967 18.4383 13.5315 18.1908C13.4789 17.9911 13.4711 17.7348 13.6708 17.3354C13.9111 16.8549 14.1887 16.6617 14.561 16.5536C15.0104 16.4232 15.593 16.4167 16.4815 16.4167H16.493C17.3426 16.4167 18.3867 16.4167 19.6061 16.2425C20.8111 16.0703 21.6693 15.5847 22.1796 14.7414C22.6553 13.955 22.75 12.9748 22.75 12C22.75 6.06293 17.937 1.25 12 1.25ZM7.26509 15.9668C7.79895 15.8253 8.11704 15.2778 7.97556 14.744C7.83408 14.2101 7.28661 13.892 6.75276 14.0335L6.74408 14.0358C6.21022 14.1773 5.89214 14.7247 6.03361 15.2586C6.17509 15.7924 6.72256 16.1105 7.25641 15.9691L7.26509 15.9668ZM7.25 8.5C7.25 7.25736 8.25736 6.25 9.5 6.25C10.7426 6.25 11.75 7.25736 11.75 8.5C11.75 9.74264 10.7426 10.75 9.5 10.75C8.25736 10.75 7.25 9.74264 7.25 8.5ZM16.5 7.25C15.2574 7.25 14.25 8.25736 14.25 9.5C14.25 10.7426 15.2574 11.75 16.5 11.75C17.7426 11.75 18.75 10.7426 18.75 9.5C18.75 8.25736 17.7426 7.25 16.5 7.25Z" fill="currentColor"></path>
 					</svg>

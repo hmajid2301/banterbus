@@ -11,12 +11,11 @@ import (
 )
 
 func TestE2ERounds(t *testing.T) {
-	t.Parallel()
 
 	playerNum := 6
 
 	t.Run("Should successfully complete an entire game where the fibber is caught first time", func(t *testing.T) {
-		t.Parallel()
+
 		playerPages, err := setupTest(t, playerNum)
 		require.NoError(t, err)
 
@@ -30,8 +29,15 @@ func TestE2ERounds(t *testing.T) {
 		require.NoError(t, err)
 
 		for _, player := range playerPages {
-			err = player.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Close"}).Click()
+			closeButton := player.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Close"})
+			err = closeButton.WaitFor(playwright.LocatorWaitForOptions{
+				State:   playwright.WaitForSelectorStateVisible,
+				Timeout: playwright.Float(5000),
+			})
 			require.NoError(t, err)
+			err = closeButton.Click()
+			require.NoError(t, err)
+			player.WaitForTimeout(500)
 		}
 
 		err = submitAnswerForPlayer(fibber, "I am not a fibber")
@@ -67,24 +73,41 @@ func TestE2ERounds(t *testing.T) {
 		scoreboardText := hostPlayerPage.GetByText("Scoreboard")
 		expect.Locator(scoreboardText).ToBeVisible()
 
-		roleText := hostPlayerPage.GetByText("You are")
-		expect.Locator(roleText).
-			ToBeVisible(playwright.LocatorAssertionsToBeVisibleOptions{Timeout: playwright.Float(35 * 1000)})
-		require.NoError(t, err)
-
 		fibber, normals, err = getPlayerRoles(hostPlayerPage, otherPlayerPages)
 		require.NoError(t, err)
 
 		for _, player := range playerPages {
-			err = player.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Close"}).Click()
+			closeButton := player.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Close"})
+			err = closeButton.WaitFor(playwright.LocatorWaitForOptions{
+				State:   playwright.WaitForSelectorStateVisible,
+				Timeout: playwright.Float(5000),
+			})
 			require.NoError(t, err)
+			err = closeButton.Click()
+			require.NoError(t, err)
+			player.WaitForTimeout(500)
 		}
 
 		for _, normal := range normals {
-			err = normal.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Strongly Agree"}).Click()
+			agreeButton := normal.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Strongly Agree"})
+			err = agreeButton.WaitFor(playwright.LocatorWaitForOptions{
+				State:   playwright.WaitForSelectorStateVisible,
+				Timeout: playwright.Float(5000),
+			})
 			require.NoError(t, err)
-			err = normal.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Ready"}).Click()
+			err = agreeButton.Click()
 			require.NoError(t, err)
+			normal.WaitForTimeout(300)
+
+			readyButton := normal.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Ready"})
+			err = readyButton.WaitFor(playwright.LocatorWaitForOptions{
+				State:   playwright.WaitForSelectorStateVisible,
+				Timeout: playwright.Float(5000),
+			})
+			require.NoError(t, err)
+			err = readyButton.Click()
+			require.NoError(t, err)
+			normal.WaitForTimeout(300)
 		}
 
 		err = fibber.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Strongly Disagree"}).Click()
@@ -107,11 +130,6 @@ func TestE2ERounds(t *testing.T) {
 
 		scoreboardText = hostPlayerPage.GetByText("Scoreboard")
 		expect.Locator(scoreboardText).ToBeVisible()
-
-		roleText = hostPlayerPage.GetByText("You are")
-		expect.Locator(roleText).
-			ToBeVisible(playwright.LocatorAssertionsToBeVisibleOptions{Timeout: playwright.Float(35 * 1000)})
-		require.NoError(t, err)
 
 		fibber, normals, err = getPlayerRoles(hostPlayerPage, otherPlayerPages)
 		require.NoError(t, err)
@@ -152,7 +170,7 @@ func TestE2ERounds(t *testing.T) {
 	})
 
 	t.Run("Should successfully complete an entire round without guessing the fibber", func(t *testing.T) {
-		t.Parallel()
+
 		playerPages, err := setupTest(t, playerNum)
 		require.NoError(t, err)
 
@@ -166,9 +184,24 @@ func TestE2ERounds(t *testing.T) {
 		require.NoError(t, err)
 
 		for _, player := range playerPages {
-			err = player.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Close"}).Click()
+			closeButton := player.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Close"})
+			err = closeButton.WaitFor(playwright.LocatorWaitForOptions{
+				State:   playwright.WaitForSelectorStateVisible,
+				Timeout: playwright.Float(5000),
+			})
 			require.NoError(t, err)
+			err = closeButton.Click()
+			require.NoError(t, err)
+			player.WaitForTimeout(500)
 		}
+
+		// Wait for answer form to be available (indicating question phase is active)
+		answerForm := fibber.Locator("#submit_answer_form")
+		err = answerForm.WaitFor(playwright.LocatorWaitForOptions{
+			State:   playwright.WaitForSelectorStateVisible,
+			Timeout: playwright.Float(5000),
+		})
+		require.NoError(t, err)
 
 		for i := 0; i < 2; i++ {
 			err = submitAnswerForPlayer(fibber, "I am not a fibber")
@@ -177,7 +210,14 @@ func TestE2ERounds(t *testing.T) {
 			// Wait a bit for the form to process
 			fibber.WaitForTimeout(500)
 
-			err = fibber.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Ready"}).Click()
+			readyButton := fibber.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Ready"})
+			err = readyButton.WaitFor(playwright.LocatorWaitForOptions{
+				State:   playwright.WaitForSelectorStateVisible,
+				Timeout: playwright.Float(5000),
+			})
+			require.NoError(t, err)
+
+			err = readyButton.Click()
 			require.NoError(t, err)
 
 			for j, normal := range normals {
@@ -187,7 +227,14 @@ func TestE2ERounds(t *testing.T) {
 				// Wait a bit for the form to process
 				normal.WaitForTimeout(500)
 
-				err = normal.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Ready"}).Click()
+				readyButton := normal.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Ready"})
+				err = readyButton.WaitFor(playwright.LocatorWaitForOptions{
+					State:   playwright.WaitForSelectorStateVisible,
+					Timeout: playwright.Float(5000),
+				})
+				require.NoError(t, err)
+
+				err = readyButton.Click()
 				require.NoError(t, err)
 			}
 

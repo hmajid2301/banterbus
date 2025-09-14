@@ -6,8 +6,8 @@ namespace: prod
 resources:
 - ../../base
 - configmap-env.yaml
+- configmap-db.yaml
 - ingress.yaml
-- cloudflared.yaml
 
 patches:
 - path: deployment-patch.yaml

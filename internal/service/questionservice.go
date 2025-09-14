@@ -5,7 +5,7 @@ import (
 
 	"github.com/gofrs/uuid/v5"
 
-	"gitlab.com/hmajid2301/banterbus/internal/store/db"
+	"gitlab.com/banterbus/banterbus/internal/store/db"
 )
 
 const (

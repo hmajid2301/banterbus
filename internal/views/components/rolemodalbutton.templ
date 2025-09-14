@@ -1,0 +1,62 @@
+package components
+
+import "github.com/invopop/ctxi18n/i18n"
+
+templ RoleModalButton(role string) {
+	<div
+		x-data={ toJSON(map[string]any{"showModal": false}) }
+		@keydown.escape="showModal = false"
+	>
+		<button
+			type="button"
+			@click="showModal = true"
+			class="flex items-center py-2 px-4 space-x-2 rounded-lg transition-colors bg-surface1 hover:bg-surface2"
+		>
+			<i class="hgi hgi-solid hgi-eye"></i>
+			<span class="text-sm font-medium">{ i18n.T(ctx, "role.view_role") }</span>
+		</button>
+		<div
+			class="flex overflow-auto fixed inset-0 z-30 justify-center items-center bg-black bg-opacity-50"
+			x-show="showModal"
+			x-transition:enter="motion-safe:ease-out duration-300"
+			x-transition:enter-start="opacity-0"
+			x-transition:enter-end="opacity-100"
+		>
+			<div
+				class="py-6 px-4 mx-auto max-w-sm text-center rounded-lg shadow-xl sm:px-8 sm:max-w-md bg-surface0"
+				@click.away="showModal = false"
+				x-transition:enter="motion-safe:ease-out duration-300"
+				x-transition:enter-start="opacity-0 scale-90"
+				x-transition:enter-end="opacity-100 scale-100"
+			>
+				<div class="flex justify-end mb-4">
+					<button type="button" aria-label="Close" class="cursor-pointer text-text2 hover:text-text" @click="showModal = false">
+						<i class="hgi hgi-solid hgi-cancel-01"></i>
+					</button>
+				</div>
+				<div class="text-text">
+					<div class="mb-6">
+						if role == "fibber" {
+							<i class="text-4xl text-red-500 sm:text-6xl hgi hgi-solid hgi-alien"></i>
+						} else {
+							<i class="text-4xl text-blue-500 sm:text-6xl hgi hgi-solid hgi-user"></i>
+						}
+					</div>
+					<h3 class="mb-2 text-xl font-bold">
+						{ i18n.T(ctx, "role.you_are") } { toRoleI18N(ctx, role) }
+					</h3>
+					<p class="mb-6 text-text2">
+						{ i18n.T(ctx, "role.keep_secret") }
+					</p>
+					<button
+						type="button"
+						@click="showModal = false"
+						class="py-2 px-6 font-medium text-white rounded-lg transition-colors bg-blue hover:bg-sapphire"
+					>
+						{ i18n.T(ctx, "common.close") }
+					</button>
+				</div>
+			</div>
+		</div>
+	</div>
+}

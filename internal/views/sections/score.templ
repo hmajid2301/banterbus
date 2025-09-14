@@ -1,15 +1,15 @@
 package sections
 
 import (
-	"gitlab.com/hmajid2301/banterbus/internal/service"
-	"gitlab.com/hmajid2301/banterbus/internal/views/components"
+	"gitlab.com/banterbus/banterbus/internal/service"
+	"gitlab.com/banterbus/banterbus/internal/views/components"
 	"strconv"
 )
 
 templ Score(state service.ScoreState, player service.PlayerWithScoring, maxScore int) {
 	<div hx-swap-oob="innerHTML:#page">
-		<div>
-			<div class="flex flex-col justify-center items-center space-y-4 sm:space-y-6 text-text2">
+		<div class="mx-auto w-full max-w-4xl">
+			<div class="flex flex-col justify-center items-center space-y-3 sm:space-y-4 text-text2">
 				<div class="text-lg sm:text-xl">{ strconv.Itoa(state.RoundNumber) } / 3</div>
 				<h2 class="text-xl sm:text-2xl md:text-3xl">Scoreboard</h2>
 				<div class="text-center">
@@ -18,7 +18,9 @@ templ Score(state service.ScoreState, player service.PlayerWithScoring, maxScore
 						Size:           "w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16",
 					})
 				</div>
-				@components.Scoreboard(state.Players, maxScore)
+				<div class="w-full max-w-2xl">
+					@components.Scoreboard(state.Players, maxScore)
+				</div>
 			</div>
 		</div>
 	</div>

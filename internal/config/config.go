@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net"
+	"net/url"
 	"strings"
 	"time"
 
@@ -112,10 +113,12 @@ func LoadConfig(ctx context.Context) (Config, error) {
 		return Config{}, err
 	}
 
+	// Create a proper URL with encoded userinfo to handle special characters from Bao
+	userinfo := url.UserPassword(input.DBUsername, input.DBPassword)
+
 	uri := fmt.Sprintf(
-		"postgresql://%s:%s@%s:%s/%s",
-		input.DBUsername,
-		input.DBPassword,
+		"postgresql://%s@%s:%s/%s",
+		userinfo.String(),
 		input.DBHost,
 		input.DBPort,
 		input.DBName,

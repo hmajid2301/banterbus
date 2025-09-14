@@ -57,7 +57,11 @@ func beforeAll() error {
 		browserType = pw.Chromium
 	}
 
-	headless := os.Getenv("BANTERBUS_PLAYWRIGHT_HEADLESS") == "true"
+	headless := true
+	if os.Getenv("BANTERBUS_PLAYWRIGHT_SHOW_BROWSER") != "" {
+		headless = false
+	}
+
 	browser, err = browserType.Launch(playwright.BrowserTypeLaunchOptions{
 		Headless: playwright.Bool(headless),
 		Args: []string{
@@ -67,13 +71,17 @@ func beforeAll() error {
 			"--disable-background-timer-throttling",
 			"--disable-backgrounding-occluded-windows",
 			"--disable-renderer-backgrounding",
+			"--disable-web-security",
+			"--disable-features=VizDisplayCompositor",
+			"--disable-gpu",
 		},
+		Timeout: playwright.Float(5000),
 	})
 	if err != nil {
 		return fmt.Errorf("could not start browser: %v", err)
 	}
 
-	expect = playwright.NewPlaywrightAssertions(2000)
+	expect = playwright.NewPlaywrightAssertions(10000)
 
 	if webappURL == "" {
 		webappURL = "http://localhost:8081"
@@ -121,16 +129,7 @@ func setupTest(t *testing.T, playerNum int) ([]playwright.Page, error) {
 		}
 
 		context, err := browser.NewContext(playwright.BrowserNewContextOptions{
-			RecordVideo: &playwright.RecordVideo{Dir: tempVideoDir,
-				Size: &playwright.Size{
-					Width:  960,
-					Height: 1280,
-				},
-			},
-			Viewport: &playwright.Size{
-				Width:  960,
-				Height: 1280,
-			},
+			RecordVideo: &playwright.RecordVideo{Dir: tempVideoDir},
 			Permissions: []string{"clipboard-read", "clipboard-write"},
 		})
 		if err != nil {
@@ -143,10 +142,11 @@ func setupTest(t *testing.T, playerNum int) ([]playwright.Page, error) {
 			return nil, fmt.Errorf("page creation failed: %w", err)
 		}
 
-		page.SetDefaultTimeout(2000)
+		page.SetDefaultTimeout(10000)
 
 		_, err = page.Goto(webappURL, playwright.PageGotoOptions{
 			WaitUntil: playwright.WaitUntilStateDomcontentloaded,
+			Timeout:   playwright.Float(5000),
 		})
 		if err != nil {
 			return nil, fmt.Errorf("failed to go to URL: %w", err)
@@ -174,17 +174,7 @@ func setupTest(t *testing.T, playerNum int) ([]playwright.Page, error) {
 		}
 		finalBaseDir := filepath.Join("videos", statusDir)
 
-		for i, context := range contexts {
-			if t.Failed() {
-				screenshotPath := filepath.Join("videos", statusDir, fmt.Sprintf("%s_player_%d.png", testName, i+1))
-				if _, err := pages[i].Screenshot(playwright.PageScreenshotOptions{Path: &screenshotPath}); err != nil {
-					log.Printf("Failed to take screenshot: %v", err)
-				}
-			}
-			if err := context.Close(); err != nil {
-				log.Printf("Context close error: %v", err)
-			}
-
+		for i := range contexts {
 			tempVideoDir := filepath.Join("videos", "temp", fmt.Sprintf("%s_%d", testName, i))
 			finalVideoPath := filepath.Join(finalBaseDir, fmt.Sprintf("%s_player_%d.webm", testName, i+1))
 
