@@ -38,7 +38,7 @@ tasks:
     env:
       LOCATIONS: "./internal/ ./tests/ main.go"
     cmds:
-      - goimports -local gitlab.com/banterbus/banterbus -w $LOCATIONS
+      - goimports -local gitlab.com/hmajid2301/banterbus -w $LOCATIONS
       - golines -m 120 -w $LOCATIONS
       - sqlfluff format internal/store/db/sqlc/ --dialect postgres --disable-progress-bar
       - templ fmt internal/views
@@ -194,11 +194,6 @@ tasks:
       - sqlc generate
       - gomod2nix generate
       - task: format
-
-  release:
-    desc: Release the web app.
-    cmds:
-      - goreleaser release --clean --verbose
 
   docker:build:
     desc: Build the Docker image

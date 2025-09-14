@@ -1,4 +1,4 @@
-module gitlab.com/banterbus/banterbus
+module gitlab.com/hmajid2301/banterbus
 
 go 1.24.0
 

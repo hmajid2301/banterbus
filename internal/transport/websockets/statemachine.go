@@ -12,9 +12,9 @@ import (
 	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/trace"
 
-	"gitlab.com/banterbus/banterbus/internal/service"
-	"gitlab.com/banterbus/banterbus/internal/store/db"
-	"gitlab.com/banterbus/banterbus/internal/telemetry"
+	"gitlab.com/hmajid2301/banterbus/internal/service"
+	"gitlab.com/hmajid2301/banterbus/internal/store/db"
+	"gitlab.com/hmajid2301/banterbus/internal/telemetry"
 )
 
 type State interface {

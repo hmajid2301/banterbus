@@ -11,8 +11,8 @@ import (
 	"github.com/a-h/templ"
 	templruntime "github.com/a-h/templ/runtime"
 
-	"gitlab.com/banterbus/banterbus/internal/service"
-	"gitlab.com/banterbus/banterbus/internal/views/components"
+	"gitlab.com/hmajid2301/banterbus/internal/service"
+	"gitlab.com/hmajid2301/banterbus/internal/views/components"
 )
 
 func Score(state service.ScoreState, player service.PlayerWithScoring, maxScore int) templ.Component {

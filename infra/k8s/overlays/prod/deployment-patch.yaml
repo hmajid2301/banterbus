@@ -8,7 +8,7 @@ spec:
     spec:
       containers:
       - name: banterbus
-        image: registry.gitlab.com/banterbus/banterbus:prod
+        image: registry.gitlab.com/hmajid2301/banterbus:prod
         resources:
           requests:
             cpu: 500m

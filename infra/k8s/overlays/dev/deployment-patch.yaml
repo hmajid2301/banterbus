@@ -8,4 +8,4 @@ spec:
     spec:
       containers:
       - name: banterbus
-        image: registry.gitlab.com/banterbus/banterbus:dev
+        image: registry.gitlab.com/hmajid2301/banterbus:dev

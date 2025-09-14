@@ -11,12 +11,12 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
-	"gitlab.com/banterbus/banterbus/internal/config"
-	"gitlab.com/banterbus/banterbus/internal/service"
-	"gitlab.com/banterbus/banterbus/internal/store/db"
-	"gitlab.com/banterbus/banterbus/internal/transport/websockets"
-	mockService "gitlab.com/banterbus/banterbus/internal/transport/websockets/mocks"
-	"gitlab.com/banterbus/banterbus/internal/views"
+	"gitlab.com/hmajid2301/banterbus/internal/config"
+	"gitlab.com/hmajid2301/banterbus/internal/service"
+	"gitlab.com/hmajid2301/banterbus/internal/store/db"
+	"gitlab.com/hmajid2301/banterbus/internal/transport/websockets"
+	mockService "gitlab.com/hmajid2301/banterbus/internal/transport/websockets/mocks"
+	"gitlab.com/hmajid2301/banterbus/internal/views"
 )
 
 func TestStateMachine(t *testing.T) {

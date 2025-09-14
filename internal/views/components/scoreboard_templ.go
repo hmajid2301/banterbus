@@ -12,7 +12,7 @@ import (
 	"github.com/a-h/templ"
 	templruntime "github.com/a-h/templ/runtime"
 
-	"gitlab.com/banterbus/banterbus/internal/service"
+	"gitlab.com/hmajid2301/banterbus/internal/service"
 )
 
 func Scoreboard(players []service.PlayerWithScoring, maxScore int) templ.Component {

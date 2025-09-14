@@ -37,4 +37,4 @@ spec:
    interval: 1m0s
    ref:
      branch: ui-fixes
-   url: https://gitlab.com/banterbus/banterbus.git
+   url: https://gitlab.com/hmajid2301/banterbus.git

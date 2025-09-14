@@ -1,6 +1,6 @@
 services:
   redis:
-    image: ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX:-docker.io}/redis:7.4.1
+    image: redis:7.4.1
     profiles:
       - test
     ports:
@@ -12,7 +12,7 @@ services:
       retries: 5
 
   postgres:
-    image: ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX:-docker.io}/postgres:16.6
+    image: postgres:16.6
     profiles:
       - test
     ports:
@@ -55,7 +55,7 @@ services:
       - 44301:8081
 
   alloy:
-    image: ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX:-docker.io}/grafana/alloy:v1.9.1
+    image: grafana/alloy:v1.9.1
     profiles:
       - monitoring
     command:
@@ -78,7 +78,7 @@ services:
       - mimir
 
   mimir:
-    image: ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX:-docker.io}/grafana/mimir:2.11.0
+    image: grafana/mimir:2.11.0
     profiles:
       - monitoring
     command:
@@ -95,7 +95,7 @@ services:
       - mimir-data:/data
 
   grafana:
-    image: ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX:-docker.io}/grafana/grafana:11.6.1
+    image: grafana/grafana:11.6.1
     profiles:
       - monitoring
     ports:
@@ -108,7 +108,7 @@ services:
      - grafana-data:/var/lib/grafana
 
   tempo:
-    image: ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX:-docker.io}/grafana/tempo:2.7.2
+    image: grafana/tempo:2.7.2
     profiles:
       - monitoring
     command: ["-config.file=/etc/tempo.yaml"]
@@ -127,7 +127,7 @@ services:
           memory: 512M
 
   loki:
-    image: ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX:-docker.io}/grafana/loki:3.5.0
+    image: grafana/loki:3.5.0
     profiles:
       - monitoring
     command: ["-config.file=/etc/loki/loki-config.yaml"]

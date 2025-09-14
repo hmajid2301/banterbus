@@ -5,7 +5,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"gitlab.com/banterbus/banterbus/internal/transport/websockets"
+	"gitlab.com/hmajid2301/banterbus/internal/transport/websockets"
 )
 
 func TestCreateRoomValidation(t *testing.T) {

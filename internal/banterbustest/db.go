@@ -18,7 +18,7 @@ import (
 	"github.com/mdobak/go-xerrors"
 	pgxUUID "github.com/vgarvardt/pgx-google-uuid/v5"
 
-	"gitlab.com/banterbus/banterbus/internal/store/db"
+	"gitlab.com/hmajid2301/banterbus/internal/store/db"
 
 	"github.com/gofrs/uuid/v5"
 	"github.com/jackc/pgx/v5"

@@ -14,7 +14,7 @@ spec:
       serviceAccountName: banterbus
       containers:
        - name: banterbus
-         image: registry.gitlab.com/banterbus/banterbus:dev-9ec7795552b0f6d60d82263fc30c809d2d9a3642-1757689997
+         image: registry.gitlab.com/hmajid2301/banterbus:dev-9ec7795552b0f6d60d82263fc30c809d2d9a3642-1757689997
          ports:
          - containerPort: 8080
          envFrom:

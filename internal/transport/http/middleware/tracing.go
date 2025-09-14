@@ -13,7 +13,7 @@ import (
 	semconv "go.opentelemetry.io/otel/semconv/v1.26.0"
 	"go.opentelemetry.io/otel/trace"
 
-	"gitlab.com/banterbus/banterbus/internal/telemetry"
+	"gitlab.com/hmajid2301/banterbus/internal/telemetry"
 )
 
 func (Middleware) Tracing(h http.Handler) http.Handler {

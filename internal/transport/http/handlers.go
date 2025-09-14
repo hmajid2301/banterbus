@@ -13,7 +13,7 @@ import (
 	"github.com/invopop/ctxi18n/i18n"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 
-	"gitlab.com/banterbus/banterbus/internal/transport/http/middleware"
+	"gitlab.com/hmajid2301/banterbus/internal/transport/http/middleware"
 )
 
 type Server struct {

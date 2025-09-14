@@ -2,11 +2,11 @@ all: false
 filename: "{{ .InterfaceName | lower }}.go"
 dir: '{{.InterfaceDir}}/mocks'
 packages:
-  gitlab.com/banterbus/banterbus/internal/service:
+  gitlab.com/hmajid2301/banterbus/internal/service:
     interfaces:
       Randomizer:
       Storer:
-  gitlab.com/banterbus/banterbus/internal/transport/websockets:
+  gitlab.com/hmajid2301/banterbus/internal/transport/websockets:
     interfaces:
       LobbyServicer:
       PlayerServicer:

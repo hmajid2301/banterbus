@@ -14,10 +14,10 @@ import (
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
 
-	"gitlab.com/banterbus/banterbus/internal/service"
-	"gitlab.com/banterbus/banterbus/internal/store/db"
-	"gitlab.com/banterbus/banterbus/internal/telemetry"
-	"gitlab.com/banterbus/banterbus/internal/views/sections"
+	"gitlab.com/hmajid2301/banterbus/internal/service"
+	"gitlab.com/hmajid2301/banterbus/internal/store/db"
+	"gitlab.com/hmajid2301/banterbus/internal/telemetry"
+	"gitlab.com/hmajid2301/banterbus/internal/views/sections"
 )
 
 func (s Subscriber) Reconnect(ctx context.Context, playerID uuid.UUID) (bytes.Buffer, error) {

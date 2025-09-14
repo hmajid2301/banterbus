@@ -11,7 +11,7 @@ info:
     email: hello@haseebmajid.dev
   license:
     name: License
-    url: https://gitlab.com/banterbus/banterbus/blob/main/LICENSE
+    url: https://gitlab.com/hmajid2301/banterbus/blob/main/LICENSE
 
 servers:
   production:

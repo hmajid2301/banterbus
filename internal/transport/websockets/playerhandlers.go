@@ -6,8 +6,8 @@ import (
 
 	"github.com/gofrs/uuid/v5"
 
-	"gitlab.com/banterbus/banterbus/internal/service"
-	"gitlab.com/banterbus/banterbus/internal/telemetry"
+	"gitlab.com/hmajid2301/banterbus/internal/service"
+	"gitlab.com/hmajid2301/banterbus/internal/telemetry"
 )
 
 type PlayerServicer interface {

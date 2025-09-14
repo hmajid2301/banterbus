@@ -17,6 +17,7 @@ import (
 	"github.com/MicahParks/jwkset"
 	"github.com/MicahParks/keyfunc/v3"
 	"github.com/exaring/otelpgx"
+	"github.com/golang-jwt/jwt/v5"
 	_ "github.com/jackc/pgx/v5/stdlib"
 
 	"github.com/invopop/ctxi18n"
@@ -25,16 +26,16 @@ import (
 	"github.com/pressly/goose/v3"
 	pgxUUID "github.com/vgarvardt/pgx-google-uuid/v5"
 
-	"gitlab.com/banterbus/banterbus/internal/banterbustest"
-	"gitlab.com/banterbus/banterbus/internal/config"
-	"gitlab.com/banterbus/banterbus/internal/service"
-	"gitlab.com/banterbus/banterbus/internal/service/randomizer"
-	"gitlab.com/banterbus/banterbus/internal/store/db"
-	"gitlab.com/banterbus/banterbus/internal/store/pubsub"
-	"gitlab.com/banterbus/banterbus/internal/telemetry"
-	transporthttp "gitlab.com/banterbus/banterbus/internal/transport/http"
-	"gitlab.com/banterbus/banterbus/internal/transport/websockets"
-	"gitlab.com/banterbus/banterbus/internal/views"
+	"gitlab.com/hmajid2301/banterbus/internal/banterbustest"
+	"gitlab.com/hmajid2301/banterbus/internal/config"
+	"gitlab.com/hmajid2301/banterbus/internal/service"
+	"gitlab.com/hmajid2301/banterbus/internal/service/randomizer"
+	"gitlab.com/hmajid2301/banterbus/internal/store/db"
+	"gitlab.com/hmajid2301/banterbus/internal/store/pubsub"
+	"gitlab.com/hmajid2301/banterbus/internal/telemetry"
+	transporthttp "gitlab.com/hmajid2301/banterbus/internal/transport/http"
+	"gitlab.com/hmajid2301/banterbus/internal/transport/websockets"
+	"gitlab.com/hmajid2301/banterbus/internal/views"
 )
 
 //go:embed internal/store/db/sqlc/migrations/*.sql
@@ -140,17 +141,19 @@ func mainLogic() error {
 
 	subscriber := websockets.NewSubscriber(lobbyService, playerService, roundService, logger, &redisClient, conf, rules)
 
-	// TODO: should we stop startup if this is failing?
-	storage, err := jwkset.NewStorageFromHTTP(conf.JWT.JWKSURL, jwkset.HTTPClientStorageOptions{Ctx: ctx})
-	if err != nil {
-		return fmt.Errorf("failed to jwkset storage: %w", err)
-	}
-
-	k, err := keyfunc.New(keyfunc.Options{
-		Storage: storage,
-	})
-	if err != nil {
-		return fmt.Errorf("failed to create keyfunc: %w", err)
+	var k keyfunc.Keyfunc
+	if conf.JWT.JWKSURL != "" {
+		storage, err := jwkset.NewStorageFromHTTP(conf.JWT.JWKSURL, jwkset.HTTPClientStorageOptions{Ctx: ctx})
+		if err != nil {
+			logger.WarnContext(ctx, "failed to setup jwkset storage, JWT validation disabled", slog.Any("error", err))
+		} else {
+			k, err = keyfunc.New(keyfunc.Options{
+				Storage: storage,
+			})
+			if err != nil {
+				logger.WarnContext(ctx, "failed to create keyfunc, JWT validation disabled", slog.Any("error", err))
+			}
+		}
 	}
 
 	serverConfig := transporthttp.ServerConfig{
@@ -159,7 +162,11 @@ func mainLogic() error {
 		DefaultLocale: conf.App.DefaultLocale,
 		Environment:   conf.App.Environment,
 	}
-	server := transporthttp.NewServer(subscriber, logger, http.FS(fsys), k.Keyfunc, questionService, serverConfig)
+	var keyFunc func(token *jwt.Token) (interface{}, error)
+	if k != nil {
+		keyFunc = k.Keyfunc
+	}
+	server := transporthttp.NewServer(subscriber, logger, http.FS(fsys), keyFunc, questionService, serverConfig)
 
 	go func() {
 		logger.InfoContext(

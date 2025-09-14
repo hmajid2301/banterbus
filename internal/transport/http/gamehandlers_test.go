@@ -14,9 +14,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"gitlab.com/banterbus/banterbus/internal/service"
-	httpTransport "gitlab.com/banterbus/banterbus/internal/transport/http"
-	"gitlab.com/banterbus/banterbus/internal/views"
+	"gitlab.com/hmajid2301/banterbus/internal/service"
+	httpTransport "gitlab.com/hmajid2301/banterbus/internal/transport/http"
+	"gitlab.com/hmajid2301/banterbus/internal/views"
 )
 
 type mockWebsocketer struct {

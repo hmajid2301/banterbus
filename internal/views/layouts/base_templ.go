@@ -9,7 +9,7 @@ import (
 	"github.com/a-h/templ"
 	templruntime "github.com/a-h/templ/runtime"
 
-	"gitlab.com/banterbus/banterbus/internal/views/components"
+	"gitlab.com/hmajid2301/banterbus/internal/views/components"
 )
 
 func Base(languages map[string]string, environment string) templ.Component {

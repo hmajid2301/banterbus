@@ -51,7 +51,6 @@
           go-task
           go-mockery
           go-enum
-          goreleaser
           golines
 
           playwright-driver

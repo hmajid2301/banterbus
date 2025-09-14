@@ -14,9 +14,9 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
-	"gitlab.com/banterbus/banterbus/internal/service"
-	mockService "gitlab.com/banterbus/banterbus/internal/service/mocks"
-	"gitlab.com/banterbus/banterbus/internal/store/db"
+	"gitlab.com/hmajid2301/banterbus/internal/service"
+	mockService "gitlab.com/hmajid2301/banterbus/internal/service/mocks"
+	"gitlab.com/hmajid2301/banterbus/internal/store/db"
 )
 
 func TestRoundServiceSubmitAnswer(t *testing.T) {

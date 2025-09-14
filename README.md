@@ -13,7 +13,7 @@ To set up the app you can do:
 If you use Nix flakes and direnv setup you can simply do:
 
 ```bash
-git clone https://gitlab.com/banterbus/banterbus
+git clone https://gitlab.com/hmajid2301/banterbus
 cd banterbus
 direnv allow
 
