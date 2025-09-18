@@ -146,7 +146,6 @@ func (s *Subscriber) registerHandlers() {
 func (s *Subscriber) Subscribe(r *http.Request, w http.ResponseWriter) (err error) {
 	ctx := r.Context()
 
-	// Extract test name from baggage and add to structured logging context
 	bag := baggage.FromContext(ctx)
 	testNameMember := bag.Member("test_name")
 	if testNameMember.Value() != "" {
@@ -175,7 +174,6 @@ func (s *Subscriber) Subscribe(r *http.Request, w http.ResponseWriter) (err erro
 		attribute.String("component", "websocket-subscriber"),
 	}
 
-	// Add test name to span if available in baggage
 	if testNameMember.Value() != "" {
 		spanAttrs = append(spanAttrs, attribute.String("test_name", testNameMember.Value()))
 	}

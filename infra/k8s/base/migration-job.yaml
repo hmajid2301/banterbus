@@ -1,0 +1,62 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: banterbus-migration
+  labels:
+    app: banterbus
+    component: migration
+spec:
+  ttlSecondsAfterFinished: 300  # Clean up job after 5 minutes
+  backoffLimit: 3
+  template:
+    metadata:
+      labels:
+        app: banterbus
+        component: migration
+    spec:
+      serviceAccountName: banterbus
+      restartPolicy: Never
+      initContainers:
+      - name: copy-migrations
+        image: registry.gitlab.com/hmajid2301/banterbus:latest # {"$imagepolicy": "default:banterbus"}
+        command: ["cp", "-r", "/app/internal/store/db/sqlc/migrations", "/shared/"]
+        volumeMounts:
+        - name: shared-migrations
+          mountPath: /shared
+      containers:
+      - name: migrate
+        image: gomicro/goose:3.25.0
+        command: ["goose"]
+        args: ["-dir", "/migrations", "postgres", "$(DBSTRING)", "up"]
+        env:
+        - name: DBSTRING
+          value: "host=$(BANTERBUS_DB_HOST) port=$(BANTERBUS_DB_PORT) user=$(BANTERBUS_DB_USERNAME) password=$(BANTERBUS_DB_PASSWORD) dbname=$(BANTERBUS_DB_NAME) sslmode=disable"
+        envFrom:
+        - configMapRef:
+            name: banterbus-config
+        - configMapRef:
+            name: banterbus-config-env  
+        - secretRef:
+            name: banterbus-secrets
+        volumeMounts:
+        - name: shared-migrations
+          mountPath: /migrations
+        - name: secrets-store
+          mountPath: "/mnt/secrets"
+          readOnly: true
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "50m"
+          limits:
+            memory: "128Mi"
+            cpu: "100m"
+      volumes:
+      - name: shared-migrations
+        emptyDir: {}
+      - name: secrets-store
+        csi:
+          driver: secrets-store.csi.k8s.io
+          readOnly: true
+          volumeAttributes:
+            secretProviderClass: "banterbus-secrets"

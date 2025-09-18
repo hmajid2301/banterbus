@@ -2,6 +2,9 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: banterbus
+  annotations:
+    fluxcd.io/automated: "true"
+    fluxcd.io/tag.banterbus: "glob:*"
 spec:
   selector:
     matchLabels:
@@ -12,9 +15,22 @@ spec:
         app: banterbus
     spec:
       serviceAccountName: banterbus
+      initContainers:
+      - name: wait-for-migration
+        image: ghcr.io/groundnuty/k8s-wait-for:v2.0
+        args:
+          - "job"
+          - "banterbus-migration"
+        resources:
+          requests:
+            memory: "32Mi"
+            cpu: "10m"
+          limits:
+            memory: "64Mi"
+            cpu: "50m"
       containers:
        - name: banterbus
-         image: registry.gitlab.com/hmajid2301/banterbus:dev-9ec7795552b0f6d60d82263fc30c809d2d9a3642-1757689997
+          image: registry.gitlab.com/hmajid2301/banterbus:latest # {"$imagepolicy": "default:banterbus"}
          ports:
          - containerPort: 8080
          envFrom:

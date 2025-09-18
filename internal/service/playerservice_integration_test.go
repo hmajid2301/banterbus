@@ -31,7 +31,7 @@ func TestIntegrationPlayerUpdateNickname(t *testing.T) {
 			ID: id,
 		}
 
-		ctx, err := getI18nCtx()
+		ctx, err := getI18nCtx(t.Context())
 		require.NoError(t, err)
 
 		lobbyService := service.NewLobbyService(str, randomizer, "en-GB")
@@ -59,7 +59,7 @@ func TestIntegrationPlayerUpdateNickname(t *testing.T) {
 			Nickname: "majiy01",
 		}
 
-		ctx, err := getI18nCtx()
+		ctx, err := getI18nCtx(t.Context())
 		require.NoError(t, err)
 
 		lobbyService := service.NewLobbyService(str, randomizer, "en-GB")
@@ -94,7 +94,7 @@ func TestIntegrationPlayerUpdateNickname(t *testing.T) {
 			Nickname: "majiy01",
 		}
 
-		ctx, err := getI18nCtx()
+		ctx, err := getI18nCtx(t.Context())
 		require.NoError(t, err)
 
 		lobbyService := service.NewLobbyService(str, randomizer, "en-GB")
@@ -124,7 +124,7 @@ func TestIntegrationPlayerGenerateNewAvatar(t *testing.T) {
 			ID: id,
 		}
 
-		ctx, err := getI18nCtx()
+		ctx, err := getI18nCtx(t.Context())
 		require.NoError(t, err)
 
 		lobbyService := service.NewLobbyService(str, randomizer, "en-GB")
@@ -154,7 +154,7 @@ func TestIntegrationPlayerGenerateNewAvatar(t *testing.T) {
 			ID: id,
 		}
 
-		ctx, err := getI18nCtx()
+		ctx, err := getI18nCtx(t.Context())
 		require.NoError(t, err)
 
 		lobbyService := service.NewLobbyService(str, randomizer, "en-GB")
@@ -192,7 +192,7 @@ func TestIntegrationToggleIsReady(t *testing.T) {
 			ID: id,
 		}
 
-		ctx, err := getI18nCtx()
+		ctx, err := getI18nCtx(t.Context())
 		require.NoError(t, err)
 
 		lobbyService := service.NewLobbyService(str, randomizer, "en-GB")
@@ -220,7 +220,7 @@ func TestIntegrationToggleIsReady(t *testing.T) {
 			ID: id,
 		}
 
-		ctx, err := getI18nCtx()
+		ctx, err := getI18nCtx(t.Context())
 		require.NoError(t, err)
 
 		lobbyService := service.NewLobbyService(str, randomizer, "en-GB")
@@ -250,7 +250,7 @@ func TestIntegrationToggleIsReady(t *testing.T) {
 			ID: id,
 		}
 
-		ctx, err := getI18nCtx()
+		ctx, err := getI18nCtx(t.Context())
 		require.NoError(t, err)
 
 		lobbyService := service.NewLobbyService(str, randomizer, "en-GB")
@@ -277,7 +277,7 @@ func TestIntegrationToggleIsReady(t *testing.T) {
 			ID: id,
 		}
 
-		ctx, err := getI18nCtx()
+		ctx, err := getI18nCtx(t.Context())
 		require.NoError(t, err)
 
 		lobbyService := service.NewLobbyService(str, randomizer, "en-GB")

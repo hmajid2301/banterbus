@@ -22,24 +22,23 @@ tasks:
       This command starts a local version of the app with reloading enabled.
       So when the code changes the server restarts. It also watches for changes in `templ` and `tailwind` classes.
       We reload using air. It also makes sure that the docker containers are started first that the app depends on.
+      Database migrations are run automatically after containers are ready.
     env:
       BANTERBUS_LOG_LEVEL: debug
     cmds:
       - docker compose --profile monitoring --profile test --profile other up -d --force-recreate --remove-orphans --wait
+      - task: migrate
       - concurrently "air" "task watch"
 
   lint:
     desc: Runs the linter.
     cmds:
-      - golangci-lint run ./...
+      - golangci-lint run --fix ./...
 
   format:
     desc: Runs the formatter.
-    env:
-      LOCATIONS: "./internal/ ./tests/ main.go"
     cmds:
-      - goimports -local gitlab.com/hmajid2301/banterbus -w $LOCATIONS
-      - golines -m 120 -w $LOCATIONS
+      - golangci-lint run --fix ./...
       - sqlfluff format internal/store/db/sqlc/ --dialect postgres --disable-progress-bar
       - templ fmt internal/views
       - rustywind internal/views/ --write
@@ -204,6 +203,23 @@ tasks:
       - nix build .#${FLAKE_TARGET}
       - docker load < result
 
+  migrate:
+    desc: Run database migrations using goose
+    summary: |
+      Run database migrations using the same goose binary used in CI.
+      This connects to the local PostgreSQL database started by docker-compose.
+    env:
+      POSTGRES_HOST: localhost
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: banterbus
+    cmds:
+      - |
+        goose -dir internal/store/db/sqlc/migrations postgres \
+          "host=${POSTGRES_HOST} port=${POSTGRES_PORT} user=${POSTGRES_USER} password=${POSTGRES_PASSWORD} dbname=${POSTGRES_DB} sslmode=disable" \
+          up
+
   docker:publish:
     desc: Build and publish the Docker image
     env:
@@ -226,13 +242,9 @@ tasks:
   ci:local:
     desc: Run gitlab ci locally
     cmds:
+      - nix build .#container-ci && docker load < result
+      - docker tag banterbus-dev:latest local-registry.gitlab.com/hmajid2301/banterbus/ci:v0.1.12
       - job=$(gitlab-ci-local --list-all | tail -n +4 | awk '{print $1}' | gum filter --placeholder "Select job") && gitlab-ci-local "$job"
-
-  tf:init:
-    desc: Initialize Terraform/OpenTofu in infra/tf
-    dir: infra/tf
-    cmds:
-      - tofu init
 
   tf:validate:
     desc: Validate Terraform/OpenTofu configuration
@@ -251,12 +263,6 @@ tasks:
     dir: infra/tf
     cmds:
       - tofu apply
-
-  tf:destroy:
-    desc: Destroy Terraform/OpenTofu resources
-    dir: infra/tf
-    cmds:
-      - tofu destroy
 
   tf:output:
     desc: Show Terraform/OpenTofu outputs

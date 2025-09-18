@@ -48,7 +48,7 @@ pkgs.mkShell {
     export BANTERBUS_DB_HOST=localhost
     export BANTERBUS_DB_USERNAME=postgres
     export BANTERBUS_DB_PASSWORD=postgres
-    export BANTERBUS_DB_NAME=postgres
+    export BANTERBUS_DB_NAME=banterbus
     export BANTERBUS_REDIS_ADDRESS="localhost:6379"
     export BANTERBUS_ENVIRONMENT=local
     export BANTERBUS_AUTO_RECONNECT=true

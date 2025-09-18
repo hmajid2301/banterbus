@@ -2,7 +2,7 @@ package main
 
 import (
 	"context"
-	"database/sql"
+
 	"embed"
 	"errors"
 	"fmt"
@@ -16,17 +16,11 @@ import (
 
 	"github.com/MicahParks/jwkset"
 	"github.com/MicahParks/keyfunc/v3"
-	"github.com/exaring/otelpgx"
 	"github.com/golang-jwt/jwt/v5"
 	_ "github.com/jackc/pgx/v5/stdlib"
 
 	"github.com/invopop/ctxi18n"
-	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/pressly/goose/v3"
-	pgxUUID "github.com/vgarvardt/pgx-google-uuid/v5"
 
-	"gitlab.com/hmajid2301/banterbus/internal/banterbustest"
 	"gitlab.com/hmajid2301/banterbus/internal/config"
 	"gitlab.com/hmajid2301/banterbus/internal/service"
 	"gitlab.com/hmajid2301/banterbus/internal/service/randomizer"
@@ -37,9 +31,6 @@ import (
 	"gitlab.com/hmajid2301/banterbus/internal/transport/websockets"
 	"gitlab.com/hmajid2301/banterbus/internal/views"
 )
-
-//go:embed internal/store/db/sqlc/migrations/*.sql
-var migrations embed.FS
 
 //go:embed static
 var staticFiles embed.FS
@@ -74,42 +65,13 @@ func mainLogic() error {
 		err = errors.Join(err, telemtryShtudown(ctx))
 	}()
 
-	// TODO: take these values from otel? instrument via otel?
 	logger := telemetry.NewLogger()
 
-	// TODO: refactor this
-	pgxConfig, err := pgxpool.ParseConfig(conf.DB.URI)
+	pool, err := db.NewPool(ctx, conf.DB.URI)
 	if err != nil {
-		return fmt.Errorf("failed to parse db uri: %w", err)
-	}
-
-	pgxConfig.ConnConfig.Tracer = otelpgx.NewTracer()
-
-	pgxConfig.AfterConnect = func(_ context.Context, conn *pgx.Conn) error {
-		pgxUUID.Register(conn.TypeMap())
-		return nil
-	}
-
-	pool, err := pgxpool.NewWithConfig(ctx, pgxConfig)
-	if err != nil {
-		return fmt.Errorf("failed to setup database: %w", err)
+		return fmt.Errorf("failed to setup database pool: %w", err)
 	}
 	defer pool.Close()
-
-	logger.InfoContext(ctx, "applying migrations")
-	err = runDBMigrations(pool)
-	if err != nil {
-		return fmt.Errorf("failed to run migrations: %w", err)
-	}
-
-	// INFO: Populate test data if running in test environment
-	if conf.App.Environment == "test" {
-		logger.InfoContext(ctx, "populating test data")
-		err = populateTestData(ctx, pool)
-		if err != nil {
-			return fmt.Errorf("failed to populate test data: %w", err)
-		}
-	}
 
 	database := db.NewDB(pool, conf.App.Retries, conf.App.BaseDelay)
 
@@ -205,26 +167,4 @@ func terminateHandler(ctx context.Context, logger *slog.Logger, srv *transportht
 	if err := srv.Shutdown(ctx); err != nil {
 		logger.ErrorContext(ctx, "unexpected error while shutting down server", slog.Any("error", err))
 	}
-}
-
-func runDBMigrations(pool *pgxpool.Pool) error {
-	goose.SetBaseFS(migrations)
-	goose.WithLogger(goose.NopLogger())
-
-	if err := goose.SetDialect("postgres"); err != nil {
-		return err
-	}
-
-	cp := pool.Config().ConnConfig.ConnString()
-	db, err := sql.Open("pgx/v5", cp)
-	if err != nil {
-		return err
-	}
-
-	err = goose.Up(db, "internal/store/db/sqlc/migrations")
-	return err
-}
-
-func populateTestData(ctx context.Context, pool *pgxpool.Pool) error {
-	return banterbustest.FillWithDummyData(ctx, pool)
 }

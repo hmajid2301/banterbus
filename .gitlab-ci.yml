@@ -8,12 +8,8 @@ default:
   interruptible: true
 
 variables:
-  IMAGE_TAG: v0.1.11
+  IMAGE_TAG: v0.1.12
   BANTERBUS_CI_IMAGE: $CI_REGISTRY_IMAGE/ci:$IMAGE_TAG
-  BANTERBUS_DB_URI: postgresql://postgres:postgres@docker:5432?sslmode=disable
-  DOCKER_HOST: tcp://docker:2375
-  DOCKER_DRIVER: overlay2
-  DOCKER_TLS_CERTDIR: ""
 
 stages:
   - pre
@@ -48,9 +44,13 @@ stages:
   services:
     - name: docker:dind
   variables:
+     BANTERBUS_DB_URI: postgresql://postgres:postgres@docker:5432/?sslmode=disable
      GOTESTSUM_JUNITFILE: "report.xml"
      XDG_DATA_HOME: "/tmp/"
      GOTEST_EXTRA_ARGS: '-args -test.gocoverdir=$CI_PROJECT_DIR/coverage -test.parallel 10'
+     DOCKER_HOST: tcp://docker:2375
+     DOCKER_DRIVER: overlay2
+     DOCKER_TLS_CERTDIR: ""
   rules:
     - if: $CI_PIPELINE_SOURCE == "schedule"
       when: never
@@ -136,6 +136,7 @@ stages:
     - IMAGE=$(cat image_name.txt)
     - echo "Trying to deploy this image" $IMAGE
     - kubectl config use-context hmajid2301/k8s-gitops:k8s
+    - flux reconcile source git banterbus
     - flux reconcile image repository banterbus
     - echo "Current deployment image:"
     - kubectl get deployment banterbus -n $NAMESPACE -o jsonpath='{.spec.template.spec.containers[0].image}' || echo "Deployment not found"
@@ -207,12 +208,21 @@ tests:integration:
     BANTERBUS_DB_PORT: 5432
     BANTERBUS_DB_USER: postgres
     BANTERBUS_DB_PASSWORD: postgres
-    BANTERBUS_DB_NAME: postgres
+    BANTERBUS_DB_NAME: banterbus
+    POSTGRES_HOST: docker
+    POSTGRES_DB: banterbus
+    BANTERBUS_MIGRATIONS_DIR: $CI_PROJECT_DIR/internal/store/db/sqlc/migrations
+    BANTERBUS_SEED_DATA_PATH: $CI_PROJECT_DIR/docker/postgres-init/01-seed-data.sql
   script:
-    - docker compose --profile test up -d --wait
+    - docker compose --profile test up -d
+    - sleep 10  # Give containers extra time to fully start
+    - docker logs banterbus-postgres-1 || true  # Debug postgres logs
     - task tests:integration -- ${GOTEST_EXTRA_ARGS}
   after_script:
     - docker ps
+    - docker logs banterbus-postgres-1 || true
+    - docker logs banterbus-migrate-1 || true
+    - docker logs banterbus-seed-data-1 || true
 
 test:e2e:
   extends:
@@ -238,11 +248,15 @@ test:e2e:
     OTEL_SERVICE_NAME: banterbus
     OTEL_SERVICE_VERSION: $CI_COMMIT_SHA
     OTEL_RESOURCE_ATTRIBUTES: deployment.environment=ci,service.namespace=e2e-tests,ci.job_id=$CI_JOB_ID,ci.pipeline_id=$CI_PIPELINE_ID,ci.commit_sha=$CI_COMMIT_SHA,ci.merge_request_iid=$CI_MERGE_REQUEST_IID
+    POSTGRES_HOST: docker
+    POSTGRES_DB: banterbus
+    BANTERBUS_MIGRATIONS_DIR: $CI_PROJECT_DIR/internal/store/db/sqlc/migrations
+    BANTERBUS_SEED_DATA_PATH: $CI_PROJECT_DIR/docker/postgres-init/01-seed-data.sql
   script:
-    - docker compose --profile test up -d --wait
+    - docker compose --profile test up -d
     - task tests:e2e -- ${GOTEST_EXTRA_ARGS}
   after_script:
-    - ls -al tests/e2e/videos/
+    - docker ps
   artifacts:
      when: always
      reports:
@@ -279,23 +293,12 @@ publish:docker:dev:
     - .docker
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-    - if: $CI_COMMIT_BRANCH == "deploy"
   script:
     - task docker:build
     - docker login -u "$CI_REGISTRY_USER" -p "$CI_JOB_TOKEN" "$CI_REGISTRY"
     - export DEV_TAG="dev-$CI_COMMIT_SHA-$(date +%s)"
-    - |
-      if [ "$CI_PIPELINE_SOURCE" = "merge_request_event" ]; then
-        docker tag banterbus:latest $CI_REGISTRY_IMAGE:$CI_MERGE_REQUEST_IID
-        docker push $CI_REGISTRY_IMAGE:$CI_MERGE_REQUEST_IID
-      fi
-    - |
-      if [ "$CI_COMMIT_BRANCH" = "deploy" ]; then
-        docker tag banterbus:latest $CI_REGISTRY_IMAGE:deploy-$CI_COMMIT_SHA
-        docker push $CI_REGISTRY_IMAGE:deploy-$CI_COMMIT_SHA
-        docker tag banterbus:latest $CI_REGISTRY_IMAGE:deploy-latest
-        docker push $CI_REGISTRY_IMAGE:deploy-latest
-      fi
+    - docker tag banterbus:latest $CI_REGISTRY_IMAGE:$CI_MERGE_REQUEST_IID
+    - docker push $CI_REGISTRY_IMAGE:$CI_MERGE_REQUEST_IID
     - docker tag banterbus:latest $CI_REGISTRY_IMAGE:$DEV_TAG
     - docker push $CI_REGISTRY_IMAGE:$DEV_TAG
     - echo "$CI_REGISTRY_IMAGE:$DEV_TAG" > image_name.txt
@@ -389,7 +392,7 @@ deploy:prod:
       when: never
     - if: $CI_COMMIT_TAG || $CI_COMMIT_BRANCH == "main"
   environment:
-    name: production
+    name: prod
   before_script:
     - export PROD_TAG="prod-$CI_COMMIT_SHA-$(date +%s)"
     - echo $CI_REGISTRY_IMAGE:$PROD_TAG > image_name.txt
@@ -397,11 +400,11 @@ deploy:prod:
     - echo "Pulling MR image $CI_REGISTRY_IMAGE:$MR_IID"
     - docker login -u "$CI_REGISTRY_USER" -p "$CI_JOB_TOKEN" "$CI_REGISTRY"
     - docker pull $CI_REGISTRY_IMAGE:$MR_IID
-    - echo "Tagging as production image $CI_REGISTRY_IMAGE:$PROD_TAG"
+    - echo "Tagging as prod image $CI_REGISTRY_IMAGE:$PROD_TAG"
     - docker tag $CI_REGISTRY_IMAGE:$MR_IID $CI_REGISTRY_IMAGE:$PROD_TAG
-    - echo "Pushing production image to registry"
+    - echo "Pushing prod image to registry"
     - docker push $CI_REGISTRY_IMAGE:$PROD_TAG
-    - echo "Production image $CI_REGISTRY_IMAGE:$PROD_TAG"
+    - echo "prod image $CI_REGISTRY_IMAGE:$PROD_TAG"
   artifacts:
     paths:
       - image_name.txt

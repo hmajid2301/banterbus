@@ -41,7 +41,7 @@ func TestServer_HealthHandlers(t *testing.T) {
 	t.Run("Should handle context cancellation gracefully", func(t *testing.T) {
 		t.Parallel()
 
-		ctx, cancel := context.WithCancel(context.Background())
+		ctx, cancel := context.WithCancel(t.Context())
 		req := httptest.NewRequest(http.MethodGet, "/health", nil).WithContext(ctx)
 		w := httptest.NewRecorder()
 

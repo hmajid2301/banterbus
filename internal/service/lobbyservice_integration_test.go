@@ -32,7 +32,7 @@ func TestIntegrationLobbyCreate(t *testing.T) {
 			Nickname: "Majiy00",
 		}
 
-		ctx, err := getI18nCtx()
+		ctx, err := getI18nCtx(t.Context())
 		require.NoError(t, err)
 
 		srv := service.NewLobbyService(str, randomizer, "en-GB")
@@ -57,7 +57,7 @@ func TestIntegrationLobbyJoin(t *testing.T) {
 		str := db.NewDB(pool, 3, baseDelay)
 		randomizer := randomizer.NewUserRandomizer()
 
-		ctx, err := getI18nCtx()
+		ctx, err := getI18nCtx(t.Context())
 		require.NoError(t, err)
 
 		srv := service.NewLobbyService(str, randomizer, "en-GB")
@@ -81,7 +81,7 @@ func TestIntegrationLobbyJoin(t *testing.T) {
 		str := db.NewDB(pool, 3, baseDelay)
 		randomizer := randomizer.NewUserRandomizer()
 
-		ctx, err := getI18nCtx()
+		ctx, err := getI18nCtx(t.Context())
 		require.NoError(t, err)
 
 		srv := service.NewLobbyService(str, randomizer, "en-GB")
@@ -101,7 +101,7 @@ func TestIntegrationLobbyJoin(t *testing.T) {
 		str := db.NewDB(pool, 3, baseDelay)
 		randomizer := randomizer.NewUserRandomizer()
 
-		ctx, err := getI18nCtx()
+		ctx, err := getI18nCtx(t.Context())
 		require.NoError(t, err)
 
 		srv := service.NewLobbyService(str, randomizer, "en-GB")
@@ -132,7 +132,7 @@ func TestIntegrationLobbyKickPlayer(t *testing.T) {
 		str := db.NewDB(pool, 3, baseDelay)
 		randomizer := randomizer.NewUserRandomizer()
 
-		ctx, err := getI18nCtx()
+		ctx, err := getI18nCtx(t.Context())
 		require.NoError(t, err)
 
 		srv := service.NewLobbyService(str, randomizer, "en-GB")
@@ -155,7 +155,7 @@ func TestIntegrationLobbyKickPlayer(t *testing.T) {
 		str := db.NewDB(pool, 3, baseDelay)
 		randomizer := randomizer.NewUserRandomizer()
 
-		ctx, err := getI18nCtx()
+		ctx, err := getI18nCtx(t.Context())
 		require.NoError(t, err)
 
 		srv := service.NewLobbyService(str, randomizer, "en-GB")
@@ -175,7 +175,7 @@ func TestIntegrationLobbyKickPlayer(t *testing.T) {
 		str := db.NewDB(pool, 3, baseDelay)
 		randomizer := randomizer.NewUserRandomizer()
 
-		ctx, err := getI18nCtx()
+		ctx, err := getI18nCtx(t.Context())
 		require.NoError(t, err)
 
 		srv := service.NewLobbyService(str, randomizer, "en-GB")
@@ -195,7 +195,7 @@ func TestIntegrationLobbyKickPlayer(t *testing.T) {
 		str := db.NewDB(pool, 3, baseDelay)
 		randomizer := randomizer.NewUserRandomizer()
 
-		ctx, err := getI18nCtx()
+		ctx, err := getI18nCtx(t.Context())
 		require.NoError(t, err)
 
 		srv := service.NewLobbyService(str, randomizer, "en-GB")
@@ -222,7 +222,7 @@ func TestIntegrationLobbyKickPlayer(t *testing.T) {
 		str := db.NewDB(pool, 3, baseDelay)
 		randomizer := randomizer.NewUserRandomizer()
 
-		ctx, err := getI18nCtx()
+		ctx, err := getI18nCtx(t.Context())
 		require.NoError(t, err)
 
 		srv := service.NewLobbyService(str, randomizer, "en-GB")
@@ -246,7 +246,7 @@ func TestIntegrationLobbyStart(t *testing.T) {
 		str := db.NewDB(pool, 3, baseDelay)
 		randomizer := randomizer.NewUserRandomizer()
 
-		ctx, err := getI18nCtx()
+		ctx, err := getI18nCtx(t.Context())
 		require.NoError(t, err)
 
 		srv := service.NewLobbyService(str, randomizer, "en-GB")
@@ -298,7 +298,7 @@ func TestIntegrationLobbyStart(t *testing.T) {
 		str := db.NewDB(pool, 3, baseDelay)
 		randomizer := randomizer.NewUserRandomizer()
 
-		ctx, err := getI18nCtx()
+		ctx, err := getI18nCtx(t.Context())
 		require.NoError(t, err)
 
 		srv := service.NewLobbyService(str, randomizer, "en-GB")
@@ -325,7 +325,7 @@ func TestIntegrationLobbyStart(t *testing.T) {
 		str := db.NewDB(pool, 3, baseDelay)
 		randomizer := randomizer.NewUserRandomizer()
 
-		ctx, err := getI18nCtx()
+		ctx, err := getI18nCtx(t.Context())
 		require.NoError(t, err)
 
 		srv := service.NewLobbyService(str, randomizer, "en-GB")
@@ -352,7 +352,7 @@ func TestIntegrationLobbyStart(t *testing.T) {
 		str := db.NewDB(pool, 3, baseDelay)
 		randomizer := randomizer.NewUserRandomizer()
 
-		ctx, err := getI18nCtx()
+		ctx, err := getI18nCtx(t.Context())
 		require.NoError(t, err)
 
 		srv := service.NewLobbyService(str, randomizer, "en-GB")
@@ -386,7 +386,7 @@ func TestIntegrationLobbyStart(t *testing.T) {
 		str := db.NewDB(pool, 3, baseDelay)
 		randomizer := randomizer.NewUserRandomizer()
 
-		ctx, err := getI18nCtx()
+		ctx, err := getI18nCtx(t.Context())
 		require.NoError(t, err)
 
 		srv := service.NewLobbyService(str, randomizer, "en-GB")
@@ -407,7 +407,7 @@ func TestIntegrationLobbyStart(t *testing.T) {
 		str := db.NewDB(pool, 3, baseDelay)
 		randomizer := randomizer.NewUserRandomizer()
 
-		ctx, err := getI18nCtx()
+		ctx, err := getI18nCtx(t.Context())
 		require.NoError(t, err)
 
 		srv := service.NewLobbyService(str, randomizer, "en-GB")
@@ -442,7 +442,7 @@ func TestIntegrationLobbyGetRoomState(t *testing.T) {
 			ID: id,
 		}
 
-		ctx, err := getI18nCtx()
+		ctx, err := getI18nCtx(t.Context())
 		require.NoError(t, err)
 
 		srv := service.NewLobbyService(str, randomizer, "en-GB")
@@ -469,7 +469,7 @@ func TestIntegrationLobbyGetRoomState(t *testing.T) {
 			ID: id,
 		}
 
-		ctx, err := getI18nCtx()
+		ctx, err := getI18nCtx(t.Context())
 		require.NoError(t, err)
 
 		srv := service.NewLobbyService(str, randomizer, "en-GB")
@@ -500,7 +500,7 @@ func TestIntegrationLobbyGetLobby(t *testing.T) {
 			ID: id,
 		}
 
-		ctx, err := getI18nCtx()
+		ctx, err := getI18nCtx(t.Context())
 		require.NoError(t, err)
 
 		createdLobby, err := lobbyService.Create(ctx, "fibbing_it", newPlayer)

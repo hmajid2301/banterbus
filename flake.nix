@@ -33,6 +33,17 @@
             playwright-driver
             ;
           go-enum = prev.callPackage ./nix/go-enum.nix { };
+          # Pin gocover-cobertura to version 1.4.0 that works with Go 1.24
+          gocover-cobertura = prev.gocover-cobertura.overrideAttrs (oldAttrs: rec {
+            version = "1.4.0";
+            src = prev.fetchFromGitHub {
+              owner = "boumenot";
+              repo = "gocover-cobertura";
+              rev = "v${version}";
+              hash = "sha256-9KYNK6YV+iYB5Mmporzzw0aYTPCanvX7JALoP72dMtU=";
+            };
+            vendorHash = "sha256-tPCiU7UVltYaHM1JVRje6EeG6Thn+3qm5I3MjKvD1/o=";
+          });
         };
         pkgs = import nixpkgs {
           inherit system;
@@ -61,8 +72,6 @@
           nodePackages.prettier
 
           opentofu
-
-          nixpacks
 
           sqlfluff
           rustywind

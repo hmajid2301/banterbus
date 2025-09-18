@@ -20,7 +20,7 @@ func TestIntegrationAddQuestionHandler(t *testing.T) {
 	t.Run("Should successfully add new question", func(t *testing.T) {
 		t.Parallel()
 
-		srv, err := banterbustest.NewTestServer()
+		srv, err := banterbustest.NewTestServer(t)
 		if err != nil {
 			t.Skipf("Skipping integration test: %v", err)
 		}
@@ -53,7 +53,7 @@ func TestIntegrationAddQuestionHandler(t *testing.T) {
 	t.Run("Should fail to add new question, invalid method", func(t *testing.T) {
 		t.Parallel()
 
-		srv, err := banterbustest.NewTestServer()
+		srv, err := banterbustest.NewTestServer(t)
 		if err != nil {
 			t.Skipf("Skipping integration test: %v", err)
 		}
@@ -84,7 +84,7 @@ func TestIntegrationAddQuestionHandler(t *testing.T) {
 	t.Run("Should fail to add new question, missing required fields", func(t *testing.T) {
 		t.Parallel()
 
-		srv, err := banterbustest.NewTestServer()
+		srv, err := banterbustest.NewTestServer(t)
 		if err != nil {
 			t.Skipf("Skipping integration test: %v", err)
 		}
@@ -114,7 +114,7 @@ func TestIntegrationAddQuestionHandler(t *testing.T) {
 }
 
 // func TestIntegrationAddQuestionTranslationHandler(t *testing.T) {
-// 	srv, err := banterbustest.NewTestServer()
+// 			srv, err := banterbustest.NewTestServer(t)
 // 	require.NoError(t, err)
 // 	defer srv.Close()
 //
@@ -183,7 +183,7 @@ func TestIntegrationAddQuestionHandler(t *testing.T) {
 // }
 
 // func TestIntegrationGetGroupsHandler(t *testing.T) {
-// 	srv, err := banterbustest.NewTestServer()
+// 			srv, err := banterbustest.NewTestServer(t)
 // 	require.NoError(t, err)
 // 	defer srv.Close()
 //
@@ -228,7 +228,7 @@ func TestIntegrationAddQuestionHandler(t *testing.T) {
 func TestIntegrationGetQuestionsHandler(t *testing.T) {
 	t.Parallel()
 
-	srv, err := banterbustest.NewTestServer()
+	srv, err := banterbustest.NewTestServer(t)
 	if err != nil {
 		t.Skipf("Skipping integration test: %v", err)
 	}

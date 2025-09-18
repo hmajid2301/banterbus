@@ -3,12 +3,15 @@ package db
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net"
 	"time"
 
+	"github.com/exaring/otelpgx"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
+	pgxUUID "github.com/vgarvardt/pgx-google-uuid/v5"
 	"golang.org/x/exp/rand"
 )
 
@@ -17,6 +20,27 @@ type DB struct {
 	pool       *pgxpool.Pool
 	maxRetries int
 	baseDelay  time.Duration
+}
+
+func NewPool(ctx context.Context, dbURI string) (*pgxpool.Pool, error) {
+	pgxConfig, err := pgxpool.ParseConfig(dbURI)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse db uri: %w", err)
+	}
+
+	pgxConfig.ConnConfig.Tracer = otelpgx.NewTracer()
+
+	pgxConfig.AfterConnect = func(_ context.Context, conn *pgx.Conn) error {
+		pgxUUID.Register(conn.TypeMap())
+		return nil
+	}
+
+	pool, err := pgxpool.NewWithConfig(ctx, pgxConfig)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create database pool: %w", err)
+	}
+
+	return pool, nil
 }
 
 func NewDB(pool *pgxpool.Pool, maxRetries int, baseDelay time.Duration) *DB {

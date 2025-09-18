@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"testing"
 
 	"log/slog"
 	"net/http"
@@ -29,12 +30,8 @@ import (
 	"gitlab.com/hmajid2301/banterbus/internal/views"
 )
 
-func NewTestServer() (*httptest.Server, error) {
-	ctx := context.Background()
-	pool, err := CreateDB(ctx)
-	if err != nil {
-		return nil, err
-	}
+func NewTestServer(t *testing.T) (*httptest.Server, error) {
+	pool := NewDB(t)
 
 	baseDelay := time.Millisecond * 100
 	retries := 3
@@ -57,7 +54,7 @@ func NewTestServer() (*httptest.Server, error) {
 		return nil, err
 	}
 
-	conf, err := config.LoadConfig(ctx)
+	conf, err := config.LoadConfig(context.Background())
 	if err != nil {
 		return nil, err
 	}
@@ -99,7 +96,7 @@ func NewTestServer() (*httptest.Server, error) {
 
 	var keyFunc jwt.Keyfunc
 	if !serverConfig.AuthDisabled && conf.JWT.JWKSURL != "" {
-		storage, err := jwkset.NewStorageFromHTTP(conf.JWT.JWKSURL, jwkset.HTTPClientStorageOptions{Ctx: ctx})
+		storage, err := jwkset.NewStorageFromHTTP(conf.JWT.JWKSURL, jwkset.HTTPClientStorageOptions{Ctx: context.Background()})
 		if err != nil {
 			return nil, fmt.Errorf("failed to jwkset storage: %w", err)
 		}

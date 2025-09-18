@@ -13,8 +13,15 @@ import (
 	db "gitlab.com/hmajid2301/banterbus/internal/store/db"
 )
 
-var defaultText = "what do you think of cats"
-var defaultGroup = "cat"
+func getDefaultText() string {
+	id, _ := uuid.NewV4()
+	return "what do you think of cats " + id.String()
+}
+
+func getDefaultGroup() string {
+	return "cat" // Use existing group from seed data
+}
+
 var defaultRoundType = "free_form"
 
 func TestIntegrationQuestionServiceAdd(t *testing.T) {
@@ -29,17 +36,19 @@ func TestIntegrationQuestionServiceAdd(t *testing.T) {
 		str := db.NewDB(pool, 3, baseDelay)
 		randomizer := randomizer.NewUserRandomizer()
 
-		ctx, err := getI18nCtx()
+		ctx, err := getI18nCtx(t.Context())
 		require.NoError(t, err)
 
 		questionService := service.NewQuestionService(str, randomizer, "en-GB")
 
-		q, err := questionService.Add(ctx, defaultText, defaultGroup, defaultRoundType)
+		questionText := getDefaultText()
+		questionGroup := getDefaultGroup()
+		q, err := questionService.Add(ctx, questionText, questionGroup, defaultRoundType)
 		assert.NoError(t, err)
 		expectedQuestion := service.Question{
 			ID:        q.ID,
-			Text:      defaultText,
-			GroupName: defaultGroup,
+			Text:      questionText,
+			GroupName: questionGroup,
 			Locale:    "en-GB",
 			RoundType: defaultRoundType,
 			Enabled:   true,
@@ -58,7 +67,7 @@ func TestIntegrationQuestionServiceAdd(t *testing.T) {
 // 		assert.NoError(t, err)
 // 		randomizer := randomizer.NewUserRandomizer()
 //
-// 		ctx, err := getI18nCtx()
+// 		ctx, err := getI18nCtx(t.Context())
 // 		require.NoError(t, err)
 //
 // 		questionService := service.NewQuestionService(str, randomizer, "en-GB")
@@ -93,7 +102,7 @@ func TestIntegrationQuestionGetGroupNames(t *testing.T) {
 		str := db.NewDB(pool, 3, baseDelay)
 		randomizer := randomizer.NewUserRandomizer()
 
-		ctx, err := getI18nCtx()
+		ctx, err := getI18nCtx(t.Context())
 		require.NoError(t, err)
 
 		questionService := service.NewQuestionService(str, randomizer, "en-GB")
@@ -127,7 +136,7 @@ func TestIntegrationQuestionGetQuestions(t *testing.T) {
 		str := db.NewDB(pool, 3, baseDelay)
 		randomizer := randomizer.NewUserRandomizer()
 
-		ctx, err := getI18nCtx()
+		ctx, err := getI18nCtx(t.Context())
 		require.NoError(t, err)
 
 		questionService := service.NewQuestionService(str, randomizer, "en-GB")
@@ -302,7 +311,7 @@ func TestIntegrationQuestionGetQuestions(t *testing.T) {
 		str := db.NewDB(pool, 3, baseDelay)
 		randomizer := randomizer.NewUserRandomizer()
 
-		ctx, err := getI18nCtx()
+		ctx, err := getI18nCtx(t.Context())
 		require.NoError(t, err)
 
 		questionService := service.NewQuestionService(str, randomizer, "en-GB")
@@ -343,7 +352,7 @@ func TestIntegrationQuestionGetQuestions(t *testing.T) {
 		str := db.NewDB(pool, 3, baseDelay)
 		randomizer := randomizer.NewUserRandomizer()
 
-		ctx, err := getI18nCtx()
+		ctx, err := getI18nCtx(t.Context())
 		require.NoError(t, err)
 
 		questionService := service.NewQuestionService(str, randomizer, "en-GB")
@@ -456,7 +465,7 @@ func TestIntegrationQuestionGetQuestions(t *testing.T) {
 		str := db.NewDB(pool, 3, baseDelay)
 		randomizer := randomizer.NewUserRandomizer()
 
-		ctx, err := getI18nCtx()
+		ctx, err := getI18nCtx(t.Context())
 		require.NoError(t, err)
 
 		questionService := service.NewQuestionService(str, randomizer, "en-GB")
@@ -515,7 +524,7 @@ func TestIntegrationQuestionGetQuestions(t *testing.T) {
 		str := db.NewDB(pool, 3, baseDelay)
 		randomizer := randomizer.NewUserRandomizer()
 
-		ctx, err := getI18nCtx()
+		ctx, err := getI18nCtx(t.Context())
 		require.NoError(t, err)
 
 		questionService := service.NewQuestionService(str, randomizer, "en-GB")
@@ -578,7 +587,7 @@ func TestIntegrationQuestionAddGroup(t *testing.T) {
 		str := db.NewDB(pool, 3, baseDelay)
 		randomizer := randomizer.NewUserRandomizer()
 
-		ctx, err := getI18nCtx()
+		ctx, err := getI18nCtx(t.Context())
 		require.NoError(t, err)
 
 		questionService := service.NewQuestionService(str, randomizer, "en-GB")
@@ -606,7 +615,7 @@ func TestIntegrationQuestionDisableQuestion(t *testing.T) {
 		str := db.NewDB(pool, 3, baseDelay)
 		randomizer := randomizer.NewUserRandomizer()
 
-		ctx, err := getI18nCtx()
+		ctx, err := getI18nCtx(t.Context())
 		require.NoError(t, err)
 
 		questionService := service.NewQuestionService(str, randomizer, "en-GB")
@@ -635,7 +644,7 @@ func TestIntegrationQuestionEnableQuestion(t *testing.T) {
 		str := db.NewDB(pool, 3, baseDelay)
 		randomizer := randomizer.NewUserRandomizer()
 
-		ctx, err := getI18nCtx()
+		ctx, err := getI18nCtx(t.Context())
 		require.NoError(t, err)
 
 		questionService := service.NewQuestionService(str, randomizer, "en-GB")

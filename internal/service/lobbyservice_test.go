@@ -62,7 +62,7 @@ func TestLobbyServiceCreate(t *testing.T) {
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewLobbyService(mockStore, mockRandom, "en-GB")
 
-		ctx, err := getI18nCtx()
+		ctx, err := getI18nCtx(t.Context())
 		require.NoError(t, err)
 
 		mockRandom.EXPECT().GetAvatar(defaultNewPlayer.Nickname).Return(defaultNewPlayer.Avatar)
@@ -111,7 +111,7 @@ func TestLobbyServiceCreate(t *testing.T) {
 			Avatar:   "https://api.dicebear.com/9.x/bottts-neutral/svg?radius=20&seed=MyNickname",
 		}
 
-		ctx, err := getI18nCtx()
+		ctx, err := getI18nCtx(t.Context())
 		require.NoError(t, err)
 
 		mockRandom.EXPECT().GetAvatar(newHostPlayer.Nickname).Return(newPlayer.Avatar)
@@ -149,7 +149,7 @@ func TestLobbyServiceCreate(t *testing.T) {
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewLobbyService(mockStore, mockRandom, "en-GB")
 
-		ctx, err := getI18nCtx()
+		ctx, err := getI18nCtx(t.Context())
 		require.NoError(t, err)
 
 		mockRandom.EXPECT().GetAvatar(defaultNewPlayer.Nickname).Return(defaultNewPlayer.Avatar)
@@ -194,7 +194,7 @@ func TestLobbyServiceCreate(t *testing.T) {
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewLobbyService(mockStore, mockRandom, "en-GB")
 
-		ctx, err := getI18nCtx()
+		ctx, err := getI18nCtx(t.Context())
 		require.NoError(t, err)
 
 		mockRandom.EXPECT().GetAvatar(defaultNewPlayer.Nickname).Return(defaultNewPlayer.Avatar)
@@ -245,7 +245,7 @@ func TestLobbyServiceJoin(t *testing.T) {
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewLobbyService(mockStore, mockRandom, "en-GB")
 
-		ctx, err := getI18nCtx()
+		ctx, err := getI18nCtx(t.Context())
 		require.NoError(t, err)
 
 		generatedPlayerID := uuid.Must(uuid.NewV4())
@@ -351,7 +351,7 @@ func TestLobbyServiceJoin(t *testing.T) {
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewLobbyService(mockStore, mockRandom, "en-GB")
 
-		ctx, err := getI18nCtx()
+		ctx, err := getI18nCtx(t.Context())
 		require.NoError(t, err)
 
 		mockStore.EXPECT().
@@ -505,7 +505,7 @@ func TestLobbyServiceJoin(t *testing.T) {
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewLobbyService(mockStore, mockRandom, "en-GB")
 
-		ctx, err := getI18nCtx()
+		ctx, err := getI18nCtx(t.Context())
 		require.NoError(t, err)
 
 		generatedPlayerID := uuid.Must(uuid.NewV4())
@@ -554,7 +554,7 @@ func TestLobbyServiceJoin(t *testing.T) {
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewLobbyService(mockStore, mockRandom, "en-GB")
 
-		ctx, err := getI18nCtx()
+		ctx, err := getI18nCtx(t.Context())
 		require.NoError(t, err)
 
 		generatedPlayerID := uuid.Must(uuid.NewV4())

@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	"context"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -34,7 +33,7 @@ func TestTracingMiddleware_TestNameCorrelation(t *testing.T) {
 	w := httptest.NewRecorder()
 
 	// Set up minimal tracing context to avoid panics
-	_, span := noop.NewTracerProvider().Tracer("test").Start(context.Background(), "test")
+	_, span := noop.NewTracerProvider().Tracer("test").Start(t.Context(), "test")
 	ctx := trace.ContextWithSpan(req.Context(), span)
 	req = req.WithContext(ctx)
 
@@ -74,7 +73,7 @@ func TestTracingMiddleware_QueryParameterCorrelation(t *testing.T) {
 	w := httptest.NewRecorder()
 
 	// Set up minimal tracing context to avoid panics
-	_, span := noop.NewTracerProvider().Tracer("test").Start(context.Background(), "test")
+	_, span := noop.NewTracerProvider().Tracer("test").Start(t.Context(), "test")
 	ctx := trace.ContextWithSpan(req.Context(), span)
 	req = req.WithContext(ctx)
 

@@ -22,17 +22,80 @@ services:
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: banterbus
       POSTGRES_HOST_AUTH_METHOD: trust
+      # Performance tuning for CI/tests
+      POSTGRES_INITDB_ARGS: "--auth-host=trust --auth-local=trust"
     command:
       - "postgres"
+      # Essential connection settings
       - "-c"
       - "max_connections=1000"
+      # Performance optimizations for CI/test environments
+      - "-c"
+      - "fsync=off"
+      - "-c"
+      - "synchronous_commit=off"
+      - "-c"
+      - "full_page_writes=off"
+      - "-c"
+      - "shared_buffers=128MB"
+      - "-c"
+      - "checkpoint_completion_target=0.9"
+      - "-c"
+      - "wal_buffers=16MB"
+      - "-c"
+      - "default_statistics_target=100"
+      # Logging for debugging
+      - "-c"
+      - "log_statement=all"
+      - "-c"
+      - "log_min_messages=INFO"
     volumes:
       - postgres-data:/var/lib/postgresql/data
+      # - ./docker/postgres-init:/docker-entrypoint-initdb.d:ro
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -h 127.0.0.1"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+      test: ["CMD-SHELL", "pg_isready -U postgres -h localhost -d banterbus"]
+      interval: 5s
+      timeout: 10s
+      retries: 10
+      start_period: 30s
+
+  migrate:
+    image: gomicro/goose:3.25.0
+    profiles:
+      - test
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: banterbus
+    command: [
+      "goose", "-dir", "/migrations", "postgres", 
+      "host=postgres port=5432 user=postgres password=postgres dbname=banterbus sslmode=disable",
+      "up"
+    ]
+    volumes:
+      - ./internal/store/db/sqlc/migrations:/migrations:ro
+    restart: "no"
+
+  seed-data:
+    image: postgres:16.6
+    profiles: [test]
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    environment:
+      PGHOST: postgres
+      PGUSER: postgres
+      PGPASSWORD: postgres
+      PGDATABASE: banterbus
+    volumes:
+      - ./docker/postgres-init/01-seed-data.sql:/seed-data.sql:ro
+    command: psql -f /seed-data.sql
+    restart: "no"
 
   oauth2:
     image: ghcr.io/navikt/mock-oauth2-server:2.1.10
@@ -120,11 +183,6 @@ services:
     #   interval: 10s
     #   timeout: 5s
     #   retries: 20
-    deploy:
-      resources:
-        limits:
-          cpus: 0.50
-          memory: 512M
 
   loki:
     image: grafana/loki:3.5.0

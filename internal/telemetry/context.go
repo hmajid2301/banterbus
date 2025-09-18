@@ -505,3 +505,26 @@ func StartClientSpan(
 		trace.WithAttributes(attrs...),
 	)
 }
+
+// PropagateContext creates a new context with tracing span and baggage propagated from the parent context.
+// This is essential for goroutines that need to maintain observability context across execution boundaries.
+// Use this when starting background goroutines that should inherit tracing and baggage from the parent request.
+func PropagateContext(parentCtx context.Context) context.Context {
+	ctx := context.Background()
+
+	if parentCtx == nil {
+		return ctx
+	}
+
+	// Propagate tracing span
+	if span := trace.SpanFromContext(parentCtx); span != nil && span.SpanContext().IsValid() {
+		ctx = trace.ContextWithSpan(ctx, span)
+	}
+
+	// Propagate baggage (test context, user metadata, etc.)
+	if bag := baggage.FromContext(parentCtx); bag.Len() > 0 {
+		ctx = baggage.ContextWithBaggage(ctx, bag)
+	}
+
+	return ctx
+}

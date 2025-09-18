@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/gofrs/uuid/v5"
 	"github.com/google/go-cmp/cmp"
 	"github.com/invopop/ctxi18n"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -19,36 +20,39 @@ import (
 )
 
 func setupSubtest(t *testing.T) (*pgxpool.Pool, func()) {
-	ctx := t.Context()
-	db, err := banterbustest.CreateDB(ctx)
-	require.NoError(t, err)
+	db := banterbustest.NewDB(t)
 
 	return db, func() {
 		db.Close()
-		banterbustest.RemoveDB(ctx, db)
 	}
 }
 
 // Helper function for creating test rooms - can be used to reduce test setup duplication
 func createRoom(ctx context.Context, srv *service.LobbyService) (service.Lobby, error) {
+	// Use the hardcoded ID that the tests expect
+	hostID := uuid.Must(uuid.FromString("0193a62a-4dff-774c-850a-b1fe78e2a8d1"))
 	newPlayer := service.NewHostPlayer{
-		ID: defaultHostPlayerID,
+		ID: hostID,
 	}
 	result, err := srv.Create(ctx, "fibbing_it", newPlayer)
 	return result.Lobby, err
 }
 
 func lobbyWithTwoPlayers(ctx context.Context, srv *service.LobbyService) (service.Lobby, error) {
+	// Use the hardcoded IDs that the tests expect
+	hostID := uuid.Must(uuid.FromString("0193a62a-4dff-774c-850a-b1fe78e2a8d1"))
+	otherID := uuid.Must(uuid.FromString("0193a62a-4dff-774c-850a-b1fe78e2a8d2"))
+
 	newPlayer := service.NewHostPlayer{
-		ID:       defaultHostPlayerID,
-		Nickname: defaultHostNickname,
+		ID:       hostID,
+		Nickname: "Host Player",
 	}
 	result, err := srv.Create(ctx, "fibbing_it", newPlayer)
 	if err != nil {
 		return service.Lobby{}, err
 	}
 
-	joinResult, err := srv.Join(ctx, result.Lobby.Code, defaultOtherPlayerID, defaultOtherPlayerNickname)
+	joinResult, err := srv.Join(ctx, result.Lobby.Code, otherID, "Other Player")
 	return joinResult.Lobby, err
 }
 
@@ -57,26 +61,30 @@ func startGame(
 	lobbySrv *service.LobbyService,
 	playerSrv *service.PlayerService,
 ) (service.QuestionState, error) {
+	// Use the hardcoded IDs that the tests expect
+	hostID := uuid.Must(uuid.FromString("0193a62a-4dff-774c-850a-b1fe78e2a8d1"))
+	otherID := uuid.Must(uuid.FromString("0193a62a-4dff-774c-850a-b1fe78e2a8d2"))
+
 	newPlayer := service.NewHostPlayer{
-		ID:       defaultHostPlayerID,
-		Nickname: defaultHostNickname,
+		ID:       hostID,
+		Nickname: "Host Player",
 	}
 	l, err := lobbySrv.Create(ctx, "fibbing_it", newPlayer)
 	if err != nil {
 		return service.QuestionState{}, err
 	}
 
-	lobby, err := lobbySrv.Join(ctx, l.Lobby.Code, defaultOtherPlayerID, defaultOtherPlayerNickname)
+	lobby, err := lobbySrv.Join(ctx, l.Lobby.Code, otherID, "Other Player")
 	if err != nil {
 		return service.QuestionState{}, err
 	}
 
-	_, err = playerSrv.TogglePlayerIsReady(ctx, defaultHostPlayerID)
+	_, err = playerSrv.TogglePlayerIsReady(ctx, hostID)
 	if err != nil {
 		return service.QuestionState{}, err
 	}
 
-	_, err = playerSrv.TogglePlayerIsReady(ctx, defaultOtherPlayerID)
+	_, err = playerSrv.TogglePlayerIsReady(ctx, otherID)
 	if err != nil {
 		return service.QuestionState{}, err
 	}
@@ -252,8 +260,10 @@ func scoreState(ctx context.Context,
 	return scoreState, err
 }
 
-func getI18nCtx() (context.Context, error) {
-	ctx := context.Background()
+func getI18nCtx(ctx context.Context) (context.Context, error) {
+	if ctx == nil {
+		ctx = context.Background()
+	}
 	ctxi18n.LoadWithDefault(views.Locales, "en-GB")
 	ctx, err := ctxi18n.WithLocale(ctx, "en-GB")
 	return ctx, err

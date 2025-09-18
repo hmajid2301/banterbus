@@ -76,7 +76,7 @@ func (q *QuestionState) Start(ctx context.Context) {
 				slog.String("game_state_id", q.GameStateID.String()))
 
 			w := &WinnerState{GameStateID: q.GameStateID, Subscriber: q.Subscriber}
-			go w.Start(ctx)
+			go w.Start(telemetry.PropagateContext(ctx))
 			return
 		}
 
@@ -182,7 +182,7 @@ func (q *QuestionState) Start(ctx context.Context) {
 					// Proceed to start voting state anyway - it will handle the retry logic
 					time.Sleep(1 * time.Second)
 					v := &VotingState{GameStateID: q.GameStateID, Subscriber: q.Subscriber}
-					go v.Start(ctx)
+					go v.Start(telemetry.PropagateContext(ctx))
 					return
 				}
 			} else {
@@ -506,7 +506,7 @@ func (r *RevealState) Start(ctx context.Context) {
 		switch nextState {
 		case db.FibbingItWinner:
 			w := &WinnerState{GameStateID: r.GameStateID, Subscriber: r.Subscriber}
-			go w.Start(ctx)
+			go w.Start(telemetry.PropagateContext(ctx))
 		case db.FibbingItScoring:
 			s := &ScoringState{GameStateID: r.GameStateID, Subscriber: r.Subscriber}
 			go s.Start(ctx)

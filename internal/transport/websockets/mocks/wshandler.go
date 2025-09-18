@@ -8,7 +8,6 @@ import (
 	"context"
 
 	mock "github.com/stretchr/testify/mock"
-
 	"gitlab.com/hmajid2301/banterbus/internal/transport/websockets"
 )
 

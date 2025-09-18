@@ -5,5 +5,8 @@ resources:
 - service.yaml
 - serviceaccount.yaml
 - configmap.yaml
+- migration-job.yaml
 - deployment.yaml
 - secrets.yaml
+- image-repository.yaml
+- image-policy.yaml
