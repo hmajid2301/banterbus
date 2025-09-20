@@ -111,7 +111,7 @@ templ Lobby(code string, players []service.LobbyPlayer, currentPlayer service.Lo
 									<i class="text-sm text-red-500 hgi hgi-solid hgi-delete-02"></i>
 								</button>
 							}
-							<img src={ player.Avatar } alt="avatar" class="w-full h-full rounded-full"/>
+							<img src={ player.Avatar } alt="avatar" class="object-cover w-full h-full rounded-full"/>
 							if currentPlayer == player {
 								<form id="update_avatar_form" hx-vals='{"message_type": "generate_new_avatar" }' ws-send>
 									<button class="absolute right-0 bottom-0 p-2 text-black bg-white rounded-full hover:bg-surface2 hover:text-text2" aria-label="Update Avatar">

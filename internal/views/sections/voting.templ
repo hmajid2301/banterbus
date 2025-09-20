@@ -26,7 +26,7 @@ templ Voting(state service.VotingState, currentPlayer service.PlayerWithVoting) 
 							<div class="flex flex-col items-center">
 								{ player.Nickname }
 								<div class="w-24 h-24 rounded-full border-2 border-white sm:w-20 sm:h-20 bg-overlay0">
-									<img src={ player.Avatar } alt="avatar" class="w-full h-full rounded-full"/>
+									<img src={ player.Avatar } alt="avatar" class="object-cover w-full h-full rounded-full"/>
 								</div>
 								Answer { player.Answer }
 								<p class="text-center">{ i18n.T(ctx, "voting.votes") } { strconv.Itoa(player.Votes) }</p>
@@ -41,7 +41,7 @@ templ Voting(state service.VotingState, currentPlayer service.PlayerWithVoting) 
 									<button type="submit" hx-include="this" class="flex flex-col items-center cursor-pointer" aria-label="Submit Vote">
 										{ player.Nickname }
 										<div class="w-24 h-24 rounded-full sm:w-20 sm:h-20 bg-surface1">
-											<img src={ player.Avatar } alt="avatar" class="w-full h-full rounded-full"/>
+											<img src={ player.Avatar } alt="avatar" class="object-cover w-full h-full rounded-full"/>
 										</div>
 										<p>
 											Answer { player.Answer }

@@ -186,7 +186,7 @@ func Lobby(code string, players []service.LobbyPlayer, currentPlayer service.Lob
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "\" alt=\"avatar\" class=\"w-full h-full rounded-full\"> ")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "\" alt=\"avatar\" class=\"object-cover w-full h-full rounded-full\"> ")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

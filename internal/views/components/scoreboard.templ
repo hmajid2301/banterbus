@@ -11,7 +11,7 @@ templ Scoreboard(players []service.PlayerWithScoring, maxScore int) {
 		for i, p := range players {
 			<div class="flex items-center p-4 rounded-lg bg-surface1">
 				<div class="relative mr-4 w-12 h-12 sm:w-16 sm:h-16">
-					<img src={ p.Avatar } alt="Player avatar" class="w-12 h-12 rounded-full sm:w-16 sm:h-16"/>
+					<img src={ p.Avatar } alt="Player avatar" class="object-cover w-12 h-12 rounded-full sm:w-16 sm:h-16"/>
 					if i == 0 {
 						<i class="absolute -top-1 -right-1 text-base hgi hgi-solid hgi-medal-first-place text-gold"></i>
 					} else if i == 1 {

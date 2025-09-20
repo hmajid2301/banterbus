@@ -25,7 +25,7 @@ templ Reveal(state service.RevealRoleState) {
 							<div class="text-center">{ i18n.T(ctx, "reveal.voted_for") }</div>
 							<div class="font-semibold">{ state.VotedForPlayerNickname }</div>
 							<div class="w-20 h-20 rounded-full border-2 border-white sm:w-24 sm:h-24 bg-overlay0">
-								<img src={ state.VotedForPlayerAvatar } alt="avatar" class="w-full h-full rounded-full"/>
+								<img src={ state.VotedForPlayerAvatar } alt="avatar" class="object-cover w-full h-full rounded-full"/>
 							</div>
 							<div class="text-center">{ i18n.T(ctx, "reveal.they_were") } { toRoleI18N(ctx, state.VotedForPlayerRole) }</div>
 						} else {

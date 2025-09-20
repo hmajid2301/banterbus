@@ -1,52 +1,19 @@
-# Copy this file to terraform.tfvars and fill in your actual values
+# Postgres
+postgres_host     = ""
+postgres_port     = 5432
+postgres_database = ""
+postgres_username = ""
+postgres_password = ""
 
-# PostgreSQL Configuration
-postgres_host     = "postgres.homelab.haseebmajid.dev"
-postgres_port     = 5433
-postgres_database = "postgres"  # Default database to connect to
-postgres_username = "terraform_user"  # Dedicated cert-auth user (not postgres superuser)
+# OpenBao
+openbao_address = ""
+openbao_token = ""
 
-# Certificate-based authentication (recommended)
-postgres_ssl_cert_path = "/path/to/terraform-client.crt"
-postgres_ssl_key_path  = "/path/to/terraform-client.key" 
-postgres_ssl_ca_path   = "/path/to/ca-certificate.crt"
-
-# Password auth (fallback, less secure)
-postgres_password = ""  # Leave empty when using cert auth
-
-# OpenBao Configuration
-openbao_address = "https://openbao.homelab.haseebmajid.dev"
-openbao_token   = "hvs.XXXXXXXXXXXXXXXXXXXXXX"  # Token from terraform-service account
-
-# Redis Passwords (optional, leave empty if not using Redis auth)
-redis_dev_password  = ""
-redis_prod_password = ""
-
-# GitLab Configuration (existing)
-remote_state_address = "your-gitlab-remote-state-address"
-username            = "your-gitlab-username"
-access_token        = "your-gitlab-access-token"
+# Gitlab
+access_token = ""
+remote_state_address = ""
+username = ""
 
 # Cloudflare Configuration
-cloudflare_api_token      = "your-cloudflare-api-token"
-zone_id                   = "your-cloudflare-zone-id"
-
-# Tunnel hostname is automatically generated from OpenBao data
-# No manual configuration needed - reads from kv/infra/cloudflare
-
-# Grafana Configuration (existing)
-grafana_cloud_access_policy_token = "your-grafana-token"
-
-# Sentry Configuration (existing)
-sentry_auth_token   = "your-sentry-token"
-sentry_organization = "banterbus"
-
-# BetterStack Configuration (existing)
-betterstack_api_token = "your-betterstack-token"
-
-# Alloy Configuration (existing)
-alloy_endpoint = "alloy.homelab.haseebmajid.dev"
-
-# To connect to authentik
-authentik_url="https://authentik.haseebmajid.dev"
-authentik_api_token = ""
+cloudflare_api_token = ""
+zone_id              = ""

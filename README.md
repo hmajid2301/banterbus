@@ -65,5 +65,5 @@ This app is using the following stack
     - Database and secret management
 - K8S
     - GitOps w/ Flux
-      - Main repo: https://gitlab.com/banterbus/k8s-gitops)
+      - Main repo: https://gitlab.com/hmajid2301/k8s-gitops)
     - BanterBus specific code

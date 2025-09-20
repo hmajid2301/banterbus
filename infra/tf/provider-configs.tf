@@ -23,9 +23,7 @@ provider "cloudflare" {
   api_token = var.cloudflare_api_token
 }
 
-# Authentik Provider Configuration
-provider "authentik" {
-  url   = var.authentik_url
-  token = var.authentik_api_token
-}
+
+
+
 

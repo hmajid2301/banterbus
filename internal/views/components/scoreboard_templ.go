@@ -53,7 +53,7 @@ func Scoreboard(players []service.PlayerWithScoring, maxScore int) templ.Compone
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "\" alt=\"Player avatar\" class=\"w-12 h-12 rounded-full sm:w-16 sm:h-16\"> ")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "\" alt=\"Player avatar\" class=\"object-cover w-12 h-12 rounded-full sm:w-16 sm:h-16\"> ")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

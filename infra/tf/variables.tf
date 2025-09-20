@@ -93,18 +93,7 @@ variable "openbao_token" {
   sensitive   = true
 }
 
-# Authentik Variables
-variable "authentik_url" {
-  description = "Authentik server URL"
-  type        = string
-  default     = "https://authentik.haseebmajid.dev"
-}
 
-variable "authentik_api_token" {
-  description = "Authentik API token for Terraform provider"
-  type        = string
-  sensitive   = true
-}
 
 
 # variable "alloy_endpoint" {

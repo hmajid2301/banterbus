@@ -23,7 +23,7 @@ import (
 	"go.opentelemetry.io/otel/sdk/resource"
 	"go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.26.0"
-	"golang.org/x/oauth2/clientcredentials"
+	
 
 	"gitlab.com/hmajid2301/banterbus/internal/config"
 )
@@ -117,27 +117,7 @@ func getOTLPEndpoint() string {
 	return ""
 }
 
-func createOAuth2Client(ctx context.Context, telemetryConfig config.Telemetry) *http.Client {
-	if telemetryConfig.OAuth2ClientID == "" || telemetryConfig.OAuth2ClientSecret == "" ||
-		telemetryConfig.OAuth2TokenURL == "" {
-		return http.DefaultClient
-	}
 
-	cfg := clientcredentials.Config{
-		ClientID:     telemetryConfig.OAuth2ClientID,
-		ClientSecret: telemetryConfig.OAuth2ClientSecret,
-		TokenURL:     telemetryConfig.OAuth2TokenURL,
-	}
-
-	if telemetryConfig.OAuth2Scopes != "" {
-		cfg.Scopes = strings.Split(telemetryConfig.OAuth2Scopes, ",")
-		for i, scope := range cfg.Scopes {
-			cfg.Scopes[i] = strings.TrimSpace(scope)
-		}
-	}
-
-	return cfg.Client(ctx)
-}
 
 func newPropagator() propagation.TextMapPropagator {
 	return propagation.NewCompositeTextMapPropagator(
@@ -160,10 +140,7 @@ func newTraceProvider(
 	} else {
 		endpoint := getOTLPEndpoint()
 		if endpoint != "" {
-			client := createOAuth2Client(ctx, telemetryConfig)
-			if client == nil {
-				client = http.DefaultClient
-			}
+			client := http.DefaultClient
 			traceExporter, err := otlptracehttp.New(ctx,
 				otlptracehttp.WithEndpoint(endpoint),
 				otlptracehttp.WithHTTPClient(client),
@@ -195,10 +172,7 @@ func newMeterProvider(
 	} else {
 		endpoint := getOTLPEndpoint()
 		if endpoint != "" {
-			client := createOAuth2Client(ctx, telemetryConfig)
-			if client == nil {
-				client = http.DefaultClient
-			}
+			client := http.DefaultClient
 			metricExporter, err := otlpmetrichttp.New(ctx,
 				otlpmetrichttp.WithEndpoint(endpoint),
 				otlpmetrichttp.WithHTTPClient(client),
@@ -239,7 +213,7 @@ func newLoggerProvider(
 		return provider, nil
 	}
 
-	client := createOAuth2Client(ctx, telemetryConfig)
+	client := http.DefaultClient
 	exporter, err := otlploghttp.New(ctx,
 		otlploghttp.WithEndpoint(endpoint),
 		otlploghttp.WithHTTPClient(client),
