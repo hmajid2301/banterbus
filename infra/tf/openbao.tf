@@ -9,6 +9,7 @@ resource "vault_kv_secret_v2" "banterbus_dev" {
     otel_client_secret = authentik_provider_oauth2.banterbus_otel_dev.client_secret
     otel_token_url = "https://authentik.haseebmajid.dev/application/o/token/"
     otel_issuer = "https://authentik.haseebmajid.dev/application/o/otel-collector/"
+    otel_scopes = "openid"
   })
 
   depends_on = [
@@ -29,6 +30,7 @@ resource "vault_kv_secret_v2" "banterbus_prod" {
     otel_client_secret = authentik_provider_oauth2.banterbus_otel_prod.client_secret
     otel_token_url = "https://authentik.haseebmajid.dev/application/o/token/"
     otel_issuer = "https://authentik.haseebmajid.dev/application/o/otel-collector/"
+    otel_scopes = "openid"
   })
 
   depends_on = [

@@ -9,6 +9,13 @@ resource "authentik_provider_oauth2" "banterbus_otel_dev" {
 
   authorization_flow = data.authentik_flow.default_authorization_flow.id
   invalidation_flow  = data.authentik_flow.default_invalidation_flow.id
+  
+  access_code_validity = "minutes=1"
+  access_token_validity = "minutes=5"
+  refresh_token_validity = "days=30"
+  
+  include_claims_in_id_token = true
+  issuer_mode = "per_provider"
 }
 
 resource "authentik_provider_oauth2" "banterbus_otel_prod" {
@@ -19,6 +26,13 @@ resource "authentik_provider_oauth2" "banterbus_otel_prod" {
 
   authorization_flow = data.authentik_flow.default_authorization_flow.id
   invalidation_flow  = data.authentik_flow.default_invalidation_flow.id
+  
+  access_code_validity = "minutes=1"
+  access_token_validity = "minutes=5"
+  refresh_token_validity = "days=30"
+  
+  include_claims_in_id_token = true
+  issuer_mode = "per_provider"
 }
 
 resource "authentik_provider_oauth2" "banterbus_otel_ci" {
