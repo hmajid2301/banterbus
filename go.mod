@@ -5,11 +5,11 @@ go 1.24.0
 toolchain go1.24.5
 
 require (
-	github.com/MicahParks/jwkset v0.9.6
+	github.com/MicahParks/jwkset v0.10.0
 	github.com/MicahParks/keyfunc/v3 v3.6.1
 	github.com/a-h/templ v0.3.943
 	github.com/exaring/otelpgx v0.9.3
-	github.com/getsentry/sentry-go v0.35.2
+	github.com/getsentry/sentry-go v0.35.3
 	github.com/go-playground/validator/v10 v10.27.0
 	github.com/gobwas/ws v1.4.0
 	github.com/gofrs/uuid/v5 v5.3.2
@@ -19,8 +19,10 @@ require (
 	github.com/jackc/pgx/v5 v5.7.6
 	github.com/lmittmann/tint v1.1.2
 	github.com/mdobak/go-xerrors v1.0.0
+	github.com/peterldowns/pgtestdb v0.1.1
+	github.com/peterldowns/pgtestdb/migrators/goosemigrator v0.1.1
 	github.com/playwright-community/playwright-go v0.5200.0
-	github.com/pressly/goose/v3 v3.24.3
+	github.com/pressly/goose/v3 v3.25.0
 	github.com/redis/go-redis/extra/redisotel/v9 v9.14.0
 	github.com/redis/go-redis/v9 v9.14.0
 	github.com/samber/slog-multi v1.5.0
@@ -45,6 +47,7 @@ require (
 	go.opentelemetry.io/otel/sdk/metric v1.38.0
 	go.opentelemetry.io/otel/trace v1.38.0
 	golang.org/x/exp v0.0.0-20250911091902-df9299821621
+	golang.org/x/oauth2 v0.31.0
 	gopkg.in/yaml.v3 v3.0.1
 )
 
@@ -75,8 +78,6 @@ require (
 	github.com/leodido/go-urn v1.4.0 // indirect
 	github.com/lufia/plan9stats v0.0.0-20250827001030-24949be3fa54 // indirect
 	github.com/mfridman/interpolate v0.0.2 // indirect
-	github.com/peterldowns/pgtestdb v0.1.1 // indirect
-	github.com/peterldowns/pgtestdb/migrators/goosemigrator v0.1.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/power-devops/perfstat v0.0.0-20240221224432-82ca36839d55 // indirect
 	github.com/redis/go-redis/extra/rediscmd/v9 v9.14.0 // indirect
@@ -88,7 +89,7 @@ require (
 	github.com/tklauser/go-sysconf v0.3.15 // indirect
 	github.com/tklauser/numcpus v0.10.0 // indirect
 	github.com/yusufpapurcu/wmi v1.2.4 // indirect
-	go.opentelemetry.io/auto/sdk v1.2.0 // indirect
+	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.38.0 // indirect
 	go.opentelemetry.io/proto/otlp v1.8.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect

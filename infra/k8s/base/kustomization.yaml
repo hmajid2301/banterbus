@@ -4,9 +4,11 @@ kind: Kustomization
 resources:
 - service.yaml
 - serviceaccount.yaml
+- rbac.yaml
 - configmap.yaml
 - migration-job.yaml
 - deployment.yaml
 - secrets.yaml
 - image-repository.yaml
 - image-policy.yaml
+- image-automation.yaml

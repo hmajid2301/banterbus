@@ -96,8 +96,6 @@ func LoggingMiddleware() MiddlewareFunc {
 func AuthMiddleware() MiddlewareFunc {
 	return func(next HandlerFunc) HandlerFunc {
 		return func(ctx context.Context, client *Client, sub *Subscriber) error {
-			// Add authentication logic here if needed
-			// For now, we assume the player_id in the client is valid
 			return next(ctx, client, sub)
 		}
 	}

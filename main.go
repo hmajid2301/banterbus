@@ -56,7 +56,7 @@ func mainLogic() error {
 		return fmt.Errorf("failed to load config: %w", err)
 	}
 
-	telemtryShtudown, err := telemetry.Setup(ctx, conf.App.Environment, conf.App.LogLevel)
+	telemtryShtudown, err := telemetry.Setup(ctx, conf.App.Environment, conf.App.LogLevel, conf.Telemetry)
 	if err != nil {
 		return fmt.Errorf("failed to setup otel: %w", err)
 	}

@@ -74,7 +74,6 @@ func (s *Server) setupHTTPRoutes(config ServerConfig, keyfunc jwt.Keyfunc, stati
 		AdminGroup:    "admin",
 	}
 
-	// Create router with no base middleware
 	router := middleware.NewRouter()
 
 	// Public routes (no middleware)
@@ -86,7 +85,6 @@ func (s *Server) setupHTTPRoutes(config ServerConfig, keyfunc jwt.Keyfunc, stati
 	// Game routes (with locale middleware)
 	gameGroup := router.Group("game", m.Locale)
 	gameGroup.HandleFunc("/", s.indexHandler)
-	gameGroup.HandleFunc("/ws", s.subscribeHandler)
 	gameGroup.HandleFunc("/join/{room_code}", s.joinHandler)
 
 	// API routes (with locale + auth middleware)
@@ -110,7 +108,6 @@ func (s *Server) setupHTTPRoutes(config ServerConfig, keyfunc jwt.Keyfunc, stati
 		debugGroup.HandleFunc("/debug/pprof/trace", pprof.Trace)
 	}
 
-	// Create final handler with logging and OTEL
 	httpSpanName := func(_ string, r *http.Request) string {
 		return fmt.Sprintf("HTTP %s %s", r.Method, r.URL.Path)
 	}
@@ -119,7 +116,6 @@ func (s *Server) setupHTTPRoutes(config ServerConfig, keyfunc jwt.Keyfunc, stati
 		return r.URL.Path != "/health" && r.URL.Path != "/readiness" && !strings.HasPrefix(r.URL.Path, "/static")
 	}
 
-	// Apply middleware chain to the entire router
 	// IMPORTANT: Tracing must come before Logging so that /ws requests get traced
 	routes := m.Tracing(router)
 	routes = m.Logging(routes)
@@ -130,7 +126,13 @@ func (s *Server) setupHTTPRoutes(config ServerConfig, keyfunc jwt.Keyfunc, stati
 		otelhttp.WithFilter(otelFilters),
 		otelhttp.WithSpanNameFormatter(httpSpanName),
 	)
-	return handler
+
+	// Create a new mux for final routing that bypasses middleware for WebSocket
+	finalMux := http.NewServeMux()
+	finalMux.Handle("/ws", http.HandlerFunc(s.subscribeHandler)) // WebSocket with NO middleware
+	finalMux.Handle("/", handler)                                // All other routes with full middleware
+
+	return finalMux
 }
 
 func (s *Server) Serve(ctx context.Context) error {

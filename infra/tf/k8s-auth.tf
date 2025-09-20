@@ -1,12 +1,7 @@
-# Use existing Kubernetes auth method (already configured)
-# No need to create auth backend - it already exists
-
-# Data source to reference existing kubernetes auth backend
 data "vault_auth_backend" "kubernetes" {
   path = "kubernetes"
 }
 
-# Update existing role to include banterbus policies
 resource "vault_kubernetes_auth_backend_role" "k8s_auth_role_update" {
   backend                          = data.vault_auth_backend.kubernetes.path
   role_name                        = "k8s-auth-role"

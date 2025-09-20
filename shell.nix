@@ -54,7 +54,7 @@ pkgs.mkShell {
     export BANTERBUS_AUTO_RECONNECT=true
     export BANTERBUS_JWKS_URL=http://localhost:9091/default/jwks
     export CGO_ENABLED=0
-    export OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4318
+    export OTEL_EXPORTER_OTLP_ENDPOINT=localhost:4318
     export GO_NO_VENDOR_CHECKS=1
 
     ${pre-commit-check.shellHook}

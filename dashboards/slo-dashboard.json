@@ -1,0 +1,369 @@
+{
+  "dashboard": {
+    "id": null,
+    "title": "BanterBus SLI/SLO Dashboard",
+    "tags": ["banterbus", "slo", "reliability"],
+    "style": "dark",
+    "timezone": "browser",
+    "panels": [
+      {
+        "id": 1,
+        "title": "SLO Overview",
+        "type": "row",
+        "collapsed": false,
+        "gridPos": {"h": 1, "w": 24, "x": 0, "y": 0},
+        "panels": []
+      },
+      {
+        "id": 2,
+        "title": "Game Completion Rate (SLO: ≥95%)",
+        "type": "stat",
+        "gridPos": {"h": 8, "w": 6, "x": 0, "y": 1},
+        "targets": [
+          {
+            "expr": "slo_game_completion_rate",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "thresholds": {
+              "steps": [
+                {"color": "red", "value": 0},
+                {"color": "yellow", "value": 0.90},
+                {"color": "green", "value": 0.95}
+              ]
+            },
+            "unit": "percentunit",
+            "min": 0,
+            "max": 1
+          }
+        }
+      },
+      {
+        "id": 3,
+        "title": "Service Availability (SLO: ≥99.9%)",
+        "type": "stat", 
+        "gridPos": {"h": 8, "w": 6, "x": 6, "y": 1},
+        "targets": [
+          {
+            "expr": "sum(rate(sli_availability_requests_total{status=\"success\"}[1h])) / sum(rate(sli_availability_requests_total[1h]))",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "thresholds": {
+              "steps": [
+                {"color": "red", "value": 0},
+                {"color": "yellow", "value": 0.995},
+                {"color": "green", "value": 0.999}
+              ]
+            },
+            "unit": "percentunit",
+            "min": 0.99,
+            "max": 1
+          }
+        }
+      },
+      {
+        "id": 4,
+        "title": "Response Time P95 (SLO: <2s)",
+        "type": "stat",
+        "gridPos": {"h": 8, "w": 6, "x": 12, "y": 1},
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, sum(rate(sli_response_time_seconds_bucket[5m])) by (le))",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "thresholds": {
+              "steps": [
+                {"color": "green", "value": 0},
+                {"color": "yellow", "value": 1.5},
+                {"color": "red", "value": 2.0}
+              ]
+            },
+            "unit": "s",
+            "max": 5
+          }
+        }
+      },
+      {
+        "id": 5,
+        "title": "Active Games",
+        "type": "stat",
+        "gridPos": {"h": 8, "w": 6, "x": 18, "y": 1},
+        "targets": [
+          {
+            "expr": "slo_games_active",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "continuous-GrYlRd"
+            },
+            "unit": "short"
+          }
+        }
+      },
+      {
+        "id": 6,
+        "title": "System Error Rate",
+        "type": "stat",
+        "gridPos": {"h": 8, "w": 6, "x": 0, "y": 9},
+        "targets": [
+          {
+            "expr": "sum(rate(errors_total[5m]))",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "thresholds": {
+              "steps": [
+                {"color": "green", "value": 0},
+                {"color": "yellow", "value": 5},
+                {"color": "red", "value": 20}
+              ]
+            },
+            "unit": "reqps"
+          }
+        }
+      },
+      {
+        "id": 7,
+        "title": "Errors by Component",
+        "type": "timeseries",
+        "gridPos": {"h": 8, "w": 18, "x": 6, "y": 9},
+        "targets": [
+          {
+            "expr": "sum by (component, error_type) (rate(errors_total[5m]))",
+            "refId": "A",
+            "legendFormat": "{{component}}: {{error_type}}"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "palette-classic"
+            },
+            "unit": "reqps"
+          }
+        }
+      },
+      {
+        "id": 8,
+        "title": "Game Health Indicators",
+        "type": "row",
+        "collapsed": false,
+        "gridPos": {"h": 1, "w": 24, "x": 0, "y": 17},
+        "panels": []
+      },
+      {
+        "id": 9,
+        "title": "Stuck Games Detection",
+        "type": "timeseries",
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 18},
+        "targets": [
+          {
+            "expr": "increase(game_stuck_count_total[5m])",
+            "refId": "A",
+            "legendFormat": "{{state}} - {{reason}}"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "palette-classic"
+            },
+            "custom": {
+              "drawStyle": "line",
+              "lineInterpolation": "linear",
+              "spanNulls": false,
+              "fillOpacity": 0,
+              "gradientMode": "none"
+            },
+            "unit": "short"
+          }
+        },
+        "options": {
+          "tooltip": {
+            "mode": "single",
+            "sort": "none"
+          },
+          "legend": {
+            "displayMode": "list",
+            "placement": "bottom"
+          }
+        }
+      },
+      {
+        "id": 10,
+        "title": "State Transition Failures",
+        "type": "timeseries",
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 18},
+        "targets": [
+          {
+            "expr": "increase(state_transition_failures_total[5m])",
+            "refId": "A",
+            "legendFormat": "{{from_state}} → {{to_state}}: {{reason}}"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "palette-classic"
+            },
+            "custom": {
+              "drawStyle": "line",
+              "lineInterpolation": "linear",
+              "spanNulls": false,
+              "fillOpacity": 0,
+              "gradientMode": "none"
+            },
+            "unit": "short"
+          }
+        }
+      },
+      {
+        "id": 9,
+        "title": "Connection Quality Metrics",
+        "type": "timeseries", 
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 18},
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, sum(rate(connection_quality_latency_milliseconds_bucket[5m])) by (le))",
+            "refId": "A",
+            "legendFormat": "Latency P95"
+          },
+          {
+            "expr": "histogram_quantile(0.95, sum(rate(connection_quality_error_rate_percent_bucket[5m])) by (le))",
+            "refId": "B", 
+            "legendFormat": "Error Rate P95"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "palette-classic"
+            }
+          },
+          "overrides": [
+            {
+              "matcher": {"id": "byName", "options": "Latency P95"},
+              "properties": [
+                {"id": "unit", "value": "ms"},
+                {"id": "custom.axisPlacement", "value": "left"}
+              ]
+            },
+            {
+              "matcher": {"id": "byName", "options": "Error Rate P95"},
+              "properties": [
+                {"id": "unit", "value": "percent"},
+                {"id": "custom.axisPlacement", "value": "right"}
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "id": 10,
+        "title": "Lobby Success Rate",
+        "type": "timeseries",
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 18},
+        "targets": [
+          {
+            "expr": "sum(rate(sli_lobby_operations_total{status=\"success\"}[5m])) by (operation) / sum(rate(sli_lobby_operations_total[5m])) by (operation)",
+            "refId": "A",
+            "legendFormat": "{{operation}} Success Rate"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "palette-classic"
+            },
+            "unit": "percentunit",
+            "min": 0,
+            "max": 1
+          }
+        }
+      },
+      {
+        "id": 11,
+        "title": "Error Budget Tracking",
+        "type": "row",
+        "collapsed": false,
+        "gridPos": {"h": 1, "w": 24, "x": 0, "y": 26},
+        "panels": []
+      },
+      {
+        "id": 12,
+        "title": "Game Completion Error Budget (5% allowed)",
+        "type": "timeseries",
+        "gridPos": {"h": 8, "w": 24, "x": 0, "y": 27},
+        "targets": [
+          {
+            "expr": "1 - slo_game_completion_rate",
+            "refId": "A",
+            "legendFormat": "Current Error Rate"
+          },
+          {
+            "expr": "0.05",
+            "refId": "B",
+            "legendFormat": "Error Budget (5%)"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "palette-classic"
+            },
+            "unit": "percentunit",
+            "min": 0,
+            "max": 0.1
+          },
+          "overrides": [
+            {
+              "matcher": {"id": "byName", "options": "Error Budget (5%)"},
+              "properties": [
+                {"id": "color", "value": {"mode": "fixed", "fixedColor": "red"}},
+                {"id": "custom.fillOpacity", "value": 20}
+              ]
+            }
+          ]
+        },
+        "options": {
+          "tooltip": {
+            "mode": "single"
+          }
+        }
+      }
+    ],
+    "time": {
+      "from": "now-1h",
+      "to": "now"
+    },
+    "refresh": "5s",
+    "schemaVersion": 36,
+    "version": 0,
+    "gnetId": null
+  }
+}

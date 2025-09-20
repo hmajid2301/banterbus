@@ -405,6 +405,8 @@ func (s *Subscriber) handleMessages(ctx context.Context, cancel context.CancelFu
 						slog.Any("error", err),
 					)
 				}
+
+				telemetry.RecordWebSocketError(ctx)
 			}
 		}
 	}
@@ -601,7 +603,6 @@ func (s *Subscriber) handleMessageData(
 
 	s.logger.DebugContext(ctx, "handling message", slog.String("message_type", message.MessageType))
 
-	// Add raw JSON data to context for handlers to use
 	ctx = context.WithValue(ctx, "raw_json", data)
 
 	err = s.handlerRegistry.Handle(message.MessageType, ctx, client, s)
@@ -619,6 +620,7 @@ func (s *Subscriber) handleMessageData(
 				messageStatus = "fail_validate"
 
 				telemetry.RecordValidationError(ctx, message.MessageType, validationErr.Err.Error(), "")
+				telemetry.RecordValidationErrorMetric(ctx)
 				webSocketErr := s.updateClientAboutErr(ctx, client.playerID, validationErr.Err.Error())
 				if webSocketErr != nil {
 					return ctx, errors.Join(err, webSocketErr)

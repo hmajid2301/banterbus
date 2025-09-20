@@ -50,7 +50,7 @@ func (r *RoundService) SubmitAnswer(
 	}
 
 	// Validate answer is not empty after trimming
-	trimmedAnswer := fmt.Sprintf("%s", answer) // Create copy to avoid modifying original
+	trimmedAnswer := fmt.Sprintf("%s", answer)
 	if len(trimmedAnswer) == 0 {
 		return errors.New("answer cannot be empty")
 	}
@@ -389,7 +389,6 @@ func (r *RoundService) AreAllPlayersVotingReady(ctx context.Context, gameStateID
 		return false, errors.New("game state is not in FIBBING_IT_VOTING state")
 	}
 
-	// Get any player from this room to use for the voting status check
 	players, err := r.store.GetAllPlayersByGameStateID(ctx, gameStateID)
 	if err != nil {
 		return false, err
@@ -399,7 +398,6 @@ func (r *RoundService) AreAllPlayersVotingReady(ctx context.Context, gameStateID
 		return false, errors.New("no players in room")
 	}
 
-	// Use the first player to check if all players are ready for voting
 	allReady, err := r.store.GetAllPlayersVotingIsReady(ctx, players[0].ID)
 	return allReady, err
 }
@@ -1077,7 +1075,6 @@ func (r *RoundService) FinishGame(ctx context.Context, gameStateID uuid.UUID) er
 
 // tryAcquireLock attempts to acquire a lock for the given game state
 func (r *RoundService) tryAcquireLock(ctx context.Context, gameStateID uuid.UUID) (bool, error) {
-	// Get or create a mutex for this game state
 	mutexInterface, _ := r.stateLocks.LoadOrStore(gameStateID, &sync.Mutex{})
 	mutex := mutexInterface.(*sync.Mutex)
 

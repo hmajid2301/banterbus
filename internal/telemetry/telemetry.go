@@ -4,6 +4,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/http"
+	"os"
+	"strings"
 	"time"
 
 	hostMetrics "go.opentelemetry.io/contrib/instrumentation/host"
@@ -20,12 +23,16 @@ import (
 	"go.opentelemetry.io/otel/sdk/resource"
 	"go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.26.0"
+	"golang.org/x/oauth2/clientcredentials"
+
+	"gitlab.com/hmajid2301/banterbus/internal/config"
 )
 
 func Setup(
 	ctx context.Context,
 	environment string,
 	logLevel minsev.Severity,
+	telemetryConfig config.Telemetry,
 ) (shutdown func(context.Context) error, err error) {
 	var shutdownFuncs []func(context.Context) error
 
@@ -60,7 +67,7 @@ func Setup(
 		return shutdown, err
 	}
 
-	tracerProvider, err := newTraceProvider(ctx, res, environment)
+	tracerProvider, err := newTraceProvider(ctx, res, environment, telemetryConfig)
 	if err != nil {
 		handleErr(err)
 		return shutdown, err
@@ -68,7 +75,7 @@ func Setup(
 	shutdownFuncs = append(shutdownFuncs, tracerProvider.Shutdown)
 	otel.SetTracerProvider(tracerProvider)
 
-	meterProvider, err := newMeterProvider(ctx, res, environment)
+	meterProvider, err := newMeterProvider(ctx, res, environment, telemetryConfig)
 	if err != nil {
 		handleErr(err)
 		return shutdown, err
@@ -77,7 +84,7 @@ func Setup(
 	shutdownFuncs = append(shutdownFuncs, meterProvider.Shutdown)
 	otel.SetMeterProvider(meterProvider)
 
-	logProvider, err := newLoggerProvider(ctx, res, logLevel)
+	logProvider, err := newLoggerProvider(ctx, res, logLevel, telemetryConfig)
 	if err != nil {
 		handleErr(err)
 		return shutdown, err
@@ -86,7 +93,50 @@ func Setup(
 	shutdownFuncs = append(shutdownFuncs, logProvider.Shutdown)
 	global.SetLoggerProvider(logProvider)
 
+	if environment != "test" {
+		err = InitializeMetrics(ctx)
+		if err != nil {
+			handleErr(err)
+			return shutdown, err
+		}
+	}
+
 	return shutdown, err
+}
+
+func getOTLPEndpoint() string {
+	endpoint := os.Getenv("OTEL_EXPORTER_OTLP_ENDPOINT")
+	if endpoint != "" {
+		// Remove protocol prefix for OTLP HTTP exporters
+		endpoint = strings.TrimPrefix(endpoint, "http://")
+		endpoint = strings.TrimPrefix(endpoint, "https://")
+		return endpoint
+	}
+	// Return empty string if no endpoint is configured
+	// This allows disabling OTEL by setting OTEL_EXPORTER_OTLP_ENDPOINT=""
+	return ""
+}
+
+func createOAuth2Client(ctx context.Context, telemetryConfig config.Telemetry) *http.Client {
+	if telemetryConfig.OAuth2ClientID == "" || telemetryConfig.OAuth2ClientSecret == "" ||
+		telemetryConfig.OAuth2TokenURL == "" {
+		return http.DefaultClient
+	}
+
+	cfg := clientcredentials.Config{
+		ClientID:     telemetryConfig.OAuth2ClientID,
+		ClientSecret: telemetryConfig.OAuth2ClientSecret,
+		TokenURL:     telemetryConfig.OAuth2TokenURL,
+	}
+
+	if telemetryConfig.OAuth2Scopes != "" {
+		cfg.Scopes = strings.Split(telemetryConfig.OAuth2Scopes, ",")
+		for i, scope := range cfg.Scopes {
+			cfg.Scopes[i] = strings.TrimSpace(scope)
+		}
+	}
+
+	return cfg.Client(ctx)
 }
 
 func newPropagator() propagation.TextMapPropagator {
@@ -96,20 +146,35 @@ func newPropagator() propagation.TextMapPropagator {
 	)
 }
 
-func newTraceProvider(ctx context.Context, res *resource.Resource, environment string) (*trace.TracerProvider, error) {
+func newTraceProvider(
+	ctx context.Context,
+	res *resource.Resource,
+	environment string,
+	telemetryConfig config.Telemetry,
+) (*trace.TracerProvider, error) {
 	var tracerOptions []trace.TracerProviderOption
 	tracerOptions = append(tracerOptions, trace.WithResource(res))
 
 	if environment == "test" {
 		tracerOptions = append(tracerOptions, trace.WithSampler(trace.AlwaysSample()))
 	} else {
-		traceExporter, err := otlptracehttp.New(ctx)
-		if err != nil {
-			return nil, err
+		endpoint := getOTLPEndpoint()
+		if endpoint != "" {
+			client := createOAuth2Client(ctx, telemetryConfig)
+			if client == nil {
+				client = http.DefaultClient
+			}
+			traceExporter, err := otlptracehttp.New(ctx,
+				otlptracehttp.WithEndpoint(endpoint),
+				otlptracehttp.WithHTTPClient(client),
+			)
+			if err != nil {
+				return nil, err
+			}
+			tracerOptions = append(tracerOptions, trace.WithBatcher(traceExporter,
+				trace.WithBatchTimeout(time.Second),
+			))
 		}
-		tracerOptions = append(tracerOptions, trace.WithBatcher(traceExporter,
-			trace.WithBatchTimeout(time.Second),
-		))
 	}
 
 	traceProvider := trace.NewTracerProvider(tracerOptions...)
@@ -117,22 +182,39 @@ func newTraceProvider(ctx context.Context, res *resource.Resource, environment s
 	return traceProvider, nil
 }
 
-func newMeterProvider(ctx context.Context, res *resource.Resource, environment string) (*metric.MeterProvider, error) {
+func newMeterProvider(
+	ctx context.Context,
+	res *resource.Resource,
+	environment string,
+	telemetryConfig config.Telemetry,
+) (*metric.MeterProvider, error) {
 	var meterProvider *metric.MeterProvider
 
 	if environment == "test" {
 		meterProvider = metric.NewMeterProvider(metric.WithResource(res))
 	} else {
-		metricExporter, err := otlpmetrichttp.New(ctx)
-		if err != nil {
-			return nil, err
-		}
+		endpoint := getOTLPEndpoint()
+		if endpoint != "" {
+			client := createOAuth2Client(ctx, telemetryConfig)
+			if client == nil {
+				client = http.DefaultClient
+			}
+			metricExporter, err := otlpmetrichttp.New(ctx,
+				otlpmetrichttp.WithEndpoint(endpoint),
+				otlpmetrichttp.WithHTTPClient(client),
+			)
+			if err != nil {
+				return nil, err
+			}
 
-		reader := metric.NewPeriodicReader(metricExporter, metric.WithProducer(runtimeMetrics.NewProducer()))
-		meterProvider = metric.NewMeterProvider(metric.WithReader(reader), metric.WithResource(res))
+			reader := metric.NewPeriodicReader(metricExporter, metric.WithProducer(runtimeMetrics.NewProducer()))
+			meterProvider = metric.NewMeterProvider(metric.WithReader(reader), metric.WithResource(res))
 
-		if err = hostMetrics.Start(hostMetrics.WithMeterProvider(meterProvider)); err != nil {
-			return nil, fmt.Errorf("failed to start host metrics: %w", err)
+			if err = hostMetrics.Start(hostMetrics.WithMeterProvider(meterProvider)); err != nil {
+				return nil, fmt.Errorf("failed to start host metrics: %w", err)
+			}
+		} else {
+			meterProvider = metric.NewMeterProvider(metric.WithResource(res))
 		}
 	}
 
@@ -148,8 +230,20 @@ func newLoggerProvider(
 	ctx context.Context,
 	res *resource.Resource,
 	logLevel minsev.Severity,
+	telemetryConfig config.Telemetry,
 ) (*log.LoggerProvider, error) {
-	exporter, err := otlploghttp.New(ctx)
+	endpoint := getOTLPEndpoint()
+	if endpoint == "" {
+		// Return a basic provider without OTLP exporter when no endpoint is configured
+		provider := log.NewLoggerProvider(log.WithResource(res))
+		return provider, nil
+	}
+
+	client := createOAuth2Client(ctx, telemetryConfig)
+	exporter, err := otlploghttp.New(ctx,
+		otlploghttp.WithEndpoint(endpoint),
+		otlploghttp.WithHTTPClient(client),
+	)
 	if err != nil {
 		return nil, err
 	}

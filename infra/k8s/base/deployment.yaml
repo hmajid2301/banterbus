@@ -29,21 +29,21 @@ spec:
             memory: "64Mi"
             cpu: "50m"
       containers:
-       - name: banterbus
-          image: registry.gitlab.com/hmajid2301/banterbus:latest # {"$imagepolicy": "default:banterbus"}
-         ports:
-         - containerPort: 8080
-         envFrom:
-         - configMapRef:
-             name: banterbus-config
-         - configMapRef:
-             name: banterbus-config-env
-         - secretRef:
-             name: banterbus-secrets
-         volumeMounts:
-         - name: secrets-store
-           mountPath: "/mnt/secrets"
-           readOnly: true
+      - name: banterbus
+        image: registry.gitlab.com/hmajid2301/banterbus:latest
+        ports:
+        - containerPort: 8080
+        envFrom:
+        - configMapRef:
+            name: banterbus-config
+        - configMapRef:
+            name: banterbus-config-env
+        - secretRef:
+            name: banterbus-secrets
+        volumeMounts:
+        - name: secrets-store
+          mountPath: "/mnt/secrets"
+          readOnly: true
       volumes:
       - name: secrets-store
         csi:

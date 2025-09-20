@@ -1,5 +1,9 @@
 terraform {
   required_providers {
+    http = {
+      source  = "hashicorp/http"
+      version = "~> 3.4"
+    }
     postgresql = {
       source  = "cyrilgdn/postgresql"
       version = "~> 1.21"
@@ -34,5 +38,11 @@ terraform {
       source  = "grafana/grafana"
       version = "~> 3.0"
     }
+
+    authentik = {
+      source  = "goauthentik/authentik"
+      version = "~> 2025.8.1"
+    }
   }
 }
+

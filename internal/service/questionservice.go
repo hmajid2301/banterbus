@@ -132,7 +132,6 @@ func (q QuestionService) AddGroup(ctx context.Context, name string, groupType ..
 		return Group{}, err
 	}
 
-	// Use provided groupType or default to "questions"
 	gType := "questions"
 	if len(groupType) > 0 {
 		gType = groupType[0]

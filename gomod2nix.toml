@@ -2,8 +2,8 @@ schema = 3
 
 [mod]
   [mod."github.com/MicahParks/jwkset"]
-    version = "v0.9.6"
-    hash = "sha256-9qBanINBkgJgex/fh3F6XQxr2k0hQa0/A4erzz7uDOU="
+    version = "v0.10.0"
+    hash = "sha256-u07C8oUQzFz4U8Egng+sAvXfiD7XlYQf6DN4KwYolKk="
   [mod."github.com/MicahParks/keyfunc/v3"]
     version = "v3.6.1"
     hash = "sha256-7gtbvgRVONXZ/J9tDU63vuHSM2tXts9dunvb63gfhpI="
@@ -38,8 +38,8 @@ schema = 3
     version = "v1.4.10"
     hash = "sha256-ha8NJOAWcmEfQaybfNxyUupt0+zlWxoAKLjCacew43s="
   [mod."github.com/getsentry/sentry-go"]
-    version = "v0.35.2"
-    hash = "sha256-Pc7G5QU4NUbsCz3+wfSDG+axXETyB8QCUZhhTCLCKyg="
+    version = "v0.35.3"
+    hash = "sha256-g7s5hLhdzGl6KZa9C4erxe/n3d03Nb0wKgvWwV7+gNs="
   [mod."github.com/go-jose/go-jose/v3"]
     version = "v3.0.4"
     hash = "sha256-RrLHCu9l6k0XVobdZQJ9Sx/VTQcWjrdLR5BEG7yXTEQ="
@@ -137,8 +137,8 @@ schema = 3
     version = "v0.0.0-20240221224432-82ca36839d55"
     hash = "sha256-ujzuJ1ttQgjHQJEij4O/2+I8DZaUVZQCQgA4ysfqulI="
   [mod."github.com/pressly/goose/v3"]
-    version = "v3.24.3"
-    hash = "sha256-kBcchMFba8ow5GI5xTZfrjAy+N1418jmepfnGrbi7U8="
+    version = "v3.25.0"
+    hash = "sha256-0JdRUOGRg4gduF30kLM3n1QuApvwSF0EqY0oRmZ5v60="
   [mod."github.com/redis/go-redis/extra/rediscmd/v9"]
     version = "v9.14.0"
     hash = "sha256-oeCBUXI4/nEKAuy5UzJhYVSHkXUupwffh45UkiTemqw="
@@ -191,8 +191,8 @@ schema = 3
     version = "v1.2.4"
     hash = "sha256-N+YDBjOW59YOsZ2lRBVtFsEEi48KhNQRb63/0ZSU3bA="
   [mod."go.opentelemetry.io/auto/sdk"]
-    version = "v1.2.0"
-    hash = "sha256-GTebYP2cqXET+1lFEjlyctOw8jCRxXoa06tRbqQznTk="
+    version = "v1.2.1"
+    hash = "sha256-73bFYhnxNf4SfeQ52ebnwOWywdQbqc9lWawCcSgofvE="
   [mod."go.opentelemetry.io/contrib/bridges/otelslog"]
     version = "v0.13.0"
     hash = "sha256-UECL7pBdtsT3iafHTG+yFc2mptqwV+IgnDVVSJeTiw8="
@@ -256,6 +256,9 @@ schema = 3
   [mod."golang.org/x/net"]
     version = "v0.44.0"
     hash = "sha256-cflLHbl+cGQ6QDyIhXE95k3fgBMhTuBLvzLQCiSpQDg="
+  [mod."golang.org/x/oauth2"]
+    version = "v0.31.0"
+    hash = "sha256-tt2C+FUrCXmkRUWp9vte7heR/ZOqxDDyx1UNfzADpe0="
   [mod."golang.org/x/sync"]
     version = "v0.17.0"
     hash = "sha256-M85lz4hK3/fzmcUViAp/CowHSxnr3BHSO7pjHp1O6i0="

@@ -2,240 +2,66 @@ package banterbustest
 
 import (
 	"context"
-	"crypto/rand"
-	"crypto/sha256"
 	"database/sql"
-	"fmt"
-	"math/big"
 	"os"
-	"path"
+	"path/filepath"
 	"strings"
 	"testing"
-	"time"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/peterldowns/pgtestdb"
 	"github.com/peterldowns/pgtestdb/migrators/goosemigrator"
-	"github.com/pressly/goose/v3"
 	pgxUUID "github.com/vgarvardt/pgx-google-uuid/v5"
 )
 
-// getConfig returns the pgtestdb configuration based on environment
-func getConfig() pgtestdb.Config {
-	// Check for CI environment variables first
-	host := os.Getenv("BANTERBUS_DB_HOST")
-	if host == "" {
-		host = "localhost"
-	}
-
-	port := os.Getenv("BANTERBUS_DB_PORT")
-	if port == "" {
-		port = "5432"
-	}
-
-	user := os.Getenv("BANTERBUS_DB_USER")
-	if user == "" {
-		user = "postgres"
-	}
-
-	password := os.Getenv("BANTERBUS_DB_PASSWORD")
-	if password == "" {
-		password = "postgres"
-	}
-
-	database := os.Getenv("BANTERBUS_DB_NAME")
-	if database == "" {
-		database = "banterbus" // Use banterbus database which has migrations applied
-	}
-
-	return pgtestdb.Config{
-		DriverName: "pgx",
-		User:       user,
-		Password:   password,
-		Host:       host,
-		Port:       port,
-		Database:   database,
-		Options:    "sslmode=disable",
-	}
-}
-
-// getMigrator returns a configured goose migrator
-func getMigrator() *goosemigrator.GooseMigrator {
-	// Check for explicit migrations path from environment first (for CI)
-	migrationsDir := os.Getenv("BANTERBUS_MIGRATIONS_DIR")
-	if migrationsDir == "" {
-		// Find project root by looking for go.mod
-		projectRoot := findProjectRoot()
-		migrationsDir = path.Join(projectRoot, "internal", "store", "db", "sqlc", "migrations")
-	}
-
-	return goosemigrator.New(migrationsDir)
-}
-
-// findProjectRoot looks for go.mod to find the project root
-func findProjectRoot() string {
-	wd, err := os.Getwd()
-	if err != nil {
-		panic("failed to get working directory")
-	}
-
-	// Walk up the directory tree looking for go.mod
-	for {
-		if _, err := os.Stat(path.Join(wd, "go.mod")); err == nil {
-			return wd
-		}
-
-		parent := path.Dir(wd)
-		if parent == wd {
-			// Reached root directory
-			panic("could not find project root (go.mod not found)")
-		}
-		wd = parent
-	}
-}
-
-// getSeedDataScript returns the path to the seed data SQL script
-func getSeedDataScript() string {
-	// Check for explicit seed data path from environment first (for CI)
-	seedDataPath := os.Getenv("BANTERBUS_SEED_DATA_PATH")
-	if seedDataPath == "" {
-		// Find project root and construct path
-		projectRoot := findProjectRoot()
-		seedDataPath = path.Join(projectRoot, "docker", "postgres-init", "01-seed-data.sql")
-	}
-
-	return seedDataPath
-}
-
-// CustomMigrator wraps the goose migrator and adds seed data functionality
-type CustomMigrator struct {
-	*goosemigrator.GooseMigrator
-	seedDataPath string
-}
-
-// Migrate runs the goose migrations and then applies seed data
-func (cm *CustomMigrator) Migrate(ctx context.Context, db *sql.DB, config pgtestdb.Config) error {
-	// First run the goose migrations
-	if err := cm.GooseMigrator.Migrate(ctx, db, config); err != nil {
-		return fmt.Errorf("failed to apply migrations: %w", err)
-	}
-
-	// Then apply seed data
-	if cm.seedDataPath != "" {
-		seedData, err := os.ReadFile(cm.seedDataPath)
-		if err != nil {
-			return fmt.Errorf("failed to read seed data from %s: %w", cm.seedDataPath, err)
-		}
-
-		// Execute seed data SQL
-		if _, err := db.ExecContext(ctx, string(seedData)); err != nil {
-			return fmt.Errorf("failed to execute seed data: %w", err)
-		}
-	}
-
-	return nil
-}
-
-// Hash returns the combined hash of migrations and seed data
-func (cm *CustomMigrator) Hash() (string, error) {
-	// Get the migrations hash
-	migrationsHash, err := cm.GooseMigrator.Hash()
-	if err != nil {
-		return "", err
-	}
-
-	// If we have seed data, include it in the hash
-	if cm.seedDataPath != "" {
-		seedData, err := os.ReadFile(cm.seedDataPath)
-		if err != nil {
-			return "", fmt.Errorf("failed to read seed data for hash: %w", err)
-		}
-		// Simple hash combination - in production you might want something more sophisticated
-		return fmt.Sprintf("%s-%x", migrationsHash, len(seedData)), nil
-	}
-
-	return migrationsHash, nil
-}
-
-// NewDB returns a test database connection using pgtestdb with migrations and seed data
 func NewDB(t *testing.T) *pgxpool.Pool {
 	t.Helper()
 
-	// For now, fall back to a simpler approach that directly sets up the test environment
-	// This avoids the pgtestdb template hash issues we're seeing
+	originalWd, _ := os.Getwd()
 
-	config := getConfig()
-
-	// Build connection URL directly to the postgres database (not banterbus)
-	baseDbURL := fmt.Sprintf("postgres://%s:%s@%s:%s/postgres?%s",
-		config.User, config.Password, config.Host, config.Port, config.Options)
-
-	// Create a unique test database name with proper sanitization
-	sanitizedName := strings.ToLower(t.Name())
-	sanitizedName = strings.ReplaceAll(sanitizedName, "/", "_")
-	sanitizedName = strings.ReplaceAll(sanitizedName, " ", "_")
-	sanitizedName = strings.ReplaceAll(sanitizedName, ",", "_")
-	sanitizedName = strings.ReplaceAll(sanitizedName, "'", "_")
-	sanitizedName = strings.ReplaceAll(sanitizedName, "\"", "_")
-	sanitizedName = strings.ReplaceAll(sanitizedName, "-", "_")
-	sanitizedName = strings.ReplaceAll(sanitizedName, ".", "_")
-
-	// Truncate if too long and add a hash for uniqueness
-	if len(sanitizedName) > 30 {
-		hash := sha256.Sum256([]byte(sanitizedName))
-		sanitizedName = fmt.Sprintf("%s_%x", sanitizedName[:20], hash[:4])
+	projectRoot := findProjectRoot(t)
+	if projectRoot == "" {
+		t.Fatal("Could not find project root directory (no go.mod found)")
 	}
 
-	// Add timestamp and random for uniqueness (PostgreSQL DB names max 63 chars)
-	randomNum, _ := rand.Int(rand.Reader, big.NewInt(9999))
-	testDBName := fmt.Sprintf("bt_%s_%d_%s_%d", sanitizedName, time.Now().Unix(), randomNum.String(), os.Getpid())
-
-	// Final length check
-	if len(testDBName) > 63 {
-		hash := sha256.Sum256([]byte(testDBName))
-		testDBName = fmt.Sprintf("bt_%x", hash[:15])
+	if err := os.Chdir(projectRoot); err != nil {
+		t.Fatalf("Failed to change to project root %s: %v", projectRoot, err)
 	}
-
-	// Connect to postgres database to create test database
-	basePool, err := pgxpool.New(context.Background(), baseDbURL)
-	if err != nil {
-		t.Fatalf("failed to connect to postgres database: %v", err)
-	}
-	defer basePool.Close()
-
-	// Create test database
-	_, err = basePool.Exec(context.Background(), fmt.Sprintf("CREATE DATABASE %s", testDBName))
-	if err != nil {
-		t.Fatalf("failed to create test database %s: %v", testDBName, err)
-	}
-
-	// Register cleanup to drop the test database
 	t.Cleanup(func() {
-		// Recreate connection to postgres database for cleanup
-		cleanupPool, err := pgxpool.New(context.Background(), baseDbURL)
-		if err != nil {
-			t.Logf("failed to connect for cleanup: %v", err)
-			return
-		}
-		defer cleanupPool.Close()
-
-		// Drop the test database
-		_, err = cleanupPool.Exec(context.Background(), fmt.Sprintf("DROP DATABASE IF EXISTS %s", testDBName))
-		if err != nil {
-			t.Logf("failed to drop test database %s: %v", testDBName, err)
-		}
+		os.Chdir(originalWd)
 	})
 
-	// Connect to the test database
-	testDbURL := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?%s",
-		config.User, config.Password, config.Host, config.Port, testDBName, config.Options)
+	// Use relative path from project root (now that we've changed directory)
+	migrationsPath := "internal/store/db/sqlc/migrations"
 
-	// Configure pgxpool with UUID support
-	pgxConfig, err := pgxpool.ParseConfig(testDbURL)
+	// Verify migrations directory exists (using relative path)
+	if _, err := os.Stat(migrationsPath); os.IsNotExist(err) {
+		// Also check absolute path for debugging
+		absPath := filepath.Join(projectRoot, migrationsPath)
+		if _, err2 := os.Stat(absPath); os.IsNotExist(err2) {
+			t.Fatalf("Migrations directory does not exist at relative path '%s' or absolute path '%s'", migrationsPath, absPath)
+		}
+		t.Fatalf("Migrations directory does not exist at relative path '%s' (current dir: %s)", migrationsPath, projectRoot)
+	}
+
+	cfg := pgtestdb.Config{
+		DriverName: "pgx",
+		User:       getEnv("BANTERBUS_DB_USER", "postgres"),
+		Password:   getEnv("BANTERBUS_DB_PASSWORD", "postgres"),
+		Host:       getEnv("BANTERBUS_DB_HOST", "localhost"),
+		Port:       getEnv("BANTERBUS_DB_PORT", "5432"),
+		Database:   "postgres",
+		Options:    "sslmode=disable",
+	}
+
+	migrator := goosemigrator.New(migrationsPath)
+	sqlDB := pgtestdb.New(t, cfg, migrator)
+
+	pgxConfig, err := pgxpool.ParseConfig(getConnectionURL(sqlDB))
 	if err != nil {
-		t.Fatalf("failed to parse test database URL: %v", err)
+		t.Fatalf("failed to parse database URL: %v", err)
 	}
 
 	pgxConfig.AfterConnect = func(_ context.Context, conn *pgx.Conn) error {
@@ -248,76 +74,43 @@ func NewDB(t *testing.T) *pgxpool.Pool {
 		t.Fatalf("failed to create connection pool: %v", err)
 	}
 
-	// Verify connection works
-	if err := pool.Ping(context.Background()); err != nil {
-		t.Fatalf("failed to ping database: %v", err)
-	}
-
-	// Apply migrations manually using goose
-	if err := applyMigrationsAndSeedData(context.Background(), pool); err != nil {
-		t.Fatalf("failed to apply migrations and seed data: %v", err)
-	}
-
-	// Register cleanup for the pool
 	t.Cleanup(func() {
 		pool.Close()
 	})
 
+	loadSeedData(t, pool)
+
 	return pool
 }
 
-// applyMigrationsAndSeedData applies migrations and seed data to the test database
-func applyMigrationsAndSeedData(ctx context.Context, pool *pgxpool.Pool) error {
-	// Get a standard database connection for goose
-	dbURL := pool.Config().ConnString()
-	db, err := sql.Open("pgx", dbURL)
-	if err != nil {
-		return fmt.Errorf("failed to open database connection for migrations: %w", err)
-	}
-	defer db.Close()
-
-	// Apply migrations using goose
-	migrationsDir := os.Getenv("BANTERBUS_MIGRATIONS_DIR")
-	if migrationsDir == "" {
-		projectRoot := findProjectRoot()
-		migrationsDir = path.Join(projectRoot, "internal", "store", "db", "sqlc", "migrations")
-	}
-
-	if err := goose.SetDialect("postgres"); err != nil {
-		return fmt.Errorf("failed to set goose dialect: %w", err)
-	}
-
-	if err := goose.Up(db, migrationsDir); err != nil {
-		return fmt.Errorf("failed to apply migrations: %w", err)
-	}
-
-	// Apply seed data
-	seedDataPath := getSeedDataScript()
-	if seedDataPath != "" {
-		seedData, err := os.ReadFile(seedDataPath)
-		if err != nil {
-			return fmt.Errorf("failed to read seed data from %s: %w", seedDataPath, err)
-		}
-
-		// Execute seed data SQL using the pgx pool
-		if _, err := pool.Exec(ctx, string(seedData)); err != nil {
-			return fmt.Errorf("failed to execute seed data: %w", err)
-		}
-	}
-
-	return nil
-}
-
-// cleanupTestData removes all dynamic data but keeps seed data
-func cleanupTestData(t *testing.T, pool *pgxpool.Pool) {
+func findProjectRoot(t *testing.T) string {
 	t.Helper()
 
-	ctx := context.Background()
+	wd, err := os.Getwd()
+	if err != nil {
+		return ""
+	}
 
-	// Delete in order to respect foreign key constraints
-	// The challenge is that rooms.host_player references players.id,
-	// but rooms_players.player_id also references players.id
-	// So we need to delete rooms and rooms_players before players
+	dir := wd
+	for {
+		goModPath := filepath.Join(dir, "go.mod")
+		if _, err := os.Stat(goModPath); err == nil {
+			return dir
+		}
+
+		parent := filepath.Dir(dir)
+		if parent == dir {
+			break
+		}
+		dir = parent
+	}
+
+	return ""
+}
+
+func CleanupData(t *testing.T, pool *pgxpool.Pool) {
+	t.Helper()
+
 	tables := []string{
 		"fibbing_it_scores",
 		"fibbing_it_votes",
@@ -325,28 +118,98 @@ func cleanupTestData(t *testing.T, pool *pgxpool.Pool) {
 		"fibbing_it_player_roles",
 		"fibbing_it_rounds",
 		"game_state",
-		"rooms_players", // Delete room-player relationships first
-		"rooms",         // Delete rooms (which reference players as host)
-		"players",       // Finally delete players
+		"rooms_players",
+		"rooms",
+		"players",
 	}
 
+	ctx := context.Background()
 	for _, table := range tables {
-		_, err := pool.Exec(ctx, fmt.Sprintf("DELETE FROM %s", table))
-		if err != nil {
+		if _, err := pool.Exec(ctx, "DELETE FROM "+table); err != nil {
 			t.Logf("Warning: failed to cleanup table %s: %v", table, err)
 		}
 	}
 }
 
-// CreateDB is an alias for NewDB for backward compatibility
-func CreateDB(ctx context.Context) (*pgxpool.Pool, error) {
-	panic("CreateDB is deprecated, use NewDB(t) in your tests instead")
+func getConnectionURL(db *sql.DB) string {
+	var dbName string
+	err := db.QueryRow("SELECT current_database()").Scan(&dbName)
+	if err != nil {
+		panic("failed to get database name: " + err.Error())
+	}
+
+	host := getEnv("BANTERBUS_DB_HOST", "localhost")
+	port := getEnv("BANTERBUS_DB_PORT", "5432")
+	user := getEnv("BANTERBUS_DB_USER", "postgres")
+	password := getEnv("BANTERBUS_DB_PASSWORD", "postgres")
+
+	return "postgres://" + user + ":" + password + "@" + host + ":" + port + "/" + dbName + "?sslmode=disable"
 }
 
-// RemoveDB is no longer needed with pgtestdb as cleanup is automatic
-func RemoveDB(ctx context.Context, pool *pgxpool.Pool) error {
-	// pgtestdb handles cleanup automatically via t.Cleanup()
-	// Just close the pool here
-	pool.Close()
-	return nil
+func loadSeedData(t *testing.T, pool *pgxpool.Pool) {
+	t.Helper()
+
+	seedDataPath := findSeedDataFile(t)
+	if seedDataPath == "" {
+		return
+	}
+
+	seedData, err := os.ReadFile(seedDataPath)
+	if err != nil {
+		return
+	}
+
+	content := string(seedData)
+	lines := strings.Split(content, "\n")
+	var statements []string
+	var currentStatement strings.Builder
+
+	for _, line := range lines {
+		line = strings.TrimSpace(line)
+		if line == "" || strings.HasPrefix(line, "--") {
+			continue
+		}
+
+		currentStatement.WriteString(line)
+		currentStatement.WriteString("\n")
+
+		if strings.HasSuffix(line, ";") {
+			statements = append(statements, currentStatement.String())
+			currentStatement.Reset()
+		}
+	}
+
+	ctx := context.Background()
+	for _, stmt := range statements {
+		stmt = strings.TrimSpace(stmt)
+		if stmt == "" {
+			continue
+		}
+		pool.Exec(ctx, stmt)
+	}
+}
+
+func findSeedDataFile(t *testing.T) string {
+	t.Helper()
+
+	candidates := []string{
+		"docker/postgres-init/01-seed-data.sql",
+		"../docker/postgres-init/01-seed-data.sql",
+		"../../docker/postgres-init/01-seed-data.sql",
+	}
+
+	for _, path := range candidates {
+		if _, err := os.Stat(path); err == nil {
+			return path
+		}
+	}
+
+	return ""
+}
+
+func getEnv(key, defaultValue string) string {
+	if value := os.Getenv(key); value != "" {
+		return value
+	}
+	return defaultValue
 }

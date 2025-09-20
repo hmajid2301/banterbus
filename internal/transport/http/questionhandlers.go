@@ -224,7 +224,6 @@ func (s *Server) getQuestionsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//nolint:gosec // disable G109
-	// We check the max limit above
 	questions, err := s.QuestionService.GetQuestions(ctx, filters, int32(limit), int32(pageNum))
 	if err != nil {
 		s.Logger.ErrorContext(ctx, "failed to get questions", slog.Any("error", err))

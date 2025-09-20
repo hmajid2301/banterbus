@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/getsentry/sentry-go"
 	"go.opentelemetry.io/otel"
@@ -71,7 +72,18 @@ func (Middleware) Tracing(h http.Handler) http.Handler {
 			span.SetAttributes(attribute.String("sentry.trace_id", sentryTraceID))
 		}
 
-		defer span.End()
+		start := time.Now()
+		rw := wrapResponseWriter(w)
+
+		defer func() {
+			duration := time.Since(start).Seconds()
+			statusCode := rw.Status()
+			if statusCode == 0 {
+				statusCode = 200
+			}
+			telemetry.RecordHTTPRequest(ctx, getHTTPRoute(r.URL.Path), r.Method, statusCode, duration)
+			span.End()
+		}()
 
 		opts := []sentry.SpanOption{
 			sentry.WithOpName("http.server"),
@@ -84,8 +96,7 @@ func (Middleware) Tracing(h http.Handler) http.Handler {
 		)
 		defer txn.Finish()
 
-		// Use OpenTelemetry context with baggage instead of Sentry-only context
-		h.ServeHTTP(w, r.WithContext(ctx))
+		h.ServeHTTP(rw, r.WithContext(ctx))
 	})
 }
 

@@ -46,3 +46,7 @@ betterstack_api_token = "your-betterstack-token"
 
 # Alloy Configuration (existing)
 alloy_endpoint = "alloy.homelab.haseebmajid.dev"
+
+# To connect to authentik
+authentik_url="https://authentik.haseebmajid.dev"
+authentik_api_token = ""

@@ -26,7 +26,7 @@ tasks:
     env:
       BANTERBUS_LOG_LEVEL: debug
     cmds:
-      - docker compose --profile monitoring --profile test --profile other up -d --force-recreate --remove-orphans --wait
+      - docker compose --profile monitoring --profile test --profile other up -d --force-recreate --remove-orphans
       - task: migrate
       - concurrently "air" "task watch"
 
@@ -75,7 +75,7 @@ tasks:
       BANTERBUS_WEBSERVER_PORT: 8081
       BANTERBUS_WEBSERVER_HOST: 0.0.0.0
       BANTERBUS_DB_HOST: localhost
-      BANTERBUS_DB_USER: postgres
+      BANTERBUS_DB_USERNAME: postgres
       BANTERBUS_DB_PASSWORD: postgres
 
       BANTERBUS_PLAYWRIGHT_URL: http://localhost:8081

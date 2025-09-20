@@ -1,4 +1,3 @@
-# Generate secure random passwords for dev/prod environments
 resource "random_password" "banterbus_dev" {
   length  = 32
   special = true
@@ -9,13 +8,11 @@ resource "random_password" "banterbus_prod" {
   special = true
 }
 
-# Create banterbus dev user with modern auth settings
 resource "postgresql_role" "banterbus_dev" {
   provider = postgresql.homelab
   name     = "banterbus_dev"
   login    = true
   password = random_password.banterbus_dev.result
-  # Modern PostgreSQL security settings
   connection_limit    = 50
   valid_until        = "infinity"
   create_database    = false
@@ -25,7 +22,6 @@ resource "postgresql_role" "banterbus_dev" {
   superuser          = false
 }
 
-# Create banterbus prod user with modern auth settings
 resource "postgresql_role" "banterbus_prod" {
   provider = postgresql.homelab
   name     = "banterbus_prod"
@@ -40,21 +36,18 @@ resource "postgresql_role" "banterbus_prod" {
   superuser          = false
 }
 
-# Create dev database
 resource "postgresql_database" "banterbus_dev" {
   provider = postgresql.homelab
   name  = "banterbus_dev"
   owner = postgresql_role.banterbus_dev.name
 }
 
-# Create prod database
 resource "postgresql_database" "banterbus_prod" {
   provider = postgresql.homelab
   name  = "banterbus_prod"
   owner = postgresql_role.banterbus_prod.name
 }
 
-# Grant permissions for dev environment
 resource "postgresql_grant" "banterbus_dev_connect" {
   provider    = postgresql.homelab
   database    = postgresql_database.banterbus_dev.name
@@ -90,7 +83,6 @@ resource "postgresql_grant" "banterbus_dev_sequences" {
   privileges  = ["USAGE", "SELECT", "UPDATE"]
 }
 
-# Grant permissions for prod environment
 resource "postgresql_grant" "banterbus_prod_connect" {
   provider    = postgresql.homelab
   database    = postgresql_database.banterbus_prod.name
@@ -126,7 +118,6 @@ resource "postgresql_grant" "banterbus_prod_sequences" {
   privileges  = ["USAGE", "SELECT", "UPDATE"]
 }
 
-# Output connection strings
 output "postgres_dev_connection_string" {
   value = "postgres://${postgresql_role.banterbus_dev.name}:${random_password.banterbus_dev.result}@${var.postgres_host}:${var.postgres_port}/${postgresql_database.banterbus_dev.name}?sslmode=disable"
   sensitive = true

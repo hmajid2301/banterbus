@@ -15,13 +15,14 @@ import (
 
 // INFO: we need another struct for actual config values once we've passed the input ones
 type Config struct {
-	DB      Database
-	Server  Server
-	Redis   Redis
-	App     App
-	JWT     JWT
-	Timings Timings
-	Scoring Scoring
+	DB        Database
+	Server    Server
+	Redis     Redis
+	App       App
+	JWT       JWT
+	Timings   Timings
+	Scoring   Scoring
+	Telemetry Telemetry
 }
 
 type Database struct {
@@ -67,6 +68,14 @@ type Scoring struct {
 	FibberEvadeCapture int
 }
 
+type Telemetry struct {
+	OAuth2ClientID     string
+	OAuth2ClientSecret string
+	OAuth2TokenURL     string
+	OAuth2Issuer       string
+	OAuth2Scopes       string
+}
+
 type In struct {
 	DBUsername string `env:"BANTERBUS_DB_USERNAME"`
 	DBPassword string `env:"BANTERBUS_DB_PASSWORD"`
@@ -100,6 +109,13 @@ type In struct {
 
 	GuessFibber        int `env:"GUESS_FIBBER, default=100"`
 	FibberEvadeCapture int `env:"FIBBER_EVADE_CAPTURE, default=150"`
+
+	// OAuth2 configuration for OTEL exporters
+	OTELOAuth2ClientID     string `env:"OTEL_OAUTH2_CLIENT_ID"`
+	OTELOAuth2ClientSecret string `env:"OTEL_OAUTH2_CLIENT_SECRET"`
+	OTELOAuth2TokenURL     string `env:"OTEL_OAUTH2_TOKEN_URL"`
+	OTELOAuth2Issuer       string `env:"OTEL_OAUTH2_ISSUER"`
+	OTELOAuth2Scopes       string `env:"OTEL_OAUTH2_SCOPES"`
 }
 
 func LoadConfig(ctx context.Context) (Config, error) {
@@ -160,6 +176,13 @@ func LoadConfig(ctx context.Context) (Config, error) {
 		Scoring: Scoring{
 			GuessFibber:        input.GuessFibber,
 			FibberEvadeCapture: input.FibberEvadeCapture,
+		},
+		Telemetry: Telemetry{
+			OAuth2ClientID:     input.OTELOAuth2ClientID,
+			OAuth2ClientSecret: input.OTELOAuth2ClientSecret,
+			OAuth2TokenURL:     input.OTELOAuth2TokenURL,
+			OAuth2Issuer:       input.OTELOAuth2Issuer,
+			OAuth2Scopes:       input.OTELOAuth2Scopes,
 		},
 	}
 

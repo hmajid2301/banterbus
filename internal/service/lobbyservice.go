@@ -12,6 +12,7 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 
 	"gitlab.com/hmajid2301/banterbus/internal/store/db"
+	"gitlab.com/hmajid2301/banterbus/internal/telemetry"
 )
 
 type LobbyService struct {
@@ -41,6 +42,7 @@ func (r *LobbyService) Create(
 	} else {
 		newPlayerID, err = r.randomizer.GetID()
 		if err != nil {
+			telemetry.RecordGameLogicError(ctx)
 			return LobbyCreationResult{}, fmt.Errorf("failed to generate new player ID: %w", err)
 		}
 	}

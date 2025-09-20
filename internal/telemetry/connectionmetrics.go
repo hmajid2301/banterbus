@@ -205,3 +205,109 @@ func IncrementHandshakeFailures(ctx context.Context, reason string) error {
 	counter.Add(ctx, 1, metric.WithAttributes(attribute.String("reason", reason)))
 	return nil
 }
+
+func RecordGameFlowHealth(ctx context.Context, operation string, success bool, duration float64) error {
+	m := otel.Meter("gitlab.com/hmajid2301/banterbus")
+
+	histogram, err := m.Float64Histogram("game.flow.operation.duration",
+		metric.WithDescription("Duration of game flow operations"),
+		metric.WithUnit("s"),
+		metric.WithExplicitBucketBoundaries([]float64{0.1, 0.5, 1, 5, 10, 30}...),
+	)
+	if err != nil {
+		return err
+	}
+
+	status := "success"
+	if !success {
+		status = "failure"
+	}
+
+	histogram.Record(ctx, duration, metric.WithAttributes(
+		attribute.String("operation", operation),
+		attribute.String("status", status),
+	))
+	return nil
+}
+
+func IncrementPlayerDisconnections(ctx context.Context, reason string, gameState string) error {
+	m := otel.Meter("gitlab.com/hmajid2301/banterbus")
+
+	counter, err := m.Int64Counter("player.disconnection.count",
+		metric.WithDescription("Number of unexpected player disconnections"),
+		metric.WithUnit("{disconnection}"),
+	)
+	if err != nil {
+		return err
+	}
+
+	counter.Add(ctx, 1, metric.WithAttributes(
+		attribute.String("reason", reason),
+		attribute.String("game_state", gameState),
+	))
+	return nil
+}
+
+func RecordConnectionQuality(ctx context.Context, latency float64, errorRate float64) error {
+	m := otel.Meter("gitlab.com/hmajid2301/banterbus")
+
+	latencyHistogram, err := m.Float64Histogram("connection.quality.latency",
+		metric.WithDescription("Connection latency quality metric"),
+		metric.WithUnit("ms"),
+		metric.WithExplicitBucketBoundaries([]float64{10, 50, 100, 200, 500, 1000}...),
+	)
+	if err != nil {
+		return err
+	}
+
+	errorRateGauge, err := m.Float64Histogram("connection.quality.error_rate",
+		metric.WithDescription("Connection error rate"),
+		metric.WithUnit("%"),
+		metric.WithExplicitBucketBoundaries([]float64{0.1, 0.5, 1.0, 2.0, 5.0, 10.0}...),
+	)
+	if err != nil {
+		return err
+	}
+
+	latencyHistogram.Record(ctx, latency)
+	errorRateGauge.Record(ctx, errorRate)
+	return nil
+}
+
+func RecordError(ctx context.Context, errorType, component string) error {
+	m := otel.Meter("gitlab.com/hmajid2301/banterbus")
+
+	counter, err := m.Int64Counter("errors_total",
+		metric.WithDescription("Total number of errors thrown by the system"),
+		metric.WithUnit("{error}"),
+	)
+	if err != nil {
+		return err
+	}
+
+	counter.Add(ctx, 1, metric.WithAttributes(
+		attribute.String("error_type", errorType),
+		attribute.String("component", component),
+	))
+	return nil
+}
+
+func RecordDatabaseError(ctx context.Context) error {
+	return RecordError(ctx, "database_error", "database")
+}
+
+func RecordWebSocketError(ctx context.Context) error {
+	return RecordError(ctx, "websocket_error", "websocket")
+}
+
+func RecordGameLogicError(ctx context.Context) error {
+	return RecordError(ctx, "game_logic_error", "game")
+}
+
+func RecordValidationErrorMetric(ctx context.Context) error {
+	return RecordError(ctx, "validation_error", "validation")
+}
+
+func RecordExternalServiceError(ctx context.Context, service string) error {
+	return RecordError(ctx, "external_service_error", service)
+}

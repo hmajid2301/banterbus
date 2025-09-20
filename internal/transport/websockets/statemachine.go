@@ -118,7 +118,6 @@ func (q *QuestionState) Start(ctx context.Context) {
 					slog.Any("error", err),
 					slog.String("game_state_id", q.GameStateID.String()),
 				)
-				// Add a small delay before continuing
 				time.Sleep(100 * time.Millisecond)
 			}
 		} else {
@@ -320,7 +319,7 @@ func (v *VotingState) Start(ctx context.Context) {
 	}
 
 	// Check periodically if all players have voted to transition early
-	ticker := time.NewTicker(1 * time.Second) // Check every second
+	ticker := time.NewTicker(1 * time.Second)
 	defer ticker.Stop()
 
 	// Use a proper timer that respects context cancellation

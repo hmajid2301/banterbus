@@ -215,14 +215,7 @@ tests:integration:
     BANTERBUS_SEED_DATA_PATH: $CI_PROJECT_DIR/docker/postgres-init/01-seed-data.sql
   script:
     - docker compose --profile test up -d
-    - sleep 10  # Give containers extra time to fully start
-    - docker logs banterbus-postgres-1 || true  # Debug postgres logs
     - task tests:integration -- ${GOTEST_EXTRA_ARGS}
-  after_script:
-    - docker ps
-    - docker logs banterbus-postgres-1 || true
-    - docker logs banterbus-migrate-1 || true
-    - docker logs banterbus-seed-data-1 || true
 
 test:e2e:
   extends:
@@ -244,7 +237,7 @@ test:e2e:
     BANTERBUS_WEBSERVER_PORT: 8081
     BANTERBUS_WEBSERVER_HOST: 0.0.0.0
     BANTERBUS_PLAYWRIGHT_URL: http://localhost:8081
-    OTEL_EXPORTER_OTLP_ENDPOINT: https://otel-collector.haseebmajid.dev
+    OTEL_EXPORTER_OTLP_ENDPOINT: ""
     OTEL_SERVICE_NAME: banterbus
     OTEL_SERVICE_VERSION: $CI_COMMIT_SHA
     OTEL_RESOURCE_ATTRIBUTES: deployment.environment=ci,service.namespace=e2e-tests,ci.job_id=$CI_JOB_ID,ci.pipeline_id=$CI_PIPELINE_ID,ci.commit_sha=$CI_COMMIT_SHA,ci.merge_request_iid=$CI_MERGE_REQUEST_IID
@@ -254,6 +247,7 @@ test:e2e:
     BANTERBUS_SEED_DATA_PATH: $CI_PROJECT_DIR/docker/postgres-init/01-seed-data.sql
   script:
     - docker compose --profile test up -d
+    - docker logs banterbus-seed-data-1 || true
     - task tests:e2e -- ${GOTEST_EXTRA_ARGS}
   after_script:
     - docker ps
@@ -319,7 +313,6 @@ check_deploy:dev:
     NAMESPACE: dev
   dependencies:
     - publish:docker:dev
-  allow_failure: true
 
 # smoke:tests:dev:e2e:
 #   extends:
