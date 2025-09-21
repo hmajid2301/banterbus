@@ -29,13 +29,13 @@ templ Index(languages map[string]string, environment string) {
 					)
 					<div class="flex flex-col mt-12 space-y-4 w-full sm:flex-row sm:space-y-0 sm:space-x-4">
 						<div class="w-full" @click="action = JSON.stringify({ message_type: 'create_room', game_name: 'fibbing_it' })">
-							@components.Button(components.ButtonProps{}, templ.Attributes{}) {
+							@components.Button(components.ButtonProps{Label: i18n.T(ctx, "home.start_button_label")}, templ.Attributes{}) {
 								<i class="mr-2 hgi hgi-solid hgi-play"></i>
 								<p>{ i18n.T(ctx, "home.start_button_label") }</p>
 							}
 						</div>
 						<div class="w-full" @click="action = JSON.stringify({ message_type: 'join_lobby' })">
-							@components.Button(components.ButtonProps{BackgroundColor: "bg-text2", TextColor: "text-black"}, templ.Attributes{}) {
+							@components.Button(components.ButtonProps{BackgroundColor: "bg-text2", TextColor: "text-black", Label: i18n.T(ctx, "home.join_button_label")}, templ.Attributes{}) {
 								<i class="mr-2 hgi hgi-solid hgi-group"></i>
 								<p>{ i18n.T(ctx, "home.join_button_label") }</p>
 							}

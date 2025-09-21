@@ -109,13 +109,6 @@ type In struct {
 
 	GuessFibber        int `env:"GUESS_FIBBER, default=100"`
 	FibberEvadeCapture int `env:"FIBBER_EVADE_CAPTURE, default=150"`
-
-	// OAuth2 configuration for OTEL exporters
-	OTELOAuth2ClientID     string `env:"OTEL_OAUTH2_CLIENT_ID"`
-	OTELOAuth2ClientSecret string `env:"OTEL_OAUTH2_CLIENT_SECRET"`
-	OTELOAuth2TokenURL     string `env:"OTEL_OAUTH2_TOKEN_URL"`
-	OTELOAuth2Issuer       string `env:"OTEL_OAUTH2_ISSUER"`
-	OTELOAuth2Scopes       string `env:"OTEL_OAUTH2_SCOPES"`
 }
 
 func LoadConfig(ctx context.Context) (Config, error) {
@@ -177,13 +170,7 @@ func LoadConfig(ctx context.Context) (Config, error) {
 			GuessFibber:        input.GuessFibber,
 			FibberEvadeCapture: input.FibberEvadeCapture,
 		},
-		Telemetry: Telemetry{
-			OAuth2ClientID:     input.OTELOAuth2ClientID,
-			OAuth2ClientSecret: input.OTELOAuth2ClientSecret,
-			OAuth2TokenURL:     input.OTELOAuth2TokenURL,
-			OAuth2Issuer:       input.OTELOAuth2Issuer,
-			OAuth2Scopes:       input.OTELOAuth2Scopes,
-		},
+		Telemetry: Telemetry{},
 	}
 
 	return config, nil

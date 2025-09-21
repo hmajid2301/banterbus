@@ -222,7 +222,7 @@ func Question(gameState service.QuestionState, currentPlayer service.PlayerWithR
 				}
 				return nil
 			})
-			templ_7745c5c3_Err = components.Button(components.ButtonProps{}, templ.Attributes{"type": "submit", "hx-include": "this"}).Render(templ.WithChildren(ctx, templ_7745c5c3_Var10), templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = components.Button(components.ButtonProps{Label: i18n.T(ctx, "question.submit_answer_button")}, templ.Attributes{"type": "submit", "hx-include": "this"}).Render(templ.WithChildren(ctx, templ_7745c5c3_Var10), templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -255,7 +255,7 @@ func Question(gameState service.QuestionState, currentPlayer service.PlayerWithR
 				}
 				return nil
 			})
-			templ_7745c5c3_Err = components.Button(components.ButtonProps{TextColor: "text-black", BackgroundColor: "bg-text2"}, templ.Attributes{"type": "submit", "hx-include": "this"}).Render(templ.WithChildren(ctx, templ_7745c5c3_Var12), templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = components.Button(components.ButtonProps{TextColor: "text-black", BackgroundColor: "bg-text2", Label: i18n.T(ctx, "common.not_ready_button")}, templ.Attributes{"type": "submit", "hx-include": "this"}).Render(templ.WithChildren(ctx, templ_7745c5c3_Var12), templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -283,7 +283,7 @@ func Question(gameState service.QuestionState, currentPlayer service.PlayerWithR
 				}
 				return nil
 			})
-			templ_7745c5c3_Err = components.Button(components.ButtonProps{}, templ.Attributes{"type": "submit", "hx-include": "this"}).Render(templ.WithChildren(ctx, templ_7745c5c3_Var14), templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = components.Button(components.ButtonProps{Label: i18n.T(ctx, "common.ready_button")}, templ.Attributes{"type": "submit", "hx-include": "this"}).Render(templ.WithChildren(ctx, templ_7745c5c3_Var14), templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

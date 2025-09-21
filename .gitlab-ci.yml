@@ -300,6 +300,28 @@ publish:docker:dev:
     paths:
       - image_name.txt
 
+test:flux:commit:dev:
+  stage: deploy
+  image:
+    name: ghcr.io/fluxcd/flux-cli:v2.4.0
+    entrypoint: ['']
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+  script:
+    - echo "Testing Flux reconciliation for commit $CI_COMMIT_SHA"
+    - kubectl config use-context hmajid2301/k8s-gitops:k8s
+    - |
+      echo "Current GitRepository ref:"
+      kubectl get gitrepository banterbus -n flux-system -o jsonpath='{.spec.ref}'
+      echo ""
+    - |
+      echo "Temporarily switching GitRepository to track commit: $CI_COMMIT_SHA"
+      kubectl patch gitrepository banterbus -n flux-system --type='merge' -p="{\"spec\":{\"ref\":{\"commit\":\"$CI_COMMIT_SHA\",\"branch\":null}}}"
+    - |
+      echo "Reconciling GitRepository and Kustomizations..."
+      flux reconcile source git banterbus --timeout=5m
+      flux reconcile kustomization banterbus-dev --timeout=5m
+
 check_deploy:dev:
   extends: .k8s_deploy
   stage: deploy
@@ -308,11 +330,11 @@ check_deploy:dev:
     url: https://dev.banterbus.games
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-    - if: $CI_COMMIT_BRANCH == "deploy"
   variables:
     NAMESPACE: dev
-  dependencies:
+  needs:
     - publish:docker:dev
+    - test:flux:commit:dev
 
 # smoke:tests:dev:e2e:
 #   extends:

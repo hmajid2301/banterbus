@@ -264,7 +264,7 @@ func Voting(state service.VotingState, currentPlayer service.PlayerWithVoting) t
 				}
 				return nil
 			})
-			templ_7745c5c3_Err = components.Button(components.ButtonProps{TextColor: "text-black", BackgroundColor: "bg-text2"}, templ.Attributes{"type": "submit", "hx-include": "this"}).Render(templ.WithChildren(ctx, templ_7745c5c3_Var15), templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = components.Button(components.ButtonProps{TextColor: "text-black", BackgroundColor: "bg-text2", Label: i18n.T(ctx, "common.ready_button")}, templ.Attributes{"type": "submit", "hx-include": "this"}).Render(templ.WithChildren(ctx, templ_7745c5c3_Var15), templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -292,7 +292,7 @@ func Voting(state service.VotingState, currentPlayer service.PlayerWithVoting) t
 				}
 				return nil
 			})
-			templ_7745c5c3_Err = components.Button(components.ButtonProps{}, templ.Attributes{"type": "submit", "hx-include": "this"}).Render(templ.WithChildren(ctx, templ_7745c5c3_Var17), templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = components.Button(components.ButtonProps{Label: i18n.T(ctx, "common.not_ready_button")}, templ.Attributes{"type": "submit", "hx-include": "this"}).Render(templ.WithChildren(ctx, templ_7745c5c3_Var17), templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
