@@ -15,14 +15,13 @@ import (
 
 // INFO: we need another struct for actual config values once we've passed the input ones
 type Config struct {
-	DB        Database
-	Server    Server
-	Redis     Redis
-	App       App
-	JWT       JWT
-	Timings   Timings
-	Scoring   Scoring
-	Telemetry Telemetry
+	DB      Database
+	Server  Server
+	Redis   Redis
+	App     App
+	JWT     JWT
+	Timings Timings
+	Scoring Scoring
 }
 
 type Database struct {
@@ -66,14 +65,6 @@ type Timings struct {
 type Scoring struct {
 	GuessFibber        int
 	FibberEvadeCapture int
-}
-
-type Telemetry struct {
-	OAuth2ClientID     string
-	OAuth2ClientSecret string
-	OAuth2TokenURL     string
-	OAuth2Issuer       string
-	OAuth2Scopes       string
 }
 
 type In struct {
@@ -170,7 +161,6 @@ func LoadConfig(ctx context.Context) (Config, error) {
 			GuessFibber:        input.GuessFibber,
 			FibberEvadeCapture: input.FibberEvadeCapture,
 		},
-		Telemetry: Telemetry{},
 	}
 
 	return config, nil

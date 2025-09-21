@@ -8,4 +8,4 @@ data:
   BANTERBUS_DB_NAME: "banterbus_dev"
   BANTERBUS_DB_USERNAME: "banterbus_dev"
   OTEL_RESOURCE_ATTRIBUTES: "deployment.environment=development,service.namespace=dev"
-  OTEL_EXPORTER_OTLP_ENDPOINT: "otel-collector.homelab.haseebmajid.dev"
+  OTEL_EXPORTER_OTLP_ENDPOINT: "https://otel-collector.homelab.haseebmajid.dev"

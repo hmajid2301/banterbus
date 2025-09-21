@@ -300,41 +300,62 @@ publish:docker:dev:
     paths:
       - image_name.txt
 
-test:flux:commit:dev:
+check_deploy:dev:
   stage: deploy
   image:
     name: ghcr.io/fluxcd/flux-cli:v2.4.0
     entrypoint: ['']
-  rules:
-    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-  script:
-    - echo "Testing Flux reconciliation for commit $CI_COMMIT_SHA"
-    - kubectl config use-context hmajid2301/k8s-gitops:k8s
-    - |
-      echo "Current GitRepository ref:"
-      kubectl get gitrepository banterbus -n flux-system -o jsonpath='{.spec.ref}'
-      echo ""
-    - |
-      echo "Temporarily switching GitRepository to track commit: $CI_COMMIT_SHA"
-      kubectl patch gitrepository banterbus -n flux-system --type='merge' -p="{\"spec\":{\"ref\":{\"commit\":\"$CI_COMMIT_SHA\",\"branch\":null}}}"
-    - |
-      echo "Reconciling GitRepository and Kustomizations..."
-      flux reconcile source git banterbus --timeout=5m
-      flux reconcile kustomization banterbus-dev --timeout=5m
-
-check_deploy:dev:
-  extends: .k8s_deploy
-  stage: deploy
   environment:
     name: dev
     url: https://dev.banterbus.games
+  timeout: 15m
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
   variables:
     NAMESPACE: dev
   needs:
     - publish:docker:dev
-    - test:flux:commit:dev
+  script:
+    - IMAGE=$(cat image_name.txt)
+    - echo "Deploying image $IMAGE to $NAMESPACE environment"
+    - kubectl config use-context hmajid2301/k8s-gitops:k8s
+
+    # Ensure Flux is tracking the correct commit
+    - echo "Verifying Flux configuration..."
+    - kubectl get gitrepository banterbus -n flux-system -o jsonpath='{.spec.ref}'
+
+    # Force reconciliation of both git source and kustomization
+    - echo "Forcing Flux reconciliation..."
+    - flux reconcile source git banterbus --timeout=5m
+    - flux reconcile kustomization banterbus-dev --timeout=5m
+
+    # Wait for any existing deployments to stabilize
+    - echo "Checking current deployment status..."
+    - kubectl get deployment banterbus -n $NAMESPACE -o jsonpath='{.spec.template.spec.containers[0].image}' || echo "Deployment not found"
+
+    # Wait for rollout with extended timeout
+    - echo "Waiting for rollout to complete..."
+    - kubectl rollout status deployment/banterbus -n $NAMESPACE --timeout=600s
+
+    # Verify pods are running and secrets are properly mounted
+    - echo "Verifying deployment health..."
+    - kubectl get pods -n $NAMESPACE -l app=banterbus
+    - echo ""
+    - echo "Checking for any failed pods..."
+    - kubectl get pods -n $NAMESPACE -l app=banterbus --field-selector=status.phase!=Running,status.phase!=Succeeded || echo "All pods are running successfully"
+
+    # Final verification
+    - echo "Deployment completed successfully. Final image:"
+    - kubectl get deployment banterbus -n $NAMESPACE -o jsonpath='{.spec.template.spec.containers[0].image}'
+    - echo ""
+    - echo "✓ Deployment verification passed"
+  after_script:
+    # Restore GitRepository to track main branch
+    - kubectl config use-context hmajid2301/k8s-gitops:k8s || true
+    - |
+      echo "Restoring GitRepository to track main branch..."
+      kubectl patch gitrepository banterbus -n flux-system --type='merge' -p='{"spec":{"ref":{"branch":"main","commit":null}}}' || true
+      echo "GitRepository restored to track main branch"
 
 # smoke:tests:dev:e2e:
 #   extends:

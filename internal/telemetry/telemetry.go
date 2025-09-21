@@ -4,9 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"net/http"
-	"os"
-	"strings"
 	"time"
 
 	hostMetrics "go.opentelemetry.io/contrib/instrumentation/host"
@@ -23,16 +20,12 @@ import (
 	"go.opentelemetry.io/otel/sdk/resource"
 	"go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.26.0"
-	
-
-	"gitlab.com/hmajid2301/banterbus/internal/config"
 )
 
 func Setup(
 	ctx context.Context,
 	environment string,
 	logLevel minsev.Severity,
-	telemetryConfig config.Telemetry,
 ) (shutdown func(context.Context) error, err error) {
 	var shutdownFuncs []func(context.Context) error
 
@@ -67,7 +60,7 @@ func Setup(
 		return shutdown, err
 	}
 
-	tracerProvider, err := newTraceProvider(ctx, res, environment, telemetryConfig)
+	tracerProvider, err := newTraceProvider(ctx, res, environment)
 	if err != nil {
 		handleErr(err)
 		return shutdown, err
@@ -75,7 +68,7 @@ func Setup(
 	shutdownFuncs = append(shutdownFuncs, tracerProvider.Shutdown)
 	otel.SetTracerProvider(tracerProvider)
 
-	meterProvider, err := newMeterProvider(ctx, res, environment, telemetryConfig)
+	meterProvider, err := newMeterProvider(ctx, res, environment)
 	if err != nil {
 		handleErr(err)
 		return shutdown, err
@@ -84,7 +77,7 @@ func Setup(
 	shutdownFuncs = append(shutdownFuncs, meterProvider.Shutdown)
 	otel.SetMeterProvider(meterProvider)
 
-	logProvider, err := newLoggerProvider(ctx, res, logLevel, telemetryConfig)
+	logProvider, err := newLoggerProvider(ctx, res, logLevel)
 	if err != nil {
 		handleErr(err)
 		return shutdown, err
@@ -104,21 +97,6 @@ func Setup(
 	return shutdown, err
 }
 
-func getOTLPEndpoint() string {
-	endpoint := os.Getenv("OTEL_EXPORTER_OTLP_ENDPOINT")
-	if endpoint != "" {
-		// Remove protocol prefix for OTLP HTTP exporters
-		endpoint = strings.TrimPrefix(endpoint, "http://")
-		endpoint = strings.TrimPrefix(endpoint, "https://")
-		return endpoint
-	}
-	// Return empty string if no endpoint is configured
-	// This allows disabling OTEL by setting OTEL_EXPORTER_OTLP_ENDPOINT=""
-	return ""
-}
-
-
-
 func newPropagator() propagation.TextMapPropagator {
 	return propagation.NewCompositeTextMapPropagator(
 		propagation.TraceContext{},
@@ -126,32 +104,20 @@ func newPropagator() propagation.TextMapPropagator {
 	)
 }
 
-func newTraceProvider(
-	ctx context.Context,
-	res *resource.Resource,
-	environment string,
-	telemetryConfig config.Telemetry,
-) (*trace.TracerProvider, error) {
+func newTraceProvider(ctx context.Context, res *resource.Resource, environment string) (*trace.TracerProvider, error) {
 	var tracerOptions []trace.TracerProviderOption
 	tracerOptions = append(tracerOptions, trace.WithResource(res))
 
 	if environment == "test" {
 		tracerOptions = append(tracerOptions, trace.WithSampler(trace.AlwaysSample()))
 	} else {
-		endpoint := getOTLPEndpoint()
-		if endpoint != "" {
-			client := http.DefaultClient
-			traceExporter, err := otlptracehttp.New(ctx,
-				otlptracehttp.WithEndpoint(endpoint),
-				otlptracehttp.WithHTTPClient(client),
-			)
-			if err != nil {
-				return nil, err
-			}
-			tracerOptions = append(tracerOptions, trace.WithBatcher(traceExporter,
-				trace.WithBatchTimeout(time.Second),
-			))
+		traceExporter, err := otlptracehttp.New(ctx)
+		if err != nil {
+			return nil, err
 		}
+		tracerOptions = append(tracerOptions, trace.WithBatcher(traceExporter,
+			trace.WithBatchTimeout(time.Second),
+		))
 	}
 
 	traceProvider := trace.NewTracerProvider(tracerOptions...)
@@ -159,36 +125,22 @@ func newTraceProvider(
 	return traceProvider, nil
 }
 
-func newMeterProvider(
-	ctx context.Context,
-	res *resource.Resource,
-	environment string,
-	telemetryConfig config.Telemetry,
-) (*metric.MeterProvider, error) {
+func newMeterProvider(ctx context.Context, res *resource.Resource, environment string) (*metric.MeterProvider, error) {
 	var meterProvider *metric.MeterProvider
 
 	if environment == "test" {
 		meterProvider = metric.NewMeterProvider(metric.WithResource(res))
 	} else {
-		endpoint := getOTLPEndpoint()
-		if endpoint != "" {
-			client := http.DefaultClient
-			metricExporter, err := otlpmetrichttp.New(ctx,
-				otlpmetrichttp.WithEndpoint(endpoint),
-				otlpmetrichttp.WithHTTPClient(client),
-			)
-			if err != nil {
-				return nil, err
-			}
+		metricExporter, err := otlpmetrichttp.New(ctx)
+		if err != nil {
+			return nil, err
+		}
 
-			reader := metric.NewPeriodicReader(metricExporter, metric.WithProducer(runtimeMetrics.NewProducer()))
-			meterProvider = metric.NewMeterProvider(metric.WithReader(reader), metric.WithResource(res))
+		reader := metric.NewPeriodicReader(metricExporter, metric.WithProducer(runtimeMetrics.NewProducer()))
+		meterProvider = metric.NewMeterProvider(metric.WithReader(reader), metric.WithResource(res))
 
-			if err = hostMetrics.Start(hostMetrics.WithMeterProvider(meterProvider)); err != nil {
-				return nil, fmt.Errorf("failed to start host metrics: %w", err)
-			}
-		} else {
-			meterProvider = metric.NewMeterProvider(metric.WithResource(res))
+		if err = hostMetrics.Start(hostMetrics.WithMeterProvider(meterProvider)); err != nil {
+			return nil, fmt.Errorf("failed to start host metrics: %w", err)
 		}
 	}
 
@@ -204,20 +156,8 @@ func newLoggerProvider(
 	ctx context.Context,
 	res *resource.Resource,
 	logLevel minsev.Severity,
-	telemetryConfig config.Telemetry,
 ) (*log.LoggerProvider, error) {
-	endpoint := getOTLPEndpoint()
-	if endpoint == "" {
-		// Return a basic provider without OTLP exporter when no endpoint is configured
-		provider := log.NewLoggerProvider(log.WithResource(res))
-		return provider, nil
-	}
-
-	client := http.DefaultClient
-	exporter, err := otlploghttp.New(ctx,
-		otlploghttp.WithEndpoint(endpoint),
-		otlploghttp.WithHTTPClient(client),
-	)
+	exporter, err := otlploghttp.New(ctx)
 	if err != nil {
 		return nil, err
 	}
