@@ -17,3 +17,6 @@ username = ""
 # Cloudflare Configuration
 cloudflare_api_token = ""
 zone_id              = ""
+
+# Grafana Configuration
+grafana_service_account_token = ""

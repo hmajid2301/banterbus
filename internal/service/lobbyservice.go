@@ -19,6 +19,7 @@ type LobbyService struct {
 	store         Storer
 	randomizer    Randomizer
 	defaultLocale string
+	metrics       *telemetry.Recorder
 }
 
 var ErrNicknameExists = errors.New("nickname already exists in room")
@@ -26,7 +27,12 @@ var ErrPlayerAlreadyInRoom = errors.New("player is already in the room")
 var ErrPlayerNotInGame = errors.New("player is not currently in any game")
 
 func NewLobbyService(store Storer, randomizer Randomizer, defaultLocale string) *LobbyService {
-	return &LobbyService{store: store, randomizer: randomizer, defaultLocale: defaultLocale}
+	return &LobbyService{
+		store:         store,
+		randomizer:    randomizer,
+		defaultLocale: defaultLocale,
+		metrics:       telemetry.NewRecorder(),
+	}
 }
 
 func (r *LobbyService) Create(
@@ -98,8 +104,11 @@ func (r *LobbyService) Create(
 
 	err = r.store.CreateRoom(ctx, createRoom)
 	if err != nil {
+		r.metrics.RecordLobbyOperation(ctx, "create", false)
 		return LobbyCreationResult{}, fmt.Errorf("failed to create room: %w", err)
 	}
+
+	r.metrics.RecordLobbyOperation(ctx, "create", true)
 
 	lobby := Lobby{
 		Code: roomCode,
@@ -184,8 +193,11 @@ func (r *LobbyService) Join(
 
 	err = r.store.AddPlayerToRoom(ctx, addPlayerToRoom)
 	if err != nil {
+		r.metrics.RecordLobbyOperation(ctx, "join", false)
 		return LobbyJoinResult{}, err
 	}
+
+	r.metrics.RecordLobbyOperation(ctx, "join", true)
 
 	// TODO: could use information above to work out players in room
 	players, err := r.store.GetAllPlayersInRoom(ctx, newPlayer.ID)

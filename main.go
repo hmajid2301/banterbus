@@ -65,6 +65,11 @@ func mainLogic() error {
 		err = errors.Join(err, telemtryShtudown(ctx))
 	}()
 
+	// Initialize metrics
+	if err := telemetry.InitializeMetrics(ctx); err != nil {
+		return fmt.Errorf("failed to initialize metrics: %w", err)
+	}
+
 	logger := telemetry.NewLogger()
 
 	pool, err := db.NewPool(ctx, conf.DB.URI)

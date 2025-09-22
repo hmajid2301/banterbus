@@ -119,6 +119,7 @@ func (s *Server) setupHTTPRoutes(config ServerConfig, keyfunc jwt.Keyfunc, stati
 	// IMPORTANT: Tracing must come before Logging so that /ws requests get traced
 	routes := m.Tracing(router)
 	routes = m.Logging(routes)
+	routes = m.Metrics(routes) // Add metrics middleware
 
 	handler := otelhttp.NewHandler(
 		routes,

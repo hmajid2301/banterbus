@@ -93,6 +93,12 @@ variable "openbao_token" {
   sensitive   = true
 }
 
+variable "grafana_service_account_token" {
+  description = "Grafana service account token for dashboard management"
+  type        = string
+  sensitive   = true
+}
+
 
 
 

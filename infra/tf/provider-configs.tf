@@ -23,6 +23,13 @@ provider "cloudflare" {
   api_token = var.cloudflare_api_token
 }
 
+# Grafana Provider Configuration
+provider "grafana" {
+  alias                    = "homelab"
+  url                      = "https://grafana.homelab.haseebmajid.dev"
+  service_account_token    = var.grafana_service_account_token
+}
+
 
 
 

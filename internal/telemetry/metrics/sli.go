@@ -1,4 +1,4 @@
-package telemetry
+package metrics
 
 import (
 	"context"
@@ -19,9 +19,9 @@ var (
 func RecordGameCompletion(ctx context.Context, success bool, duration float64, playerCount int) error {
 	m := otel.Meter("gitlab.com/hmajid2301/banterbus")
 
-	// SLI: Game completion rate
-	completionCounter, err := m.Int64Counter("sli.game.completion.total",
-		metric.WithDescription("Total game completion attempts for SLI calculation"),
+	// Game completion tracking
+	completionCounter, err := m.Int64Counter("game.completion.total",
+		metric.WithDescription("Total game completion attempts"),
 		metric.WithUnit("{game}"),
 	)
 	if err != nil {
@@ -40,9 +40,9 @@ func RecordGameCompletion(ctx context.Context, success bool, duration float64, p
 		attribute.Int("player_count", playerCount),
 	))
 
-	// Game duration for performance SLI
-	durationHistogram, err := m.Float64Histogram("sli.game.duration",
-		metric.WithDescription("Game duration for performance SLI"),
+	// Game duration tracking
+	durationHistogram, err := m.Float64Histogram("game.duration",
+		metric.WithDescription("Game duration in seconds"),
 		metric.WithUnit("s"),
 		metric.WithExplicitBucketBoundaries([]float64{60, 300, 600, 900, 1800, 3600}...),
 	)
@@ -58,12 +58,12 @@ func RecordGameCompletion(ctx context.Context, success bool, duration float64, p
 	return nil
 }
 
-// RecordPlayerExperience tracks player experience metrics for SLI
+// RecordPlayerExperience tracks player satisfaction
 func RecordPlayerExperience(ctx context.Context, satisfaction string) error {
 	m := otel.Meter("gitlab.com/hmajid2301/banterbus")
 
-	counter, err := m.Int64Counter("sli.player.experience",
-		metric.WithDescription("Player experience satisfaction for SLI"),
+	counter, err := m.Int64Counter("player.experience",
+		metric.WithDescription("Player experience satisfaction ratings"),
 		metric.WithUnit("{response}"),
 	)
 	if err != nil {
@@ -77,13 +77,13 @@ func RecordPlayerExperience(ctx context.Context, satisfaction string) error {
 	return nil
 }
 
-// RecordAvailability tracks service availability for SLO
+// RecordAvailability tracks service availability
 func RecordAvailability(ctx context.Context, endpoint string, statusCode int, duration float64) error {
 	m := otel.Meter("gitlab.com/hmajid2301/banterbus")
 
-	// Availability SLI
-	availabilityCounter, err := m.Int64Counter("sli.availability.requests.total",
-		metric.WithDescription("Total requests for availability SLI calculation"),
+	// Request tracking
+	availabilityCounter, err := m.Int64Counter("http.requests.total",
+		metric.WithDescription("Total HTTP requests"),
 		metric.WithUnit("{request}"),
 	)
 	if err != nil {
@@ -101,9 +101,9 @@ func RecordAvailability(ctx context.Context, endpoint string, statusCode int, du
 		attribute.Int("status_code", statusCode),
 	))
 
-	// Response time SLI
-	responseTimeHistogram, err := m.Float64Histogram("sli.response_time",
-		metric.WithDescription("Response time for latency SLI"),
+	// Response time tracking
+	responseTimeHistogram, err := m.Float64Histogram("http.response_time",
+		metric.WithDescription("HTTP response time"),
 		metric.WithUnit("s"),
 		metric.WithExplicitBucketBoundaries([]float64{0.1, 0.2, 0.5, 1.0, 2.0, 5.0}...),
 	)
@@ -119,12 +119,12 @@ func RecordAvailability(ctx context.Context, endpoint string, statusCode int, du
 	return nil
 }
 
-// RecordLobbyHealth tracks lobby creation and join success rates
+// RecordLobbyHealth tracks lobby operations
 func RecordLobbyHealth(ctx context.Context, operation string, success bool) error {
 	m := otel.Meter("gitlab.com/hmajid2301/banterbus")
 
-	counter, err := m.Int64Counter("sli.lobby.operations.total",
-		metric.WithDescription("Lobby operations for health SLI"),
+	counter, err := m.Int64Counter("lobby.operations.total",
+		metric.WithDescription("Lobby operations"),
 		metric.WithUnit("{operation}"),
 	)
 	if err != nil {
@@ -151,13 +151,13 @@ func UpdateActiveGameCounts(ctx context.Context, lobbies, games int64) error {
 	return nil
 }
 
-// RegisterSLOGauges registers gauge metrics for SLO monitoring
-func RegisterSLOGauges(ctx context.Context) error {
+// RegisterMetrics registers gauge metrics for monitoring
+func RegisterMetrics(ctx context.Context) error {
 	m := otel.Meter("gitlab.com/hmajid2301/banterbus")
 
-	// Game completion rate gauge for SLO monitoring
-	gameCompletionRate, err := m.Float64ObservableGauge("slo.game.completion_rate",
-		metric.WithDescription("Current game completion rate for SLO monitoring"),
+	// Game completion rate gauge
+	gameCompletionRate, err := m.Float64ObservableGauge("game.completion_rate",
+		metric.WithDescription("Current game completion rate"),
 		metric.WithUnit("1"),
 	)
 	if err != nil {
@@ -165,7 +165,7 @@ func RegisterSLOGauges(ctx context.Context) error {
 	}
 
 	// Active lobbies gauge
-	activeLobbyGauge, err := m.Int64ObservableGauge("slo.lobbies.active",
+	activeLobbyGauge, err := m.Int64ObservableGauge("lobby.active",
 		metric.WithDescription("Number of active lobbies"),
 		metric.WithUnit("{lobby}"),
 	)
@@ -174,8 +174,8 @@ func RegisterSLOGauges(ctx context.Context) error {
 	}
 
 	// Active games gauge
-	activeGameGauge, err := m.Int64ObservableGauge("slo.games.active",
-		metric.WithDescription("Number of games in progress"),
+	activeGameGauge, err := m.Int64ObservableGauge("game.active",
+		metric.WithDescription("Number of active games"),
 		metric.WithUnit("{game}"),
 	)
 	if err != nil {
@@ -204,26 +204,40 @@ func RegisterSLOGauges(ctx context.Context) error {
 	return err
 }
 
-func RecordDataIntegrity(ctx context.Context, checkType string, passed bool, details string) error {
+// RecordServiceCall tracks service operation calls
+func RecordServiceCall(ctx context.Context, operation string, success bool, duration float64) error {
 	m := otel.Meter("gitlab.com/hmajid2301/banterbus")
 
-	counter, err := m.Int64Counter("sli.data.integrity.checks",
-		metric.WithDescription("Data integrity check results"),
-		metric.WithUnit("{check}"),
+	counter, err := m.Int64Counter("service.calls.total",
+		metric.WithDescription("Total service calls"),
+		metric.WithUnit("{call}"),
 	)
 	if err != nil {
 		return err
 	}
 
-	status := "pass"
-	if !passed {
-		status = "fail"
+	status := "failure"
+	if success {
+		status = "success"
 	}
 
 	counter.Add(ctx, 1, metric.WithAttributes(
-		attribute.String("check_type", checkType),
+		attribute.String("operation", operation),
 		attribute.String("status", status),
-		attribute.String("details", details),
+	))
+
+	histogram, err := m.Float64Histogram("service.call.duration",
+		metric.WithDescription("Service call duration"),
+		metric.WithUnit("s"),
+		metric.WithExplicitBucketBoundaries([]float64{0.001, 0.005, 0.01, 0.05, 0.1, 0.5, 1.0, 5.0}...),
+	)
+	if err != nil {
+		return err
+	}
+
+	histogram.Record(ctx, duration, metric.WithAttributes(
+		attribute.String("operation", operation),
+		attribute.String("status", status),
 	))
 
 	return nil

@@ -3062,6 +3062,11 @@ func TestRoundServiceFinishGame(t *testing.T) {
 			RoomID: roomID,
 		}, nil)
 
+		mockStore.EXPECT().GetAllPlayersByGameStateID(ctx, gameID).Return([]db.GetAllPlayersByGameStateIDRow{
+			{ID: uuid.Must(uuid.NewV7()), Nickname: "player1", Avatar: "avatar1"},
+			{ID: uuid.Must(uuid.NewV7()), Nickname: "player2", Avatar: "avatar2"},
+		}, nil)
+
 		mockStore.EXPECT().
 			UpdateRoomState(ctx, db.UpdateRoomStateParams{RoomState: db.Finished.String(), ID: roomID}).
 			Return(db.Room{}, nil)
@@ -3102,6 +3107,10 @@ func TestRoundServiceFinishGame(t *testing.T) {
 			State:  db.FibbingItWinner.String(),
 			ID:     gameID,
 			RoomID: roomID,
+		}, nil)
+
+		mockStore.EXPECT().GetAllPlayersByGameStateID(ctx, gameID).Return([]db.GetAllPlayersByGameStateIDRow{
+			{ID: uuid.Must(uuid.NewV7()), Nickname: "player1", Avatar: "avatar1"},
 		}, nil)
 
 		mockStore.EXPECT().

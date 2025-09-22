@@ -14,6 +14,7 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 
 	"gitlab.com/hmajid2301/banterbus/internal/store/db"
+	"gitlab.com/hmajid2301/banterbus/internal/telemetry"
 )
 
 const (
@@ -28,11 +29,17 @@ type RoundService struct {
 	store         Storer
 	randomizer    Randomizer
 	defaultLocale string
+	metrics       *telemetry.Recorder
 	stateLocks    sync.Map // map[uuid.UUID]*sync.Mutex for per-game state locking
 }
 
 func NewRoundService(store Storer, randomizer Randomizer, defaultLocale string) *RoundService {
-	return &RoundService{store: store, randomizer: randomizer, defaultLocale: defaultLocale}
+	return &RoundService{
+		store:         store,
+		randomizer:    randomizer,
+		defaultLocale: defaultLocale,
+		metrics:       telemetry.NewRecorder(),
+	}
 }
 
 var ErrMustSubmitAnswer = errors.New("must submit answer first")
@@ -1058,8 +1065,17 @@ func (r RoundService) getValidAnswers(ctx context.Context, roundType string, pla
 }
 
 func (r *RoundService) FinishGame(ctx context.Context, gameStateID uuid.UUID) error {
+	start := time.Now()
 	game, err := r.store.GetGameState(ctx, gameStateID)
 	if err != nil {
+		r.metrics.RecordGameCompletion(ctx, false, 0, 0)
+		return err
+	}
+
+	// Get player count for metrics - use any player ID from the room
+	players, err := r.store.GetAllPlayersByGameStateID(ctx, gameStateID)
+	if err != nil {
+		r.metrics.RecordGameCompletion(ctx, false, 0, 0)
 		return err
 	}
 
@@ -1067,9 +1083,11 @@ func (r *RoundService) FinishGame(ctx context.Context, gameStateID uuid.UUID) er
 
 	_, err = r.store.UpdateRoomState(ctx, db.UpdateRoomStateParams{RoomState: db.Finished.String(), ID: game.RoomID})
 	if err != nil {
+		r.metrics.RecordGameCompletion(ctx, false, time.Since(start).Seconds(), len(players))
 		return err
 	}
 
+	r.metrics.RecordGameCompletion(ctx, true, time.Since(start).Seconds(), len(players))
 	return nil
 }
 

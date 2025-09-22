@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"gitlab.com/hmajid2301/banterbus/internal/telemetry/metrics"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
@@ -40,7 +41,7 @@ func BusinessOperationSpan(ctx context.Context, operation string, attrs ...attri
 			attribute.Bool("business.success", success),
 		)
 
-		RecordBusinessOperation(ctx, operation, success, duration)
+		metrics.RecordServiceCall(ctx, operation, success, duration)
 
 		span.End()
 	}
@@ -72,7 +73,7 @@ func GameStateSpan(ctx context.Context, fromState, toState string, playerCount i
 			attribute.Bool("game.transition_success", success),
 		)
 
-		RecordGameStateTransition(ctx, fromState, toState, success, playerCount)
+		metrics.RecordGameStateTransition(ctx, fromState, toState, success, playerCount)
 
 		span.End()
 	}
@@ -109,7 +110,7 @@ func LobbyOperationSpan(ctx context.Context, operation string, attrs ...attribut
 			attribute.Bool("lobby.success", success),
 		)
 
-		RecordBusinessOperation(ctx, "lobby_"+operation, success, duration)
+		metrics.RecordServiceCall(ctx, "lobby_"+operation, success, duration)
 
 		span.End()
 	}
@@ -143,7 +144,7 @@ func WebSocketMessageSpan(ctx context.Context, messageType string) (context.Cont
 			attribute.Bool("ws.success", success),
 		)
 
-		RecordWebSocketEvent(ctx, messageType, success)
+		metrics.RecordWebSocketEvent(ctx, messageType, success)
 
 		span.End()
 	}
@@ -177,7 +178,7 @@ func AuthenticationSpan(ctx context.Context, operation string) (context.Context,
 			attribute.Bool("auth.success", success),
 		)
 
-		RecordBusinessOperation(ctx, "auth_"+operation, success, duration)
+		metrics.RecordServiceCall(ctx, "auth_"+operation, success, duration)
 
 		span.End()
 	}
@@ -213,7 +214,7 @@ func CacheOperationSpan(ctx context.Context, operation, key string) (context.Con
 			attribute.Bool("cache.hit", hit),
 		)
 
-		RecordBusinessOperation(ctx, "cache_"+operation, success, duration)
+		metrics.RecordServiceCall(ctx, "cache_"+operation, success, duration)
 
 		span.End()
 	}

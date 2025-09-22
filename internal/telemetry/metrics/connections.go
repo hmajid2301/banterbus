@@ -1,4 +1,4 @@
-package telemetry
+package metrics
 
 import (
 	"context"
@@ -14,9 +14,9 @@ var activeConnectionsCount int64
 func IncrementSubscribers(ctx context.Context) error {
 	m := otel.Meter("gitlab.com/hmajid2301/banterbus")
 
-	counter, err := m.Int64Counter("websocket.connections.total",
+	counter, err := m.Int64Counter("banterbus.websocket.connections.total",
 		metric.WithDescription("Total number of WebSocket connections established"),
-		metric.WithUnit("{call}"),
+		metric.WithUnit("{connection}"),
 	)
 	if err != nil {
 		return err
@@ -29,7 +29,7 @@ func IncrementSubscribers(ctx context.Context) error {
 func ActiveConnections(_ context.Context) error {
 	m := otel.Meter("gitlab.com/hmajid2301/banterbus")
 
-	gauge, err := m.Int64ObservableGauge("websocket.connections.active",
+	gauge, err := m.Int64ObservableGauge("banterbus.websocket.connections.active",
 		metric.WithDescription("Total number of active websocket connections."),
 		metric.WithUnit("1"),
 	)
@@ -63,7 +63,7 @@ func RecordConnectionDuration(ctx context.Context, time float64) error {
 	m := otel.Meter("gitlab.com/hmajid2301/banterbus")
 
 	histogram, err := m.Float64Histogram("websocket.connection.duration",
-		metric.WithDescription("Time taken for a subscription to be closed."),
+		metric.WithDescription("WebSocket connection duration"),
 		metric.WithUnit("s"),
 	)
 	if err != nil {
@@ -77,8 +77,8 @@ func RecordConnectionDuration(ctx context.Context, time float64) error {
 func RecordRequestLatency(ctx context.Context, latency float64, messageType string, status string) error {
 	m := otel.Meter("gitlab.com/hmajid2301/banterbus")
 
-	histogram, err := m.Float64Histogram("message.processing.duration",
-		metric.WithDescription("Time taken to handle message from client."),
+	histogram, err := m.Float64Histogram("websocket.message.processing.duration",
+		metric.WithDescription("Time taken to process WebSocket message"),
 		metric.WithUnit("ms"),
 		metric.WithExplicitBucketBoundaries([]float64{0.1, 0.5, 1, 2, 5}...),
 	)
@@ -89,16 +89,16 @@ func RecordRequestLatency(ctx context.Context, latency float64, messageType stri
 	histogram.Record(
 		ctx,
 		latency,
-		metric.WithAttributes(attribute.String("message_type", messageType), attribute.String("status", status)),
+		metric.WithAttributes(attribute.String("message.type", messageType), attribute.String("status", status)),
 	)
 	return nil
 }
 
-func RecordMessageSendLatency(ctx context.Context, latency float64) error {
+func RecordMessageSendLatency(ctx context.Context, latency float64, messageType string) error {
 	m := otel.Meter("gitlab.com/hmajid2301/banterbus")
 
-	histogram, err := m.Float64Histogram("message.sent.duration",
-		metric.WithDescription("Time taken to send message from client."),
+	histogram, err := m.Float64Histogram("websocket.message.sent.duration",
+		metric.WithDescription("Time taken to send WebSocket message"),
 		metric.WithUnit("ms"),
 		metric.WithExplicitBucketBoundaries([]float64{0.1, 0.5, 1, 2, 5}...),
 	)
@@ -109,67 +109,68 @@ func RecordMessageSendLatency(ctx context.Context, latency float64) error {
 	histogram.Record(
 		ctx,
 		latency,
+		metric.WithAttributes(attribute.String("message.type", messageType)),
 	)
 	return nil
 }
 
-func IncrementMessageSent(ctx context.Context) error {
+func IncrementMessageSent(ctx context.Context, messageType string) error {
 	m := otel.Meter("gitlab.com/hmajid2301/banterbus")
 
-	counter, err := m.Int64Counter("message.sent.total",
-		metric.WithDescription("Total number of messages sent."),
-		metric.WithUnit("{call}"),
+	counter, err := m.Int64Counter("websocket.messages.sent.total",
+		metric.WithDescription("Total number of WebSocket messages sent"),
+		metric.WithUnit("{message}"),
 	)
 	if err != nil {
 		return err
 	}
 
-	counter.Add(ctx, 1)
+	counter.Add(ctx, 1, metric.WithAttributes(attribute.String("message.type", messageType)))
 	return nil
 }
 
-func IncrementMessageSentError(ctx context.Context) error {
+func IncrementMessageSentError(ctx context.Context, messageType string) error {
 	m := otel.Meter("gitlab.com/hmajid2301/banterbus")
 
-	counter, err := m.Int64Counter("message.sent.errors.total",
-		metric.WithDescription("Total number of messages sent which throw an error."),
-		metric.WithUnit("{call}"),
+	counter, err := m.Int64Counter("websocket.messages.sent.errors.total",
+		metric.WithDescription("Total number of WebSocket message send errors"),
+		metric.WithUnit("{error}"),
 	)
 	if err != nil {
 		return err
 	}
 
-	counter.Add(ctx, 1)
+	counter.Add(ctx, 1, metric.WithAttributes(attribute.String("message.type", messageType)))
 	return nil
 }
 
 func IncrementMessageReceived(ctx context.Context, messageType string) error {
 	m := otel.Meter("gitlab.com/hmajid2301/banterbus")
 
-	counter, err := m.Int64Counter("message.received.total",
-		metric.WithDescription("Total number of messages received."),
-		metric.WithUnit("{call}"),
+	counter, err := m.Int64Counter("websocket.messages.received.total",
+		metric.WithDescription("Total number of WebSocket messages received"),
+		metric.WithUnit("{message}"),
 	)
 	if err != nil {
 		return err
 	}
 
-	counter.Add(ctx, 1, metric.WithAttributes(attribute.String("message_type", messageType)))
+	counter.Add(ctx, 1, metric.WithAttributes(attribute.String("message.type", messageType)))
 	return nil
 }
 
-func IncrementMessageReceivedError(ctx context.Context) error {
+func IncrementMessageReceivedError(ctx context.Context, messageType string) error {
 	m := otel.Meter("gitlab.com/hmajid2301/banterbus")
 
-	counter, err := m.Int64Counter("message.received.errors.total",
-		metric.WithDescription("Total number of messages received which throw an error."),
-		metric.WithUnit("{call}"),
+	counter, err := m.Int64Counter("websocket.messages.received.errors.total",
+		metric.WithDescription("Total number of WebSocket message receive errors"),
+		metric.WithUnit("{error}"),
 	)
 	if err != nil {
 		return err
 	}
 
-	counter.Add(ctx, 1)
+	counter.Add(ctx, 1, metric.WithAttributes(attribute.String("message.type", messageType)))
 	return nil
 }
 
@@ -206,30 +207,6 @@ func IncrementHandshakeFailures(ctx context.Context, reason string) error {
 	return nil
 }
 
-func RecordGameFlowHealth(ctx context.Context, operation string, success bool, duration float64) error {
-	m := otel.Meter("gitlab.com/hmajid2301/banterbus")
-
-	histogram, err := m.Float64Histogram("game.flow.operation.duration",
-		metric.WithDescription("Duration of game flow operations"),
-		metric.WithUnit("s"),
-		metric.WithExplicitBucketBoundaries([]float64{0.1, 0.5, 1, 5, 10, 30}...),
-	)
-	if err != nil {
-		return err
-	}
-
-	status := "success"
-	if !success {
-		status = "failure"
-	}
-
-	histogram.Record(ctx, duration, metric.WithAttributes(
-		attribute.String("operation", operation),
-		attribute.String("status", status),
-	))
-	return nil
-}
-
 func IncrementPlayerDisconnections(ctx context.Context, reason string, gameState string) error {
 	m := otel.Meter("gitlab.com/hmajid2301/banterbus")
 
@@ -245,32 +222,6 @@ func IncrementPlayerDisconnections(ctx context.Context, reason string, gameState
 		attribute.String("reason", reason),
 		attribute.String("game_state", gameState),
 	))
-	return nil
-}
-
-func RecordConnectionQuality(ctx context.Context, latency float64, errorRate float64) error {
-	m := otel.Meter("gitlab.com/hmajid2301/banterbus")
-
-	latencyHistogram, err := m.Float64Histogram("connection.quality.latency",
-		metric.WithDescription("Connection latency quality metric"),
-		metric.WithUnit("ms"),
-		metric.WithExplicitBucketBoundaries([]float64{10, 50, 100, 200, 500, 1000}...),
-	)
-	if err != nil {
-		return err
-	}
-
-	errorRateGauge, err := m.Float64Histogram("connection.quality.error_rate",
-		metric.WithDescription("Connection error rate"),
-		metric.WithUnit("%"),
-		metric.WithExplicitBucketBoundaries([]float64{0.1, 0.5, 1.0, 2.0, 5.0, 10.0}...),
-	)
-	if err != nil {
-		return err
-	}
-
-	latencyHistogram.Record(ctx, latency)
-	errorRateGauge.Record(ctx, errorRate)
 	return nil
 }
 
@@ -306,8 +257,4 @@ func RecordGameLogicError(ctx context.Context) error {
 
 func RecordValidationErrorMetric(ctx context.Context) error {
 	return RecordError(ctx, "validation_error", "validation")
-}
-
-func RecordExternalServiceError(ctx context.Context, service string) error {
-	return RecordError(ctx, "external_service_error", service)
 }

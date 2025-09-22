@@ -43,18 +43,6 @@
             "tooltip": "View application logs in Loki",
             "type": "link",
             "url": "/explore?schemaVersion=1&panes=%7B%22logs%22:%7B%22datasource%22:%22loki%22,%22queries%22:%5B%7B%22refId%22:%22A%22,%22datasource%22:%7B%22type%22:%22loki%22,%22uid%22:%22loki%22%7D,%22expr%22:%22%7Bapp%3D%5C%22banterbus%5C%22%2C%20namespace%3D%5C%22$environment%5C%22%7D%22%7D%5D,%22range%22:%7B%22from%22:%22${__from}%22,%22to%22:%22${__to}%22%7D%7D%7D"
-        },
-        {
-            "asDropdown": false,
-            "icon": "external link",
-            "includeVars": false,
-            "keepTime": false,
-            "tags": [],
-            "targetBlank": true,
-            "title": "🐛 Sentry",
-            "tooltip": "View errors and performance issues",
-            "type": "link",
-            "url": "https://banterbus.sentry.io/issues/"
         }
     ],
     "panels": [
@@ -135,7 +123,7 @@
                         "type": "prometheus",
                         "uid": "${prometheus_uid}"
                     },
-                    "expr": "websocket_connections_active{job=\"banterbus\", namespace=\"$environment\"}",
+                    "expr": "websocket_connections_active{exported_job=~\"$environment/banterbus\"}",
                     "refId": "A"
                 }
             ],
@@ -208,7 +196,7 @@
                         "type": "prometheus",
                         "uid": "${prometheus_uid}"
                     },
-                    "expr": "slo_game_completion_rate{job=\"banterbus\", namespace=\"$environment\"}",
+                    "expr": "completion_rate{exported_job=~\"$environment/banterbus\"}",
                     "refId": "A"
                 }
             ],
@@ -279,7 +267,7 @@
                         "type": "prometheus",
                         "uid": "${prometheus_uid}"
                     },
-                    "expr": "slo_lobbies_active{job=\"banterbus\", namespace=\"$environment\"}",
+                    "expr": "lobby_active{exported_job=~\"$environment/banterbus\"}",
                     "refId": "A"
                 }
             ],
@@ -350,7 +338,7 @@
                         "type": "prometheus",
                         "uid": "${prometheus_uid}"
                     },
-                    "expr": "slo_games_active{job=\"banterbus\", namespace=\"$environment\"}",
+                    "expr": "game_active{exported_job=~\"$environment/banterbus\"}",
                     "refId": "A"
                 }
             ],
@@ -456,7 +444,7 @@
                         "type": "prometheus",
                         "uid": "${prometheus_uid}"
                     },
-                    "expr": "websocket_connections_active{job=\"banterbus\", namespace=\"$environment\"}",
+                    "expr": "websocket_connections_active{exported_job=~\"$environment/banterbus\"}",
                     "legendFormat": "Active Connections",
                     "refId": "A"
                 },
@@ -465,7 +453,7 @@
                         "type": "prometheus",
                         "uid": "${prometheus_uid}"
                     },
-                    "expr": "rate(websocket_connections_total{job=\"banterbus\", namespace=\"$environment\"}[5m])",
+                    "expr": "rate(websocket_connections_total{exported_job=~\"$environment/banterbus\"}[$rate_interval])",
                     "legendFormat": "New Connections Rate",
                     "refId": "B"
                 },
@@ -474,7 +462,7 @@
                         "type": "prometheus",
                         "uid": "${prometheus_uid}"
                     },
-                    "expr": "rate(connection_reconnect_total{job=\"banterbus\", namespace=\"$environment\"}[5m])",
+                    "expr": "rate(connection_reconnect_total{exported_job=~\"$environment/banterbus\"}[$rate_interval])",
                     "legendFormat": "Reconnections Rate",
                     "refId": "C"
                 }
@@ -568,7 +556,7 @@
                         "type": "prometheus",
                         "uid": "${prometheus_uid}"
                     },
-                    "expr": "histogram_quantile(0.95, rate(websocket_connection_duration_seconds_bucket{job=\"banterbus\", namespace=\"$environment\"}[5m]))",
+                    "expr": "histogram_quantile(0.95, rate(websocket_connection_duration_seconds_bucket{exported_job=~\"$environment/banterbus\"}[$rate_interval]))",
                     "legendFormat": "95th percentile duration",
                     "refId": "A"
                 },
@@ -577,7 +565,7 @@
                         "type": "prometheus",
                         "uid": "${prometheus_uid}"
                     },
-                    "expr": "histogram_quantile(0.50, rate(websocket_connection_duration_seconds_bucket{job=\"banterbus\", namespace=\"$environment\"}[5m]))",
+                    "expr": "histogram_quantile(0.50, rate(websocket_connection_duration_seconds_bucket{exported_job=~\"$environment/banterbus\"}[$rate_interval]))",
                     "legendFormat": "Median duration",
                     "refId": "B"
                 },
@@ -586,7 +574,7 @@
                         "type": "prometheus",
                         "uid": "${prometheus_uid}"
                     },
-                    "expr": "rate(handshake_failure_total{job=\"banterbus\", namespace=\"$environment\"}[5m])",
+                    "expr": "rate(handshake_failure_total{exported_job=~\"$environment/banterbus\"}[$rate_interval]))",
                     "legendFormat": "Handshake failures rate",
                     "refId": "C"
                 }
@@ -693,7 +681,7 @@
                         "type": "prometheus",
                         "uid": "${prometheus_uid}"
                     },
-                    "expr": "rate(message_received_total{job=\"banterbus\", namespace=\"$environment\"}[5m])",
+                    "expr": "rate(websocket_messages_received_total{exported_job=~\"$environment/banterbus\"}[$rate_interval]))",
                     "legendFormat": "Messages received - {{message_type}}",
                     "refId": "A"
                 },
@@ -702,7 +690,7 @@
                         "type": "prometheus",
                         "uid": "${prometheus_uid}"
                     },
-                    "expr": "rate(message_sent_total{job=\"banterbus\", namespace=\"$environment\"}[5m])",
+                    "expr": "rate(websocket_messages_sent_total{exported_job=~\"$environment/banterbus\"}[$rate_interval]))",
                     "legendFormat": "Messages sent",
                     "refId": "B"
                 },
@@ -711,7 +699,7 @@
                         "type": "prometheus",
                         "uid": "${prometheus_uid}"
                     },
-                    "expr": "rate(message_received_errors_total{job=\"banterbus\", namespace=\"$environment\"}[5m])",
+                    "expr": "rate(websocket_messages_received_errors_total{exported_job=~\"$environment/banterbus\"}[$rate_interval]))",
                     "legendFormat": "Receive errors",
                     "refId": "C"
                 },
@@ -720,7 +708,7 @@
                         "type": "prometheus",
                         "uid": "${prometheus_uid}"
                     },
-                    "expr": "rate(message_sent_errors_total{job=\"banterbus\", namespace=\"$environment\"}[5m])",
+                    "expr": "rate(websocket_messages_sent_errors_total{exported_job=~\"$environment/banterbus\"}[$rate_interval]))",
                     "legendFormat": "Send errors",
                     "refId": "D"
                 }
@@ -814,7 +802,7 @@
                         "type": "prometheus",
                         "uid": "${prometheus_uid}"
                     },
-                    "expr": "histogram_quantile(0.95, rate(message_processing_duration_milliseconds_bucket{job=\"banterbus\", namespace=\"$environment\"}[5m]))",
+                    "expr": "histogram_quantile(0.95, rate(websocket_message_processing_duration_milliseconds_bucket{exported_job=~\"$environment/banterbus\"}[$rate_interval]))",
                     "legendFormat": "95th percentile - processing",
                     "refId": "A"
                 },
@@ -823,7 +811,7 @@
                         "type": "prometheus",
                         "uid": "${prometheus_uid}"
                     },
-                    "expr": "histogram_quantile(0.50, rate(message_processing_duration_milliseconds_bucket{job=\"banterbus\", namespace=\"$environment\"}[5m]))",
+                    "expr": "histogram_quantile(0.50, rate(websocket_message_processing_duration_milliseconds_bucket{exported_job=~\"$environment/banterbus\"}[$rate_interval]))",
                     "legendFormat": "Median - processing",
                     "refId": "B"
                 },
@@ -832,7 +820,7 @@
                         "type": "prometheus",
                         "uid": "${prometheus_uid}"
                     },
-                    "expr": "histogram_quantile(0.95, rate(message_sent_duration_milliseconds_bucket{job=\"banterbus\", namespace=\"$environment\"}[5m]))",
+                    "expr": "histogram_quantile(0.95, rate(websocket_message_sent_duration_milliseconds_bucket{exported_job=~\"$environment/banterbus\"}[$rate_interval]))",
                     "legendFormat": "95th percentile - sending",
                     "refId": "C"
                 },
@@ -841,7 +829,7 @@
                         "type": "prometheus",
                         "uid": "${prometheus_uid}"
                     },
-                    "expr": "histogram_quantile(0.50, rate(message_sent_duration_milliseconds_bucket{job=\"banterbus\", namespace=\"$environment\"}[5m]))",
+                    "expr": "histogram_quantile(0.50, rate(websocket_message_sent_duration_milliseconds_bucket{exported_job=~\"$environment/banterbus\"}[$rate_interval]))",
                     "legendFormat": "Median - sending",
                     "refId": "D"
                 }
@@ -944,7 +932,7 @@
                         "type": "prometheus",
                         "uid": "${prometheus_uid}"
                     },
-                    "expr": "rate(state_count_total{job=\"banterbus\", namespace=\"$environment\"}[5m])",
+                    "expr": "rate(state_count_total{exported_job=~\"$environment/banterbus\"}[$rate_interval]))",
                     "legendFormat": "{{state}} state transitions",
                     "refId": "A"
                 },
@@ -953,7 +941,7 @@
                         "type": "prometheus",
                         "uid": "${prometheus_uid}"
                     },
-                    "expr": "rate(game_state_transitions_total{job=\"banterbus\", status=\"success\"}[5m])",
+                    "expr": "rate(game_state_transitions_total{exported_job=~\"$environment/banterbus\", status=\"success\"}[$rate_interval]))",
                     "legendFormat": "Successful transitions - {{from_state}} -> {{to_state}}",
                     "refId": "B"
                 },
@@ -962,7 +950,7 @@
                         "type": "prometheus",
                         "uid": "${prometheus_uid}"
                     },
-                    "expr": "rate(state_transition_failures_total{job=\"banterbus\", namespace=\"$environment\"}[5m])",
+                    "expr": "rate(state_transition_failures_total{exported_job=~\"$environment/banterbus\"}[$rate_interval]))",
                     "legendFormat": "Failed transitions - {{from_state}} -> {{to_state}}",
                     "refId": "C"
                 }
@@ -1052,7 +1040,7 @@
                         "type": "prometheus",
                         "uid": "${prometheus_uid}"
                     },
-                    "expr": "histogram_quantile(0.95, rate(state_duration_seconds_bucket{job=\"banterbus\", namespace=\"$environment\"}[5m]))",
+                    "expr": "histogram_quantile(0.95, rate(state_duration_seconds_bucket{exported_job=~\"$environment/banterbus\"}[$rate_interval]))",
                     "legendFormat": "95th percentile - {{state}}",
                     "refId": "A"
                 },
@@ -1061,7 +1049,7 @@
                         "type": "prometheus",
                         "uid": "${prometheus_uid}"
                     },
-                    "expr": "histogram_quantile(0.50, rate(state_duration_seconds_bucket{job=\"banterbus\", namespace=\"$environment\"}[5m]))",
+                    "expr": "histogram_quantile(0.50, rate(state_duration_seconds_bucket{exported_job=~\"$environment/banterbus\"}[$rate_interval]))",
                     "legendFormat": "Median - {{state}}",
                     "refId": "B"
                 },
@@ -1070,7 +1058,7 @@
                         "type": "prometheus",
                         "uid": "${prometheus_uid}"
                     },
-                    "expr": "rate(game_stuck_count_total{job=\"banterbus\", namespace=\"$environment\"}[5m])",
+                    "expr": "rate(game_stuck_count_total{exported_job=~\"$environment/banterbus\"}[$rate_interval]))",
                     "legendFormat": "Stuck games - {{state}}",
                     "refId": "C"
                 }
@@ -1179,7 +1167,7 @@
                         "type": "prometheus",
                         "uid": "${prometheus_uid}"
                     },
-                    "expr": "rate(sli_availability_requests_total{job=\"banterbus\", status=\"success\"}[5m]) / rate(sli_availability_requests_total{job=\"banterbus\", namespace=\"$environment\"}[5m])",
+                    "expr": "rate(http_server_requests_total{exported_job=~\"$environment/banterbus\", status=\"success\"}[$rate_interval])) / rate(http_server_requests_total{exported_job=~\"$environment/banterbus\"}[$rate_interval]))",
                     "legendFormat": "Availability - {{endpoint}}",
                     "refId": "A"
                 },
@@ -1188,7 +1176,7 @@
                         "type": "prometheus",
                         "uid": "${prometheus_uid}"
                     },
-                    "expr": "rate(sli_lobby_operations_total{job=\"banterbus\", status=\"success\"}[5m]) / rate(sli_lobby_operations_total{job=\"banterbus\", namespace=\"$environment\"}[5m])",
+                    "expr": "rate(operations_total{exported_job=~\"$environment/banterbus\", status=\"success\"}[$rate_interval])) / rate(operations_total{exported_job=~\"$environment/banterbus\"}[$rate_interval]))",
                     "legendFormat": "Lobby success rate - {{operation}}",
                     "refId": "B"
                 },
@@ -1197,7 +1185,7 @@
                         "type": "prometheus",
                         "uid": "${prometheus_uid}"
                     },
-                    "expr": "rate(sli_game_completion_total{job=\"banterbus\", status=\"success\"}[5m]) / rate(sli_game_completion_total{job=\"banterbus\", namespace=\"$environment\"}[5m])",
+                    "expr": "rate(completions_total{exported_job=~\"$environment/banterbus\", status=\"success\"}[$rate_interval])) / rate(completions_total{exported_job=~\"$environment/banterbus\"}[$rate_interval]))",
                     "legendFormat": "Game completion rate",
                     "refId": "C"
                 }
@@ -1295,7 +1283,7 @@
                         "type": "prometheus",
                         "uid": "${prometheus_uid}"
                     },
-                    "expr": "histogram_quantile(0.95, rate(sli_response_time_seconds_bucket{job=\"banterbus\", namespace=\"$environment\"}[5m]))",
+                    "expr": "histogram_quantile(0.95, rate(http_server_request_duration_seconds_bucket{exported_job=~\"$environment/banterbus\"}[$rate_interval]))",
                     "legendFormat": "95th percentile response time - {{endpoint}}",
                     "refId": "A"
                 },
@@ -1304,7 +1292,7 @@
                         "type": "prometheus",
                         "uid": "${prometheus_uid}"
                     },
-                    "expr": "histogram_quantile(0.50, rate(sli_response_time_seconds_bucket{job=\"banterbus\", namespace=\"$environment\"}[5m]))",
+                    "expr": "histogram_quantile(0.50, rate(http_server_request_duration_seconds_bucket{exported_job=~\"$environment/banterbus\"}[$rate_interval]))",
                     "legendFormat": "Median response time - {{endpoint}}",
                     "refId": "B"
                 },
@@ -1313,7 +1301,7 @@
                         "type": "prometheus",
                         "uid": "${prometheus_uid}"
                     },
-                    "expr": "histogram_quantile(0.95, rate(sli_game_duration_seconds_bucket{job=\"banterbus\", namespace=\"$environment\"}[5m]))",
+                    "expr": "histogram_quantile(0.95, rate(duration_seconds_bucket{exported_job=~\"$environment/banterbus\"}[$rate_interval]))",
                     "legendFormat": "95th percentile game duration",
                     "refId": "C"
                 }
@@ -1416,7 +1404,7 @@
                         "type": "prometheus",
                         "uid": "${prometheus_uid}"
                     },
-                    "expr": "rate(errors_total{job=\"banterbus\", namespace=\"$environment\"}[5m])",
+                    "expr": "rate(errors_total{exported_job=~\"$environment/banterbus\"}[$rate_interval]))",
                     "legendFormat": "{{error_type}} - {{component}}",
                     "refId": "A"
                 },
@@ -1425,7 +1413,7 @@
                         "type": "prometheus",
                         "uid": "${prometheus_uid}"
                     },
-                    "expr": "rate(state_operation_errors_total{job=\"banterbus\", namespace=\"$environment\"}[5m])",
+                    "expr": "rate(state_operation_errors_total{exported_job=~\"$environment/banterbus\"}[$rate_interval]))",
                     "legendFormat": "State errors - {{state}} ({{error}})",
                     "refId": "B"
                 },
@@ -1434,7 +1422,7 @@
                         "type": "prometheus",
                         "uid": "${prometheus_uid}"
                     },
-                    "expr": "rate(player_disconnection_count_total{job=\"banterbus\", namespace=\"$environment\"}[5m])",
+                    "expr": "rate(player_disconnection_count_total{exported_job=~\"$environment/banterbus\"}[$rate_interval]))",
                     "legendFormat": "Player disconnections - {{reason}} ({{game_state}})",
                     "refId": "C"
                 }
@@ -1524,7 +1512,7 @@
                         "type": "prometheus",
                         "uid": "${prometheus_uid}"
                     },
-                    "expr": "histogram_quantile(0.95, rate(connection_quality_error_rate_percent_bucket{job=\"banterbus\", namespace=\"$environment\"}[5m]))",
+                    "expr": "histogram_quantile(0.95, rate(connection_quality_error_rate_percent_bucket{exported_job=~\"$environment/banterbus\"}[$rate_interval]))",
                     "legendFormat": "95th percentile error rate",
                     "refId": "A"
                 },
@@ -1533,7 +1521,7 @@
                         "type": "prometheus",
                         "uid": "${prometheus_uid}"
                     },
-                    "expr": "rate(sli_data_integrity_checks_total{job=\"banterbus\", status=\"pass\"}[5m]) / rate(sli_data_integrity_checks_total{job=\"banterbus\", namespace=\"$environment\"}[5m]) * 100",
+                    "expr": "rate(data_integrity_checks_total{exported_job=~\"$environment/banterbus\", status=\"pass\"}[$rate_interval])) / rate(data_integrity_checks_total{exported_job=~\"$environment/banterbus\"}[$rate_interval])) * 100",
                     "legendFormat": "Data integrity pass rate - {{check_type}}",
                     "refId": "B"
                 },
@@ -1542,7 +1530,7 @@
                         "type": "prometheus",
                         "uid": "${prometheus_uid}"
                     },
-                    "expr": "rate(sli_player_experience_total{job=\"banterbus\", satisfaction=\"satisfied\"}[5m]) / rate(sli_player_experience_total{job=\"banterbus\", namespace=\"$environment\"}[5m]) * 100",
+                    "expr": "rate(user_experience_total{exported_job=~\"$environment/banterbus\", satisfaction=\"satisfied\"}[$rate_interval])) / rate(user_experience_total{exported_job=~\"$environment/banterbus\"}[$rate_interval])) * 100",
                     "legendFormat": "Player satisfaction rate",
                     "refId": "C"
                 }
@@ -1645,7 +1633,7 @@
                         "type": "prometheus",
                         "uid": "${prometheus_uid}"
                     },
-                    "expr": "rate(business_operations_total{job=\"banterbus\", status=\"success\"}[5m])",
+                    "expr": "rate(operations_total{exported_job=~\"$environment/banterbus\", status=\"success\"}[$rate_interval]))",
                     "legendFormat": "Successful {{operation}}",
                     "refId": "A"
                 },
@@ -1654,7 +1642,7 @@
                         "type": "prometheus",
                         "uid": "${prometheus_uid}"
                     },
-                    "expr": "rate(business_operations_total{job=\"banterbus\", status=\"failure\"}[5m])",
+                    "expr": "rate(operations_total{exported_job=~\"$environment/banterbus\", status=\"failure\"}[$rate_interval]))",
                     "legendFormat": "Failed {{operation}}",
                     "refId": "B"
                 },
@@ -1663,7 +1651,7 @@
                         "type": "prometheus",
                         "uid": "${prometheus_uid}"
                     },
-                    "expr": "rate(websocket_events_total{job=\"banterbus\", namespace=\"$environment\"}[5m])",
+                    "expr": "rate(websocket_events_total{exported_job=~\"$environment/banterbus\"}[$rate_interval]))",
                     "legendFormat": "WebSocket events - {{event_category}}",
                     "refId": "C"
                 }
@@ -1753,7 +1741,7 @@
                         "type": "prometheus",
                         "uid": "${prometheus_uid}"
                     },
-                    "expr": "histogram_quantile(0.95, rate(business_operation_duration_seconds_bucket{job=\"banterbus\", namespace=\"$environment\"}[5m]))",
+                    "expr": "histogram_quantile(0.95, rate(operation_duration_seconds_bucket{exported_job=~\"$environment/banterbus\"}[$rate_interval]))",
                     "legendFormat": "95th percentile - {{operation}}",
                     "refId": "A"
                 },
@@ -1762,7 +1750,7 @@
                         "type": "prometheus",
                         "uid": "${prometheus_uid}"
                     },
-                    "expr": "histogram_quantile(0.95, rate(game_flow_operation_duration_seconds_bucket{job=\"banterbus\", namespace=\"$environment\"}[5m]))",
+                    "expr": "histogram_quantile(0.95, rate(game_flow_operation_duration_seconds_bucket{exported_job=~\"$environment/banterbus\"}[$rate_interval]))",
                     "legendFormat": "95th percentile game flow - {{operation}}",
                     "refId": "B"
                 },
@@ -1771,7 +1759,7 @@
                         "type": "prometheus",
                         "uid": "${prometheus_uid}"
                     },
-                    "expr": "histogram_quantile(0.95, rate(game_stuck_duration_seconds_bucket{job=\"banterbus\", namespace=\"$environment\"}[5m]))",
+                    "expr": "histogram_quantile(0.95, rate(game_stuck_duration_seconds_bucket{exported_job=~\"$environment/banterbus\"}[$rate_interval]))",
                     "legendFormat": "95th percentile stuck duration - {{state}}",
                     "refId": "C"
                 }
@@ -1882,25 +1870,26 @@
             },
             {
                 "current": {
-                    "text": "",
-                    "value": ""
+                    "text": "development",
+                    "value": "development"
                 },
-                "datasource": {
-                    "type": "prometheus",
-                    "uid": "${prometheus_uid}"
-                },
-                "definition": "label_values(websocket_connections_active{job=\"banterbus\"}, namespace)",
                 "includeAll": false,
                 "label": "Environment",
                 "name": "environment",
-                "options": [],
-                "query": {
-                    "query": "label_values(websocket_connections_active{job=\"banterbus\"}, namespace)",
-                    "refId": "StandardVariableQuery"
-                },
-                "refresh": 1,
-                "regex": "",
-                "type": "query"
+                "options": [
+                    {
+                        "selected": true,
+                        "text": "development",
+                        "value": "development"
+                    },
+                    {
+                        "selected": false,
+                        "text": "production",
+                        "value": "production"
+                    }
+                ],
+                "query": "development,production",
+                "type": "custom"
             },
             {
                 "current": {
@@ -1918,6 +1907,43 @@
                 ],
                 "query": "",
                 "type": "textbox"
+            },
+            {
+                "current": {
+                    "text": "5m",
+                    "value": "5m"
+                },
+                "label": "Rate Interval",
+                "name": "rate_interval",
+                "options": [
+                    {
+                        "selected": false,
+                        "text": "1m",
+                        "value": "1m"
+                    },
+                    {
+                        "selected": false,
+                        "text": "2m",
+                        "value": "2m"
+                    },
+                    {
+                        "selected": true,
+                        "text": "5m",
+                        "value": "5m"
+                    },
+                    {
+                        "selected": false,
+                        "text": "10m",
+                        "value": "10m"
+                    },
+                    {
+                        "selected": false,
+                        "text": "15m",
+                        "value": "15m"
+                    }
+                ],
+                "query": "1m,2m,5m,10m,15m",
+                "type": "custom"
             }
         ]
     },
