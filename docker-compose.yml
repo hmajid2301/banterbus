@@ -1,6 +1,6 @@
 services:
   redis:
-    image: redis:8.0.3
+    image: redis:8.2.1
     profiles:
       - test
     ports:
@@ -12,7 +12,7 @@ services:
       retries: 5
 
   postgres:
-    image: postgres:16.6
+    image: postgres:16.10
     profiles:
       - test
     ports:
@@ -82,7 +82,7 @@ services:
     restart: "no"
 
   seed-data:
-    image: postgres:16.6
+    image: postgres:16.10
     profiles: [test]
     depends_on:
       migrate:
@@ -98,7 +98,7 @@ services:
     restart: "no"
 
   oauth2:
-    image: ghcr.io/navikt/mock-oauth2-server:2.1.10
+    image: ghcr.io/navikt/mock-oauth2-server:2.3.0
     profiles:
       - test
     ports:
@@ -118,7 +118,7 @@ services:
       - 44301:8081
 
   alloy:
-    image: grafana/alloy:v1.9.1
+    image: grafana/alloy:v1.10.2
     profiles:
       - monitoring
     command:
@@ -141,7 +141,7 @@ services:
       - mimir
 
   mimir:
-    image: grafana/mimir:2.11.0
+    image: grafana/mimir:2.17.1
     profiles:
       - monitoring
     command:
@@ -158,7 +158,7 @@ services:
       - mimir-data:/data
 
   grafana:
-    image: grafana/grafana:11.6.1
+    image: grafana/grafana:11.6.5
     profiles:
       - monitoring
     ports:
@@ -171,7 +171,7 @@ services:
      - grafana-data:/var/lib/grafana
 
   tempo:
-    image: grafana/tempo:2.7.2
+    image: grafana/tempo:2.8.2
     profiles:
       - monitoring
     command: ["-config.file=/etc/tempo.yaml"]
@@ -185,7 +185,7 @@ services:
     #   retries: 20
 
   loki:
-    image: grafana/loki:3.5.0
+    image: grafana/loki:3.5.5
     profiles:
       - monitoring
     command: ["-config.file=/etc/loki/loki-config.yaml"]
