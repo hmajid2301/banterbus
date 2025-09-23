@@ -60,3 +60,4 @@ resource "cloudflare_record" "acme_challenge_dev" {
   ttl     = 1
   proxied = false
 }
+

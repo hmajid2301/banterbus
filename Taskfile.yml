@@ -27,7 +27,6 @@ tasks:
       BANTERBUS_LOG_LEVEL: debug
     cmds:
       - docker compose --profile monitoring --profile test --profile other up -d --force-recreate --remove-orphans
-      - task: migrate
       - concurrently "air" "task watch"
 
   lint:
@@ -203,23 +202,6 @@ tasks:
       - nix build .#${FLAKE_TARGET}
       - docker load < result
 
-  migrate:
-    desc: Run database migrations using goose
-    summary: |
-      Run database migrations using the same goose binary used in CI.
-      This connects to the local PostgreSQL database started by docker-compose.
-    env:
-      POSTGRES_HOST: localhost
-      POSTGRES_PORT: 5432
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: banterbus
-    cmds:
-      - |
-        goose -dir internal/store/db/sqlc/migrations postgres \
-          "host=${POSTGRES_HOST} port=${POSTGRES_PORT} user=${POSTGRES_USER} password=${POSTGRES_PASSWORD} dbname=${POSTGRES_DB} sslmode=disable" \
-          up
-
   docker:publish:
     desc: Build and publish the Docker image
     env:
@@ -246,26 +228,14 @@ tasks:
       - docker tag banterbus-dev:latest local-registry.gitlab.com/hmajid2301/banterbus/ci:v0.1.12
       - job=$(gitlab-ci-local --list-all | tail -n +4 | awk '{print $1}' | gum filter --placeholder "Select job") && gitlab-ci-local "$job"
 
-  tf:validate:
-    desc: Validate Terraform/OpenTofu configuration
-    dir: infra/tf
-    cmds:
-      - tofu validate
-
   tf:plan:
-    desc: Plan Terraform/OpenTofu changes
+    desc: Plan OpenTofu changes
     dir: infra/tf
     cmds:
       - tofu plan
 
   tf:apply:
-    desc: Apply Terraform/OpenTofu changes
+    desc: Apply OpenTofu changes
     dir: infra/tf
     cmds:
       - tofu apply
-
-  tf:output:
-    desc: Show Terraform/OpenTofu outputs
-    dir: infra/tf
-    cmds:
-      - tofu output

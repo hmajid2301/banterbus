@@ -99,6 +99,12 @@ variable "grafana_service_account_token" {
   sensitive   = true
 }
 
+variable "gitlab_project_id" {
+  description = "GitLab project ID for banterbus"
+  type        = string
+  default     = "hmajid2301/banterbus"
+}
+
 
 
 

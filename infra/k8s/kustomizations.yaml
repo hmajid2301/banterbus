@@ -27,14 +27,3 @@ spec:
     name: banterbus
     namespace: flux-system
 
----
-apiVersion: source.toolkit.fluxcd.io/v1
-kind: GitRepository
-metadata:
-  name: banterbus
-  namespace: flux-system
-spec:
-   interval: 1m0s
-   ref:
-     branch: ui-fixes
-   url: https://gitlab.com/hmajid2301/banterbus.git

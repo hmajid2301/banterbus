@@ -25,9 +25,16 @@ provider "cloudflare" {
 
 # Grafana Provider Configuration
 provider "grafana" {
-  alias                    = "homelab"
-  url                      = "https://grafana.homelab.haseebmajid.dev"
-  service_account_token    = var.grafana_service_account_token
+  alias                 = "homelab"
+  url                   = "https://grafana.homelab.haseebmajid.dev"
+  service_account_token = var.grafana_service_account_token
+}
+
+# GitLab Provider Configuration
+# Note: gitlab_secrets data source is defined in gitlab.tf
+provider "gitlab" {
+  token    = data.vault_kv_secret_v2.gitlab_secrets.data["token"]
+  base_url = "https://gitlab.com/api/v4/"
 }
 
 

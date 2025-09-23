@@ -124,6 +124,13 @@ func (j *JoinLobby) Handle(ctx context.Context, client *Client, sub *Subscriber)
 
 	client.playerID = result.NewPlayerID
 
+	sub.logger.InfoContext(ctx, "player successfully joined lobby",
+		slog.String("player_id", result.NewPlayerID.String()),
+		slog.String("nickname", j.PlayerNickname),
+		slog.String("room_code", result.Lobby.Code),
+		slog.Int("total_players", len(result.Lobby.Players)),
+	)
+
 	telemetry.AddRoomStateAttributes(ctx, "Created", result.Lobby.Code, len(result.Lobby.Players))
 	telemetry.AddGameStateTransition(ctx, "", "player_joined", "player_action", nil)
 

@@ -1,0 +1,37 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: banterbus
+spec:
+  template:
+    spec:
+      containers:
+      - name: banterbus
+        env:
+        # Preview environment specific settings
+        - name: ENVIRONMENT
+          value: "preview"
+        - name: LOG_LEVEL
+          value: "debug"
+        # Disable analytics/tracking in preview
+        - name: ANALYTICS_ENABLED
+          value: "false"
+        resources:
+          requests:
+            cpu: 50m      # Lower resources for preview
+            memory: 64Mi
+          limits:
+            cpu: 200m
+            memory: 256Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: banterbus
+spec:
+  # Service config (will be patched by ResourceSet)
+  ports:
+  - port: 80
+    targetPort: 8080
+    protocol: TCP

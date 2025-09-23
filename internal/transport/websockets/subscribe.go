@@ -290,6 +290,9 @@ func (s *Subscriber) Subscribe(r *http.Request, w http.ResponseWriter) (err erro
 	}
 
 	defer func() {
+		s.logger.InfoContext(ctx, "websocket connection closed",
+			slog.String("player_id", playerID.String()),
+		)
 		cancel()
 		err = s.websocket.Close(playerID)
 		if err != nil {
@@ -496,6 +499,13 @@ func (s *Subscriber) handleMessageData(
 	start time.Time,
 	messageStatus string,
 ) (context.Context, error) {
+
+	// Debug log every inbound WebSocket request
+	s.logger.DebugContext(ctx, "websocket request inbound",
+		slog.String("player_id", client.playerID.String()),
+		slog.Int("data_size", len(data)),
+		slog.String("raw_data", string(data)),
+	)
 
 	var message message
 	err := json.Unmarshal(data, &message)
