@@ -7,7 +7,7 @@ metadata:
 spec:
   ingressClassName: traefik
   rules:
-  - host: dev.banterbus.games
+  - host: preview.dev.banterbus.games # Will be patched by ResourceSet
     http:
       paths:
       - path: /
@@ -19,5 +19,5 @@ spec:
               number: 80
   tls:
   - hosts:
-    - dev.banterbus.games
-    secretName: banterbus-preview-tls
+    - preview.dev.banterbus.games # Will be patched by ResourceSet
+    secretName: banterbus-preview-tls # Will be patched by ResourceSet

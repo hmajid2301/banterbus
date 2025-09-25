@@ -3,8 +3,8 @@ kind: Kustomization
 
 # Use the same base as dev
 resources:
-  - ../../base
-  - ingress.yaml
+- ../../base
+- ingress.yaml
 
 # Preview environments deploy to dev namespace
 # but get unique resource names from ResourceSet
@@ -18,5 +18,5 @@ namespace: dev
 # - image tag: latest → feature-branch-sha8
 
 # Optional: Preview-specific configurations
-patchesStrategicMerge:
-  - preview-patches.yaml
+patches:
+- path: preview-patches.yaml
