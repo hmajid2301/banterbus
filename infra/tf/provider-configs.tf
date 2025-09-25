@@ -37,6 +37,11 @@ provider "gitlab" {
   base_url = "https://gitlab.com/api/v4/"
 }
 
+# Kubernetes Provider Configuration
+provider "kubernetes" {
+  config_path = "~/.kube/config"
+}
+
 
 
 

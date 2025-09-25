@@ -1,0 +1,13 @@
+apiVersion: secrets.hashicorp.com/v1beta1
+kind: VaultAuth
+metadata:
+  name: banterbus-auth
+  namespace: dev
+spec:
+  method: kubernetes
+  mount: kubernetes
+  vaultConnectionRef: dev/openbao
+  kubernetes:
+    role: k8s-auth-role
+    serviceAccount: banterbus
+    tokenExpirationSeconds: 600

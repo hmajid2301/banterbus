@@ -2,11 +2,11 @@ schema = 3
 
 [mod]
   [mod."github.com/MicahParks/jwkset"]
-    version = "v0.10.0"
-    hash = "sha256-u07C8oUQzFz4U8Egng+sAvXfiD7XlYQf6DN4KwYolKk="
+    version = "v0.11.0"
+    hash = "sha256-J5GxJrFOgmnV1PeqiEvkQSVsAB8+snqiD/IYGahqoWY="
   [mod."github.com/MicahParks/keyfunc/v3"]
-    version = "v3.6.1"
-    hash = "sha256-7gtbvgRVONXZ/J9tDU63vuHSM2tXts9dunvb63gfhpI="
+    version = "v3.6.2"
+    hash = "sha256-y/iRXI3MyF84Kz26sNi0DJh/WkDvxYfnXcX5PNrpsAM="
   [mod."github.com/a-h/templ"]
     version = "v0.3.943"
     hash = "sha256-1lqdcz0q13m8rNKFXp84kP69q8c5WHXNGhUklK6XUDk="
@@ -26,8 +26,8 @@ schema = 3
     version = "v0.0.0-20200823014737-9f7001d12a5f"
     hash = "sha256-n/7xo5CQqo4yLaWMSzSN1Muk/oqK6O5dgDOFWapeDUI="
   [mod."github.com/ebitengine/purego"]
-    version = "v0.8.4"
-    hash = "sha256-cMdZ3DhlGGldRsHRxkslAEwKgQnlbUMvDpt3boplxWs="
+    version = "v0.9.0"
+    hash = "sha256-jSlhGjhuYf15zHy7shSKR1rQN1sRyH5zXAzWqy+huHY="
   [mod."github.com/exaring/otelpgx"]
     version = "v0.9.3"
     hash = "sha256-SqdhZqRIoj30cS5t1z2ZLq1IBAnfKRHNWZTuTod7aog="
@@ -128,8 +128,8 @@ schema = 3
     version = "v0.1.1"
     hash = "sha256-2ncLcugumQN+eLr98hXVZJBlx59qeKhAPnzAJb6WfAY="
   [mod."github.com/playwright-community/playwright-go"]
-    version = "v0.5200.0"
-    hash = "sha256-nQezkrv6fCEHlWl1VXqKT9gMPzd2j1fMnQ4j4INeHdI="
+    version = "v0.5200.1"
+    hash = "sha256-W4KOfGuSOjNmDYi9EQNMMEOPeNym+6n6mCZ1GJ6CwFQ="
   [mod."github.com/pmezard/go-difflib"]
     version = "v1.0.0"
     hash = "sha256-/FtmHnaGjdvEIKAJtrUfEhV7EVo5A/eYrtdnUkuxLDA="
@@ -269,11 +269,11 @@ schema = 3
     version = "v0.13.0"
     hash = "sha256-3Dp2GtjXHhMZr0u1iu65JC6O34qk/3ZR5uvmg33cd7o="
   [mod."google.golang.org/genproto/googleapis/api"]
-    version = "v0.0.0-20250908214217-97024824d090"
-    hash = "sha256-a2mrGaxRzgJW9rSxOZK8jj5/o8Q/8K/N7ATGE5yYKUQ="
+    version = "v0.0.0-20250922171735-9219d122eba9"
+    hash = "sha256-UB/7JMqJApwQZq8XMv/nA3pFLcpFKwCJBIButGd6x54="
   [mod."google.golang.org/genproto/googleapis/rpc"]
-    version = "v0.0.0-20250908214217-97024824d090"
-    hash = "sha256-kV8cgw4mlIzyZJDwrFYVpmBuuU3RhPKCwmJdIP9z62M="
+    version = "v0.0.0-20250922171735-9219d122eba9"
+    hash = "sha256-/x/lSucl013OnaCbBt7uxEht12vRwhZs7mmnN2uF3qc="
   [mod."google.golang.org/grpc"]
     version = "v1.75.1"
     hash = "sha256-t5w9BLW8P3SuxHRSAqsVBn8kddzCDKVijh4oxatLIps="

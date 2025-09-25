@@ -9,6 +9,7 @@ resources:
 - migration-job.yaml
 - deployment.yaml
 - secrets.yaml
+- vault-auth.yaml
 - image-repository.yaml
 - image-policy.yaml
 - image-automation.yaml

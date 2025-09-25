@@ -1,0 +1,104 @@
+apiVersion: fluxcd.controlplane.io/v1
+kind: ResourceSet
+metadata:
+  name: gitlab-preview-environments
+  namespace: flux-system
+spec:
+  inputsFrom:
+    - apiVersion: fluxcd.controlplane.io/v1
+      kind: ResourceSetInputProvider
+      name: banterbus-merge-requests
+  resources:
+    - apiVersion: source.toolkit.fluxcd.io/v1
+      kind: GitRepository
+      metadata:
+        name: banterbus-mr-<< inputs.id >>
+        namespace: flux-system
+        labels:
+          preview.flux.dev/enabled: "true"
+          preview.flux.dev/merge-request: "<< inputs.id >>"
+          preview.flux.dev/project: "banterbus"
+      spec:
+        interval: 1m
+        timeout: 60s
+        url: https://gitlab.com/hmajid2301/banterbus.git
+        ref:
+          branch: << inputs.branch >>
+
+    - apiVersion: kustomize.toolkit.fluxcd.io/v1
+      kind: Kustomization
+      metadata:
+        name: banterbus-mr-<< inputs.id >>
+        namespace: flux-system
+        labels:
+          preview.flux.dev/enabled: "true"
+          preview.flux.dev/merge-request: "<< inputs.id >>"
+          preview.flux.dev/project: "banterbus"
+        annotations:
+          event.toolkit.fluxcd.io/author: << inputs.author >>
+          event.toolkit.fluxcd.io/branch: << inputs.branch >>
+          preview.flux.dev/gitlab-url: https://gitlab.com/hmajid2301/banterbus/-/merge_requests/<< inputs.id >>
+          preview.flux.dev/source-branch: << inputs.branch >>
+          event.toolkit.fluxcd.io/preview-url: https://mr-<< inputs.id >>.dev.banterbus.<< inputs.domain >>
+      spec:
+        interval: 10m
+        path: ./infra/k8s/overlays/preview
+        prune: true
+        sourceRef:
+          kind: GitRepository
+          name: banterbus-mr-<< inputs.id >>
+          namespace: flux-system
+        targetNamespace: dev
+        patches:
+          # Patch deployment name and image
+          - target:
+              kind: Deployment
+              name: banterbus
+            patch: |
+              - op: replace
+                path: /metadata/name
+                value: "banterbus-mr-<< inputs.id >>"
+              - op: replace
+                path: /spec/template/spec/containers/0/image
+                value: "<< inputs.image >>:dev-<< inputs.sha >>-1758659031"
+              - op: replace
+                path: /spec/selector/matchLabels/app
+                value: "banterbus-mr-<< inputs.id >>"
+              - op: replace
+                path: /spec/template/metadata/labels/app
+                value: "banterbus-mr-<< inputs.id >>"
+          # Patch service name and selector
+          - target:
+              kind: Service
+              name: banterbus
+            patch: |
+              - op: replace
+                path: /metadata/name
+                value: "banterbus-mr-<< inputs.id >>"
+              - op: add
+                path: /metadata/labels/preview-env-id
+                value: "<< inputs.id >>"
+              - op: replace
+                path: /spec/selector/app
+                value: "banterbus-mr-<< inputs.id >>"
+          # Patch ingress name, host, and service reference
+          - target:
+              kind: Ingress
+              name: banterbus
+            patch: |
+              - op: replace
+                path: /metadata/name
+                value: "banterbus-mr-<< inputs.id >>"
+              - op: replace
+                path: /spec/rules/0/host
+                value: "mr-<< inputs.id >>.dev.banterbus.<< inputs.domain >>"
+              - op: replace
+                path: /spec/rules/0/http/paths/0/backend/service/name
+                value: "banterbus-mr-<< inputs.id >>"
+              - op: replace
+                path: /spec/tls/0/hosts/0
+                value: "mr-<< inputs.id >>.dev.banterbus.<< inputs.domain >>"
+              - op: replace
+                path: /spec/tls/0/secretName
+                value: "banterbus-mr-<< inputs.id >>-tls"
+  serviceAccountName: flux-operator

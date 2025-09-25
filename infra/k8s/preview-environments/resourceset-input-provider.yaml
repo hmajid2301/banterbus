@@ -1,0 +1,18 @@
+apiVersion: fluxcd.controlplane.io/v1
+kind: ResourceSetInputProvider
+metadata:
+  name: banterbus-merge-requests
+  namespace: flux-system
+spec:
+  type: GitLabMergeRequest
+  url: https://gitlab.com/hmajid2301/banterbus
+  secretRef:
+    name: gitlab-api-token
+  filter:
+    labels:
+      - deploy/flux-preview
+    limit: 100
+  defaultValues:
+    domain: games
+    namespace: dev
+    image: registry.gitlab.com/hmajid2301/banterbus
