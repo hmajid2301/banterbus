@@ -29,6 +29,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: banterbus
+  labels: {}  # Empty labels section for ResourceSet to patch
 spec:
   # Service config (will be patched by ResourceSet)
   ports:

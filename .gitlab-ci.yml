@@ -290,12 +290,15 @@ publish:docker:dev:
   script:
     - task docker:build
     - docker login -u "$CI_REGISTRY_USER" -p "$CI_JOB_TOKEN" "$CI_REGISTRY"
-    - export DEV_TAG="dev-$CI_COMMIT_SHA-$(date +%s)"
+    - export DEV_TAG="dev-$CI_COMMIT_SHA"
+    - export DEV_TAG_WITH_TIME="dev-$CI_COMMIT_SHA-$(date +%s)"
     - docker tag banterbus:latest $CI_REGISTRY_IMAGE:$CI_MERGE_REQUEST_IID
     - docker push $CI_REGISTRY_IMAGE:$CI_MERGE_REQUEST_IID
     - docker tag banterbus:latest $CI_REGISTRY_IMAGE:$DEV_TAG
     - docker push $CI_REGISTRY_IMAGE:$DEV_TAG
-    - echo "$CI_REGISTRY_IMAGE:$DEV_TAG" > image_name.txt
+    - docker tag banterbus:latest $CI_REGISTRY_IMAGE:$DEV_TAG_WITH_TIME
+    - docker push $CI_REGISTRY_IMAGE:$DEV_TAG_WITH_TIME
+    - echo "$CI_REGISTRY_IMAGE:$DEV_TAG_WITH_TIME" > image_name.txt
   artifacts:
     paths:
       - image_name.txt

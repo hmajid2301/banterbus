@@ -60,7 +60,7 @@ spec:
                 value: "banterbus-mr-<< inputs.id >>"
               - op: replace
                 path: /spec/template/spec/containers/0/image
-                value: "<< inputs.image >>:dev-<< inputs.sha >>-1758659031"
+                value: "<< inputs.image >>:dev-<< inputs.sha >>"
               - op: replace
                 path: /spec/selector/matchLabels/app
                 value: "banterbus-mr-<< inputs.id >>"
@@ -76,8 +76,9 @@ spec:
                 path: /metadata/name
                 value: "banterbus-mr-<< inputs.id >>"
               - op: add
-                path: /metadata/labels/preview-env-id
-                value: "<< inputs.id >>"
+                path: /metadata/labels
+                value: 
+                  preview-env-id: "<< inputs.id >>"
               - op: replace
                 path: /spec/selector/app
                 value: "banterbus-mr-<< inputs.id >>"
@@ -91,13 +92,13 @@ spec:
                 value: "banterbus-mr-<< inputs.id >>"
               - op: replace
                 path: /spec/rules/0/host
-                value: "mr-<< inputs.id >>.dev.banterbus.<< inputs.domain >>"
+                value: "mr-<< inputs.id >>.dev.<< inputs.domain >>"
               - op: replace
                 path: /spec/rules/0/http/paths/0/backend/service/name
                 value: "banterbus-mr-<< inputs.id >>"
               - op: replace
                 path: /spec/tls/0/hosts/0
-                value: "mr-<< inputs.id >>.dev.banterbus.<< inputs.domain >>"
+                value: "mr-<< inputs.id >>.dev.<< inputs.domain >>"
               - op: replace
                 path: /spec/tls/0/secretName
                 value: "banterbus-mr-<< inputs.id >>-tls"

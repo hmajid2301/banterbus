@@ -13,6 +13,6 @@ spec:
       - deploy/flux-preview
     limit: 100
   defaultValues:
-    domain: games
+    domain: banterbus.games
     namespace: dev
     image: registry.gitlab.com/hmajid2301/banterbus
