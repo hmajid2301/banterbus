@@ -472,7 +472,7 @@ publish:docker:review:
     paths:
       - image_name.txt
 
-promote:dev:
+.promote:
   stage: deploy
   image: docker:latest
   services:
@@ -481,25 +481,50 @@ promote:dev:
     DOCKER_HOST: tcp://docker:2375
     DOCKER_DRIVER: overlay2
     DOCKER_TLS_CERTDIR: ""
-  rules:
-    - if: $CI_COMMIT_BRANCH == "main"
   before_script:
-    - export DEV_TAG="dev-$CI_COMMIT_SHA-$(date +%s)"
-    - echo $CI_REGISTRY_IMAGE:$DEV_TAG > image_name.txt
+    - apk add --no-cache curl jq
+    - export TARGET_TAG="$ENVIRONMENT-$CI_COMMIT_SHA-$(date +%s)"
+    - echo $CI_REGISTRY_IMAGE:$TARGET_TAG > image_name.txt
+    - |
+      echo "Finding merge request for commit $CI_COMMIT_SHA"
+      MR_IID=$(curl -s --header "PRIVATE-TOKEN: $CI_JOB_TOKEN" \
+        "$CI_API_V4_URL/projects/$CI_PROJECT_ID/repository/commits/$CI_COMMIT_SHA/merge_requests" | \
+        jq -r '.[0].iid // empty')
+      if [ -z "$MR_IID" ]; then
+        echo "No merge request found for commit $CI_COMMIT_SHA"
+        echo "Searching recent merge requests..."
+        MR_IID=$(curl -s --header "PRIVATE-TOKEN: $CI_JOB_TOKEN" \
+          "$CI_API_V4_URL/projects/$CI_PROJECT_ID/merge_requests?state=merged&order_by=updated_at&sort=desc&per_page=10" | \
+          jq -r --arg sha "$CI_COMMIT_SHA" '.[] | select(.merge_commit_sha == $sha) | .iid' | head -1)
+      fi
+      if [ -z "$MR_IID" ]; then
+        echo "Could not find merge request for commit $CI_COMMIT_SHA"
+        exit 1
+      fi
+      echo "Found merge request IID - $MR_IID"
+      export MR_IID=$MR_IID
   script:
-    - echo "🚀 Promoting main branch image to dev"
-    - echo "Source image - $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA"
-    - echo "Target image - $CI_REGISTRY_IMAGE:$DEV_TAG"
+    - echo "Promoting merged MR image to $ENVIRONMENT"
+    - echo "Source image - $CI_REGISTRY_IMAGE:$MR_IID (MR - $MR_IID)"
+    - echo "Target image - $CI_REGISTRY_IMAGE:$TARGET_TAG"
     - docker login -u "$CI_REGISTRY_USER" -p "$CI_JOB_TOKEN" "$CI_REGISTRY"
-    - docker pull $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
-    - echo "Tagging as dev image $CI_REGISTRY_IMAGE:$DEV_TAG"
-    - docker tag $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA $CI_REGISTRY_IMAGE:$DEV_TAG
-    - echo "Pushing dev image to registry"
-    - docker push $CI_REGISTRY_IMAGE:$DEV_TAG
-    - echo "✅ Dev image ready - $CI_REGISTRY_IMAGE:$DEV_TAG"
+    - echo "Pulling image from MR $MR_IID..."
+    - docker pull $CI_REGISTRY_IMAGE:$MR_IID
+    - echo "Tagging as $ENVIRONMENT image $CI_REGISTRY_IMAGE:$TARGET_TAG"
+    - docker tag $CI_REGISTRY_IMAGE:$MR_IID $CI_REGISTRY_IMAGE:$TARGET_TAG
+    - echo "Pushing $ENVIRONMENT image to registry"
+    - docker push $CI_REGISTRY_IMAGE:$TARGET_TAG
+    - echo "$ENVIRONMENT image ready - $CI_REGISTRY_IMAGE:$TARGET_TAG"
   artifacts:
     paths:
       - image_name.txt
+
+promote:dev:
+  extends: .promote
+  variables:
+    ENVIRONMENT: dev
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
 
 deploy:dev:
   extends: .k8s_deploy
@@ -607,37 +632,15 @@ deploy:review:
     - echo "📊 Resources - Deployment, Service, Ingress created in $NAMESPACE namespace"
 
 promote:prod:
-  stage: deploy
-  image: docker:latest
-  services:
-    - docker:dind
+  extends: .promote
   variables:
-    DOCKER_HOST: tcp://docker:2375
-    DOCKER_DRIVER: overlay2
-    DOCKER_TLS_CERTDIR: ""
+    ENVIRONMENT: prod
   rules:
     - if: $CI_PIPELINE_SOURCE == "schedule"
       when: never
     - if: $CI_COMMIT_BRANCH == "main"
       when: manual
       allow_failure: false
-  before_script:
-    - export PROD_TAG="prod-$CI_COMMIT_SHA-$(date +%s)"
-    - echo $CI_REGISTRY_IMAGE:$PROD_TAG > image_name.txt
-  script:
-    - echo "🚀 Promoting dev image to production"
-    - echo "Source image - $CI_REGISTRY_IMAGE:latest"
-    - echo "Target image - $CI_REGISTRY_IMAGE:$PROD_TAG"
-    - docker login -u "$CI_REGISTRY_USER" -p "$CI_JOB_TOKEN" "$CI_REGISTRY"
-    - docker pull $CI_REGISTRY_IMAGE:latest
-    - echo "Tagging as prod image $CI_REGISTRY_IMAGE:$PROD_TAG"
-    - docker tag $CI_REGISTRY_IMAGE:latest $CI_REGISTRY_IMAGE:$PROD_TAG
-    - echo "Pushing prod image to registry"
-    - docker push $CI_REGISTRY_IMAGE:$PROD_TAG
-    - echo "✅ Production image ready - $CI_REGISTRY_IMAGE:$PROD_TAG"
-  artifacts:
-    paths:
-      - image_name.txt
 
 deploy:prod:
   extends: .k8s_deploy
