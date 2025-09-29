@@ -9,43 +9,43 @@ resource "random_password" "banterbus_prod" {
 }
 
 resource "postgresql_role" "banterbus_dev" {
-  provider = postgresql.homelab
-  name     = "banterbus_dev"
-  login    = true
-  password = random_password.banterbus_dev.result
-  connection_limit    = 50
-  valid_until        = "infinity"
-  create_database    = false
-  create_role        = false
-  inherit            = true
-  replication        = false
-  superuser          = false
+  provider         = postgresql.homelab
+  name             = "banterbus_dev"
+  login            = true
+  password         = random_password.banterbus_dev.result
+  connection_limit = 50
+  valid_until      = "infinity"
+  create_database  = false
+  create_role      = false
+  inherit          = true
+  replication      = false
+  superuser        = false
 }
 
 resource "postgresql_role" "banterbus_prod" {
-  provider = postgresql.homelab
-  name     = "banterbus_prod"
-  login    = true
-  password = random_password.banterbus_prod.result
-  connection_limit    = 100
-  valid_until        = "infinity"
-  create_database    = false
-  create_role        = false
-  inherit            = true
-  replication        = false
-  superuser          = false
+  provider         = postgresql.homelab
+  name             = "banterbus_prod"
+  login            = true
+  password         = random_password.banterbus_prod.result
+  connection_limit = 100
+  valid_until      = "infinity"
+  create_database  = false
+  create_role      = false
+  inherit          = true
+  replication      = false
+  superuser        = false
 }
 
 resource "postgresql_database" "banterbus_dev" {
   provider = postgresql.homelab
-  name  = "banterbus_dev"
-  owner = postgresql_role.banterbus_dev.name
+  name     = "banterbus_dev"
+  owner    = postgresql_role.banterbus_dev.name
 }
 
 resource "postgresql_database" "banterbus_prod" {
   provider = postgresql.homelab
-  name  = "banterbus_prod"
-  owner = postgresql_role.banterbus_prod.name
+  name     = "banterbus_prod"
+  owner    = postgresql_role.banterbus_prod.name
 }
 
 resource "postgresql_grant" "banterbus_dev_connect" {
@@ -119,11 +119,11 @@ resource "postgresql_grant" "banterbus_prod_sequences" {
 }
 
 output "postgres_dev_connection_string" {
-  value = "postgres://${postgresql_role.banterbus_dev.name}:${random_password.banterbus_dev.result}@${var.postgres_host}:${var.postgres_port}/${postgresql_database.banterbus_dev.name}?sslmode=disable"
+  value     = "postgres://${postgresql_role.banterbus_dev.name}:${random_password.banterbus_dev.result}@${local.postgres_host}:${local.postgres_port}/${postgresql_database.banterbus_dev.name}?sslmode=disable"
   sensitive = true
 }
 
 output "postgres_prod_connection_string" {
-  value = "postgres://${postgresql_role.banterbus_prod.name}:${random_password.banterbus_prod.result}@${var.postgres_host}:${var.postgres_port}/${postgresql_database.banterbus_prod.name}?sslmode=disable"
+  value     = "postgres://${postgresql_role.banterbus_prod.name}:${random_password.banterbus_prod.result}@${local.postgres_host}:${local.postgres_port}/${postgresql_database.banterbus_prod.name}?sslmode=disable"
   sensitive = true
 }

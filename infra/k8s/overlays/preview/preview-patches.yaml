@@ -9,14 +9,14 @@ spec:
       containers:
       - name: banterbus
         env:
-        # Preview environment specific settings
         - name: ENVIRONMENT
           value: "preview"
         - name: LOG_LEVEL
           value: "debug"
-        # Disable analytics/tracking in preview
         - name: ANALYTICS_ENABLED
           value: "false"
+        - name: BANTERBUS_ENVIRONMENT
+          value: "development"
         resources:
           requests:
             cpu: 50m      # Lower resources for preview

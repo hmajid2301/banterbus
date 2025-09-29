@@ -6,6 +6,14 @@ receivers:
 
 processors:
   batch:
+  
+  # Transform the exported_job label to use environment/service format
+  transform:
+    metric_statements:
+      - context: metric
+        statements:
+          # Extract environment and service name from resource attributes
+          - set(attributes["exported_job"], Concat([resource.attributes["deployment.environment"], "/", resource.attributes["service.name"]], ""))
 
 exporters:
   otlp:
@@ -29,5 +37,5 @@ service:
       exporters: [otlp]
     metrics:
       receivers: [otlp]
-      processors: [batch]
+      processors: [batch, transform]
       exporters: [prometheus]

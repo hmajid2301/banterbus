@@ -52,7 +52,7 @@ func Base(languages map[string]string, environment string) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		if environment != "production" {
+		if environment == "test" {
 			templ_7745c5c3_Err = testNameInput().Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
@@ -74,7 +74,7 @@ func Base(languages map[string]string, environment string) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "</div></div></div></div></section></div></body><script src=\"/static/js/htmx.min.js\"></script><script src=\"/static/js/htmx.ws.js\"></script><script src=\"/static/js/alpine.min.js\" defer></script><script src=\"/static/js/toast.js\"></script><script>\n\t\t\thtmx.on(\"htmx:wsConfigSend\", (evt) => {\n\t\t\t\tconst testNameInput = document.querySelector('input[name=\"test_name\"]');\n\t\t\t\tif (testNameInput && testNameInput.value) {\n\t\t\t\t\tevt.detail.headers = evt.detail.headers || {};\n\t\t\t\t\tevt.detail.headers[\"X-Test-Name\"] = testNameInput.value;\n\t\t\t\t}\n\t\t\t});\n\n\t\t\thtmx.on(\"htmx:wsBeforeMessage\", (evt) => {\n\t\t\t\ttry {\n\t\t\t\t\tconst { message, type } = JSON.parse(event.detail.message);\n\t\t\t\t\twindow.toast(message, type);\n\t\t\t\t\tif (type === \"failure\") {\n\t\t\t\t\t\tconsole.log(message);\n\t\t\t\t\t\tSentry.captureException(message, {\n\t\t\t\t\t\t\textra: {\n\t\t\t\t\t\t\t\tcontext: \"User action failed\",\n\t\t\t\t\t\t\t},\n\t\t\t\t\t\t});\n\t\t\t\t\t}\n\t\t\t\t} catch (err) {\n\t\t\t\t\tSentry.captureException(err, {\n\t\t\t\t\t\textra: {\n\t\t\t\t\t\t\tcontext: \"Failed to parse or handle message\",\n\t\t\t\t\t\t\trawMessage: event.detail.message,\n\t\t\t\t\t\t},\n\t\t\t\t\t});\n\t\t\t\t}\n\t\t\t});\n\t\t</script>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "</div></div></div></div></section></div></body><script src=\"/static/js/htmx.min.js\"></script><script src=\"/static/js/htmx.ws.js\"></script><script src=\"/static/js/alpine.min.js\" defer></script><script src=\"/static/js/toast.js\"></script><script>\n\t\t\thtmx.on(\"htmx:wsConfigSend\", (evt) => {\n\t\t\t\tconst testNameInput = document.querySelector('input[name=\"test_name\"]');\n\t\t\t\tif (testNameInput && testNameInput.value) {\n\t\t\t\t\tevt.detail.headers = evt.detail.headers || {};\n\t\t\t\t\tevt.detail.headers[\"X-Test-Name\"] = testNameInput.value;\n\t\t\t\t}\n\t\t\t});\n\n\t\t\thtmx.on(\"htmx:wsBeforeMessage\", (evt) => {\n\t\t\t\ttry {\n\t\t\t\t\tconst { message, type } = JSON.parse(event.detail.message);\n\t\t\t\t\twindow.toast(message, type);\n\t\t\t\t\tif (type === \"failure\") {\n\t\t\t\t\t\tconsole.log(message);\n\t\t\t\t\t}\n\t\t\t\t} catch (err) {\n\t\t\t\t\tconsole.error(\n\t\t\t\t\t\t\"Failed to parse or handle message:\",\n\t\t\t\t\t\terr,\n\t\t\t\t\t\tevent.detail.message,\n\t\t\t\t\t);\n\t\t\t\t}\n\t\t\t});\n\t\t</script>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -124,26 +124,6 @@ func testNameInput() templ.Component {
 		}
 		return nil
 	})
-}
-
-func sentryLoad(environment string) templ.ComponentScript {
-	return templ.ComponentScript{
-		Name: `__templ_sentryLoad_6d85`,
-		Function: `function __templ_sentryLoad_6d85(environment){Sentry.onLoad(function() {
-    Sentry.init({
-        environment: environment,
-        tracesSampleRate: 1.0,
-        integrations: [
-            new Sentry.BrowserTracing({
-                tracingOrigins: [window.location.hostname, /^\//],
-            }),
-        ],
-    });
-  });
-}`,
-		Call:       templ.SafeScript(`__templ_sentryLoad_6d85`, environment),
-		CallInline: templ.SafeScriptInline(`__templ_sentryLoad_6d85`, environment),
-	}
 }
 
 var _ = templruntime.GeneratedTemplate

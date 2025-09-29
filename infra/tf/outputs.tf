@@ -21,13 +21,13 @@ output "banterbus_prod_username" {
 
 output "db_username" {
   description = "Database username"
-  value       = var.postgres_username
+  value       = local.postgres_username
   sensitive   = true
 }
 
 output "db_password" {
   description = "Database password"
-  value       = var.postgres_password
+  value       = local.postgres_password
   sensitive   = true
 }
 

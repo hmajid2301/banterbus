@@ -1,12 +1,10 @@
 package middleware
 
 import (
-	"fmt"
 	"net/http"
 	"strings"
 	"time"
 
-	"github.com/getsentry/sentry-go"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/baggage"
@@ -44,14 +42,6 @@ func (Middleware) Tracing(h http.Handler) http.Handler {
 
 		tracer := otel.Tracer("banterbus-backend-http")
 		spanName := getSpanNameForRequest(r)
-		sentryTrace := r.Header.Get("sentry-trace")
-		var sentryTraceID string
-		if sentryTrace != "" {
-			parts := strings.Split(sentryTrace, "-")
-			if len(parts) > 0 {
-				sentryTraceID = parts[0]
-			}
-		}
 
 		ctx, span := tracer.Start(ctx, spanName,
 			trace.WithSpanKind(trace.SpanKindServer),
@@ -68,10 +58,6 @@ func (Middleware) Tracing(h http.Handler) http.Handler {
 			),
 		)
 
-		if sentryTraceID != "" {
-			span.SetAttributes(attribute.String("sentry.trace_id", sentryTraceID))
-		}
-
 		start := time.Now()
 		rw := wrapResponseWriter(w)
 
@@ -84,17 +70,6 @@ func (Middleware) Tracing(h http.Handler) http.Handler {
 			telemetry.RecordHTTPRequest(ctx, getHTTPRoute(r.URL.Path), r.Method, statusCode, duration)
 			span.End()
 		}()
-
-		opts := []sentry.SpanOption{
-			sentry.WithOpName("http.server"),
-			sentry.ContinueFromRequest(r),
-			sentry.WithTransactionSource(sentry.SourceURL),
-		}
-		txn := sentry.StartTransaction(ctx,
-			fmt.Sprintf("%s %s", r.Method, r.URL.Path),
-			opts...,
-		)
-		defer txn.Finish()
 
 		h.ServeHTTP(rw, r.WithContext(ctx))
 	})

@@ -29,7 +29,7 @@ spec:
       kind: Kustomization
       metadata:
         name: banterbus-mr-<< inputs.id >>
-        namespace: flux-system
+        namespace: << inputs.namespace >>
         labels:
           preview.flux.dev/enabled: "true"
           preview.flux.dev/merge-request: "<< inputs.id >>"
@@ -39,7 +39,7 @@ spec:
           event.toolkit.fluxcd.io/branch: << inputs.branch >>
           preview.flux.dev/gitlab-url: https://gitlab.com/hmajid2301/banterbus/-/merge_requests/<< inputs.id >>
           preview.flux.dev/source-branch: << inputs.branch >>
-          event.toolkit.fluxcd.io/preview-url: https://mr-<< inputs.id >>.dev.banterbus.<< inputs.domain >>
+          event.toolkit.fluxcd.io/preview-url: https://mr-<< inputs.id >>.dev.<< inputs.domain >>
       spec:
         interval: 10m
         path: ./infra/k8s/overlays/preview
@@ -48,25 +48,25 @@ spec:
           kind: GitRepository
           name: banterbus-mr-<< inputs.id >>
           namespace: flux-system
-        targetNamespace: dev
+        targetNamespace: << inputs.namespace >>
         patches:
           # Patch deployment name and image
           - target:
               kind: Deployment
               name: banterbus
             patch: |
-              - op: replace
-                path: /metadata/name
-                value: "banterbus-mr-<< inputs.id >>"
-              - op: replace
-                path: /spec/template/spec/containers/0/image
-                value: "<< inputs.image >>:dev-<< inputs.sha >>"
-              - op: replace
-                path: /spec/selector/matchLabels/app
-                value: "banterbus-mr-<< inputs.id >>"
-              - op: replace
-                path: /spec/template/metadata/labels/app
-                value: "banterbus-mr-<< inputs.id >>"
+               - op: replace
+                 path: /metadata/name
+                 value: "banterbus-mr-<< inputs.id >>"
+               - op: replace
+                 path: /spec/template/spec/containers/0/image
+                 value: "<< inputs.image >>:<< inputs.sha >>"
+               - op: replace
+                 path: /spec/selector/matchLabels/app
+                 value: "banterbus-mr-<< inputs.id >>"
+               - op: replace
+                 path: /spec/template/metadata/labels/app
+                 value: "banterbus-mr-<< inputs.id >>"
           # Patch service name and selector
           - target:
               kind: Service

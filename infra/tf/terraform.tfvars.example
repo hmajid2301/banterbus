@@ -1,22 +1,41 @@
-# Postgres
-postgres_host     = ""
-postgres_port     = 5432
-postgres_database = ""
-postgres_username = ""
-postgres_password = ""
+# =====================================================
+# REQUIRED VARIABLES (secrets now stored in OpenBao)
+# =====================================================
 
-# OpenBao
-openbao_address = ""
-openbao_token = ""
+# OpenBao Configuration (required for accessing all other secrets)
+openbao_address = "https://openbao.homelab.haseebmajid.dev"
+openbao_token = "your-openbao-token-here"
 
-# Gitlab
-access_token = ""
-remote_state_address = ""
-username = ""
+# GitLab Backend Configuration (still needed for Terraform state)
+access_token = "your-gitlab-token-here"
+remote_state_address = "https://gitlab.com/api/v4/projects/YOUR_PROJECT_ID/terraform/state/banterbus"
+username = "your-gitlab-username"
 
-# Cloudflare Configuration
-cloudflare_api_token = ""
-zone_id              = ""
+# Environment
+environment = "dev" # or "prod"
 
-# Grafana Configuration
-grafana_service_account_token = ""
+# =====================================================
+# SECRETS MOVED TO OPENBAO
+# =====================================================
+# The following secrets are now stored in OpenBao:
+#
+# kv/infra/database:
+#   - host
+#   - port  
+#   - database
+#   - username
+#   - password
+#
+# kv/infra/cloudflare:
+#   - api_token
+#   - zone_id
+#   - tunnel_name
+#   - tunnel_id
+#
+# kv/infra/grafana:
+#   - service_account_token
+#
+# kv/apps/gitlab:
+#   - token
+#   - username
+#   - remote_state_address

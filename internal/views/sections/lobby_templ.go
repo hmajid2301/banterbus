@@ -149,7 +149,7 @@ func Lobby(code string, players []service.LobbyPlayer, currentPlayer service.Lob
 				return templ_7745c5c3_Err
 			}
 			if player.IsHost {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "<div class=\"absolute -top-2 -left-2 sm:top-0 sm:left-1/2 sm:transform sm:-translate-x-1/2 sm:-translate-y-1/2\"><i class=\"text-lg text-yellow-500 sm:text-base hgi hgi-solid hgi-crown\"></i></div>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "<div class=\"absolute -top-3 -left-3 sm:top-0 sm:left-1/2 sm:transform sm:-translate-x-1/2 sm:-translate-y-1/2\"><i class=\"text-3xl text-yellow-400 sm:text-2xl hgi hgi-solid hgi-crown drop-shadow-lg\"></i></div>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -168,7 +168,7 @@ func Lobby(code string, players []service.LobbyPlayer, currentPlayer service.Lob
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "\" class=\"absolute top-0 right-0 p-2 text-black bg-white rounded-full hover:bg-surface2 hover:text-text2\"><i class=\"text-sm text-red-500 hgi hgi-solid hgi-delete-02\"></i></button> ")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "\" class=\"flex absolute -top-1 -right-1 justify-center items-center w-8 h-8 text-white bg-red-500 rounded-full shadow-lg transition-colors hover:bg-red-600\"><i class=\"text-sm hgi hgi-solid hgi-delete-02\"></i></button> ")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -191,7 +191,7 @@ func Lobby(code string, players []service.LobbyPlayer, currentPlayer service.Lob
 				return templ_7745c5c3_Err
 			}
 			if currentPlayer == player {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "<form id=\"update_avatar_form\" hx-vals='{\"message_type\": \"generate_new_avatar\" }' ws-send><button class=\"absolute right-0 bottom-0 p-2 text-black bg-white rounded-full hover:bg-surface2 hover:text-text2\" aria-label=\"Update Avatar\"><i class=\"text-sm hgi hgi-solid hgi-redo-02\"></i></button></form>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "<form id=\"update_avatar_form\" hx-vals='{\"message_type\": \"generate_new_avatar\" }' ws-send><button class=\"flex absolute -right-1 -bottom-1 justify-center items-center w-8 h-8 text-white bg-blue-500 rounded-full shadow-lg transition-colors hover:bg-blue-600\" aria-label=\"Update Avatar\"><i class=\"text-sm hgi hgi-solid hgi-redo-02\"></i></button></form>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}

@@ -37,7 +37,7 @@ templ Base(languages map[string]string, environment string) {
 		</head>
 		<body data-environment={ environment }>
 			@components.Toast()
-			if environment != "production" {
+			if environment == "test" {
 				@testNameInput()
 			}
 			<div
@@ -81,19 +81,13 @@ templ Base(languages map[string]string, environment string) {
 					window.toast(message, type);
 					if (type === "failure") {
 						console.log(message);
-						Sentry.captureException(message, {
-							extra: {
-								context: "User action failed",
-							},
-						});
 					}
 				} catch (err) {
-					Sentry.captureException(err, {
-						extra: {
-							context: "Failed to parse or handle message",
-							rawMessage: event.detail.message,
-						},
-					});
+					console.error(
+						"Failed to parse or handle message:",
+						err,
+						event.detail.message,
+					);
 				}
 			});
 		</script>
@@ -124,18 +118,4 @@ templ testNameInput() {
 			/>
 		</div>
 	</div>
-}
-
-script sentryLoad(environment string) {
-  Sentry.onLoad(function() {
-    Sentry.init({
-        environment: environment,
-        tracesSampleRate: 1.0,
-        integrations: [
-            new Sentry.BrowserTracing({
-                tracingOrigins: [window.location.hostname, /^\//],
-            }),
-        ],
-    });
-  });
 }

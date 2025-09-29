@@ -30,6 +30,14 @@ document.addEventListener("alpine:init", () => {
       }, 50);
     },
 
+    copyToClipboard(message) {
+      navigator.clipboard.writeText(message).then(() => {
+        window.toast("Copied to clipboard", "success");
+      }).catch(() => {
+        window.toast("Failed to copy", "failure");
+      });
+    },
+
     toastInit(el) {
       const id = el.getAttribute("id");
       let that = this;

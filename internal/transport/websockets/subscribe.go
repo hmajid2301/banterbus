@@ -518,10 +518,7 @@ func (s *Subscriber) handleMessageData(
 
 	tracer := otel.Tracer("banterbus-websocket")
 	var span trace.Span
-	var sentryTraceID string
-
 	if message.Trace != nil && message.Trace.TraceID != "" {
-		sentryTraceID = message.Trace.TraceID
 
 		if len(message.Trace.TraceID) == 32 {
 			traceID, err := trace.TraceIDFromHex(message.Trace.TraceID)
@@ -547,8 +544,7 @@ func (s *Subscriber) handleMessageData(
 				semconv.MessagingSystemKey.String("websocket"),
 				attribute.String("messaging.message.type", message.MessageType),
 				attribute.String("component", "websocket-handler"),
-				attribute.String("trace.source", "sentry"),
-				attribute.String("sentry.trace_id", sentryTraceID),
+				attribute.String("trace.source", "websocket"),
 				semconv.MessagingMessageBodySize(len(data)),
 			),
 		)

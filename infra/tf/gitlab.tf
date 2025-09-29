@@ -19,11 +19,7 @@ data "kubernetes_secret" "gitlab_webhook_token" {
   }
 }
 
-# Get GitLab secrets from OpenBao
-data "vault_kv_secret_v2" "gitlab_secrets" {
-  mount = "kv"
-  name  = "apps/gitlab"
-}
+# GitLab secrets data source moved to secrets.tf
 
 # Create GitLab project webhook
 resource "gitlab_project_hook" "flux_webhook" {

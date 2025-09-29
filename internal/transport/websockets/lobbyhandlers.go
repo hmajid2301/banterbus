@@ -158,6 +158,9 @@ func (s *StartGame) Handle(ctx context.Context, client *Client, sub *Subscriber)
 			RoomCode: s.RoomCode,
 		})
 		errStr := "Failed to start game"
+		if errors.Is(err, service.ErrNotEnoughPlayers) {
+			errStr = fmt.Sprintf("At least %d players are needed to start the game", service.MinimumPlayers)
+		}
 		clientErr := sub.updateClientAboutErr(ctx, client.playerID, errStr)
 		return errors.Join(clientErr, err)
 	}

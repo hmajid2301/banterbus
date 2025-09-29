@@ -976,7 +976,7 @@ func TestLobbyServiceStart(t *testing.T) {
 
 		deadline := time.Now().Add(5 * time.Second)
 		_, err := srv.Start(ctx, roomCode, hostPlayerID, deadline)
-		assert.ErrorContains(t, err, "not enough players to start the game")
+		assert.ErrorIs(t, err, service.ErrNotEnoughPlayers)
 	})
 
 	t.Run("Should fail to start game because not every player is ready", func(t *testing.T) {

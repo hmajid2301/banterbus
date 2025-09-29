@@ -229,14 +229,42 @@ tasks:
       - docker tag banterbus-dev:latest local-registry.gitlab.com/hmajid2301/banterbus/ci:v0.1.12
       - job=$(gitlab-ci-local --list-all | tail -n +4 | awk '{print $1}' | gum filter --placeholder "Select job") && gitlab-ci-local "$job"
 
+  tf:init:
+    desc: Initialize OpenTofu with backend configuration
+    dir: infra/tf
+    cmds:
+      - |
+        tofu init \
+          -backend-config="address=${TF_ADDRESS}" \
+          -backend-config="lock_address=${TF_ADDRESS}/lock" \
+          -backend-config="unlock_address=${TF_ADDRESS}/lock" \
+          -backend-config="username=${TF_USERNAME}" \
+          -backend-config="password=${TF_PASSWORD}" \
+          -backend-config="lock_method=POST" \
+          -backend-config="unlock_method=DELETE" \
+          -backend-config="retry_wait_min=5"
+
   tf:plan:
     desc: Plan OpenTofu changes
     dir: infra/tf
+    deps: [tf:init]
     cmds:
-      - tofu plan
+      - tofu plan ${TF_PLAN_ARGS} -out="plan-${ENVIRONMENT:-default}.cache"
+      - tofu show -no-color "plan-${ENVIRONMENT:-default}.cache" > "plan-${ENVIRONMENT:-default}.txt"
 
   tf:apply:
     desc: Apply OpenTofu changes
     dir: infra/tf
+    deps: [tf:init]
     cmds:
-      - tofu apply
+      - |
+        echo "Applying to environment: ${ENVIRONMENT}"
+        tofu apply -auto-approve "plan-${ENVIRONMENT:-default}.cache"
+
+  tf:validate:
+    desc: Validate OpenTofu configuration
+    dir: infra/tf
+    cmds:
+      - tofu fmt -check -recursive
+      - tofu init -backend=false
+      - tofu validate

@@ -29,6 +29,8 @@ pkgs.dockerTools.buildImage {
         procps
         jq
         which
+        tailscale
+        kubectl
       ]
       ++ myPackages;
   };

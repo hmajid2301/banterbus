@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.13] 2025-09-28
+
+### Added
+
+- Tailscale so tofu/terraform can connect to openbao to pull secrets.
+- kubectl so that CI can interact with our kube cluster.
+
+### Changed
+
+- Update all nix dependencies.
+
 ## [0.1.12] 2025-09-15
 
 ### Added

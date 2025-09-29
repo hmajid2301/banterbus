@@ -22,6 +22,9 @@ type LobbyService struct {
 	metrics       *telemetry.Recorder
 }
 
+const MinimumPlayers = 2
+
+var ErrNotEnoughPlayers = errors.New("not enough players to start the game")
 var ErrNicknameExists = errors.New("nickname already exists in room")
 var ErrPlayerAlreadyInRoom = errors.New("player is already in the room")
 var ErrPlayerNotInGame = errors.New("player is not currently in any game")
@@ -288,9 +291,8 @@ func (r *LobbyService) Start(
 		return QuestionState{}, err
 	}
 
-	minimumPlayers := 2
-	if len(playersInRoom) < minimumPlayers {
-		return QuestionState{}, errors.New("not enough players to start the game")
+	if len(playersInRoom) < MinimumPlayers {
+		return QuestionState{}, fmt.Errorf("%w: at least %d players are needed to start the game", ErrNotEnoughPlayers, MinimumPlayers)
 	}
 
 	for _, player := range playersInRoom {

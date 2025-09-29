@@ -7,7 +7,7 @@ templ Toast() {
 	>
 		<template x-teleport="body">
 			<div
-				class="block fixed right-0 bottom-0 mr-4 mb-4 space-y-2.5 z-[999]"
+				class="fixed right-4 bottom-4 space-y-3 w-full max-w-sm z-[999]"
 				@add-toast.window="add"
 			>
 				<template x-for="toast in toasts" :key="toast.id">
@@ -16,30 +16,59 @@ templ Toast() {
 						x-init="toastInit($el)"
 						x-show="toast.show"
 						x-transition:enter="transition ease-out duration-300"
-						x-transition:enter-start="opacity-0 scale-90"
-						x-transition:enter-end="opacity-100 scale-100"
-						x-transition:leave="transition ease-in duration-300"
-						x-transition:leave-start="opacity-100 scale-100"
-						x-transition:leave-end="opacity-0 scale-90"
-						:class="toast.type === 'success' ? 'bg-green': 'bg-red'"
-						class="flex relative gap-2 items-center py-7 px-5 rounded-lg border shadow-sm border-border min-w-[200px] max-w-[384px] sm:min-w-[300px]"
+						x-transition:enter-start="opacity-0 scale-95 translate-y-2"
+						x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+						x-transition:leave="transition ease-in duration-200"
+						x-transition:leave-start="opacity-100 scale-100 translate-y-0"
+						x-transition:leave-end="opacity-0 scale-95 translate-y-2"
+						role="alert"
+						class="flex relative gap-3 items-start p-4 rounded-lg border shadow-lg backdrop-blur-sm bg-surface0/95 border-surface1"
+						:class="{
+							'border-l-4 border-l-green': toast.type === 'success',
+							'border-l-4 border-l-blue': toast.type === 'info', 
+							'border-l-4 border-l-yellow': toast.type === 'warning',
+							'border-l-4 border-l-red': toast.type === 'failure'
+						}"
 					>
-						<button @click="dismiss(toast.id)" class="absolute top-3 right-3">
-							<i class="hgi hgi-solid hgi-cancel-01"></i>
-						</button>
-						<template x-if="toast.type === 'success'">
-							<i class="hgi hgi-solid hgi-check-circle"></i>
-						</template>
-						<template x-if="toast.type === 'info'">
-							<i class="hgi hgi-solid hgi-information-circle"></i>
-						</template>
-						<template x-if="toast.type === 'warning'">
-							<i class="hgi hgi-solid hgi-alert-triangle"></i>
-						</template>
-						<template x-if="toast.type === 'failure'">
-							<i class="hgi hgi-solid hgi-cancel-circle"></i>
-						</template>
-						<p class="text-sm font-medium text-black" x-text="toast.message"></p>
+						<!-- Icon -->
+						<div class="flex-shrink-0 mt-0.5 w-5 h-5">
+							<template x-if="toast.type === 'success'">
+								<i class="text-lg hgi hgi-solid hgi-check-circle text-green"></i>
+							</template>
+							<template x-if="toast.type === 'info'">
+								<i class="text-lg hgi hgi-solid hgi-information-circle text-blue"></i>
+							</template>
+							<template x-if="toast.type === 'warning'">
+								<i class="text-lg hgi hgi-solid hgi-alert-triangle text-yellow"></i>
+							</template>
+							<template x-if="toast.type === 'failure'">
+								<i class="text-lg hgi hgi-solid hgi-cancel-circle text-red"></i>
+							</template>
+						</div>
+						<!-- Message -->
+						<div class="flex-1 min-w-0">
+							<p class="text-sm font-medium leading-relaxed text-text" x-text="toast.message"></p>
+						</div>
+						<!-- Action Buttons -->
+						<div class="flex gap-1 ml-2">
+							<!-- Copy Button -->
+							<button
+								@click="copyToClipboard(toast.message)"
+								class="flex-shrink-0 p-1 rounded-md transition-colors duration-150 focus:ring-2 focus:outline-none text-subtext0 hover:text-text hover:bg-surface1 focus:ring-surface2"
+								aria-label="Copy message"
+								title="Copy to clipboard"
+							>
+								<i class="text-sm hgi hgi-solid hgi-copy-01"></i>
+							</button>
+							<!-- Close Button -->
+							<button
+								@click="dismiss(toast.id)"
+								class="flex-shrink-0 p-1 rounded-md transition-colors duration-150 focus:ring-2 focus:outline-none text-subtext0 hover:text-text hover:bg-surface1 focus:ring-surface2"
+								aria-label="Close notification"
+							>
+								<i class="text-sm hgi hgi-solid hgi-cancel-01"></i>
+							</button>
+						</div>
 					</div>
 				</template>
 			</div>

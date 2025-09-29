@@ -14,7 +14,7 @@ var activeConnectionsCount int64
 func IncrementSubscribers(ctx context.Context) error {
 	m := otel.Meter("gitlab.com/hmajid2301/banterbus")
 
-	counter, err := m.Int64Counter("banterbus.websocket.connections.total",
+	counter, err := m.Int64Counter("websocket.connections.total",
 		metric.WithDescription("Total number of WebSocket connections established"),
 		metric.WithUnit("{connection}"),
 	)
@@ -29,7 +29,7 @@ func IncrementSubscribers(ctx context.Context) error {
 func ActiveConnections(_ context.Context) error {
 	m := otel.Meter("gitlab.com/hmajid2301/banterbus")
 
-	gauge, err := m.Int64ObservableGauge("banterbus.websocket.connections.active",
+	gauge, err := m.Int64ObservableGauge("websocket.connections.active",
 		metric.WithDescription("Total number of active websocket connections."),
 		metric.WithUnit("1"),
 	)

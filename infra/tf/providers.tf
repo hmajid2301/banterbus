@@ -19,10 +19,7 @@ terraform {
       version = "~> 3.6.0"
     }
 
-    sentry = {
-      source  = "jianyuan/sentry"
-      version = "~> 0.12.0"
-    }
+
 
     betterstack = {
       source  = "BetterStackHQ/better-uptime"
@@ -49,7 +46,7 @@ terraform {
       version = "~> 2.0"
     }
 
-    
+
   }
 }
 
