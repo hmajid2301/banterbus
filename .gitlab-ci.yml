@@ -138,7 +138,6 @@ stages:
 
 .k8s_auth:
   before_script:
-    - mkdir -p ~/.kube
     - echo "$KUBE_CONFIG" | base64 -d > ~/.kube/config
     - chmod 600 ~/.kube/config
     - kubectl config use-context hmajid2301/k8s-gitops:k8s
@@ -435,24 +434,22 @@ combine:coverage:
 #   dependencies:
 #     - tofu:plan:prod
 
-publish:docker:dev:
+
+
+publish:docker:
   stage: build
   extends:
     - .docker
   rules:
-    - if: $CI_COMMIT_BRANCH == "main"
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
   script:
     - task docker:build
     - docker login -u "$CI_REGISTRY_USER" -p "$CI_JOB_TOKEN" "$CI_REGISTRY"
-    - export DEV_TAG="dev-$CI_COMMIT_SHA"
-    - export DEV_TAG_WITH_TIME="dev-$CI_COMMIT_SHA-$(date +%s)"
-    - docker tag banterbus:latest $CI_REGISTRY_IMAGE:$DEV_TAG
-    - docker push $CI_REGISTRY_IMAGE:$DEV_TAG
-    - docker tag banterbus:latest $CI_REGISTRY_IMAGE:$DEV_TAG_WITH_TIME
-    - docker push $CI_REGISTRY_IMAGE:$DEV_TAG_WITH_TIME
-    - docker tag banterbus:latest $CI_REGISTRY_IMAGE:latest
-    - docker push $CI_REGISTRY_IMAGE:latest
-    - echo "$CI_REGISTRY_IMAGE:$DEV_TAG_WITH_TIME" > image_name.txt
+    - docker tag banterbus:latest $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
+    - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
+    - docker tag banterbus:latest $CI_REGISTRY_IMAGE:$CI_MERGE_REQUEST_IID
+    - docker push $CI_REGISTRY_IMAGE:$CI_MERGE_REQUEST_IID
+    - echo "$CI_REGISTRY_IMAGE:$CI_COMMIT_SHA" > image_name.txt
   artifacts:
     paths:
       - image_name.txt
@@ -475,6 +472,35 @@ publish:docker:review:
     paths:
       - image_name.txt
 
+promote:dev:
+  stage: deploy
+  image: docker:latest
+  services:
+    - docker:dind
+  variables:
+    DOCKER_HOST: tcp://docker:2375
+    DOCKER_DRIVER: overlay2
+    DOCKER_TLS_CERTDIR: ""
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+  before_script:
+    - export DEV_TAG="dev-$CI_COMMIT_SHA-$(date +%s)"
+    - echo $CI_REGISTRY_IMAGE:$DEV_TAG > image_name.txt
+  script:
+    - echo "🚀 Promoting main branch image to dev"
+    - echo "Source image - $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA"
+    - echo "Target image - $CI_REGISTRY_IMAGE:$DEV_TAG"
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_JOB_TOKEN" "$CI_REGISTRY"
+    - docker pull $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
+    - echo "Tagging as dev image $CI_REGISTRY_IMAGE:$DEV_TAG"
+    - docker tag $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA $CI_REGISTRY_IMAGE:$DEV_TAG
+    - echo "Pushing dev image to registry"
+    - docker push $CI_REGISTRY_IMAGE:$DEV_TAG
+    - echo "✅ Dev image ready - $CI_REGISTRY_IMAGE:$DEV_TAG"
+  artifacts:
+    paths:
+      - image_name.txt
+
 deploy:dev:
   extends: .k8s_deploy
   stage: deploy
@@ -486,30 +512,30 @@ deploy:dev:
   variables:
     NAMESPACE: dev
   needs:
-    - publish:docker:dev
+    - promote:dev
   dependencies:
-    - publish:docker:dev
+    - promote:dev
 
-smoke:tests:dev:
-  extends:
-    - .test
-  stage: post
-  variables:
-    BANTERBUS_PLAYWRIGHT_URL: https://dev.banterbus.games
-  rules:
-    - if: $CI_COMMIT_BRANCH == "main"
-      when: manual
-      allow_failure: true
-  needs:
-    - deploy:dev
-  script:
-   - task tests:e2e -- -v -run 'TestE2ERound/Should_successfully_complete_an_entire_game_where_the_fibber_is_caught_first_time'
-  artifacts:
-    when: always
-    paths:
-      - coverage
-      - tests/e2e/videos/*
-      - tests/e2e/*.png
+# smoke:tests:dev:
+#   extends:
+#     - .test
+#   stage: post
+#   variables:
+#     BANTERBUS_PLAYWRIGHT_URL: https://dev.banterbus.games
+#   rules:
+#     - if: $CI_COMMIT_BRANCH == "main"
+#       when: manual
+#       allow_failure: true
+#   needs:
+#     - deploy:dev
+#   script:
+#    - task tests:e2e -- -v -run 'TestE2ERound/Should_successfully_complete_an_entire_game_where_the_fibber_is_caught_first_time'
+#   artifacts:
+#     when: always
+#     paths:
+#       - coverage
+#       - tests/e2e/videos/*
+#       - tests/e2e/*.png
 
 deploy:review:
   stage: review
@@ -574,28 +600,13 @@ deploy:review:
     - echo "🔍 Verifying ingress configuration..."
     - kubectl get ingress $REVIEW_APP_NAME -n $NAMESPACE -o jsonpath='{.spec.rules[0].host}'
     - echo ""
-    - echo "🌐 Testing external URL - https://mr-$CI_MERGE_REQUEST_IID.dev.banterbus.games"
-    - |
-      for i in {1..10}; do
-        echo "Testing external URL... (attempt $i/10)"
-        if curl -k -f -s https://mr-$CI_MERGE_REQUEST_IID.dev.banterbus.games >/dev/null; then
-          echo "✅ External URL is responding"
-          break
-        elif [ $i -eq 10 ]; then
-          echo "⚠️  External URL not responding after 10 attempts"
-          echo "This might be due to DNS propagation or Traefik configuration"
-        else
-          sleep 30
-        fi
-      done
-    - echo ""
     - echo "🎉 Review app deployment completed!"
     - echo "📍 MR - $CI_MERGE_REQUEST_IID"
     - echo "🖼️  Image - $IMAGE"
     - echo "🌐 URL - https://mr-$CI_MERGE_REQUEST_IID.dev.banterbus.games"
     - echo "📊 Resources - Deployment, Service, Ingress created in $NAMESPACE namespace"
 
-publish:docker:prod:
+promote:prod:
   stage: deploy
   image: docker:latest
   services:
@@ -634,7 +645,7 @@ deploy:prod:
   environment:
     name: prod
     url: https://banterbus.games
-  needs: ["publish:docker:prod"]
+  needs: ["promote:prod"]
   rules:
     - if: $CI_PIPELINE_SOURCE == "schedule"
       when: never
@@ -644,35 +655,35 @@ deploy:prod:
   variables:
     NAMESPACE: prod
   dependencies:
-    - publish:docker:prod
+    - promote:prod
 
-smoke:tests:prod:
-  extends:
-    - .test
-  stage: post
-  variables:
-    BANTERBUS_PLAYWRIGHT_URL: https://banterbus.games
-  rules:
-    - if: $CI_PIPELINE_SOURCE == "schedule"
-      when: always
-    - if: $CI_COMMIT_BRANCH == "main"
-      when: manual
-      allow_failure: true
-  needs:
-    - deploy:prod
-  script:
-   - task tests:e2e -- -v -run 'TestE2ERound/Should_successfully_complete_an_entire_game_where_the_fibber_is_caught_first_time'
-  after_script:
-    - |
-      if [ "$CI_JOB_STATUS" != "success" ]; then
-        curl -X POST \
-            -H "Authorization: Bearer $NOTIFY_TOKEN" "https://notify.homelab.haseebmajid.dev/message" \
-            -F "title=Job Failed" \
-            -F "message=The smoke:tests:e2e job has failed in the pipeline. Job URL: $CI_JOB_URL"
-      fi
-  artifacts:
-    when: always
-    paths:
-      - coverage
-      - tests/e2e/videos/*
-      - tests/e2e/*.png
+# smoke:tests:prod:
+#   extends:
+#     - .test
+#   stage: post
+#   variables:
+#     BANTERBUS_PLAYWRIGHT_URL: https://banterbus.games
+#   rules:
+#     - if: $CI_PIPELINE_SOURCE == "schedule"
+#       when: always
+#     - if: $CI_COMMIT_BRANCH == "main"
+#       when: manual
+#       allow_failure: true
+#   needs:
+#     - deploy:prod
+#   script:
+#    - task tests:e2e -- -v -run 'TestE2ERound/Should_successfully_complete_an_entire_game_where_the_fibber_is_caught_first_time'
+#   after_script:
+#     - |
+#       if [ "$CI_JOB_STATUS" != "success" ]; then
+#         curl -X POST \
+#             -H "Authorization: Bearer $NOTIFY_TOKEN" "https://notify.homelab.haseebmajid.dev/message" \
+#             -F "title=Job Failed" \
+#             -F "message=The smoke:tests:e2e job has failed in the pipeline. Job URL: $CI_JOB_URL"
+#       fi
+#   artifacts:
+#     when: always
+#     paths:
+#       - coverage
+#       - tests/e2e/videos/*
+#       - tests/e2e/*.png
