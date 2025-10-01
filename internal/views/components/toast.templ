@@ -1,5 +1,7 @@
 package components
 
+import "github.com/invopop/ctxi18n/i18n"
+
 templ Toast() {
 	<div
 		x-data="toast"
@@ -55,8 +57,8 @@ templ Toast() {
 							<button
 								@click="copyToClipboard(toast.message)"
 								class="flex-shrink-0 p-1 rounded-md transition-colors duration-150 focus:ring-2 focus:outline-none text-subtext0 hover:text-text hover:bg-surface1 focus:ring-surface2"
-								aria-label="Copy message"
-								title="Copy to clipboard"
+								aria-label={ i18n.T(ctx, "common.copy_message") }
+								title={ i18n.T(ctx, "common.copy_to_clipboard") }
 							>
 								<i class="text-sm hgi hgi-solid hgi-copy-01"></i>
 							</button>
@@ -64,7 +66,7 @@ templ Toast() {
 							<button
 								@click="dismiss(toast.id)"
 								class="flex-shrink-0 p-1 rounded-md transition-colors duration-150 focus:ring-2 focus:outline-none text-subtext0 hover:text-text hover:bg-surface1 focus:ring-surface2"
-								aria-label="Close notification"
+								aria-label={ i18n.T(ctx, "common.close_notification") }
 							>
 								<i class="text-sm hgi hgi-solid hgi-cancel-01"></i>
 							</button>

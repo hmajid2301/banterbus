@@ -10,8 +10,8 @@ templ Join(languages map[string]string, environment string, roomCode string) {
 	@layouts.Base(languages, environment) {
 		<div class="flex flex-col my-1">
 			<div class="mb-6 text-center">
-				<h2 class="mb-2 text-2xl font-semibold sm:text-3xl text-text">Join Game Room</h2>
-				<p class="text-text2">Enter your nickname and the room code to join the game</p>
+				<h2 class="mb-2 text-2xl font-semibold sm:text-3xl text-text">{ i18n.T(ctx, "join.join_game_room") }</h2>
+				<p class="text-text2">{ i18n.T(ctx, "join.join_description") }</p>
 			</div>
 			<div>
 				<form ws-send hx-vals='{ "message_type": "join_lobby" }'>

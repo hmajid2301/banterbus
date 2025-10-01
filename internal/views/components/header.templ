@@ -71,7 +71,7 @@ templ Header(languages map[string]string) {
 					</div>
 				</div>
 			</div>
-			<img class="w-auto h-12 sm:h-16" src="/static/images/logo-outline.svg" alt="Logo"/>
+			<img class="w-auto h-12 sm:h-16" src="/static/images/logo-outline.svg" alt={ i18n.T(ctx, "components.logo_alt") }/>
 			<div class="flex flex-1 justify-end">
 				<button disabled type="button" class="flex flex-row p-2 space-x-2 rounded-lg rounded-b-lg sm:p-3 sm:space-x-4 shadow-custom-border bg-surface2 text-text fill-transparent">
 					<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">

@@ -30,7 +30,7 @@ templ RoleModalButton(role string) {
 				x-transition:enter-end="opacity-100 scale-100"
 			>
 				<div class="flex justify-end mb-4">
-					<button type="button" aria-label="Close" class="cursor-pointer text-text2 hover:text-text" @click="showModal = false">
+					<button type="button" aria-label={ i18n.T(ctx, "common.close") } class="cursor-pointer text-text2 hover:text-text" @click="showModal = false">
 						<i class="hgi hgi-solid hgi-cancel-01"></i>
 					</button>
 				</div>

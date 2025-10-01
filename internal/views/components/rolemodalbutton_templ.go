@@ -57,74 +57,87 @@ func RoleModalButton(role string) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "</span></button><div class=\"flex overflow-auto fixed inset-0 z-30 justify-center items-center bg-black bg-opacity-50\" x-show=\"showModal\" x-transition:enter=\"motion-safe:ease-out duration-300\" x-transition:enter-start=\"opacity-0\" x-transition:enter-end=\"opacity-100\"><div class=\"py-6 px-4 mx-auto max-w-sm text-center rounded-lg shadow-xl sm:px-8 sm:max-w-md bg-surface0\" @click.away=\"showModal = false\" x-transition:enter=\"motion-safe:ease-out duration-300\" x-transition:enter-start=\"opacity-0 scale-90\" x-transition:enter-end=\"opacity-100 scale-100\"><div class=\"flex justify-end mb-4\"><button type=\"button\" aria-label=\"Close\" class=\"cursor-pointer text-text2 hover:text-text\" @click=\"showModal = false\"><i class=\"hgi hgi-solid hgi-cancel-01\"></i></button></div><div class=\"text-text\"><div class=\"mb-6\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		if role == "fibber" {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "<i class=\"text-4xl text-red-500 sm:text-6xl hgi hgi-solid hgi-alien\"></i>")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-		} else {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "<i class=\"text-4xl text-blue-500 sm:text-6xl hgi hgi-solid hgi-user\"></i>")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "</div><h3 class=\"mb-2 text-xl font-bold\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "</span></button><div class=\"flex overflow-auto fixed inset-0 z-30 justify-center items-center bg-black bg-opacity-50\" x-show=\"showModal\" x-transition:enter=\"motion-safe:ease-out duration-300\" x-transition:enter-start=\"opacity-0\" x-transition:enter-end=\"opacity-100\"><div class=\"py-6 px-4 mx-auto max-w-sm text-center rounded-lg shadow-xl sm:px-8 sm:max-w-md bg-surface0\" @click.away=\"showModal = false\" x-transition:enter=\"motion-safe:ease-out duration-300\" x-transition:enter-start=\"opacity-0 scale-90\" x-transition:enter-end=\"opacity-100 scale-100\"><div class=\"flex justify-end mb-4\"><button type=\"button\" aria-label=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var4 string
-		templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "role.you_are"))
+		templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "common.close"))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/components/rolemodalbutton.templ`, Line: 46, Col: 35}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/components/rolemodalbutton.templ`, Line: 33, Col: 67}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, " ")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "\" class=\"cursor-pointer text-text2 hover:text-text\" @click=\"showModal = false\"><i class=\"hgi hgi-solid hgi-cancel-01\"></i></button></div><div class=\"text-text\"><div class=\"mb-6\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		if role == "fibber" {
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "<i class=\"text-4xl text-red-500 sm:text-6xl hgi hgi-solid hgi-alien\"></i>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+		} else {
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "<i class=\"text-4xl text-blue-500 sm:text-6xl hgi hgi-solid hgi-user\"></i>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "</div><h3 class=\"mb-2 text-xl font-bold\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var5 string
-		templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(toRoleI18N(ctx, role))
+		templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "role.you_are"))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/components/rolemodalbutton.templ`, Line: 46, Col: 61}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/components/rolemodalbutton.templ`, Line: 46, Col: 35}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "</h3><p class=\"mb-6 text-text2\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, " ")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var6 string
-		templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "role.keep_secret"))
+		templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(toRoleI18N(ctx, role))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/components/rolemodalbutton.templ`, Line: 49, Col: 39}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/components/rolemodalbutton.templ`, Line: 46, Col: 61}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "</p><button type=\"button\" @click=\"showModal = false\" class=\"py-2 px-6 font-medium text-white rounded-lg transition-colors bg-blue hover:bg-sapphire\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "</h3><p class=\"mb-6 text-text2\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var7 string
-		templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "common.close"))
+		templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "role.keep_secret"))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/components/rolemodalbutton.templ`, Line: 56, Col: 35}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/components/rolemodalbutton.templ`, Line: 49, Col: 39}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "</button></div></div></div></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "</p><button type=\"button\" @click=\"showModal = false\" class=\"py-2 px-6 font-medium text-white rounded-lg transition-colors bg-blue hover:bg-sapphire\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var8 string
+		templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "common.close"))
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/components/rolemodalbutton.templ`, Line: 56, Col: 35}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "</button></div></div></div></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

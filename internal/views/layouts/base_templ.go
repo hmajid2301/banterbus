@@ -8,7 +8,10 @@ package layouts
 import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
-import "gitlab.com/hmajid2301/banterbus/internal/views/components"
+import (
+	"github.com/invopop/ctxi18n/i18n"
+	"gitlab.com/hmajid2301/banterbus/internal/views/components"
+)
 
 func Base(languages map[string]string, environment string) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
@@ -38,7 +41,7 @@ func Base(languages map[string]string, environment string) templ.Component {
 		var templ_7745c5c3_Var2 string
 		templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(environment)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/layouts/base.templ`, Line: 38, Col: 38}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/layouts/base.templ`, Line: 41, Col: 38}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
 		if templ_7745c5c3_Err != nil {
@@ -118,7 +121,33 @@ func testNameInput() templ.Component {
 			templ_7745c5c3_Var3 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "<div id=\"test-name-input\" class=\"fixed right-0 top-12 z-50 p-2 font-mono text-xs text-white bg-blue-900 bg-opacity-80 rounded-bl\"><div class=\"flex flex-col space-y-2\"><label for=\"test-name-field\" class=\"text-xs text-gray-200\">Test Name:</label> <input type=\"text\" name=\"test_name\" placeholder=\"Enter test name...\" class=\"py-1 px-2 text-xs text-black bg-white rounded border\"></div></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "<div id=\"test-name-input\" class=\"fixed right-0 top-12 z-50 p-2 font-mono text-xs text-white bg-blue-900 bg-opacity-80 rounded-bl\"><div class=\"flex flex-col space-y-2\"><label for=\"test-name-field\" class=\"text-xs text-gray-200\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var4 string
+		templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "development.test_name_label"))
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/layouts/base.templ`, Line: 174, Col: 106}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "</label> <input type=\"text\" name=\"test_name\" placeholder=\"")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var5 string
+		templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "development.test_name_placeholder"))
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/layouts/base.templ`, Line: 178, Col: 66}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "\" class=\"py-1 px-2 text-xs text-black bg-white rounded border\"></div></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

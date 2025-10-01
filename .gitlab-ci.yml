@@ -136,12 +136,6 @@ stages:
         echo "ATTIC_AUTH_KEY not set, skipping Attic setup"
        fi
 
-.k8s_auth:
-  before_script:
-    - echo "$KUBE_CONFIG" | base64 -d > ~/.kube/config
-    - chmod 600 ~/.kube/config
-    - kubectl config use-context hmajid2301/k8s-gitops:k8s
-
 .tofu:
   extends: .task
   stage: tofu
@@ -158,7 +152,7 @@ stages:
     TEMP: /tmp
   before_script:
     - !reference [.tailscale, before_script]
-    - !reference [.k8s_auth, before_script]
+    - kubectl config use-context hmajid2301/k8s-gitops:k8s
     - cd $TF_ROOT
     - |
       echo "Setting up Terraform environment..."
@@ -203,7 +197,7 @@ stages:
     entrypoint: ['']
   timeout: 10m
   before_script:
-    - !reference [.k8s_auth, before_script]
+    - kubectl config use-context hmajid2301/k8s-gitops:k8s
   script:
     - IMAGE=$(cat image_name.txt)
     - echo "Trying to deploy this image" $IMAGE
@@ -211,9 +205,6 @@ stages:
     - flux reconcile image repository banterbus
     - echo "Current deployment image:"
     - kubectl get deployment banterbus -n $NAMESPACE -o jsonpath='{.spec.template.spec.containers[0].image}' || echo "Deployment not found"
-    - echo ""
-    - echo "Updating deployment to use new image:$IMAGE"
-    - kubectl set image deployment/banterbus banterbus=$IMAGE -n $NAMESPACE
     - echo "Waiting for rollout to complete..."
     - kubectl rollout status deployment/banterbus -n $NAMESPACE --timeout=600s
     - echo "Deployment completed. Final image:"
@@ -435,7 +426,6 @@ combine:coverage:
 #     - tofu:plan:prod
 
 
-
 publish:docker:
   stage: build
   extends:
@@ -449,24 +439,6 @@ publish:docker:
     - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
     - docker tag banterbus:latest $CI_REGISTRY_IMAGE:$CI_MERGE_REQUEST_IID
     - docker push $CI_REGISTRY_IMAGE:$CI_MERGE_REQUEST_IID
-    - echo "$CI_REGISTRY_IMAGE:$CI_COMMIT_SHA" > image_name.txt
-  artifacts:
-    paths:
-      - image_name.txt
-
-publish:docker:review:
-  stage: build
-  extends:
-    - .docker
-  rules:
-    - if: $CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_LABELS =~ /deploy\/flux-preview/
-  script:
-    - task docker:build
-    - docker login -u "$CI_REGISTRY_USER" -p "$CI_JOB_TOKEN" "$CI_REGISTRY"
-    - docker tag banterbus:latest $CI_REGISTRY_IMAGE:$CI_MERGE_REQUEST_IID
-    - docker push $CI_REGISTRY_IMAGE:$CI_MERGE_REQUEST_IID
-    - docker tag banterbus:latest $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
-    - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
     - echo "$CI_REGISTRY_IMAGE:$CI_COMMIT_SHA" > image_name.txt
   artifacts:
     paths:
@@ -505,7 +477,7 @@ publish:docker:review:
       export MR_IID=$MR_IID
   script:
     - echo "Promoting merged MR image to $ENVIRONMENT"
-    - echo "Source image - $CI_REGISTRY_IMAGE:$MR_IID (MR - $MR_IID)"
+    - echo "Source image - $CI_REGISTRY_IMAGE:$MR_IID (MR $MR_IID)"
     - echo "Target image - $CI_REGISTRY_IMAGE:$TARGET_TAG"
     - docker login -u "$CI_REGISTRY_USER" -p "$CI_JOB_TOKEN" "$CI_REGISTRY"
     - echo "Pulling image from MR $MR_IID..."
@@ -518,49 +490,6 @@ publish:docker:review:
   artifacts:
     paths:
       - image_name.txt
-
-promote:dev:
-  extends: .promote
-  variables:
-    ENVIRONMENT: dev
-  rules:
-    - if: $CI_COMMIT_BRANCH == "main"
-
-deploy:dev:
-  extends: .k8s_deploy
-  stage: deploy
-  environment:
-    name: dev
-    url: https://dev.banterbus.games
-  rules:
-    - if: $CI_COMMIT_BRANCH == "main"
-  variables:
-    NAMESPACE: dev
-  needs:
-    - promote:dev
-  dependencies:
-    - promote:dev
-
-# smoke:tests:dev:
-#   extends:
-#     - .test
-#   stage: post
-#   variables:
-#     BANTERBUS_PLAYWRIGHT_URL: https://dev.banterbus.games
-#   rules:
-#     - if: $CI_COMMIT_BRANCH == "main"
-#       when: manual
-#       allow_failure: true
-#   needs:
-#     - deploy:dev
-#   script:
-#    - task tests:e2e -- -v -run 'TestE2ERound/Should_successfully_complete_an_entire_game_where_the_fibber_is_caught_first_time'
-#   artifacts:
-#     when: always
-#     paths:
-#       - coverage
-#       - tests/e2e/videos/*
-#       - tests/e2e/*.png
 
 deploy:review:
   stage: review
@@ -578,9 +507,7 @@ deploy:review:
     NAMESPACE: dev
     REVIEW_APP_NAME: banterbus-mr-$CI_MERGE_REQUEST_IID
   needs:
-    - publish:docker:review
-  dependencies:
-    - publish:docker:review
+    - publish:docker
   script:
     - IMAGE=$(cat image_name.txt)
     - echo "🚀 Deploying review app for MR $CI_MERGE_REQUEST_IID"
@@ -631,16 +558,54 @@ deploy:review:
     - echo "🌐 URL - https://mr-$CI_MERGE_REQUEST_IID.dev.banterbus.games"
     - echo "📊 Resources - Deployment, Service, Ingress created in $NAMESPACE namespace"
 
+promote:dev:
+  extends: .promote
+  variables:
+    ENVIRONMENT: dev
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+
+deploy:dev:
+  extends: .k8s_deploy
+  stage: deploy
+  environment:
+    name: dev
+    url: https://dev.banterbus.games
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+  variables:
+    NAMESPACE: dev
+  needs:
+    - promote:dev
+
+# smoke:tests:dev:
+#   extends:
+#     - .test
+#   stage: post
+#   variables:
+#     BANTERBUS_PLAYWRIGHT_URL: https://dev.banterbus.games
+#   rules:
+#     - if: $CI_COMMIT_BRANCH == "main"
+#       when: manual
+#       allow_failure: true
+#   needs:
+#     - deploy:dev
+#   script:
+#    - task tests:e2e -- -v -run 'TestE2ERound/Should_successfully_complete_an_entire_game_where_the_fibber_is_caught_first_time'
+#   artifacts:
+#     when: always
+#     paths:
+#       - coverage
+#       - tests/e2e/videos/*
+#       - tests/e2e/*.png
+
 promote:prod:
   extends: .promote
   variables:
     ENVIRONMENT: prod
   rules:
-    - if: $CI_PIPELINE_SOURCE == "schedule"
-      when: never
     - if: $CI_COMMIT_BRANCH == "main"
       when: manual
-      allow_failure: false
 
 deploy:prod:
   extends: .k8s_deploy
@@ -648,16 +613,11 @@ deploy:prod:
   environment:
     name: prod
     url: https://banterbus.games
-  needs: ["promote:prod"]
   rules:
-    - if: $CI_PIPELINE_SOURCE == "schedule"
-      when: never
     - if: $CI_COMMIT_BRANCH == "main"
-      when: manual
-      allow_failure: false
   variables:
     NAMESPACE: prod
-  dependencies:
+  needs:
     - promote:prod
 
 # smoke:tests:prod:
@@ -671,7 +631,6 @@ deploy:prod:
 #       when: always
 #     - if: $CI_COMMIT_BRANCH == "main"
 #       when: manual
-#       allow_failure: true
 #   needs:
 #     - deploy:prod
 #   script:

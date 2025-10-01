@@ -1,6 +1,7 @@
 package sections
 
 import (
+	"github.com/invopop/ctxi18n/i18n"
 	"gitlab.com/hmajid2301/banterbus/internal/service"
 	"gitlab.com/hmajid2301/banterbus/internal/views/components"
 )
@@ -12,7 +13,7 @@ templ Winner(state service.WinnerState, maxScore int) {
 				<div class="grid grid-cols-1 gap-8 w-full lg:grid-cols-2 lg:gap-16">
 					<div class="flex justify-center items-center">
 						<div class="text-center">
-							<h2 class="mb-4 text-2xl sm:text-3xl md:text-4xl">The winner is</h2>
+							<h2 class="mb-4 text-2xl sm:text-3xl md:text-4xl">{ i18n.T(ctx, "winner.the_winner_is") }</h2>
 							<p class="text-xl font-bold sm:text-2xl md:text-3xl text-gold">{ state.Players[0].Nickname }</p>
 						</div>
 					</div>

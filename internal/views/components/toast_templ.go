@@ -8,6 +8,8 @@ package components
 import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
+import "github.com/invopop/ctxi18n/i18n"
+
 func Toast() templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
@@ -29,7 +31,46 @@ func Toast() templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div x-data=\"toast\" x-init=\"globalInit($el)\"><template x-teleport=\"body\"><div class=\"fixed right-4 bottom-4 space-y-3 w-full max-w-sm z-[999]\" @add-toast.window=\"add\"><template x-for=\"toast in toasts\" :key=\"toast.id\"><div :id=\"toast.id\" x-init=\"toastInit($el)\" x-show=\"toast.show\" x-transition:enter=\"transition ease-out duration-300\" x-transition:enter-start=\"opacity-0 scale-95 translate-y-2\" x-transition:enter-end=\"opacity-100 scale-100 translate-y-0\" x-transition:leave=\"transition ease-in duration-200\" x-transition:leave-start=\"opacity-100 scale-100 translate-y-0\" x-transition:leave-end=\"opacity-0 scale-95 translate-y-2\" role=\"alert\" class=\"flex relative gap-3 items-start p-4 rounded-lg border shadow-lg backdrop-blur-sm bg-surface0/95 border-surface1\" :class=\"{\n\t\t\t\t\t\t\t'border-l-4 border-l-green': toast.type === 'success',\n\t\t\t\t\t\t\t'border-l-4 border-l-blue': toast.type === 'info', \n\t\t\t\t\t\t\t'border-l-4 border-l-yellow': toast.type === 'warning',\n\t\t\t\t\t\t\t'border-l-4 border-l-red': toast.type === 'failure'\n\t\t\t\t\t\t}\"><!-- Icon --><div class=\"flex-shrink-0 mt-0.5 w-5 h-5\"><template x-if=\"toast.type === 'success'\"><i class=\"text-lg hgi hgi-solid hgi-check-circle text-green\"></i></template><template x-if=\"toast.type === 'info'\"><i class=\"text-lg hgi hgi-solid hgi-information-circle text-blue\"></i></template><template x-if=\"toast.type === 'warning'\"><i class=\"text-lg hgi hgi-solid hgi-alert-triangle text-yellow\"></i></template><template x-if=\"toast.type === 'failure'\"><i class=\"text-lg hgi hgi-solid hgi-cancel-circle text-red\"></i></template></div><!-- Message --><div class=\"flex-1 min-w-0\"><p class=\"text-sm font-medium leading-relaxed text-text\" x-text=\"toast.message\"></p></div><!-- Action Buttons --><div class=\"flex gap-1 ml-2\"><!-- Copy Button --><button @click=\"copyToClipboard(toast.message)\" class=\"flex-shrink-0 p-1 rounded-md transition-colors duration-150 focus:ring-2 focus:outline-none text-subtext0 hover:text-text hover:bg-surface1 focus:ring-surface2\" aria-label=\"Copy message\" title=\"Copy to clipboard\"><i class=\"text-sm hgi hgi-solid hgi-copy-01\"></i></button><!-- Close Button --><button @click=\"dismiss(toast.id)\" class=\"flex-shrink-0 p-1 rounded-md transition-colors duration-150 focus:ring-2 focus:outline-none text-subtext0 hover:text-text hover:bg-surface1 focus:ring-surface2\" aria-label=\"Close notification\"><i class=\"text-sm hgi hgi-solid hgi-cancel-01\"></i></button></div></div></template></div></template></div><script type=\"text/javascript\" src=\"/static/js/toast.js\"></script>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div x-data=\"toast\" x-init=\"globalInit($el)\"><template x-teleport=\"body\"><div class=\"fixed right-4 bottom-4 space-y-3 w-full max-w-sm z-[999]\" @add-toast.window=\"add\"><template x-for=\"toast in toasts\" :key=\"toast.id\"><div :id=\"toast.id\" x-init=\"toastInit($el)\" x-show=\"toast.show\" x-transition:enter=\"transition ease-out duration-300\" x-transition:enter-start=\"opacity-0 scale-95 translate-y-2\" x-transition:enter-end=\"opacity-100 scale-100 translate-y-0\" x-transition:leave=\"transition ease-in duration-200\" x-transition:leave-start=\"opacity-100 scale-100 translate-y-0\" x-transition:leave-end=\"opacity-0 scale-95 translate-y-2\" role=\"alert\" class=\"flex relative gap-3 items-start p-4 rounded-lg border shadow-lg backdrop-blur-sm bg-surface0/95 border-surface1\" :class=\"{\n\t\t\t\t\t\t\t'border-l-4 border-l-green': toast.type === 'success',\n\t\t\t\t\t\t\t'border-l-4 border-l-blue': toast.type === 'info', \n\t\t\t\t\t\t\t'border-l-4 border-l-yellow': toast.type === 'warning',\n\t\t\t\t\t\t\t'border-l-4 border-l-red': toast.type === 'failure'\n\t\t\t\t\t\t}\"><!-- Icon --><div class=\"flex-shrink-0 mt-0.5 w-5 h-5\"><template x-if=\"toast.type === 'success'\"><i class=\"text-lg hgi hgi-solid hgi-check-circle text-green\"></i></template><template x-if=\"toast.type === 'info'\"><i class=\"text-lg hgi hgi-solid hgi-information-circle text-blue\"></i></template><template x-if=\"toast.type === 'warning'\"><i class=\"text-lg hgi hgi-solid hgi-alert-triangle text-yellow\"></i></template><template x-if=\"toast.type === 'failure'\"><i class=\"text-lg hgi hgi-solid hgi-cancel-circle text-red\"></i></template></div><!-- Message --><div class=\"flex-1 min-w-0\"><p class=\"text-sm font-medium leading-relaxed text-text\" x-text=\"toast.message\"></p></div><!-- Action Buttons --><div class=\"flex gap-1 ml-2\"><!-- Copy Button --><button @click=\"copyToClipboard(toast.message)\" class=\"flex-shrink-0 p-1 rounded-md transition-colors duration-150 focus:ring-2 focus:outline-none text-subtext0 hover:text-text hover:bg-surface1 focus:ring-surface2\" aria-label=\"")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var2 string
+		templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "common.copy_message"))
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/components/toast.templ`, Line: 60, Col: 55}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "\" title=\"")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var3 string
+		templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "common.copy_to_clipboard"))
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/components/toast.templ`, Line: 61, Col: 55}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "\"><i class=\"text-sm hgi hgi-solid hgi-copy-01\"></i></button><!-- Close Button --><button @click=\"dismiss(toast.id)\" class=\"flex-shrink-0 p-1 rounded-md transition-colors duration-150 focus:ring-2 focus:outline-none text-subtext0 hover:text-text hover:bg-surface1 focus:ring-surface2\" aria-label=\"")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var4 string
+		templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "common.close_notification"))
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/components/toast.templ`, Line: 69, Col: 61}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "\"><i class=\"text-sm hgi hgi-solid hgi-cancel-01\"></i></button></div></div></template></div></template></div><script type=\"text/javascript\" src=\"/static/js/toast.js\"></script>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

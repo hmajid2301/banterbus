@@ -5,6 +5,7 @@ import (
 	"github.com/invopop/ctxi18n/i18n"
 	"gitlab.com/hmajid2301/banterbus/internal/service"
 	"gitlab.com/hmajid2301/banterbus/internal/views/components"
+	"strings"
 )
 
 templ Lobby(code string, players []service.LobbyPlayer, currentPlayer service.LobbyPlayer, rulesContent templ.Component) {
@@ -58,7 +59,7 @@ templ Lobby(code string, players []service.LobbyPlayer, currentPlayer service.Lo
 					</div>
 					<div class="mb-6">
 						<p id="kick-modal-description" class="text-text2">
-							<span x-text="`Are you sure you want to kick ${kickNickname}? They will be removed from the game immediately.`"></span>
+							<span x-text={ fmt.Sprintf("`%s ${kickNickname} %s`", i18n.T(ctx, "lobby.kick_player_message_template"), i18n.T(ctx, "lobby.kick_player_message_suffix")) }></span>
 						</p>
 					</div>
 					<div class="flex justify-end space-x-3">
@@ -85,7 +86,7 @@ templ Lobby(code string, players []service.LobbyPlayer, currentPlayer service.Lo
 			InputName: "room_code",
 			Value:     code,
 		}, templ.Attributes{"disabled": true}) {
-			<button class="inline-flex absolute top-1/2 justify-center items-center p-2 rounded-lg text-text2 end-2 hover:text-blue" aria-label="Copy Join Link" @click={ getClipboardString(code) }>
+			<button class="inline-flex absolute top-1/2 justify-center items-center p-2 rounded-lg text-text2 end-2 hover:text-blue" aria-label={ i18n.T(ctx, "common.copy_join_link") } @click={ getClipboardString(code) }>
 				<i class="hgi hgi-solid hgi-copy-01"></i>
 			</button>
 		}
@@ -104,7 +105,7 @@ templ Lobby(code string, players []service.LobbyPlayer, currentPlayer service.Lo
 							}
 							if currentPlayer.IsHost && !player.IsHost {
 								<button
-									aria-label="Kick Player"
+									aria-label={ i18n.T(ctx, "common.kick_player") }
 									@click={ getKickModalClick(player.Nickname, code) }
 									class="flex absolute -top-1 -right-1 justify-center items-center w-8 h-8 text-white bg-red-500 rounded-full shadow-lg transition-colors hover:bg-red-600"
 								>
@@ -114,7 +115,7 @@ templ Lobby(code string, players []service.LobbyPlayer, currentPlayer service.Lo
 							<img src={ player.Avatar } alt="avatar" class="object-cover w-full h-full rounded-full"/>
 							if currentPlayer == player {
 								<form id="update_avatar_form" hx-vals='{"message_type": "generate_new_avatar" }' ws-send>
-									<button class="flex absolute -right-1 -bottom-1 justify-center items-center w-8 h-8 text-white bg-blue-500 rounded-full shadow-lg transition-colors hover:bg-blue-600" aria-label="Update Avatar">
+									<button class="flex absolute -right-1 -bottom-1 justify-center items-center w-8 h-8 text-white bg-blue-500 rounded-full shadow-lg transition-colors hover:bg-blue-600" aria-label={ i18n.T(ctx, "common.update_avatar") }>
 										<i class="text-sm hgi hgi-solid hgi-redo-02"></i>
 									</button>
 								</form>
@@ -123,7 +124,7 @@ templ Lobby(code string, players []service.LobbyPlayer, currentPlayer service.Lo
 						if currentPlayer == player {
 							<form id="update_nickname_form" hx-vals='{"message_type": "update_player_nickname" }' ws-send>
 								<div class="flex flex-row items-center space-x-2">
-									<input type="text" name="player_nickname" value={ player.Nickname } class="py-2 px-4 font-semibold text-center rounded-xl border-1 bg-overlay0 placeholder-surface0 border-text2" placeholder="Your nickname"/>
+									<input type="text" name="player_nickname" value={ player.Nickname } class="py-2 px-4 font-semibold text-center rounded-xl border-1 bg-overlay0 placeholder-surface0 border-text2" placeholder={ i18n.T(ctx, "common.your_nickname_placeholder") }/>
 								</div>
 							</form>
 						} else {
@@ -131,9 +132,9 @@ templ Lobby(code string, players []service.LobbyPlayer, currentPlayer service.Lo
 						}
 						<div class="flex justify-center">
 							if player.IsReady {
-								<span class="py-1 px-3 text-xs font-bold text-black rounded-full bg-green">READY</span>
+								<span class="py-1 px-3 text-xs font-bold text-black rounded-full bg-green">{ strings.ToUpper(i18n.T(ctx, "common.ready_button")) }</span>
 							} else {
-								<span class="py-1 px-3 text-xs font-bold text-black rounded-full bg-red">NOT READY</span>
+								<span class="py-1 px-3 text-xs font-bold text-black rounded-full bg-red">{ strings.ToUpper(i18n.T(ctx, "common.not_ready_button")) }</span>
 							}
 						</div>
 					</div>

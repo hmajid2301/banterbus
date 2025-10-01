@@ -152,53 +152,53 @@ func Voting(state service.VotingState, currentPlayer service.PlayerWithVoting) t
 		}
 		for _, player := range state.Players {
 			if currentPlayer.ID.String() != player.ID.String() {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "<div class=\"flex flex-col items-center p-4 rounded-lg border sm:p-6 bg-overlay0 border-text2\"><form id=\"vote_for_player\" hx-vals='{\"message_type\": \"submit_vote\" }' ws-send><button type=\"submit\" hx-include=\"this\" class=\"flex flex-col items-center cursor-pointer\" aria-label=\"Submit Vote\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "<div class=\"flex flex-col items-center p-4 rounded-lg border sm:p-6 bg-overlay0 border-text2\"><form id=\"vote_for_player\" hx-vals='{\"message_type\": \"submit_vote\" }' ws-send><button type=\"submit\" hx-include=\"this\" class=\"flex flex-col items-center cursor-pointer\" aria-label=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var9 string
-				templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(player.Nickname)
+				templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "voting.submit_vote"))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/sections/voting.templ`, Line: 42, Col: 27}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/sections/voting.templ`, Line: 41, Col: 145}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "<div class=\"w-24 h-24 rounded-full sm:w-20 sm:h-20 bg-surface1\"><img src=\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var10 string
-				templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(player.Avatar)
+				templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(player.Nickname)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/sections/voting.templ`, Line: 44, Col: 35}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/sections/voting.templ`, Line: 42, Col: 27}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "\" alt=\"avatar\" class=\"object-cover w-full h-full rounded-full\"></div><p>Answer ")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "<div class=\"w-24 h-24 rounded-full sm:w-20 sm:h-20 bg-surface1\"><img src=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var11 string
-				templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(player.Answer)
+				templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(player.Avatar)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/sections/voting.templ`, Line: 47, Col: 33}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/sections/voting.templ`, Line: 44, Col: 35}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "</p><p class=\"text-center\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "\" alt=\"avatar\" class=\"object-cover w-full h-full rounded-full\"></div><p>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var12 string
-				templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "voting.votes"))
+				templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "voting.answer_label"))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/sections/voting.templ`, Line: 49, Col: 62}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/sections/voting.templ`, Line: 47, Col: 47}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
 				if templ_7745c5c3_Err != nil {
@@ -209,66 +209,64 @@ func Voting(state service.VotingState, currentPlayer service.PlayerWithVoting) t
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var13 string
-				templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs(strconv.Itoa(player.Votes))
+				templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs(player.Answer)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/sections/voting.templ`, Line: 49, Col: 94}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/sections/voting.templ`, Line: 47, Col: 66}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "</p><input class=\"hidden\" name=\"voted_player_nickname\" value=\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "</p><p class=\"text-center\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var14 string
-				templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs(player.Nickname)
+				templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "voting.votes"))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/sections/voting.templ`, Line: 50, Col: 84}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/sections/voting.templ`, Line: 49, Col: 62}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var14))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "\"></button></form></div>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, ": ")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-			}
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "</div><form id=\"toggle_ready_form\" hx-vals='{\"message_type\": \"toggle_voting_is_ready\" }' ws-send class=\"w-full\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		if currentPlayer.IsReady {
-			templ_7745c5c3_Var15 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
-				templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
-				templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
-				if !templ_7745c5c3_IsBuffer {
-					defer func() {
-						templ_7745c5c3_BufErr := templruntime.ReleaseBuffer(templ_7745c5c3_Buffer)
-						if templ_7745c5c3_Err == nil {
-							templ_7745c5c3_Err = templ_7745c5c3_BufErr
-						}
-					}()
-				}
-				ctx = templ.InitializeContext(ctx)
-				var templ_7745c5c3_Var16 string
-				templ_7745c5c3_Var16, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "common.ready_button"))
+				var templ_7745c5c3_Var15 string
+				templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.JoinStringErrs(strconv.Itoa(player.Votes))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/sections/voting.templ`, Line: 60, Col: 43}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/sections/voting.templ`, Line: 49, Col: 94}
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var15))
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "</p><input class=\"hidden\" name=\"voted_player_nickname\" value=\"")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				var templ_7745c5c3_Var16 string
+				templ_7745c5c3_Var16, templ_7745c5c3_Err = templ.JoinStringErrs(player.Nickname)
+				if templ_7745c5c3_Err != nil {
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/sections/voting.templ`, Line: 50, Col: 84}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var16))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				return nil
-			})
-			templ_7745c5c3_Err = components.Button(components.ButtonProps{TextColor: "text-black", BackgroundColor: "bg-text2", Label: i18n.T(ctx, "common.ready_button")}, templ.Attributes{"type": "submit", "hx-include": "this"}).Render(templ.WithChildren(ctx, templ_7745c5c3_Var15), templ_7745c5c3_Buffer)
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "\"></button></form></div>")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
 			}
-		} else {
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, "</div><form id=\"toggle_ready_form\" hx-vals='{\"message_type\": \"toggle_voting_is_ready\" }' ws-send class=\"w-full\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		if currentPlayer.IsReady {
 			templ_7745c5c3_Var17 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 				templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 				templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
@@ -282,9 +280,9 @@ func Voting(state service.VotingState, currentPlayer service.PlayerWithVoting) t
 				}
 				ctx = templ.InitializeContext(ctx)
 				var templ_7745c5c3_Var18 string
-				templ_7745c5c3_Var18, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "common.not_ready_button"))
+				templ_7745c5c3_Var18, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "common.ready_button"))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/sections/voting.templ`, Line: 64, Col: 47}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/sections/voting.templ`, Line: 60, Col: 43}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var18))
 				if templ_7745c5c3_Err != nil {
@@ -292,12 +290,40 @@ func Voting(state service.VotingState, currentPlayer service.PlayerWithVoting) t
 				}
 				return nil
 			})
-			templ_7745c5c3_Err = components.Button(components.ButtonProps{Label: i18n.T(ctx, "common.not_ready_button")}, templ.Attributes{"type": "submit", "hx-include": "this"}).Render(templ.WithChildren(ctx, templ_7745c5c3_Var17), templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = components.Button(components.ButtonProps{TextColor: "text-black", BackgroundColor: "bg-text2", Label: i18n.T(ctx, "common.ready_button")}, templ.Attributes{"type": "submit", "hx-include": "this"}).Render(templ.WithChildren(ctx, templ_7745c5c3_Var17), templ_7745c5c3_Buffer)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+		} else {
+			templ_7745c5c3_Var19 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
+				templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
+				templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
+				if !templ_7745c5c3_IsBuffer {
+					defer func() {
+						templ_7745c5c3_BufErr := templruntime.ReleaseBuffer(templ_7745c5c3_Buffer)
+						if templ_7745c5c3_Err == nil {
+							templ_7745c5c3_Err = templ_7745c5c3_BufErr
+						}
+					}()
+				}
+				ctx = templ.InitializeContext(ctx)
+				var templ_7745c5c3_Var20 string
+				templ_7745c5c3_Var20, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "common.not_ready_button"))
+				if templ_7745c5c3_Err != nil {
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/sections/voting.templ`, Line: 64, Col: 47}
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var20))
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				return nil
+			})
+			templ_7745c5c3_Err = components.Button(components.ButtonProps{Label: i18n.T(ctx, "common.not_ready_button")}, templ.Attributes{"type": "submit", "hx-include": "this"}).Render(templ.WithChildren(ctx, templ_7745c5c3_Var19), templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "</form></div></div></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "</form></div></div></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

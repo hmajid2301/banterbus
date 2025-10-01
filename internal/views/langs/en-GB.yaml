@@ -10,6 +10,13 @@ en-GB:
     close: "Close"
     cancel: "Cancel"
     confirm: "Confirm"
+    copy_join_link: "Copy Join Link"
+    kick_player: "Kick Player"
+    update_avatar: "Update Avatar"
+    your_nickname_placeholder: "Your nickname"
+    copy_message: "Copy message"
+    copy_to_clipboard: "Copy to clipboard"
+    close_notification: "Close notification"
   home:
     nickname_label: "Nickname"
     nickname_placeholder: "Enter your nickname"
@@ -22,6 +29,8 @@ en-GB:
     start_game_button: "Start Game"
     kick_player_title: "Kick Player"
     kick_player_message: "Are you sure you want to kick {player}? They will be removed from the game immediately."
+    kick_player_message_template: "Are you sure you want to kick"
+    kick_player_message_suffix: "? They will be removed from the game immediately."
     kick_player_confirm: "Kick Player"
   role:
     sush: "Sush don't tell anyone!"
@@ -33,6 +42,8 @@ en-GB:
     submit_answer_button: "Submit Answer"
   voting:
     votes: "Votes"
+    answer_label: "Answer"
+    submit_vote: "Submit Vote"
   reveal:
     voted_for: "You all voted for"
     they_were: "They were"
@@ -45,3 +56,16 @@ en-GB:
     free_form: "Free Form"
     multiple_choice: "Multiple Choice"
     most_likely: "Most Likely"
+  winner:
+    the_winner_is: "The winner is"
+  score:
+    scoreboard: "Scoreboard"
+  join:
+    join_game_room: "Join Game Room"
+    join_description: "Enter your nickname and the room code to join the game"
+  components:
+    player_avatar_alt: "Player avatar"
+    logo_alt: "Logo"
+  development:
+    test_name_label: "Test Name:"
+    test_name_placeholder: "Enter test name..."

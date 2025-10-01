@@ -13,6 +13,7 @@ import (
 	"github.com/invopop/ctxi18n/i18n"
 	"gitlab.com/hmajid2301/banterbus/internal/service"
 	"gitlab.com/hmajid2301/banterbus/internal/views/components"
+	"strings"
 )
 
 func Lobby(code string, players []service.LobbyPlayer, currentPlayer service.LobbyPlayer, rulesContent templ.Component) templ.Component {
@@ -43,7 +44,7 @@ func Lobby(code string, players []service.LobbyPlayer, currentPlayer service.Lob
 		var templ_7745c5c3_Var2 string
 		templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "lobby.kick_player_title"))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/sections/lobby.templ`, Line: 49, Col: 47}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/sections/lobby.templ`, Line: 50, Col: 47}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
 		if templ_7745c5c3_Err != nil {
@@ -56,43 +57,56 @@ func Lobby(code string, players []service.LobbyPlayer, currentPlayer service.Lob
 		var templ_7745c5c3_Var3 string
 		templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "common.close"))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/sections/lobby.templ`, Line: 54, Col: 47}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/sections/lobby.templ`, Line: 55, Col: 47}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "\"><i class=\"hgi hgi-solid hgi-cancel-01\"></i></button></div><div class=\"mb-6\"><p id=\"kick-modal-description\" class=\"text-text2\"><span x-text=\"`Are you sure you want to kick ${kickNickname}? They will be removed from the game immediately.`\"></span></p></div><div class=\"flex justify-end space-x-3\"><button class=\"py-2 px-4 text-sm font-medium rounded-md focus:ring-2 focus:ring-offset-2 focus:outline-none text-text2 bg-surface1 hover:bg-surface2 focus:ring-blue\" @click=\"show = false\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "\"><i class=\"hgi hgi-solid hgi-cancel-01\"></i></button></div><div class=\"mb-6\"><p id=\"kick-modal-description\" class=\"text-text2\"><span x-text=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var4 string
-		templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "common.cancel"))
+		templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("`%s ${kickNickname} %s`", i18n.T(ctx, "lobby.kick_player_message_template"), i18n.T(ctx, "lobby.kick_player_message_suffix")))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/sections/lobby.templ`, Line: 69, Col: 37}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/sections/lobby.templ`, Line: 62, Col: 160}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "</button> <button class=\"py-2 px-4 text-sm font-medium text-black rounded-md hover:bg-red-600 focus:ring-2 focus:ring-offset-2 focus:outline-none bg-red focus:ring-red\" ws-send x-bind:hx-vals=\"JSON.stringify({message_type: 'kick_player', room_code: kickRoomCode, player_nickname_to_kick: kickNickname})\" @click=\"show = false\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "\"></span></p></div><div class=\"flex justify-end space-x-3\"><button class=\"py-2 px-4 text-sm font-medium rounded-md focus:ring-2 focus:ring-offset-2 focus:outline-none text-text2 bg-surface1 hover:bg-surface2 focus:ring-blue\" @click=\"show = false\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var5 string
-		templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "lobby.kick_player_confirm"))
+		templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "common.cancel"))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/sections/lobby.templ`, Line: 77, Col: 49}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/sections/lobby.templ`, Line: 70, Col: 37}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "</button></div></div></div></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "</button> <button class=\"py-2 px-4 text-sm font-medium text-black rounded-md hover:bg-red-600 focus:ring-2 focus:ring-offset-2 focus:outline-none bg-red focus:ring-red\" ws-send x-bind:hx-vals=\"JSON.stringify({message_type: 'kick_player', room_code: kickRoomCode, player_nickname_to_kick: kickNickname})\" @click=\"show = false\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Var6 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
+		var templ_7745c5c3_Var6 string
+		templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "lobby.kick_player_confirm"))
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/sections/lobby.templ`, Line: 78, Col: 49}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "</button></div></div></div></div>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Var7 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 			templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 			templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
 			if !templ_7745c5c3_IsBuffer {
@@ -104,20 +118,33 @@ func Lobby(code string, players []service.LobbyPlayer, currentPlayer service.Lob
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "<button class=\"inline-flex absolute top-1/2 justify-center items-center p-2 rounded-lg text-text2 end-2 hover:text-blue\" aria-label=\"Copy Join Link\" @click=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "<button class=\"inline-flex absolute top-1/2 justify-center items-center p-2 rounded-lg text-text2 end-2 hover:text-blue\" aria-label=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var7 string
-			templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(getClipboardString(code))
+			var templ_7745c5c3_Var8 string
+			templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "common.copy_join_link"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/sections/lobby.templ`, Line: 88, Col: 185}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/sections/lobby.templ`, Line: 89, Col: 173}
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "\"><i class=\"hgi hgi-solid hgi-copy-01\"></i></button>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "\" @click=\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var9 string
+			templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(getClipboardString(code))
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/sections/lobby.templ`, Line: 89, Col: 209}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "\"><i class=\"hgi hgi-solid hgi-copy-01\"></i></button>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -127,11 +154,11 @@ func Lobby(code string, players []service.LobbyPlayer, currentPlayer service.Lob
 			LabelName: i18n.T(ctx, "common.roomcode_label"),
 			InputName: "room_code",
 			Value:     code,
-		}, templ.Attributes{"disabled": true}).Render(templ.WithChildren(ctx, templ_7745c5c3_Var6), templ_7745c5c3_Buffer)
+		}, templ.Attributes{"disabled": true}).Render(templ.WithChildren(ctx, templ_7745c5c3_Var7), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "<div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "<div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -139,208 +166,195 @@ func Lobby(code string, players []service.LobbyPlayer, currentPlayer service.Lob
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "</div><div class=\"flex flex-col space-y-4 text-text2\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "</div><div class=\"flex flex-col space-y-4 text-text2\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		for _, player := range players {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "<div class=\"flex flex-col\"><div class=\"flex relative flex-col justify-between items-center p-2 space-y-2 w-full rounded-lg sm:flex-row sm:space-y-0 sm:space-x-2 bg-surface1\"><div class=\"relative w-24 h-24 rounded-full border-2 border-white sm:w-20 sm:h-20 bg-overlay0\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "<div class=\"flex flex-col\"><div class=\"flex relative flex-col justify-between items-center p-2 space-y-2 w-full rounded-lg sm:flex-row sm:space-y-0 sm:space-x-2 bg-surface1\"><div class=\"relative w-24 h-24 rounded-full border-2 border-white sm:w-20 sm:h-20 bg-overlay0\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			if player.IsHost {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "<div class=\"absolute -top-3 -left-3 sm:top-0 sm:left-1/2 sm:transform sm:-translate-x-1/2 sm:-translate-y-1/2\"><i class=\"text-3xl text-yellow-400 sm:text-2xl hgi hgi-solid hgi-crown drop-shadow-lg\"></i></div>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "<div class=\"absolute -top-3 -left-3 sm:top-0 sm:left-1/2 sm:transform sm:-translate-x-1/2 sm:-translate-y-1/2\"><i class=\"text-3xl text-yellow-400 sm:text-2xl hgi hgi-solid hgi-crown drop-shadow-lg\"></i></div>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			}
 			if currentPlayer.IsHost && !player.IsHost {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "<button aria-label=\"Kick Player\" @click=\"")
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-				var templ_7745c5c3_Var8 string
-				templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(getKickModalClick(player.Nickname, code))
-				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/sections/lobby.templ`, Line: 108, Col: 58}
-				}
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "\" class=\"flex absolute -top-1 -right-1 justify-center items-center w-8 h-8 text-white bg-red-500 rounded-full shadow-lg transition-colors hover:bg-red-600\"><i class=\"text-sm hgi hgi-solid hgi-delete-02\"></i></button> ")
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "<img src=\"")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			var templ_7745c5c3_Var9 string
-			templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(player.Avatar)
-			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/sections/lobby.templ`, Line: 114, Col: 31}
-			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "\" alt=\"avatar\" class=\"object-cover w-full h-full rounded-full\"> ")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			if currentPlayer == player {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "<form id=\"update_avatar_form\" hx-vals='{\"message_type\": \"generate_new_avatar\" }' ws-send><button class=\"flex absolute -right-1 -bottom-1 justify-center items-center w-8 h-8 text-white bg-blue-500 rounded-full shadow-lg transition-colors hover:bg-blue-600\" aria-label=\"Update Avatar\"><i class=\"text-sm hgi hgi-solid hgi-redo-02\"></i></button></form>")
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "</div>")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			if currentPlayer == player {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "<form id=\"update_nickname_form\" hx-vals='{\"message_type\": \"update_player_nickname\" }' ws-send><div class=\"flex flex-row items-center space-x-2\"><input type=\"text\" name=\"player_nickname\" value=\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "<button aria-label=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var10 string
-				templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(player.Nickname)
+				templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "common.kick_player"))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/sections/lobby.templ`, Line: 126, Col: 74}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/sections/lobby.templ`, Line: 108, Col: 55}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "\" class=\"py-2 px-4 font-semibold text-center rounded-xl border-1 bg-overlay0 placeholder-surface0 border-text2\" placeholder=\"Your nickname\"></div></form>")
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-			} else {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, "<p class=\"font-semibold text-center\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "\" @click=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var11 string
-				templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(player.Nickname)
+				templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(getKickModalClick(player.Nickname, code))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/sections/lobby.templ`, Line: 130, Col: 61}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/sections/lobby.templ`, Line: 109, Col: 58}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "</p>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "\" class=\"flex absolute -top-1 -right-1 justify-center items-center w-8 h-8 text-white bg-red-500 rounded-full shadow-lg transition-colors hover:bg-red-600\"><i class=\"text-sm hgi hgi-solid hgi-delete-02\"></i></button> ")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, "<div class=\"flex justify-center\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "<img src=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			if player.IsReady {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, "<span class=\"py-1 px-3 text-xs font-bold text-black rounded-full bg-green\">READY</span>")
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-			} else {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, "<span class=\"py-1 px-3 text-xs font-bold text-black rounded-full bg-red\">NOT READY</span>")
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
+			var templ_7745c5c3_Var12 string
+			templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(player.Avatar)
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/sections/lobby.templ`, Line: 115, Col: 31}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, "</div></div></div>")
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, "<div class=\"flex flex-col items-center space-y-2 w-full sm:flex-row sm:space-y-0 sm:space-x-2\"><form id=\"toggle_ready_form\" hx-vals='{\"message_type\": \"toggle_player_is_ready\" }' ws-send class=\"w-full\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		if currentPlayer.IsReady {
-			templ_7745c5c3_Var12 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
-				templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
-				templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
-				if !templ_7745c5c3_IsBuffer {
-					defer func() {
-						templ_7745c5c3_BufErr := templruntime.ReleaseBuffer(templ_7745c5c3_Buffer)
-						if templ_7745c5c3_Err == nil {
-							templ_7745c5c3_Err = templ_7745c5c3_BufErr
-						}
-					}()
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "\" alt=\"avatar\" class=\"object-cover w-full h-full rounded-full\"> ")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			if currentPlayer == player {
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "<form id=\"update_avatar_form\" hx-vals='{\"message_type\": \"generate_new_avatar\" }' ws-send><button class=\"flex absolute -right-1 -bottom-1 justify-center items-center w-8 h-8 text-white bg-blue-500 rounded-full shadow-lg transition-colors hover:bg-blue-600\" aria-label=\"")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
 				}
-				ctx = templ.InitializeContext(ctx)
 				var templ_7745c5c3_Var13 string
-				templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "common.not_ready_button"))
+				templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "common.update_avatar"))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/sections/lobby.templ`, Line: 146, Col: 47}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/sections/lobby.templ`, Line: 118, Col: 224}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				return nil
-			})
-			templ_7745c5c3_Err = components.Button(components.ButtonProps{TextColor: "text-black", BackgroundColor: "bg-text2", Label: i18n.T(ctx, "common.not_ready_button")}, templ.Attributes{"type": "submit", "hx-include": "this"}).Render(templ.WithChildren(ctx, templ_7745c5c3_Var12), templ_7745c5c3_Buffer)
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, "\"><i class=\"text-sm hgi hgi-solid hgi-redo-02\"></i></button></form>")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "</div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-		} else {
-			templ_7745c5c3_Var14 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
-				templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
-				templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
-				if !templ_7745c5c3_IsBuffer {
-					defer func() {
-						templ_7745c5c3_BufErr := templruntime.ReleaseBuffer(templ_7745c5c3_Buffer)
-						if templ_7745c5c3_Err == nil {
-							templ_7745c5c3_Err = templ_7745c5c3_BufErr
-						}
-					}()
-				}
-				ctx = templ.InitializeContext(ctx)
-				var templ_7745c5c3_Var15 string
-				templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "common.ready_button"))
+			if currentPlayer == player {
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, "<form id=\"update_nickname_form\" hx-vals='{\"message_type\": \"update_player_nickname\" }' ws-send><div class=\"flex flex-row items-center space-x-2\"><input type=\"text\" name=\"player_nickname\" value=\"")
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/sections/lobby.templ`, Line: 150, Col: 43}
+					return templ_7745c5c3_Err
+				}
+				var templ_7745c5c3_Var14 string
+				templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs(player.Nickname)
+				if templ_7745c5c3_Err != nil {
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/sections/lobby.templ`, Line: 127, Col: 74}
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var14))
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, "\" class=\"py-2 px-4 font-semibold text-center rounded-xl border-1 bg-overlay0 placeholder-surface0 border-text2\" placeholder=\"")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				var templ_7745c5c3_Var15 string
+				templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "common.your_nickname_placeholder"))
+				if templ_7745c5c3_Err != nil {
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/sections/lobby.templ`, Line: 127, Col: 248}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var15))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				return nil
-			})
-			templ_7745c5c3_Err = components.Button(components.ButtonProps{Label: i18n.T(ctx, "common.ready_button")}, templ.Attributes{"type": "submit", "hx-include": "this"}).Render(templ.WithChildren(ctx, templ_7745c5c3_Var14), templ_7745c5c3_Buffer)
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, "\"></div></form>")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+			} else {
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, "<p class=\"font-semibold text-center\">")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				var templ_7745c5c3_Var16 string
+				templ_7745c5c3_Var16, templ_7745c5c3_Err = templ.JoinStringErrs(player.Nickname)
+				if templ_7745c5c3_Err != nil {
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/sections/lobby.templ`, Line: 131, Col: 61}
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var16))
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, "</p>")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 27, "<div class=\"flex justify-center\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			if player.IsReady {
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 28, "<span class=\"py-1 px-3 text-xs font-bold text-black rounded-full bg-green\">")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				var templ_7745c5c3_Var17 string
+				templ_7745c5c3_Var17, templ_7745c5c3_Err = templ.JoinStringErrs(strings.ToUpper(i18n.T(ctx, "common.ready_button")))
+				if templ_7745c5c3_Err != nil {
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/sections/lobby.templ`, Line: 135, Col: 136}
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var17))
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 29, "</span>")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+			} else {
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 30, "<span class=\"py-1 px-3 text-xs font-bold text-black rounded-full bg-red\">")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				var templ_7745c5c3_Var18 string
+				templ_7745c5c3_Var18, templ_7745c5c3_Err = templ.JoinStringErrs(strings.ToUpper(i18n.T(ctx, "common.not_ready_button")))
+				if templ_7745c5c3_Err != nil {
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/sections/lobby.templ`, Line: 137, Col: 138}
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var18))
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 31, "</span>")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 32, "</div></div></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 27, "</form>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 33, "<div class=\"flex flex-col items-center space-y-2 w-full sm:flex-row sm:space-y-0 sm:space-x-2\"><form id=\"toggle_ready_form\" hx-vals='{\"message_type\": \"toggle_player_is_ready\" }' ws-send class=\"w-full\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		if currentPlayer.IsHost && allPlayersReady(players) {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 28, "<form id=\"start_game_form\" hx-vals='{\"message_type\": \"start_game\" }' ws-send class=\"w-full\"><input class=\"hidden\" name=\"room_code\" value=\"")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			var templ_7745c5c3_Var16 string
-			templ_7745c5c3_Var16, templ_7745c5c3_Err = templ.JoinStringErrs(code)
-			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/sections/lobby.templ`, Line: 156, Col: 57}
-			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var16))
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 29, "\">")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			templ_7745c5c3_Var17 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
+		if currentPlayer.IsReady {
+			templ_7745c5c3_Var19 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 				templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 				templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
 				if !templ_7745c5c3_IsBuffer {
@@ -352,27 +366,105 @@ func Lobby(code string, players []service.LobbyPlayer, currentPlayer service.Lob
 					}()
 				}
 				ctx = templ.InitializeContext(ctx)
-				var templ_7745c5c3_Var18 string
-				templ_7745c5c3_Var18, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "lobby.start_game_button"))
+				var templ_7745c5c3_Var20 string
+				templ_7745c5c3_Var20, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "common.not_ready_button"))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/sections/lobby.templ`, Line: 158, Col: 47}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/sections/lobby.templ`, Line: 147, Col: 47}
 				}
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var18))
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var20))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				return nil
 			})
-			templ_7745c5c3_Err = components.Button(components.ButtonProps{Label: i18n.T(ctx, "lobby.start_game_button")}, templ.Attributes{"type": "submit", "hx-include": "this"}).Render(templ.WithChildren(ctx, templ_7745c5c3_Var17), templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = components.Button(components.ButtonProps{TextColor: "text-black", BackgroundColor: "bg-text2", Label: i18n.T(ctx, "common.not_ready_button")}, templ.Attributes{"type": "submit", "hx-include": "this"}).Render(templ.WithChildren(ctx, templ_7745c5c3_Var19), templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 30, "</form>")
+		} else {
+			templ_7745c5c3_Var21 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
+				templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
+				templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
+				if !templ_7745c5c3_IsBuffer {
+					defer func() {
+						templ_7745c5c3_BufErr := templruntime.ReleaseBuffer(templ_7745c5c3_Buffer)
+						if templ_7745c5c3_Err == nil {
+							templ_7745c5c3_Err = templ_7745c5c3_BufErr
+						}
+					}()
+				}
+				ctx = templ.InitializeContext(ctx)
+				var templ_7745c5c3_Var22 string
+				templ_7745c5c3_Var22, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "common.ready_button"))
+				if templ_7745c5c3_Err != nil {
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/sections/lobby.templ`, Line: 151, Col: 43}
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var22))
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				return nil
+			})
+			templ_7745c5c3_Err = components.Button(components.ButtonProps{Label: i18n.T(ctx, "common.ready_button")}, templ.Attributes{"type": "submit", "hx-include": "this"}).Render(templ.WithChildren(ctx, templ_7745c5c3_Var21), templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 31, "</div></div></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 34, "</form>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		if currentPlayer.IsHost && allPlayersReady(players) {
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 35, "<form id=\"start_game_form\" hx-vals='{\"message_type\": \"start_game\" }' ws-send class=\"w-full\"><input class=\"hidden\" name=\"room_code\" value=\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var23 string
+			templ_7745c5c3_Var23, templ_7745c5c3_Err = templ.JoinStringErrs(code)
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/sections/lobby.templ`, Line: 157, Col: 57}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var23))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 36, "\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Var24 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
+				templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
+				templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
+				if !templ_7745c5c3_IsBuffer {
+					defer func() {
+						templ_7745c5c3_BufErr := templruntime.ReleaseBuffer(templ_7745c5c3_Buffer)
+						if templ_7745c5c3_Err == nil {
+							templ_7745c5c3_Err = templ_7745c5c3_BufErr
+						}
+					}()
+				}
+				ctx = templ.InitializeContext(ctx)
+				var templ_7745c5c3_Var25 string
+				templ_7745c5c3_Var25, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "lobby.start_game_button"))
+				if templ_7745c5c3_Err != nil {
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/sections/lobby.templ`, Line: 159, Col: 47}
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var25))
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				return nil
+			})
+			templ_7745c5c3_Err = components.Button(components.ButtonProps{Label: i18n.T(ctx, "lobby.start_game_button")}, templ.Attributes{"type": "submit", "hx-include": "this"}).Render(templ.WithChildren(ctx, templ_7745c5c3_Var24), templ_7745c5c3_Buffer)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 37, "</form>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 38, "</div></div></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

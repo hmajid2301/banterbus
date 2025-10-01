@@ -155,7 +155,7 @@ func TestE2ERounds(t *testing.T) {
 			require.NoError(t, err)
 		}
 
-		searchText := fmt.Sprintf("Answer %s", fibberPlayerVotedName)
+		searchText := fmt.Sprintf("Answer: %s", fibberPlayerVotedName)
 		fibberTest = hostPlayerPage.GetByText(searchText)
 		expect.Locator(fibberTest).ToBeVisible()
 		for _, normal := range normals {

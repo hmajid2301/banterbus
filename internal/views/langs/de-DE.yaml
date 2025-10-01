@@ -10,6 +10,13 @@ de-DE:
     close: "Schließen"
     cancel: "Abbrechen"
     confirm: "Bestätigen"
+    copy_join_link: "Beitrittslink kopieren"
+    kick_player: "Spieler entfernen"
+    update_avatar: "Avatar aktualisieren"
+    your_nickname_placeholder: "Ihr Spitzname"
+    copy_message: "Nachricht kopieren"
+    copy_to_clipboard: "In Zwischenablage kopieren"
+    close_notification: "Benachrichtigung schließen"
   home:
     nickname_label: "Spitzname"
     nickname_placeholder: "Gib deinen Spitznamen ein"
@@ -22,6 +29,8 @@ de-DE:
     start_game_button: "Spiel starten"
     kick_player_title: "Spieler entfernen"
     kick_player_message: "Sind Sie sicher, dass Sie {player} entfernen möchten? Der Spieler wird sofort aus dem Spiel entfernt."
+    kick_player_message_template: "Sind Sie sicher, dass Sie"
+    kick_player_message_suffix: "entfernen möchten? Der Spieler wird sofort aus dem Spiel entfernt."
     kick_player_confirm: "Spieler entfernen"
   role:
     sush: "Pssst, sag es niemandem!"
@@ -33,6 +42,8 @@ de-DE:
     submit_answer_button: "Antwort Abschickenr"
   voting:
     votes: "Stimmen"
+    answer_label: "Antwort"
+    submit_vote: "Stimme abgeben"
   reveal:
     voted_for: "Sie haben alle gestimmt für"
     they_were: "Sie waren"
@@ -45,3 +56,16 @@ de-DE:
     free_form: "Freie Form"
     multiple_choice: "Mehrfachauswahl"
     most_likely: "Am wahrscheinlichsten"
+  winner:
+    the_winner_is: "Der Gewinner ist"
+  score:
+    scoreboard: "Anzeigetafel"
+  join:
+    join_game_room: "Spielraum beitreten"
+    join_description: "Geben Sie Ihren Spitznamen und den Raumcode ein, um dem Spiel beizutreten"
+  components:
+    player_avatar_alt: "Spieler-Avatar"
+    logo_alt: "Logo"
+  development:
+    test_name_label: "Testname:"
+    test_name_placeholder: "Testname eingeben..."
