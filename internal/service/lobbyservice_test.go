@@ -453,7 +453,7 @@ func TestLobbyServiceJoin(t *testing.T) {
 
 		ctx := t.Context()
 		generatedPlayerID := uuid.Must(uuid.NewV4())
-		playerNickname := ""
+		playerNickname := "TestPlayer"
 		generatedAvatar := "https://api.dicebear.com/9.x/bottts-neutral/svg?radius=20&seed=" + playerNickname
 
 		mockRandom.EXPECT().GetID().Return(generatedPlayerID, nil).Once()
@@ -509,7 +509,7 @@ func TestLobbyServiceJoin(t *testing.T) {
 		require.NoError(t, err)
 
 		generatedPlayerID := uuid.Must(uuid.NewV4())
-		playerNickname := ""
+		playerNickname := "TestPlayer"
 		generatedAvatar := "https://api.dicebear.com/9.x/bottts-neutral/svg?radius=20&seed=" + playerNickname
 
 		mockRandom.EXPECT().GetID().Return(generatedPlayerID, nil).Once()
@@ -558,7 +558,7 @@ func TestLobbyServiceJoin(t *testing.T) {
 		require.NoError(t, err)
 
 		generatedPlayerID := uuid.Must(uuid.NewV4())
-		playerNickname := ""
+		playerNickname := "TestPlayer"
 		generatedAvatar := "https://api.dicebear.com/9.x/bottts-neutral/svg?radius=20&seed=" + playerNickname
 
 		mockRandom.EXPECT().GetID().Return(generatedPlayerID, nil).Once()

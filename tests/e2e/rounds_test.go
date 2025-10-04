@@ -195,7 +195,7 @@ func TestE2ERounds(t *testing.T) {
 			player.WaitForTimeout(500)
 		}
 
-		// Wait for answer form to be available (indicating question phase is active)
+		// Wait for answer form to be available
 		answerForm := fibber.Locator("#submit_answer_form")
 		err = answerForm.WaitFor(playwright.LocatorWaitForOptions{
 			State:   playwright.WaitForSelectorStateVisible,

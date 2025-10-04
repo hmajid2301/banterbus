@@ -144,14 +144,8 @@ tasks:
     cmds:
       - mkdir -p coverage
 
-      - |
-        if [ -d "coverage/e2e" ] && [ "$(ls -A coverage/e2e 2>/dev/null)" ]; then
-          echo "Converting e2e server coverage data..."
-          go tool covdata textfmt -i=coverage/e2e -o coverage/e2e-server.out
-        else
-          echo "No E2E server coverage data found"
-          touch coverage/e2e-server.out
-        fi
+      - echo "Converting e2e server coverage data..."
+      - go tool covdata textfmt -i=coverage/e2e -o coverage/e2e-server.out
 
       - touch coverage/unit.out coverage/integration.out coverage/e2e-tests.out
 
@@ -166,9 +160,25 @@ tasks:
           fi
         done
 
-      - go tool cover -func=coverage/combined.out
+      - |
+        echo "=== FULL PROJECT COVERAGE (including all files) ==="
+        go tool cover -func=coverage/combined.out | tail -5
+        
+         echo ""
+         echo "Generating business logic coverage (excluding generated/mock files)..."
+         # Simple approach: filter out generated files from combined coverage
+         cat coverage/combined.out | grep -v -E "(mocks|_templ\.go|/views/|banterbustest)" > coverage/business-logic.out
+         echo ""
+         echo "=== BUSINESS LOGIC COVERAGE (excluding mocks, templates, views) ==="
+         go tool cover -func=coverage/business-logic.out | tail -5
+        
+        # For GitLab CI: create the main coverage file as business logic only
+        cp coverage/business-logic.out coverage/gitlab-ci.out
+        
       - go tool cover -html=coverage/combined.out -o coverage/coverage.html
-      - echo "Coverage report generated at coverage/coverage.html"
+      - go tool cover -html=coverage/business-logic.out -o coverage/business-logic.html
+      - echo "Full coverage report generated at coverage/coverage.html"
+      - echo "Business logic coverage report generated at coverage/business-logic.html"
 
   watch:
     desc: Watch for file changes and run commands, i.e. generate templates or tailwindcss

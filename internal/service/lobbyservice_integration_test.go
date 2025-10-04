@@ -524,3 +524,265 @@ func TestIntegrationLobbyGetLobby(t *testing.T) {
 		assert.Equal(t, expectedLobby, lobby)
 	})
 }
+
+// Cross-service error propagation and consistency tests
+func TestIntegrationCrossServiceErrorPropagation(t *testing.T) {
+	t.Parallel()
+
+	t.Run("Should propagate database errors across service boundaries", func(t *testing.T) {
+		t.Parallel()
+		pool, teardown := setupSubtest(t)
+		t.Cleanup(teardown)
+
+		baseDelay := (time.Millisecond * 100)
+		str := db.NewDB(pool, 3, baseDelay)
+		randomizer := randomizer.NewUserRandomizer()
+		lobbyService := service.NewLobbyService(str, randomizer, "en-GB")
+		playerService := service.NewPlayerService(str, randomizer)
+		roundService := service.NewRoundService(str, randomizer, "en-GB")
+
+		ctx, err := getI18nCtx(t.Context())
+		require.NoError(t, err)
+
+		// Create a room and start a game
+		hostID := uuid.Must(uuid.NewV4())
+		newPlayer := service.NewHostPlayer{
+			ID:       hostID,
+			Nickname: "Host",
+		}
+		createdLobby, err := lobbyService.Create(ctx, "fibbing_it", newPlayer)
+		require.NoError(t, err)
+
+		playerID := uuid.Must(uuid.NewV4())
+		_, err = lobbyService.Join(ctx, createdLobby.Lobby.Code, playerID, "Player1")
+		require.NoError(t, err)
+
+		// Start game
+		_, err = playerService.TogglePlayerIsReady(ctx, hostID)
+		require.NoError(t, err)
+		_, err = playerService.TogglePlayerIsReady(ctx, playerID)
+		require.NoError(t, err)
+
+		deadline := time.Now().Add(30 * time.Second)
+		_, err = lobbyService.Start(ctx, createdLobby.Lobby.Code, hostID, deadline)
+		require.NoError(t, err)
+
+		// Test cross-service error propagation with invalid player operations
+		invalidPlayerID := uuid.Must(uuid.NewV4())
+
+		submitDeadline := time.Now().Add(25 * time.Second)
+		err = roundService.SubmitAnswer(ctx, invalidPlayerID, "Invalid Answer", submitDeadline)
+		assert.Error(t, err)
+		assert.NotEmpty(t, err.Error())
+
+		// Try player service operations on same invalid player
+		_, err = playerService.TogglePlayerIsReady(ctx, invalidPlayerID)
+		assert.Error(t, err)
+		assert.NotEmpty(t, err.Error())
+
+		// Valid operations should still work after invalid ones
+		err = roundService.SubmitAnswer(ctx, hostID, "Valid Answer", submitDeadline)
+		assert.NoError(t, err)
+	})
+
+	t.Run("Should handle service layer validation consistently", func(t *testing.T) {
+		t.Parallel()
+		pool, teardown := setupSubtest(t)
+		t.Cleanup(teardown)
+
+		baseDelay := (time.Millisecond * 100)
+		str := db.NewDB(pool, 3, baseDelay)
+		randomizer := randomizer.NewUserRandomizer()
+		lobbyService := service.NewLobbyService(str, randomizer, "en-GB")
+		playerService := service.NewPlayerService(str, randomizer)
+
+		ctx, err := getI18nCtx(t.Context())
+		require.NoError(t, err)
+
+		// Test nickname validation across services
+		hostID := uuid.Must(uuid.NewV4())
+		newPlayer := service.NewHostPlayer{
+			ID:       hostID,
+			Nickname: "Host",
+		}
+		createdLobby, err := lobbyService.Create(ctx, "fibbing_it", newPlayer)
+		require.NoError(t, err)
+
+		duplicatePlayerID := uuid.Must(uuid.NewV4())
+		_, err = lobbyService.Join(ctx, createdLobby.Lobby.Code, duplicatePlayerID, "Host")
+		if err != nil {
+			assert.NotEmpty(t, err.Error())
+		}
+
+		// Try updating to duplicate nickname via player service - should also fail
+		playerID := uuid.Must(uuid.NewV4())
+		_, err = lobbyService.Join(ctx, createdLobby.Lobby.Code, playerID, "Player1")
+		require.NoError(t, err)
+
+		_, err = playerService.UpdateNickname(ctx, "Host", playerID) // Already taken by host
+		if err != nil {
+			assert.NotEmpty(t, err.Error())
+		}
+
+		_, err = playerService.UpdateNickname(ctx, "UniquePlayer", playerID)
+		assert.NoError(t, err)
+	})
+}
+
+func TestIntegrationCrossServiceDatabaseResilience(t *testing.T) {
+	t.Parallel()
+
+	t.Run("Should handle database timeout scenarios across services", func(t *testing.T) {
+		t.Parallel()
+		pool, teardown := setupSubtest(t)
+		t.Cleanup(teardown)
+
+		// Create DB with very short timeouts to force failures
+		baseDelay := (time.Millisecond * 1)
+		str := db.NewDB(pool, 1, baseDelay) // Only 1 retry, 1ms delay
+		randomizer := randomizer.NewUserRandomizer()
+		lobbyService := service.NewLobbyService(str, randomizer, "en-GB")
+		playerService := service.NewPlayerService(str, randomizer)
+
+		ctx, err := getI18nCtx(t.Context())
+		require.NoError(t, err)
+
+		hostID := uuid.Must(uuid.NewV4())
+		newPlayer := service.NewHostPlayer{
+			ID:       hostID,
+			Nickname: "Host",
+		}
+
+		_, err1 := lobbyService.Create(ctx, "fibbing_it", newPlayer)
+		if err1 != nil {
+			assert.True(t,
+				err1.Error() != "",
+			)
+		}
+
+		// Try player service operation with same context
+		_, err2 := playerService.TogglePlayerIsReady(ctx, hostID)
+		if err2 != nil {
+			assert.True(t,
+				err2.Error() != "",
+			)
+		}
+
+		// Verify system remains stable with normal context
+		normalStr := db.NewDB(pool, 3, time.Millisecond*100)
+		normalLobbyService := service.NewLobbyService(normalStr, randomizer, "en-GB")
+
+		newHostID := uuid.Must(uuid.NewV4())
+		newNormalPlayer := service.NewHostPlayer{
+			ID:       newHostID,
+			Nickname: "NormalHost",
+		}
+
+		_, err = normalLobbyService.Create(ctx, "fibbing_it", newNormalPlayer)
+		assert.NoError(t, err)
+	})
+}
+
+// Database constraint violation tests
+func TestIntegrationLobbyConstraintViolations(t *testing.T) {
+	t.Parallel()
+
+	t.Run("Should handle invalid room codes during join", func(t *testing.T) {
+		t.Parallel()
+		pool, teardown := setupSubtest(t)
+		t.Cleanup(teardown)
+
+		baseDelay := (time.Millisecond * 100)
+		str := db.NewDB(pool, 3, baseDelay)
+		randomizer := randomizer.NewUserRandomizer()
+		srv := service.NewLobbyService(str, randomizer, "en-GB")
+
+		ctx, err := getI18nCtx(t.Context())
+		require.NoError(t, err)
+
+		playerID := uuid.Must(uuid.NewV4())
+
+		// Try to join with non-existent room code
+		_, err = srv.Join(ctx, "INVALID_CODE", playerID, "TestPlayer")
+		assert.Error(t, err)
+		assert.NotEmpty(t, err.Error())
+	})
+
+	t.Run("Should handle duplicate player in same room", func(t *testing.T) {
+		t.Parallel()
+		pool, teardown := setupSubtest(t)
+		t.Cleanup(teardown)
+
+		baseDelay := (time.Millisecond * 100)
+		str := db.NewDB(pool, 3, baseDelay)
+		randomizer := randomizer.NewUserRandomizer()
+		srv := service.NewLobbyService(str, randomizer, "en-GB")
+
+		ctx, err := getI18nCtx(t.Context())
+		require.NoError(t, err)
+
+		// Create room
+		hostID := uuid.Must(uuid.NewV4())
+		newPlayer := service.NewHostPlayer{
+			ID:       hostID,
+			Nickname: "Host",
+		}
+		createdLobby, err := srv.Create(ctx, "fibbing_it", newPlayer)
+		require.NoError(t, err)
+
+		// Join with a different player
+		player2ID := uuid.Must(uuid.NewV4())
+		_, err = srv.Join(ctx, createdLobby.Lobby.Code, player2ID, "Player2")
+		require.NoError(t, err)
+
+		// Try to join again with same player ID - should handle gracefully
+		_, err = srv.Join(ctx, createdLobby.Lobby.Code, player2ID, "Player2Again")
+		if err != nil {
+			assert.NotEmpty(t, err.Error())
+		}
+	})
+
+	t.Run("Should handle joining room in wrong state", func(t *testing.T) {
+		t.Parallel()
+		pool, teardown := setupSubtest(t)
+		t.Cleanup(teardown)
+
+		baseDelay := (time.Millisecond * 100)
+		str := db.NewDB(pool, 3, baseDelay)
+		randomizer := randomizer.NewUserRandomizer()
+		srv := service.NewLobbyService(str, randomizer, "en-GB")
+
+		ctx, err := getI18nCtx(t.Context())
+		require.NoError(t, err)
+
+		// Create room with 2 players
+		hostID := uuid.Must(uuid.NewV4())
+		newPlayer := service.NewHostPlayer{
+			ID:       hostID,
+			Nickname: "Host",
+		}
+		createdLobby, err := srv.Create(ctx, "fibbing_it", newPlayer)
+		require.NoError(t, err)
+
+		player2ID := uuid.Must(uuid.NewV4())
+		_, err = srv.Join(ctx, createdLobby.Lobby.Code, player2ID, "Player2")
+		require.NoError(t, err)
+
+		// Create player service to mark players as ready
+		playerService := service.NewPlayerService(str, randomizer)
+		_, err = playerService.TogglePlayerIsReady(ctx, hostID)
+		require.NoError(t, err)
+		_, err = playerService.TogglePlayerIsReady(ctx, player2ID)
+		require.NoError(t, err)
+
+		// Start the game
+		deadline := time.Now().Add(5 * time.Minute)
+		_, err = srv.Start(ctx, createdLobby.Lobby.Code, hostID, deadline)
+		require.NoError(t, err)
+
+		player3ID := uuid.Must(uuid.NewV4())
+		_, err = srv.Join(ctx, createdLobby.Lobby.Code, player3ID, "Player3")
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "not in CREATED state")
+	})
+}

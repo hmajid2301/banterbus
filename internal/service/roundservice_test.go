@@ -2153,7 +2153,6 @@ func TestRoundServiceUpdateStateToScore(t *testing.T) {
 		FibberEvadeCapture: 150,
 	}
 
-	// Additional test cases could include: multiple voting rounds, edge cases for scoring,
 	// different round types, and boundary conditions. Table tests would improve maintainability.
 	t.Run("Should successfully update score state, fibber caught in one round of voting", func(t *testing.T) {
 		t.Parallel()
@@ -3153,5 +3152,124 @@ func TestRoundServiceConcurrentOperations(t *testing.T) {
 		for i := 0; i < 10; i++ {
 			<-done
 		}
+	})
+}
+
+func TestRoundServiceAreAllPlayersVotingReady(t *testing.T) {
+	t.Parallel()
+
+	gameStateID := uuid.Must(uuid.FromString("0193a62a-4dff-774c-850a-b1fe78e2a8d2"))
+
+	t.Run("Should return true when all players are voting ready", func(t *testing.T) {
+		t.Parallel()
+		mockStore := mockService.NewMockStorer(t)
+		mockRandom := mockService.NewMockRandomizer(t)
+		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
+
+		ctx := t.Context()
+
+		mockStore.EXPECT().GetGameState(ctx, gameStateID).Return(db.GameState{
+			State: db.FibbingItVoting.String(),
+		}, nil)
+
+		playerID := uuid.Must(uuid.NewV7())
+		mockStore.EXPECT().GetAllPlayersByGameStateID(ctx, gameStateID).Return([]db.GetAllPlayersByGameStateIDRow{
+			{ID: playerID},
+		}, nil)
+
+		mockStore.EXPECT().GetAllPlayersVotingIsReady(ctx, playerID).Return(true, nil)
+
+		allReady, err := srv.AreAllPlayersVotingReady(ctx, gameStateID)
+
+		assert.NoError(t, err)
+		assert.True(t, allReady)
+	})
+
+	t.Run("Should return error when game state is not voting", func(t *testing.T) {
+		t.Parallel()
+		mockStore := mockService.NewMockStorer(t)
+		mockRandom := mockService.NewMockRandomizer(t)
+		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
+
+		ctx := t.Context()
+
+		mockStore.EXPECT().GetGameState(ctx, gameStateID).Return(db.GameState{
+			State: db.FibbingITQuestion.String(), // Wrong state
+		}, nil)
+
+		allReady, err := srv.AreAllPlayersVotingReady(ctx, gameStateID)
+
+		assert.Error(t, err)
+		assert.False(t, allReady)
+		assert.Contains(t, err.Error(), "game state is not in FIBBING_IT_VOTING state")
+	})
+
+	t.Run("Should return error when no players in room", func(t *testing.T) {
+		t.Parallel()
+		mockStore := mockService.NewMockStorer(t)
+		mockRandom := mockService.NewMockRandomizer(t)
+		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
+
+		ctx := t.Context()
+
+		mockStore.EXPECT().GetGameState(ctx, gameStateID).Return(db.GameState{
+			State: db.FibbingItVoting.String(),
+		}, nil)
+
+		mockStore.EXPECT().GetAllPlayersByGameStateID(ctx, gameStateID).Return([]db.GetAllPlayersByGameStateIDRow{}, nil)
+
+		allReady, err := srv.AreAllPlayersVotingReady(ctx, gameStateID)
+
+		assert.Error(t, err)
+		assert.False(t, allReady)
+		assert.Contains(t, err.Error(), "no players in room")
+	})
+}
+
+func TestRoundServiceGetRevealState(t *testing.T) {
+	t.Parallel()
+
+	playerID := uuid.Must(uuid.FromString("0193a62a-4dff-774c-850a-b1fe78e2a8d2"))
+
+	t.Run("Should return error when player not found", func(t *testing.T) {
+		t.Parallel()
+		mockStore := mockService.NewMockStorer(t)
+		mockRandom := mockService.NewMockRandomizer(t)
+		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
+
+		ctx := t.Context()
+
+		mockStore.EXPECT().GetGameStateByPlayerID(ctx, playerID).Return(db.GameState{}, xerrors.New("player not found"))
+
+		revealState, err := srv.GetRevealState(ctx, playerID)
+
+		assert.Error(t, err)
+		assert.Empty(t, revealState)
+	})
+}
+
+func TestRoundServiceGetScoreState(t *testing.T) {
+	t.Parallel()
+
+	playerID := uuid.Must(uuid.FromString("0193a62a-4dff-774c-850a-b1fe78e2a8d2"))
+
+	t.Run("Should return error when player not found", func(t *testing.T) {
+		t.Parallel()
+		mockStore := mockService.NewMockStorer(t)
+		mockRandom := mockService.NewMockRandomizer(t)
+		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
+
+		ctx := t.Context()
+		scoring := service.Scoring{
+			GuessedFibber:      5,
+			FibberEvadeCapture: 3,
+		}
+
+		mockStore.EXPECT().GetGameStateByPlayerID(ctx, playerID).Return(db.GameState{}, xerrors.New("player not found"))
+
+		scoreState, err := srv.GetScoreState(ctx, scoring, playerID)
+
+		assert.Error(t, err)
+		assert.Empty(t, scoreState)
 	})
 }

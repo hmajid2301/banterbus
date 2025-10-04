@@ -1047,7 +1047,7 @@ func getNextRoundType(roundType string) string {
 	return nextRoundMap[roundType]
 }
 
-func (r RoundService) getValidAnswers(ctx context.Context, roundType string, playerID uuid.UUID) ([]string, error) {
+func (r *RoundService) getValidAnswers(ctx context.Context, roundType string, playerID uuid.UUID) ([]string, error) {
 	answers := []string{}
 	if roundType == RoundTypeMultipleChoice {
 		answers = []string{"Strongly Agree", "Agree", "Neutral", "Disagree", "Strongly Disagree"}

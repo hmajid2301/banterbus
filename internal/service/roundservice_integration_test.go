@@ -224,22 +224,17 @@ func TestIntegrationRoundServiceUpdateStateToVoting(t *testing.T) {
 			normalQuestion = questionState.Players[1].Question
 		}
 
-		// The test should verify the correct data is present, not the order
-		// Check that we have exactly 2 players
 		assert.Len(t, votingState.Players, 2)
 
-		// Check that the basic state information is correct
 		assert.Equal(t, normalQuestion, votingState.Question)
 		assert.Equal(t, questionState.Round, votingState.Round)
 		assert.Equal(t, questionState.GameStateID, votingState.GameStateID)
 
-		// Verify that both players are present with correct data (order independent)
 		playerMap := make(map[string]service.PlayerWithVoting)
 		for _, player := range votingState.Players {
 			playerMap[player.Nickname] = player
 		}
 
-		// Verify host player data
 		hostPlayer, hostExists := playerMap["Host Player"]
 		assert.True(t, hostExists, "Host Player should exist in voting state")
 		if hostExists {
@@ -249,7 +244,6 @@ func TestIntegrationRoundServiceUpdateStateToVoting(t *testing.T) {
 			assert.False(t, hostPlayer.IsReady)
 		}
 
-		// Verify other player data
 		otherPlayer, otherExists := playerMap["Other Player"]
 		assert.True(t, otherExists, "Other Player should exist in voting state")
 		if otherExists {
@@ -258,7 +252,6 @@ func TestIntegrationRoundServiceUpdateStateToVoting(t *testing.T) {
 			assert.Equal(t, 0, otherPlayer.Votes)
 			assert.False(t, otherPlayer.IsReady)
 		}
-		// Check that deadline is positive (actual timing may vary in tests)
 		assert.Greater(t, votingState.Deadline.Seconds(), 0.0)
 	})
 
@@ -595,8 +588,6 @@ func TestIntegrationRoundServiceUpdateStateToQuestion(t *testing.T) {
 		PartialEqual(t, expectedQuestionState, questionState, diffOpts)
 		assert.LessOrEqual(t, int(questionState.Deadline.Seconds()), 120)
 		// Note: Players might receive the same question in free_form rounds when testing
-		// This is expected behavior as the question pool might be limited in test data
-		// In production with a larger question pool, this would be less likely
 		if questionState.Players[0].Question != questionState.Players[1].Question {
 			t.Logf("Players received different questions as expected")
 		} else {
@@ -761,7 +752,6 @@ func TestIntegrationRoundServiceUpdateStateToScoring(t *testing.T) {
 		diffOpts := cmpopts.IgnoreFields(scoreState, "Deadline", "Players")
 		PartialEqual(t, expectedScoreState, scoreState, diffOpts)
 		assert.LessOrEqual(t, int(expectedScoreState.Deadline.Seconds()), 120)
-		// Verify player scores separately since ElementsMatch has issues with complex structs
 		assert.Len(t, scoreState.Players, len(expectedScoreState.Players))
 		for _, expectedPlayer := range expectedScoreState.Players {
 			found := false
@@ -852,7 +842,6 @@ func TestIntegrationRoundServiceUpdateStateToWinner(t *testing.T) {
 		require.NoError(t, err)
 
 		// Get voting state to extract game state ID - this is the current API design
-		// A future improvement could return the game state ID directly from scoreState
 		votingState, err := roundService.GetVotingState(ctx, scoreState.Players[0].ID)
 		require.NoError(t, err)
 
@@ -864,7 +853,6 @@ func TestIntegrationRoundServiceUpdateStateToWinner(t *testing.T) {
 		assert.NoError(t, err)
 		assert.NotNil(t, winnerState)
 
-		// Verify winner state structure instead of exact values since scores depend on game flow
 		assert.NotEmpty(t, winnerState.Players, "Winner state should have players")
 		for _, player := range winnerState.Players {
 			assert.NotEmpty(t, player.ID, "Player should have an ID")
@@ -918,10 +906,8 @@ func TestIntegrationRoundServiceGetWinnerState(t *testing.T) {
 		assert.NoError(t, err)
 		assert.NotNil(t, winnerState)
 
-		// Verify winner state is properly structured with players sorted by score
 		assert.NotEmpty(t, winnerState.Players, "Winner state should have players")
 
-		// Verify players are sorted by score (highest first)
 		if len(winnerState.Players) > 1 {
 			for i := 0; i < len(winnerState.Players)-1; i++ {
 				assert.GreaterOrEqual(t, winnerState.Players[i].Score, winnerState.Players[i+1].Score,
@@ -929,7 +915,6 @@ func TestIntegrationRoundServiceGetWinnerState(t *testing.T) {
 			}
 		}
 
-		// Verify each player has required fields
 		for _, player := range winnerState.Players {
 			assert.NotEmpty(t, player.ID, "Player should have an ID")
 			assert.NotEmpty(t, player.Nickname, "Player should have a nickname")

@@ -18,6 +18,7 @@ import (
 	"github.com/gobwas/ws/wsutil"
 	"github.com/gofrs/uuid/v5"
 	"github.com/invopop/ctxi18n"
+	"github.com/invopop/ctxi18n/i18n"
 	"github.com/redis/go-redis/v9"
 	slogctx "github.com/veqryn/slog-context"
 	"go.opentelemetry.io/otel"
@@ -627,7 +628,8 @@ func (s *Subscriber) handleMessageData(
 
 				telemetry.RecordValidationError(ctx, message.MessageType, validationErr.Err.Error(), "")
 				telemetry.RecordValidationErrorMetric(ctx)
-				webSocketErr := s.updateClientAboutErr(ctx, client.playerID, validationErr.Err.Error())
+				translatedError := translateValidationError(ctx, validationErr.Err.Error())
+				webSocketErr := s.updateClientAboutErr(ctx, client.playerID, translatedError)
 				if webSocketErr != nil {
 					return ctx, errors.Join(err, webSocketErr)
 				}
@@ -645,4 +647,23 @@ func (s *Subscriber) handleMessageData(
 	s.logger.DebugContext(ctx, "finished handling request")
 	span.SetStatus(codes.Ok, "handle_message_successful")
 	return ctx, nil
+}
+
+func translateValidationError(ctx context.Context, errMsg string) string {
+	switch {
+	case strings.Contains(errMsg, "player_nickname is required"):
+		return i18n.T(ctx, "validation.player_nickname_required")
+	case strings.Contains(errMsg, "room_code is required"):
+		return i18n.T(ctx, "validation.room_code_required")
+	case strings.Contains(errMsg, "game_name is required"):
+		return i18n.T(ctx, "validation.game_name_required")
+	case strings.Contains(errMsg, "answer is required"):
+		return i18n.T(ctx, "validation.answer_required")
+	case strings.Contains(errMsg, "player_nickname_to_kick is required"):
+		return i18n.T(ctx, "validation.player_nickname_to_kick_required")
+	case strings.Contains(errMsg, "player nickname is required"):
+		return i18n.T(ctx, "validation.player_nickname_required_voting")
+	default:
+		return errMsg
+	}
 }

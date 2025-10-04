@@ -8,6 +8,7 @@ import (
 	"regexp"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/playwright-community/playwright-go"
 )
@@ -123,6 +124,10 @@ func setupTest(t *testing.T, playerNum int) ([]playwright.Page, error) {
 	testName := sanitizeTestName(t.Name())
 
 	for i := range playerNum {
+		// Add small delay between players to reduce server load
+		if i > 0 {
+			time.Sleep(100 * time.Millisecond)
+		}
 		tempVideoDir := filepath.Join("videos", "temp", fmt.Sprintf("%s_%d", testName, i))
 		if err := os.MkdirAll(tempVideoDir, 0755); err != nil {
 			return nil, fmt.Errorf("failed to create temp video dir: %w", err)
@@ -131,6 +136,9 @@ func setupTest(t *testing.T, playerNum int) ([]playwright.Page, error) {
 		context, err := browser.NewContext(playwright.BrowserNewContextOptions{
 			RecordVideo: &playwright.RecordVideo{Dir: tempVideoDir},
 			Permissions: []string{"clipboard-read", "clipboard-write"},
+			// Reduce resource usage
+			IgnoreHttpsErrors: playwright.Bool(true),
+			ColorScheme:       playwright.ColorSchemeLight,
 		})
 		if err != nil {
 			return nil, fmt.Errorf("context creation failed: %w", err)
@@ -142,26 +150,50 @@ func setupTest(t *testing.T, playerNum int) ([]playwright.Page, error) {
 			return nil, fmt.Errorf("page creation failed: %w", err)
 		}
 
-		page.SetDefaultTimeout(10000)
+		page.SetDefaultTimeout(8000)
 
-		_, err = page.Goto(webappURL, playwright.PageGotoOptions{
-			WaitUntil: playwright.WaitUntilStateDomcontentloaded,
-			Timeout:   playwright.Float(5000),
-		})
-		if err != nil {
-			return nil, fmt.Errorf("failed to go to URL: %w", err)
+		// Retry navigation up to 2 times
+		var navErr error
+		for retry := 0; retry < 2; retry++ {
+			_, navErr = page.Goto(webappURL, playwright.PageGotoOptions{
+				WaitUntil: playwright.WaitUntilStateDomcontentloaded,
+				Timeout:   playwright.Float(5000),
+			})
+			if navErr == nil {
+				break
+			}
+			if retry < 1 {
+				time.Sleep(500 * time.Millisecond)
+			}
+		}
+		if navErr != nil {
+			return nil, fmt.Errorf("failed to go to URL after retries: %w", navErr)
 		}
 
-		err = page.WaitForLoadState(playwright.PageWaitForLoadStateOptions{
-			State: playwright.LoadStateNetworkidle,
+		_, err = page.WaitForSelector("input[name='player_nickname']", playwright.PageWaitForSelectorOptions{
+			Timeout: playwright.Float(3000),
 		})
 		if err != nil {
-			return nil, fmt.Errorf("failed to wait for page load: %w", err)
+			return nil, fmt.Errorf("failed to wait for page elements: %w", err)
 		}
 
-		err = page.Locator(`input[name="test_name"]`).Fill(testName)
+		// Wait for websocket connection to be established
+		_, err = page.WaitForFunction("() => window.htmx && window.htmx.trigger", playwright.PageWaitForFunctionOptions{
+			Timeout: playwright.Float(3000),
+		})
 		if err != nil {
-			return nil, fmt.Errorf("failed to set test name: %w", err)
+			return nil, fmt.Errorf("failed to wait for htmx/websocket setup: %w", err)
+		}
+
+		// Try to set test name if the field exists (optional for debugging)
+		testNameLocator := page.Locator(`input[name="test_name"]`)
+		count, err := testNameLocator.Count()
+		if err == nil && count > 0 {
+			err = testNameLocator.Fill(testName)
+			if err != nil {
+				// Don't fail the test if we can't set the test name
+				log.Printf("Warning: failed to set test name: %v", err)
+			}
 		}
 
 		pages = append(pages, page)

@@ -447,3 +447,62 @@ func TestPlayerServiceTogglePlayerIsReady(t *testing.T) {
 		assert.Error(t, err)
 	})
 }
+
+func TestPlayerServiceUpdateLocale(t *testing.T) {
+	t.Parallel()
+
+	t.Run("Should successfully update locale", func(t *testing.T) {
+		t.Parallel()
+		mockStore := mockService.NewMockStorer(t)
+		mockRandomizer := mockService.NewMockRandomizer(t)
+		srv := service.NewPlayerService(mockStore, mockRandomizer)
+
+		ctx := t.Context()
+		newLocale := "fr-FR"
+
+		mockStore.EXPECT().UpdateLocale(ctx, db.UpdateLocaleParams{
+			ID:     playerID,
+			Locale: pgtype.Text{String: newLocale},
+		}).Return(db.Player{}, nil)
+
+		err := srv.UpdateLocale(ctx, playerID, newLocale)
+		assert.NoError(t, err)
+	})
+
+	t.Run("Should handle player not found gracefully", func(t *testing.T) {
+		t.Parallel()
+		mockStore := mockService.NewMockStorer(t)
+		mockRandomizer := mockService.NewMockRandomizer(t)
+		srv := service.NewPlayerService(mockStore, mockRandomizer)
+
+		ctx := t.Context()
+		newLocale := "fr-FR"
+
+		mockStore.EXPECT().UpdateLocale(ctx, db.UpdateLocaleParams{
+			ID:     playerID,
+			Locale: pgtype.Text{String: newLocale},
+		}).Return(db.Player{}, xerrors.New("no rows in result set"))
+
+		err := srv.UpdateLocale(ctx, playerID, newLocale)
+		assert.NoError(t, err) // Should return nil for "no rows in result set"
+	})
+
+	t.Run("Should return error for other database errors", func(t *testing.T) {
+		t.Parallel()
+		mockStore := mockService.NewMockStorer(t)
+		mockRandomizer := mockService.NewMockRandomizer(t)
+		srv := service.NewPlayerService(mockStore, mockRandomizer)
+
+		ctx := t.Context()
+		newLocale := "fr-FR"
+
+		mockStore.EXPECT().UpdateLocale(ctx, db.UpdateLocaleParams{
+			ID:     playerID,
+			Locale: pgtype.Text{String: newLocale},
+		}).Return(db.Player{}, xerrors.New("database connection error"))
+
+		err := srv.UpdateLocale(ctx, playerID, newLocale)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "database connection error")
+	})
+}

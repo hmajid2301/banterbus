@@ -43,6 +43,18 @@ func (r *LobbyService) Create(
 	gameName string,
 	newHostPlayer NewHostPlayer,
 ) (LobbyCreationResult, error) {
+	validGameTypes := []string{"fibbing_it"}
+	isValidGame := false
+	for _, validType := range validGameTypes {
+		if gameName == validType {
+			isValidGame = true
+			break
+		}
+	}
+	if !isValidGame {
+		return LobbyCreationResult{}, fmt.Errorf("invalid game type: %s", gameName)
+	}
+
 	var newPlayerID uuid.UUID
 	var err error
 
@@ -137,6 +149,10 @@ func (r *LobbyService) Join(
 	playerID uuid.UUID,
 	nickname string,
 ) (LobbyJoinResult, error) {
+	if nickname == "" {
+		return LobbyJoinResult{}, fmt.Errorf("nickname cannot be empty")
+	}
+
 	var newPlayerID uuid.UUID
 	var err error
 

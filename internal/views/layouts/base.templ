@@ -80,7 +80,7 @@ templ Base(languages map[string]string, environment string) {
 
 			htmx.on("htmx:wsBeforeMessage", (evt) => {
 				try {
-					const { message, type } = JSON.parse(event.detail.message);
+					const { message, type } = JSON.parse(evt.detail.message);
 					window.toast(message, type);
 					if (type === "failure") {
 						console.log(message);
@@ -89,7 +89,7 @@ templ Base(languages map[string]string, environment string) {
 					console.error(
 						"Failed to parse or handle message:",
 						err,
-						event.detail.message,
+						evt.detail.message,
 					);
 				}
 			});

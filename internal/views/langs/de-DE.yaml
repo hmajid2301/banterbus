@@ -66,6 +66,13 @@ de-DE:
   components:
     player_avatar_alt: "Spieler-Avatar"
     logo_alt: "Logo"
+  validation:
+    player_nickname_required: "Spielername ist erforderlich"
+    room_code_required: "Raumcode ist erforderlich"
+    game_name_required: "Spielname ist erforderlich"
+    answer_required: "Antwort ist erforderlich"
+    player_nickname_to_kick_required: "Spielername zum Rauswerfen ist erforderlich"
+    player_nickname_required_voting: "Spielername ist erforderlich"
   development:
     test_name_label: "Testname:"
     test_name_placeholder: "Testname eingeben..."

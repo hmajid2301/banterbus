@@ -114,11 +114,11 @@ func (q *QuestionState) Start(ctx context.Context) {
 				// Context not cancelled, this might be a transient database issue
 				q.Subscriber.logger.WarnContext(
 					ctx,
-					"temporary database issue detected, retrying after delay",
+					"temporary database issue detected, stopping question state",
 					slog.Any("error", err),
 					slog.String("game_state_id", q.GameStateID.String()),
 				)
-				time.Sleep(100 * time.Millisecond)
+				return
 			}
 		} else {
 			q.Subscriber.logger.ErrorContext(
@@ -269,16 +269,30 @@ func (v *VotingState) Start(ctx context.Context) {
 				return
 			default:
 				// Context not cancelled, this might be a transient database issue
+				retryCount, _ := ctx.Value("voting_state_retries").(int)
+				if retryCount >= 3 {
+					v.Subscriber.logger.ErrorContext(
+						ctx,
+						"max retries exceeded for voting state, stopping retries",
+						slog.Any("error", err),
+						slog.String("game_state_id", v.GameStateID.String()),
+						slog.Int("retry_count", retryCount),
+					)
+					return
+				}
+
 				v.Subscriber.logger.WarnContext(
 					ctx,
 					"temporary database issue during voting state start, retrying after delay",
 					slog.Any("error", err),
 					slog.String("game_state_id", v.GameStateID.String()),
+					slog.Int("retry_count", retryCount),
 				)
 				time.Sleep(1 * time.Second)
-				// Retry by starting a new voting state
+				// Retry by starting a new voting state with incremented retry count
+				retryCtx := context.WithValue(ctx, "voting_state_retries", retryCount+1)
 				v2 := &VotingState{GameStateID: v.GameStateID, Subscriber: v.Subscriber}
-				go v2.Start(ctx)
+				go v2.Start(retryCtx)
 				return
 			}
 		} else if err.Error() == "game state is not in FIBBING_IT_QUESTION state" {
@@ -424,16 +438,30 @@ func (r *RevealState) Start(ctx context.Context) {
 				return
 			default:
 				// Context not cancelled, this might be a transient database issue
+				retryCount, _ := ctx.Value("reveal_state_retries").(int)
+				if retryCount >= 3 {
+					r.Subscriber.logger.ErrorContext(
+						ctx,
+						"max retries exceeded for reveal state, stopping retries",
+						slog.Any("error", err),
+						slog.String("game_state_id", r.GameStateID.String()),
+						slog.Int("retry_count", retryCount),
+					)
+					return
+				}
+
 				r.Subscriber.logger.WarnContext(
 					ctx,
 					"temporary database issue during reveal state start, retrying after delay",
 					slog.Any("error", err),
 					slog.String("game_state_id", r.GameStateID.String()),
+					slog.Int("retry_count", retryCount),
 				)
 				time.Sleep(1 * time.Second)
-				// Retry by starting a new reveal state
+				// Retry by starting a new reveal state with incremented retry count
+				retryCtx := context.WithValue(ctx, "reveal_state_retries", retryCount+1)
 				r2 := &RevealState{GameStateID: r.GameStateID, Subscriber: r.Subscriber}
-				go r2.Start(ctx)
+				go r2.Start(retryCtx)
 				return
 			}
 		} else if err.Error() == "game state is not in FIBBING_IT_VOTING state" {
@@ -582,16 +610,30 @@ func (r *ScoringState) Start(ctx context.Context) {
 				return
 			default:
 				// Context not cancelled, this might be a transient database issue
+				retryCount, _ := ctx.Value("scoring_state_retries").(int)
+				if retryCount >= 3 {
+					r.Subscriber.logger.ErrorContext(
+						ctx,
+						"max retries exceeded for scoring state, stopping retries",
+						slog.Any("error", err),
+						slog.String("game_state_id", r.GameStateID.String()),
+						slog.Int("retry_count", retryCount),
+					)
+					return
+				}
+
 				r.Subscriber.logger.WarnContext(
 					ctx,
 					"temporary database issue during scoring state start, retrying after delay",
 					slog.Any("error", err),
 					slog.String("game_state_id", r.GameStateID.String()),
+					slog.Int("retry_count", retryCount),
 				)
 				time.Sleep(1 * time.Second)
-				// Retry by starting a new scoring state
+				// Retry by starting a new scoring state with incremented retry count
+				retryCtx := context.WithValue(ctx, "scoring_state_retries", retryCount+1)
 				r2 := &ScoringState{GameStateID: r.GameStateID, Subscriber: r.Subscriber}
-				go r2.Start(ctx)
+				go r2.Start(retryCtx)
 				return
 			}
 		} else if err.Error() == "game state is not in FIBBING_IT_REVEAL_ROLE state" {
@@ -713,16 +755,30 @@ func (r *WinnerState) Start(ctx context.Context) {
 				return
 			default:
 				// Context not cancelled, this might be a transient database issue
+				retryCount, _ := ctx.Value("winner_state_retries").(int)
+				if retryCount >= 3 {
+					r.Subscriber.logger.ErrorContext(
+						ctx,
+						"max retries exceeded for winner state, stopping retries",
+						slog.Any("error", err),
+						slog.String("game_state_id", r.GameStateID.String()),
+						slog.Int("retry_count", retryCount),
+					)
+					return
+				}
+
 				r.Subscriber.logger.WarnContext(
 					ctx,
 					"temporary database issue during winner state start, retrying after delay",
 					slog.Any("error", err),
 					slog.String("game_state_id", r.GameStateID.String()),
+					slog.Int("retry_count", retryCount),
 				)
 				time.Sleep(1 * time.Second)
-				// Retry by starting a new winner state
+				// Retry by starting a new winner state with incremented retry count
+				retryCtx := context.WithValue(ctx, "winner_state_retries", retryCount+1)
 				r2 := &WinnerState{GameStateID: r.GameStateID, Subscriber: r.Subscriber}
-				go r2.Start(ctx)
+				go r2.Start(retryCtx)
 				return
 			}
 		} else if err.Error() == "game state is not in FIBBING_IT_SCORING_STATE state" {

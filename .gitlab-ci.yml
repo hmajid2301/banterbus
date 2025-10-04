@@ -210,6 +210,53 @@ stages:
     - echo "Deployment completed. Final image:"
     - kubectl get deployment banterbus -n $NAMESPACE -o jsonpath='{.spec.template.spec.containers[0].image}'
 
+.promote:
+  stage: deploy
+  image: docker:latest
+  services:
+    - docker:dind
+  variables:
+    DOCKER_HOST: tcp://docker:2375
+    DOCKER_DRIVER: overlay2
+    DOCKER_TLS_CERTDIR: ""
+  before_script:
+    - apk add --no-cache curl jq
+    - export TARGET_TAG="$ENVIRONMENT-$CI_COMMIT_SHA-$(date +%s)"
+    - echo $CI_REGISTRY_IMAGE:$TARGET_TAG > image_name.txt
+    - |
+      echo "Finding merge request for commit $CI_COMMIT_SHA"
+      MR_IID=$(curl -s --header "PRIVATE-TOKEN: $CI_JOB_TOKEN" \
+        "$CI_API_V4_URL/projects/$CI_PROJECT_ID/repository/commits/$CI_COMMIT_SHA/merge_requests" | \
+        jq -r '.[0].iid // empty')
+      if [ -z "$MR_IID" ]; then
+        echo "No merge request found for commit $CI_COMMIT_SHA"
+        echo "Searching recent merge requests..."
+        MR_IID=$(curl -s --header "PRIVATE-TOKEN: $CI_JOB_TOKEN" \
+          "$CI_API_V4_URL/projects/$CI_PROJECT_ID/merge_requests?state=merged&order_by=updated_at&sort=desc&per_page=10" | \
+          jq -r --arg sha "$CI_COMMIT_SHA" '.[] | select(.merge_commit_sha == $sha) | .iid' | head -1)
+      fi
+      if [ -z "$MR_IID" ]; then
+        echo "Could not find merge request for commit $CI_COMMIT_SHA"
+        exit 1
+      fi
+      echo "Found merge request IID - $MR_IID"
+      export MR_IID=$MR_IID
+  script:
+    - echo "Promoting merged MR image to $ENVIRONMENT"
+    - echo "Source image - $CI_REGISTRY_IMAGE:$MR_IID (MR $MR_IID)"
+    - echo "Target image - $CI_REGISTRY_IMAGE:$TARGET_TAG"
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_JOB_TOKEN" "$CI_REGISTRY"
+    - echo "Pulling image from MR $MR_IID..."
+    - docker pull $CI_REGISTRY_IMAGE:$MR_IID
+    - echo "Tagging as $ENVIRONMENT image $CI_REGISTRY_IMAGE:$TARGET_TAG"
+    - docker tag $CI_REGISTRY_IMAGE:$MR_IID $CI_REGISTRY_IMAGE:$TARGET_TAG
+    - echo "Pushing $ENVIRONMENT image to registry"
+    - docker push $CI_REGISTRY_IMAGE:$TARGET_TAG
+    - echo "$ENVIRONMENT image ready - $CI_REGISTRY_IMAGE:$TARGET_TAG"
+  artifacts:
+    paths:
+      - image_name.txt
+
 publish:docker:ci:
   stage: pre
   variables:
@@ -333,8 +380,14 @@ combine:coverage:
     - if: $CI_COMMIT_BRANCH == "main"
   script:
     - task coverage
-    - gocover-cobertura < coverage/combined.out > coverage.xml || touch coverage.xml
-  coverage: /total:\s+\(statements\)\s+\d+.\d+%/
+    # GitLab CI reports business logic coverage only
+    # Excludes: mocks (*/mocks/*), generated templates (*_templ.go), views (/views/), test helpers (banterbustest)
+    # This provides a more accurate representation of actual code coverage vs generated/mock code
+    - gocover-cobertura < coverage/business-logic.out > coverage.xml || touch coverage.xml
+    - echo ""
+    - echo "GitLab CI Coverage (Business Logic Only - excludes mocks/generated files):"
+    - go tool cover -func=coverage/business-logic.out | tail -1
+  coverage: /total:\s+\(statements\)\s+(\d+\.\d+)%/
   artifacts:
     reports:
       coverage_report:
@@ -425,7 +478,6 @@ combine:coverage:
 #   dependencies:
 #     - tofu:plan:prod
 
-
 publish:docker:
   stage: build
   extends:
@@ -440,53 +492,6 @@ publish:docker:
     - docker tag banterbus:latest $CI_REGISTRY_IMAGE:$CI_MERGE_REQUEST_IID
     - docker push $CI_REGISTRY_IMAGE:$CI_MERGE_REQUEST_IID
     - echo "$CI_REGISTRY_IMAGE:$CI_COMMIT_SHA" > image_name.txt
-  artifacts:
-    paths:
-      - image_name.txt
-
-.promote:
-  stage: deploy
-  image: docker:latest
-  services:
-    - docker:dind
-  variables:
-    DOCKER_HOST: tcp://docker:2375
-    DOCKER_DRIVER: overlay2
-    DOCKER_TLS_CERTDIR: ""
-  before_script:
-    - apk add --no-cache curl jq
-    - export TARGET_TAG="$ENVIRONMENT-$CI_COMMIT_SHA-$(date +%s)"
-    - echo $CI_REGISTRY_IMAGE:$TARGET_TAG > image_name.txt
-    - |
-      echo "Finding merge request for commit $CI_COMMIT_SHA"
-      MR_IID=$(curl -s --header "PRIVATE-TOKEN: $CI_JOB_TOKEN" \
-        "$CI_API_V4_URL/projects/$CI_PROJECT_ID/repository/commits/$CI_COMMIT_SHA/merge_requests" | \
-        jq -r '.[0].iid // empty')
-      if [ -z "$MR_IID" ]; then
-        echo "No merge request found for commit $CI_COMMIT_SHA"
-        echo "Searching recent merge requests..."
-        MR_IID=$(curl -s --header "PRIVATE-TOKEN: $CI_JOB_TOKEN" \
-          "$CI_API_V4_URL/projects/$CI_PROJECT_ID/merge_requests?state=merged&order_by=updated_at&sort=desc&per_page=10" | \
-          jq -r --arg sha "$CI_COMMIT_SHA" '.[] | select(.merge_commit_sha == $sha) | .iid' | head -1)
-      fi
-      if [ -z "$MR_IID" ]; then
-        echo "Could not find merge request for commit $CI_COMMIT_SHA"
-        exit 1
-      fi
-      echo "Found merge request IID - $MR_IID"
-      export MR_IID=$MR_IID
-  script:
-    - echo "Promoting merged MR image to $ENVIRONMENT"
-    - echo "Source image - $CI_REGISTRY_IMAGE:$MR_IID (MR $MR_IID)"
-    - echo "Target image - $CI_REGISTRY_IMAGE:$TARGET_TAG"
-    - docker login -u "$CI_REGISTRY_USER" -p "$CI_JOB_TOKEN" "$CI_REGISTRY"
-    - echo "Pulling image from MR $MR_IID..."
-    - docker pull $CI_REGISTRY_IMAGE:$MR_IID
-    - echo "Tagging as $ENVIRONMENT image $CI_REGISTRY_IMAGE:$TARGET_TAG"
-    - docker tag $CI_REGISTRY_IMAGE:$MR_IID $CI_REGISTRY_IMAGE:$TARGET_TAG
-    - echo "Pushing $ENVIRONMENT image to registry"
-    - docker push $CI_REGISTRY_IMAGE:$TARGET_TAG
-    - echo "$ENVIRONMENT image ready - $CI_REGISTRY_IMAGE:$TARGET_TAG"
   artifacts:
     paths:
       - image_name.txt

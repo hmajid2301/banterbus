@@ -45,3 +45,10 @@ pt-PT:
     free_form: "Forma Livre"
     multiple_choice: "Múltipla Escolha"
     most_likely: "Mais Provável"
+  validation:
+    player_nickname_required: "Nome do jogador é obrigatório"
+    room_code_required: "Código da sala é obrigatório"
+    game_name_required: "Nome do jogo é obrigatório"
+    answer_required: "Resposta é obrigatória"
+    player_nickname_to_kick_required: "Nome do jogador para expulsar é obrigatório"
+    player_nickname_required_voting: "Nome do jogador é obrigatório"
