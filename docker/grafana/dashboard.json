@@ -1,288 +1,3041 @@
 {
-    "dashboard": {
-        "id": null,
-        "title": "BanterBus HTTP Metrics",
-        "tags": [
-            "banterbus",
-            "http",
-            "metrics"
-        ],
-        "style": "dark",
-        "timezone": "browser",
-        "panels": [
+    "annotations": {
+        "list": [
             {
-                "id": 1,
-                "title": "HTTP Request Rate",
-                "type": "stat",
-                "targets": [
-                    {
-                        "expr": "rate(http_requests_total{service_name=\"voxicle\"}[5m])",
-                        "legendFormat": "{{http_request_method}} {{http_response_status_code}}",
-                        "refId": "A"
-                    }
-                ],
-                "fieldConfig": {
-                    "defaults": {
-                        "color": {
-                            "mode": "palette-classic"
-                        },
-                        "custom": {
-                            "displayMode": "list",
-                            "orientation": "horizontal"
-                        },
-                        "mappings": [],
-                        "thresholds": {
-                            "steps": [
-                                {
-                                    "color": "green",
-                                    "value": null
-                                },
-                                {
-                                    "color": "red",
-                                    "value": 80
-                                }
-                            ]
-                        },
-                        "unit": "reqps"
-                    }
+                "builtIn": 1,
+                "datasource": {
+                    "type": "grafana",
+                    "uid": "-- Grafana --"
                 },
-                "gridPos": {
-                    "h": 8,
-                    "w": 12,
-                    "x": 0,
-                    "y": 0
+                "enable": true,
+                "hide": true,
+                "iconColor": "rgba(0, 211, 255, 1)",
+                "name": "Annotations & Alerts",
+                "type": "dashboard"
+            }
+        ]
+    },
+    "editable": true,
+    "fiscalYearStartMonth": 0,
+    "graphTooltip": 1,
+    "id": 15,
+    "links": [
+        {
+            "asDropdown": false,
+            "icon": "external link",
+            "includeVars": true,
+            "keepTime": true,
+            "tags": [],
+            "targetBlank": true,
+            "title": "🔍 Traces (Tempo)",
+            "tooltip": "View distributed traces in Tempo",
+            "type": "link",
+            "url": "/explore?schemaVersion=1&panes=%7B%22traces%22%3A%7B%22datasource%22%3A%22${tempo_uid}%22%2C%22queries%22%3A%5B%7B%22refId%22%3A%22A%22%2C%22datasource%22%3A%7B%22type%22%3A%22tempo%22%2C%22uid%22%3A%22${tempo_uid}%22%7D%2C%22queryType%22%3A%22traceql%22%2C%22query%22%3A%22%7Bresource.service.name%3D%5C%22banterbus%5C%22%20%26%26%20resource.service.namespace%3D%5C%22$environment%5C%22%7D%22%2C%22limit%22%3A20%7D%5D%2C%22range%22%3A%7B%22from%22%3A%22${__from}%22%2C%22to%22%3A%22${__to}%22%7D%7D%7D"
+        },
+        {
+            "asDropdown": false,
+            "icon": "external link",
+            "includeVars": true,
+            "keepTime": true,
+            "tags": [],
+            "targetBlank": true,
+            "title": "📋 Logs (Loki)",
+            "tooltip": "View application logs in Loki",
+            "type": "link",
+            "url": "/explore?schemaVersion=1&panes=%7B%22logs%22%3A%7B%22datasource%22%3A%22${loki_uid}%22%2C%22queries%22%3A%5B%7B%22refId%22%3A%22A%22%2C%22expr%22%3A%22%7Bexporter%3D%5C%22OTLP%5C%22%7D%20%7C%3D%20%60%60%20%7C%20json%20%7C%20resources_service_namespace%20%3D%20%60$environment%60%20%7C%20resources_service_name%3D%60banterbus%60%22%2C%22queryType%22%3A%22range%22%2C%22datasource%22%3A%7B%22type%22%3A%22loki%22%2C%22uid%22%3A%22${loki_uid}%22%7D%2C%22editorMode%22%3A%22code%22%2C%22direction%22%3A%22backward%22%7D%5D%2C%22range%22%3A%7B%22from%22%3A%22${__from}%22%2C%22to%22%3A%22${__to}%22%7D%7D%7D&orgId=1&timezone=Europe%2FLondon&var-prometheus_uid=${prometheus_uid}&var-loki_uid=${loki_uid}&var-environment=$environment&var-rate_interval=$rate_interval"
+        }
+    ],
+    "panels": [
+        {
+            "collapsed": false,
+            "gridPos": {
+                "h": 1,
+                "w": 24,
+                "x": 0,
+                "y": 0
+            },
+            "id": 100,
+            "panels": [],
+            "title": "🎯 Key Performance Indicators",
+            "type": "row"
+        },
+        {
+            "datasource": {
+                "type": "prometheus",
+                "uid": "${prometheus_uid}"
+            },
+            "description": "Game conversion funnel from lobby creation to completion",
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "mode": "palette-classic"
+                    },
+                    "custom": {
+                        "axisBorderShow": false,
+                        "axisCenteredZero": false,
+                        "axisColorMode": "text",
+                        "axisLabel": "",
+                        "axisPlacement": "auto",
+                        "barAlignment": 0,
+                        "drawStyle": "line",
+                        "fillOpacity": 10,
+                        "gradientMode": "none",
+                        "hideFrom": {
+                            "legend": false,
+                            "tooltip": false,
+                            "vis": false
+                        },
+                        "insertNulls": false,
+                        "lineInterpolation": "linear",
+                        "lineWidth": 1,
+                        "pointSize": 5,
+                        "scaleDistribution": {
+                            "type": "linear"
+                        },
+                        "showPoints": "never",
+                        "spanNulls": false,
+                        "stacking": {
+                            "group": "A",
+                            "mode": "none"
+                        },
+                        "thresholdsStyle": {
+                            "mode": "off"
+                        }
+                    },
+                    "mappings": [],
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "color": "green"
+                            }
+                        ]
+                    },
+                    "unit": "short"
+                },
+                "overrides": []
+            },
+            "gridPos": {
+                "h": 8,
+                "w": 12,
+                "x": 0,
+                "y": 1
+            },
+            "id": 201,
+            "options": {
+                "legend": {
+                    "calcs": [],
+                    "displayMode": "list",
+                    "placement": "bottom",
+                    "showLegend": true
+                },
+                "tooltip": {
+                    "mode": "multi",
+                    "sort": "none"
                 }
             },
-            {
-                "id": 2,
-                "title": "HTTP Request Duration",
-                "type": "histogram",
+            "targets": [
+                {
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "${prometheus_uid}"
+                    },
+                    "expr": "increase(lobby_operations_total{environment=\"$environment\", service=\"banterbus\", operation=\"create\", status=\"success\"}[$__range])",
+                    "legendFormat": "Lobbies Created",
+                    "refId": "A"
+                },
+                {
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "${prometheus_uid}"
+                    },
+                    "expr": "increase(state_count_total{environment=\"$environment\", service=\"banterbus\", state=\"in_progress\"}[$__range])",
+                    "legendFormat": "Games Started",
+                    "refId": "B"
+                },
+                {
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "${prometheus_uid}"
+                    },
+                    "expr": "increase(game_completion_total{environment=\"$environment\", service=\"banterbus\", status=\"success\"}[$__range])",
+                    "legendFormat": "Games Completed",
+                    "refId": "C"
+                }
+            ],
+            "title": "Game Conversion Funnel",
+            "type": "timeseries"
+        },
+        {
+            "datasource": {
+                "type": "prometheus",
+                "uid": "${prometheus_uid}"
+            },
+            "description": "Player count distribution across active games",
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "mode": "palette-classic"
+                    },
+                    "custom": {
+                        "hideFrom": {
+                            "legend": false,
+                            "tooltip": false,
+                            "vis": false
+                        }
+                    },
+                    "mappings": []
+                },
+                "overrides": []
+            },
+            "gridPos": {
+                "h": 8,
+                "w": 6,
+                "x": 12,
+                "y": 1
+            },
+            "id": 202,
+            "options": {
+                "legend": {
+                    "displayMode": "list",
+                    "placement": "bottom",
+                    "showLegend": true,
+                    "values": []
+                },
+                "pieType": "pie",
+                "reduceOptions": {
+                    "values": false,
+                    "calcs": [
+                        "lastNotNull"
+                    ],
+                    "fields": ""
+                },
+                "tooltip": {
+                    "mode": "single",
+                    "sort": "none"
+                }
+            },
+            "targets": [
+                {
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "${prometheus_uid}"
+                    },
+                    "expr": "sum by (player_count_bucket) (game_state_transitions_total{environment=\"$environment\", service=\"banterbus\", status=\"success\"})",
+                    "legendFormat": "{{player_count_bucket}} players",
+                    "refId": "A"
+                }
+            ],
+            "title": "Player Count Distribution",
+            "type": "piechart"
+        },
+        {
+            "datasource": {
+                "type": "prometheus",
+                "uid": "${prometheus_uid}"
+            },
+            "description": "Average session duration and engagement metrics",
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "mode": "thresholds"
+                    },
+                    "mappings": [],
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "color": "green",
+                                "value": 0
+                            },
+                            {
+                                "color": "yellow",
+                                "value": 300
+                            },
+                            {
+                                "color": "red",
+                                "value": 600
+                            }
+                        ]
+                    },
+                    "unit": "s"
+                },
+                "overrides": []
+            },
+            "gridPos": {
+                "h": 8,
+                "w": 6,
+                "x": 18,
+                "y": 1
+            },
+            "id": 203,
+            "options": {
+                "colorMode": "background",
+                "graphMode": "area",
+                "justifyMode": "auto",
+                "orientation": "auto",
+                "reduceOptions": {
+                    "calcs": [
+                        "mean"
+                    ],
+                    "fields": "",
+                    "values": false
+                },
+                "textMode": "auto",
+                "wideLayout": true
+            },
                 "targets": [
+                {
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "${prometheus_uid}"
+                    },
+                    "expr": "histogram_quantile(0.50, increase(websocket_connection_duration_seconds_bucket{environment=\"$environment\", service=\"banterbus\"}[$__range]))",
+                    "legendFormat": "Avg Session Duration",
+                    "refId": "A"
+                }
+            ],
+            "title": "Average Session Duration",
+            "type": "stat"
+        },
+        {
+            "datasource": {
+                "type": "prometheus",
+                "uid": "${prometheus_uid}"
+            },
+            "description": "Game abandonment rate and completion analytics",
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "mode": "palette-classic"
+                    },
+                    "custom": {
+                        "axisBorderShow": false,
+                        "axisCenteredZero": false,
+                        "axisColorMode": "text",
+                        "axisLabel": "",
+                        "axisPlacement": "auto",
+                        "barAlignment": 0,
+                        "drawStyle": "line",
+                        "fillOpacity": 10,
+                        "gradientMode": "none",
+                        "hideFrom": {
+                            "legend": false,
+                            "tooltip": false,
+                            "vis": false
+                        },
+                        "insertNulls": false,
+                        "lineInterpolation": "linear",
+                        "lineWidth": 1,
+                        "pointSize": 5,
+                        "scaleDistribution": {
+                            "type": "linear"
+                        },
+                        "showPoints": "never",
+                        "spanNulls": false,
+                        "stacking": {
+                            "group": "A",
+                            "mode": "none"
+                        },
+                        "thresholdsStyle": {
+                            "mode": "off"
+                        }
+                    },
+                    "mappings": [],
+                    "max": 1,
+                    "min": 0,
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "color": "green"
+                            },
+                            {
+                                "color": "red",
+                                "value": 0.3
+                            }
+                        ]
+                    },
+                    "unit": "percentunit"
+                },
+                "overrides": []
+            },
+            "gridPos": {
+                "h": 8,
+                "w": 12,
+                "x": 0,
+                "y": 9
+            },
+            "id": 204,
+            "options": {
+                "legend": {
+                    "calcs": [],
+                    "displayMode": "list",
+                    "placement": "bottom",
+                    "showLegend": true
+                },
+                "tooltip": {
+                    "mode": "multi",
+                    "sort": "none"
+                }
+            },
+            "targets": [
+                {
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "${prometheus_uid}"
+                    },
+                    "expr": "increase(game_completion_total{environment=\"$environment\", service=\"banterbus\", status=\"failure\"}[$__range]) / (increase(game_completion_total{environment=\"$environment\", service=\"banterbus\", status=\"success\"}[$__range]) + increase(game_completion_total{environment=\"$environment\", service=\"banterbus\", status=\"failure\"}[$__range]))",
+                    "legendFormat": "Game Abandonment Rate",
+                    "refId": "A"
+                },
+                {
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "${prometheus_uid}"
+                    },
+                    "expr": "increase(player_disconnection_count_total{environment=\"$environment\", service=\"banterbus\"}[$__range]) / increase(websocket_connections_total{environment=\"$environment\", service=\"banterbus\"}[$__range])",
+                    "legendFormat": "Player Drop Rate",
+                    "refId": "B"
+                }
+            ],
+            "title": "User Experience - Abandonment Analytics",
+            "type": "timeseries"
+        },
+        {
+            "datasource": {
+                "type": "prometheus",
+                "uid": "${prometheus_uid}"
+            },
+            "description": "Peak usage patterns and concurrent user metrics",
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "mode": "palette-classic"
+                    },
+                    "custom": {
+                        "axisBorderShow": false,
+                        "axisCenteredZero": false,
+                        "axisColorMode": "text",
+                        "axisLabel": "",
+                        "axisPlacement": "auto",
+                        "barAlignment": 0,
+                        "drawStyle": "line",
+                        "fillOpacity": 20,
+                        "gradientMode": "opacity",
+                        "hideFrom": {
+                            "legend": false,
+                            "tooltip": false,
+                            "vis": false
+                        },
+                        "insertNulls": false,
+                        "lineInterpolation": "smooth",
+                        "lineWidth": 2,
+                        "pointSize": 5,
+                        "scaleDistribution": {
+                            "type": "linear"
+                        },
+                        "showPoints": "never",
+                        "spanNulls": false,
+                        "stacking": {
+                            "group": "A",
+                            "mode": "none"
+                        },
+                        "thresholdsStyle": {
+                            "mode": "off"
+                        }
+                    },
+                    "mappings": [],
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "color": "green"
+                            }
+                        ]
+                    },
+                    "unit": "short"
+                },
+                "overrides": []
+            },
+            "gridPos": {
+                "h": 8,
+                "w": 12,
+                "x": 12,
+                "y": 9
+            },
+            "id": 205,
+            "options": {
+                "legend": {
+                    "calcs": [
+                        "max",
+                        "mean"
+                    ],
+                    "displayMode": "table",
+                    "placement": "bottom",
+                    "showLegend": true
+                },
+                "tooltip": {
+                    "mode": "multi",
+                    "sort": "desc"
+                }
+            },
+            "targets": [
+                {
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "${prometheus_uid}"
+                    },
+                    "expr": "websocket_connections_active{environment=\"$environment\", service=\"banterbus\"}",
+                    "legendFormat": "Active Connections",
+                    "refId": "A"
+                },
+                {
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "${prometheus_uid}"
+                    },
+                    "expr": "lobby_active{environment=\"$environment\", service=\"banterbus\"} * 4",
+                    "legendFormat": "Potential Active Players (4x lobbies)",
+                    "refId": "B"
+                },
+                {
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "${prometheus_uid}"
+                    },
+                    "expr": "game_active{environment=\"$environment\", service=\"banterbus\"} * 6",
+                    "legendFormat": "Estimated Players in Games (6x games)",
+                    "refId": "C"
+                }
+            ],
+            "title": "Peak Usage & Concurrent Users",
+            "type": "timeseries"
+        },
+        {
+            "collapsed": false,
+            "gridPos": {
+                "h": 1,
+                "w": 24,
+                "x": 0,
+                "y": 9
+            },
+            "id": 200,
+            "panels": [],
+            "title": "📈 Business Intelligence & User Experience",
+            "type": "row"
+        },
+        {
+            "datasource": {
+                "type": "prometheus",
+                "uid": "${prometheus_uid}"
+            },
+            "description": "Current number of active WebSocket connections",
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "mode": "thresholds"
+                    },
+                    "mappings": [],
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "color": "green",
+                                "value": 0
+                            },
+                            {
+                                "color": "yellow",
+                                "value": 50
+                            },
+                            {
+                                "color": "red",
+                                "value": 100
+                            }
+                        ]
+                    },
+                    "unit": "none"
+                },
+                "overrides": []
+            },
+            "gridPos": {
+                "h": 8,
+                "w": 6,
+                "x": 0,
+                "y": 1
+            },
+            "id": 1,
+            "options": {
+                "colorMode": "background",
+                "graphMode": "area",
+                "justifyMode": "auto",
+                "orientation": "auto",
+                "percentChangeColorMode": "standard",
+                "reduceOptions": {
+                    "calcs": [
+                        "lastNotNull"
+                    ],
+                    "fields": "",
+                    "values": false
+                },
+                "showPercentChange": false,
+                "textMode": "auto",
+                "wideLayout": true
+            },
+            "pluginVersion": "12.1.1",
+            "targets": [
+                {
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "${prometheus_uid}"
+                    },
+                    "expr": "websocket_connections_active{environment=\"$environment\", service=\"banterbus\"}",
+                    "refId": "A"
+                }
+            ],
+            "title": "Active Connections",
+            "type": "stat"
+        },
+        {
+            "datasource": {
+                "type": "prometheus",
+                "uid": "${prometheus_uid}"
+            },
+            "description": "Current game completion rate (SLO)",
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "mode": "thresholds"
+                    },
+                    "mappings": [],
+                    "max": 1,
+                    "min": 0,
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "color": "red",
+                                "value": 0
+                            },
+                            {
+                                "color": "yellow",
+                                "value": 0.9
+                            },
+                            {
+                                "color": "green",
+                                "value": 0.95
+                            }
+                        ]
+                    },
+                    "unit": "percentunit"
+                },
+                "overrides": []
+            },
+            "gridPos": {
+                "h": 8,
+                "w": 6,
+                "x": 6,
+                "y": 1
+            },
+            "id": 2,
+            "options": {
+                "colorMode": "background",
+                "graphMode": "area",
+                "justifyMode": "auto",
+                "orientation": "auto",
+                "percentChangeColorMode": "standard",
+                "reduceOptions": {
+                    "calcs": [
+                        "lastNotNull"
+                    ],
+                    "fields": "",
+                    "values": false
+                },
+                "showPercentChange": false,
+                "textMode": "auto",
+                "wideLayout": true
+            },
+            "pluginVersion": "12.1.1",
+            "targets": [
+                {
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "${prometheus_uid}"
+                    },
+                    "expr": "completion_rate{environment=\"$environment\", service=\"banterbus\"}",
+                    "refId": "A"
+                }
+            ],
+            "title": "Game Completion Rate",
+            "type": "stat"
+        },
+        {
+            "datasource": {
+                "type": "prometheus",
+                "uid": "${prometheus_uid}"
+            },
+            "description": "Number of active lobbies",
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "mode": "thresholds"
+                    },
+                    "mappings": [],
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "color": "green",
+                                "value": 0
+                            },
+                            {
+                                "color": "yellow",
+                                "value": 10
+                            },
+                            {
+                                "color": "red",
+                                "value": 20
+                            }
+                        ]
+                    },
+                    "unit": "none"
+                },
+                "overrides": []
+            },
+            "gridPos": {
+                "h": 8,
+                "w": 6,
+                "x": 12,
+                "y": 1
+            },
+            "id": 3,
+            "options": {
+                "colorMode": "background",
+                "graphMode": "area",
+                "justifyMode": "auto",
+                "orientation": "auto",
+                "percentChangeColorMode": "standard",
+                "reduceOptions": {
+                    "calcs": [
+                        "lastNotNull"
+                    ],
+                    "fields": "",
+                    "values": false
+                },
+                "showPercentChange": false,
+                "textMode": "auto",
+                "wideLayout": true
+            },
+            "pluginVersion": "12.1.1",
+            "targets": [
+                {
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "${prometheus_uid}"
+                    },
+                    "expr": "lobby_active{environment=\"$environment\", service=\"banterbus\"}",
+                    "refId": "A"
+                }
+            ],
+            "title": "Active Lobbies",
+            "type": "stat"
+        },
+        {
+            "datasource": {
+                "type": "prometheus",
+                "uid": "${prometheus_uid}"
+            },
+            "description": "Number of games currently in progress",
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "mode": "thresholds"
+                    },
+                    "mappings": [],
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "color": "green",
+                                "value": 0
+                            },
+                            {
+                                "color": "yellow",
+                                "value": 5
+                            },
+                            {
+                                "color": "red",
+                                "value": 10
+                            }
+                        ]
+                    },
+                    "unit": "none"
+                },
+                "overrides": []
+            },
+            "gridPos": {
+                "h": 8,
+                "w": 6,
+                "x": 18,
+                "y": 1
+            },
+            "id": 4,
+            "options": {
+                "colorMode": "background",
+                "graphMode": "area",
+                "justifyMode": "auto",
+                "orientation": "auto",
+                "percentChangeColorMode": "standard",
+                "reduceOptions": {
+                    "calcs": [
+                        "lastNotNull"
+                    ],
+                    "fields": "",
+                    "values": false
+                },
+                "showPercentChange": false,
+                "textMode": "auto",
+                "wideLayout": true
+            },
+            "pluginVersion": "12.1.1",
+            "targets": [
+                {
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "${prometheus_uid}"
+                    },
+                    "expr": "game_active{environment=\"$environment\", service=\"banterbus\"}",
+                    "refId": "A"
+                }
+            ],
+            "title": "Games in Progress",
+            "type": "stat"
+        },
+        {
+            "collapsed": false,
+            "gridPos": {
+                "h": 1,
+                "w": 24,
+                "x": 0,
+                "y": 9
+            },
+            "id": 101,
+            "panels": [],
+            "title": "🔌 WebSocket Connections",
+            "type": "row"
+        },
+        {
+            "datasource": {
+                "type": "prometheus",
+                "uid": "${prometheus_uid}"
+            },
+            "description": "WebSocket connection metrics over time",
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "mode": "palette-classic"
+                    },
+                    "custom": {
+                        "axisBorderShow": false,
+                        "axisCenteredZero": false,
+                        "axisColorMode": "text",
+                        "axisLabel": "",
+                        "axisPlacement": "auto",
+                        "barAlignment": 0,
+                        "barWidthFactor": 0.6,
+                        "drawStyle": "line",
+                        "fillOpacity": 10,
+                        "gradientMode": "none",
+                        "hideFrom": {
+                            "legend": false,
+                            "tooltip": false,
+                            "vis": false,
+                            "viz": false
+                        },
+                        "insertNulls": false,
+                        "lineInterpolation": "linear",
+                        "lineWidth": 1,
+                        "pointSize": 5,
+                        "scaleDistribution": {
+                            "type": "linear"
+                        },
+                        "showPoints": "never",
+                        "spanNulls": false,
+                        "stacking": {
+                            "group": "A",
+                            "mode": "none"
+                        },
+                        "thresholdsStyle": {
+                            "mode": "off"
+                        }
+                    },
+                    "mappings": [],
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "color": "green",
+                                "value": 0
+                            }
+                        ]
+                    },
+                    "unit": "short"
+                },
+                "overrides": []
+            },
+            "gridPos": {
+                "h": 8,
+                "w": 12,
+                "x": 0,
+                "y": 10
+            },
+            "id": 5,
+            "options": {
+                "legend": {
+                    "calcs": [],
+                    "displayMode": "list",
+                    "placement": "bottom",
+                    "showLegend": true
+                },
+                "tooltip": {
+                    "hideZeros": false,
+                    "mode": "multi",
+                    "sort": "none"
+                }
+            },
+            "pluginVersion": "12.1.1",
+            "targets": [
+                {
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "${prometheus_uid}"
+                    },
+                    "expr": "websocket_connections_active{environment=\"$environment\", service=\"banterbus\"}",
+                    "legendFormat": "Active Connections",
+                    "refId": "A"
+                },
+                {
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "${prometheus_uid}"
+                    },
+                    "expr": "increase(websocket_connections_total{environment=\"$environment\", service=\"banterbus\"}[$__range])",
+                    "legendFormat": "New Connections Total",
+                    "refId": "B"
+                },
+                {
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "${prometheus_uid}"
+                    },
+                    "expr": "increase(connection_reconnect_total{environment=\"$environment\", service=\"banterbus\"}[$__range])",
+                    "legendFormat": "Reconnections Total",
+                    "refId": "C"
+                }
+            ],
+            "title": "WebSocket Connection Metrics",
+            "type": "timeseries"
+        },
+        {
+            "datasource": {
+                "type": "prometheus",
+                "uid": "${prometheus_uid}"
+            },
+            "description": "Connection duration and handshake failures",
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "mode": "palette-classic"
+                    },
+                    "custom": {
+                        "axisBorderShow": false,
+                        "axisCenteredZero": false,
+                        "axisColorMode": "text",
+                        "axisLabel": "",
+                        "axisPlacement": "auto",
+                        "barAlignment": 0,
+                        "barWidthFactor": 0.6,
+                        "drawStyle": "line",
+                        "fillOpacity": 10,
+                        "gradientMode": "none",
+                        "hideFrom": {
+                            "legend": false,
+                            "tooltip": false,
+                            "vis": false,
+                            "viz": false
+                        },
+                        "insertNulls": false,
+                        "lineInterpolation": "linear",
+                        "lineWidth": 1,
+                        "pointSize": 5,
+                        "scaleDistribution": {
+                            "type": "linear"
+                        },
+                        "showPoints": "never",
+                        "spanNulls": false,
+                        "stacking": {
+                            "group": "A",
+                            "mode": "none"
+                        },
+                        "thresholdsStyle": {
+                            "mode": "off"
+                        }
+                    },
+                    "mappings": [],
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "color": "green",
+                                "value": 0
+                            }
+                        ]
+                    },
+                    "unit": "s"
+                },
+                "overrides": []
+            },
+            "gridPos": {
+                "h": 8,
+                "w": 12,
+                "x": 12,
+                "y": 10
+            },
+            "id": 6,
+            "options": {
+                "legend": {
+                    "calcs": [],
+                    "displayMode": "list",
+                    "placement": "bottom",
+                    "showLegend": true
+                },
+                "tooltip": {
+                    "hideZeros": false,
+                    "mode": "multi",
+                    "sort": "none"
+                }
+            },
+            "pluginVersion": "12.1.1",
+            "targets": [
+                {
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "${prometheus_uid}"
+                    },
+                    "expr": "histogram_quantile(0.95, rate(websocket_connection_duration_seconds_bucket{environment=\"$environment\", service=\"banterbus\"}[$rate_interval]))",
+                    "legendFormat": "95th percentile duration",
+                    "refId": "A"
+                },
+                {
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "${prometheus_uid}"
+                    },
+                    "expr": "histogram_quantile(0.50, rate(websocket_connection_duration_seconds_bucket{environment=\"$environment\", service=\"banterbus\"}[$rate_interval]))",
+                    "legendFormat": "Median duration",
+                    "refId": "B"
+                },
+                {
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "${prometheus_uid}"
+                    },
+                    "expr": "increase(handshake_failure_total{environment=\"$environment\", service=\"banterbus\"}[$__range])",
+                    "legendFormat": "Handshake failures rate",
+                    "refId": "C"
+                }
+            ],
+            "title": "Connection Quality Metrics",
+            "type": "timeseries"
+        },
+        {
+            "collapsed": false,
+            "gridPos": {
+                "h": 1,
+                "w": 24,
+                "x": 0,
+                "y": 18
+            },
+            "id": 102,
+            "panels": [],
+            "title": "📨 Message Processing",
+            "type": "row"
+        },
+        {
+            "datasource": {
+                "type": "prometheus",
+                "uid": "${prometheus_uid}"
+            },
+            "description": "Message processing rates and errors",
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "mode": "palette-classic"
+                    },
+                    "custom": {
+                        "axisBorderShow": false,
+                        "axisCenteredZero": false,
+                        "axisColorMode": "text",
+                        "axisLabel": "",
+                        "axisPlacement": "auto",
+                        "barAlignment": 0,
+                        "barWidthFactor": 0.6,
+                        "drawStyle": "line",
+                        "fillOpacity": 10,
+                        "gradientMode": "none",
+                        "hideFrom": {
+                            "legend": false,
+                            "tooltip": false,
+                            "vis": false,
+                            "viz": false
+                        },
+                        "insertNulls": false,
+                        "lineInterpolation": "linear",
+                        "lineWidth": 1,
+                        "pointSize": 5,
+                        "scaleDistribution": {
+                            "type": "linear"
+                        },
+                        "showPoints": "never",
+                        "spanNulls": false,
+                        "stacking": {
+                            "group": "A",
+                            "mode": "none"
+                        },
+                        "thresholdsStyle": {
+                            "mode": "off"
+                        }
+                    },
+                    "mappings": [],
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "color": "green",
+                                "value": 0
+                            }
+                        ]
+                    },
+                    "unit": "reqps"
+                },
+                "overrides": []
+            },
+            "gridPos": {
+                "h": 8,
+                "w": 12,
+                "x": 0,
+                "y": 19
+            },
+            "id": 7,
+            "options": {
+                "legend": {
+                    "calcs": [],
+                    "displayMode": "list",
+                    "placement": "bottom",
+                    "showLegend": true
+                },
+                "tooltip": {
+                    "hideZeros": false,
+                    "mode": "multi",
+                    "sort": "none"
+                }
+            },
+            "pluginVersion": "12.1.1",
+            "targets": [
+                {
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "${prometheus_uid}"
+                    },
+                    "expr": "increase(websocket_messages_received_total{environment=\"$environment\", service=\"banterbus\"}[$__range])",
+                    "legendFormat": "Messages received - {{message_type}}",
+                    "refId": "A"
+                },
+                {
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "${prometheus_uid}"
+                    },
+                    "expr": "increase(websocket_messages_sent_total{environment=\"$environment\", service=\"banterbus\"}[$__range])",
+                    "legendFormat": "Messages sent",
+                    "refId": "B"
+                },
+                {
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "${prometheus_uid}"
+                    },
+                    "expr": "rate(websocket_messages_received_errors_total{environment=\"$environment\", service=\"banterbus\"}[$rate_interval])",
+                    "legendFormat": "Receive errors",
+                    "refId": "C"
+                },
+                {
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "${prometheus_uid}"
+                    },
+                    "expr": "rate(websocket_messages_sent_errors_total{environment=\"$environment\", service=\"banterbus\"}[$rate_interval])",
+                    "legendFormat": "Send errors",
+                    "refId": "D"
+                }
+            ],
+            "title": "Message Processing Rates",
+            "type": "timeseries"
+        },
+        {
+            "datasource": {
+                "type": "prometheus",
+                "uid": "${prometheus_uid}"
+            },
+            "description": "Message processing latency percentiles",
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "mode": "palette-classic"
+                    },
+                    "custom": {
+                        "axisBorderShow": false,
+                        "axisCenteredZero": false,
+                        "axisColorMode": "text",
+                        "axisLabel": "",
+                        "axisPlacement": "auto",
+                        "barAlignment": 0,
+                        "barWidthFactor": 0.6,
+                        "drawStyle": "line",
+                        "fillOpacity": 10,
+                        "gradientMode": "none",
+                        "hideFrom": {
+                            "legend": false,
+                            "tooltip": false,
+                            "vis": false,
+                            "viz": false
+                        },
+                        "insertNulls": false,
+                        "lineInterpolation": "linear",
+                        "lineWidth": 1,
+                        "pointSize": 5,
+                        "scaleDistribution": {
+                            "type": "linear"
+                        },
+                        "showPoints": "never",
+                        "spanNulls": false,
+                        "stacking": {
+                            "group": "A",
+                            "mode": "none"
+                        },
+                        "thresholdsStyle": {
+                            "mode": "off"
+                        }
+                    },
+                    "mappings": [],
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "color": "green",
+                                "value": 0
+                            }
+                        ]
+                    },
+                    "unit": "ms"
+                },
+                "overrides": []
+            },
+            "gridPos": {
+                "h": 8,
+                "w": 12,
+                "x": 12,
+                "y": 19
+            },
+            "id": 8,
+            "options": {
+                "legend": {
+                    "calcs": [],
+                    "displayMode": "list",
+                    "placement": "bottom",
+                    "showLegend": true
+                },
+                "tooltip": {
+                    "hideZeros": false,
+                    "mode": "multi",
+                    "sort": "none"
+                }
+            },
+            "pluginVersion": "12.1.1",
+            "targets": [
+                {
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "${prometheus_uid}"
+                    },
+                    "expr": "histogram_quantile(0.95, rate(websocket_message_processing_duration_milliseconds_bucket{environment=\"$environment\", service=\"banterbus\"}[$rate_interval]))",
+                    "legendFormat": "95th percentile - processing",
+                    "refId": "A"
+                },
+                {
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "${prometheus_uid}"
+                    },
+                    "expr": "histogram_quantile(0.50, rate(websocket_message_processing_duration_milliseconds_bucket{environment=\"$environment\", service=\"banterbus\"}[$rate_interval]))",
+                    "legendFormat": "Median - processing",
+                    "refId": "B"
+                },
+                {
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "${prometheus_uid}"
+                    },
+                    "expr": "histogram_quantile(0.95, rate(websocket_message_sent_duration_milliseconds_bucket{environment=\"$environment\", service=\"banterbus\"}[$rate_interval]))",
+                    "legendFormat": "95th percentile - sending",
+                    "refId": "C"
+                },
+                {
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "${prometheus_uid}"
+                    },
+                    "expr": "histogram_quantile(0.50, rate(websocket_message_sent_duration_milliseconds_bucket{environment=\"$environment\", service=\"banterbus\"}[$rate_interval]))",
+                    "legendFormat": "Median - sending",
+                    "refId": "D"
+                }
+            ],
+            "title": "Message Processing Latency",
+            "type": "timeseries"
+        },
+        {
+            "collapsed": false,
+            "gridPos": {
+                "h": 1,
+                "w": 24,
+                "x": 0,
+                "y": 27
+            },
+            "id": 103,
+            "panels": [],
+            "title": "🎮 Game State Management",
+            "type": "row"
+        },
+        {
+            "datasource": {
+                "type": "prometheus",
+                "uid": "${prometheus_uid}"
+            },
+            "description": "Game state transitions and durations",
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "mode": "palette-classic"
+                    },
+                    "custom": {
+                        "axisBorderShow": false,
+                        "axisCenteredZero": false,
+                        "axisColorMode": "text",
+                        "axisLabel": "",
+                        "axisPlacement": "auto",
+                        "barAlignment": 0,
+                        "drawStyle": "line",
+                        "fillOpacity": 10,
+                        "gradientMode": "none",
+                        "hideFrom": {
+                            "legend": false,
+                            "tooltip": false,
+                            "vis": false
+                        },
+                        "insertNulls": false,
+                        "lineInterpolation": "linear",
+                        "lineWidth": 1,
+                        "pointSize": 5,
+                        "scaleDistribution": {
+                            "type": "linear"
+                        },
+                        "showPoints": "never",
+                        "spanNulls": false,
+                        "stacking": {
+                            "group": "A",
+                            "mode": "none"
+                        },
+                        "thresholdsStyle": {
+                            "mode": "off"
+                        }
+                    },
+                    "mappings": [],
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "color": "green"
+                            }
+                        ]
+                    },
+                    "unit": "short"
+                },
+                "overrides": []
+            },
+            "gridPos": {
+                "h": 8,
+                "w": 12,
+                "x": 0,
+                "y": 28
+            },
+            "id": 9,
+            "options": {
+                "legend": {
+                    "calcs": [],
+                    "displayMode": "list",
+                    "placement": "bottom",
+                    "showLegend": true
+                },
+                "tooltip": {
+                    "mode": "multi",
+                    "sort": "none"
+                }
+            },
+            "pluginVersion": "11.4.0",
+            "targets": [
+                {
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "${prometheus_uid}"
+                    },
+                    "expr": "increase(state_count_total{environment=\"$environment\", service=\"banterbus\"}[$__range])",
+                    "legendFormat": "{{state}} state transitions",
+                    "refId": "A"
+                },
+                {
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "${prometheus_uid}"
+                    },
+                    "expr": "increase(game_state_transitions_total{environment=\"$environment\", service=\"banterbus\", status=\"success\"}[$__range])",
+                    "legendFormat": "Successful transitions - {{from_state}} -> {{to_state}}",
+                    "refId": "B"
+                },
+                {
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "${prometheus_uid}"
+                    },
+                    "expr": "increase(state_transition_failures_total{environment=\"$environment\", service=\"banterbus\"}[$__range])",
+                    "legendFormat": "Failed transitions - {{from_state}} -> {{to_state}}",
+                    "refId": "C"
+                }
+            ],
+            "title": "Game State Transitions",
+            "type": "timeseries"
+        },
+        {
+            "datasource": {
+                "type": "prometheus",
+                "uid": "${prometheus_uid}"
+            },
+            "description": "Average time spent in each game state",
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "mode": "palette-classic"
+                    },
+                    "custom": {
+                        "axisBorderShow": false,
+                        "axisCenteredZero": false,
+                        "axisColorMode": "text",
+                        "axisLabel": "",
+                        "axisPlacement": "auto",
+                        "barAlignment": 0,
+                        "drawStyle": "line",
+                        "fillOpacity": 10,
+                        "gradientMode": "none",
+                        "hideFrom": {
+                            "legend": false,
+                            "tooltip": false,
+                            "vis": false
+                        },
+                        "insertNulls": false,
+                        "lineInterpolation": "linear",
+                        "lineWidth": 1,
+                        "pointSize": 5,
+                        "scaleDistribution": {
+                            "type": "linear"
+                        },
+                        "showPoints": "never",
+                        "spanNulls": false,
+                        "stacking": {
+                            "group": "A",
+                            "mode": "none"
+                        },
+                        "thresholdsStyle": {
+                            "mode": "off"
+                        }
+                    },
+                    "mappings": [],
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "color": "green"
+                            }
+                        ]
+                    },
+                    "unit": "s"
+                },
+                "overrides": []
+            },
+            "gridPos": {
+                "h": 8,
+                "w": 12,
+                "x": 12,
+                "y": 28
+            },
+            "id": 10,
+            "options": {
+                "legend": {
+                    "calcs": [],
+                    "displayMode": "list",
+                    "placement": "bottom",
+                    "showLegend": true
+                },
+                "tooltip": {
+                    "mode": "multi",
+                    "sort": "none"
+                }
+            },
+            "pluginVersion": "11.4.0",
+            "targets": [
+                {
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "${prometheus_uid}"
+                    },
+                    "expr": "histogram_quantile(0.95, rate(state_duration_seconds_bucket{environment=\"$environment\", service=\"banterbus\"}[$rate_interval]))",
+                    "legendFormat": "95th percentile - {{state}}",
+                    "refId": "A"
+                },
+                {
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "${prometheus_uid}"
+                    },
+                    "expr": "histogram_quantile(0.50, rate(state_duration_seconds_bucket{environment=\"$environment\", service=\"banterbus\"}[$rate_interval]))",
+                    "legendFormat": "Median - {{state}}",
+                    "refId": "B"
+                },
+                {
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "${prometheus_uid}"
+                    },
+                    "expr": "increase(game_stuck_count_total{environment=\"$environment\", service=\"banterbus\"}[$__range])",
+                    "legendFormat": "Stuck games - {{state}}",
+                    "refId": "C"
+                }
+            ],
+            "title": "Game State Duration & Issues",
+            "type": "timeseries"
+        },
+        {
+            "collapsed": false,
+            "gridPos": {
+                "h": 1,
+                "w": 24,
+                "x": 0,
+                "y": 36
+            },
+            "id": 104,
+            "panels": [],
+            "title": "📊 Service Level Indicators (SLI)",
+            "type": "row"
+        },
+        {
+            "datasource": {
+                "type": "prometheus",
+                "uid": "${prometheus_uid}"
+            },
+            "description": "Service availability and response time SLIs",
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "mode": "palette-classic"
+                    },
+                    "custom": {
+                        "axisBorderShow": false,
+                        "axisCenteredZero": false,
+                        "axisColorMode": "text",
+                        "axisLabel": "",
+                        "axisPlacement": "auto",
+                        "barAlignment": 0,
+                        "drawStyle": "line",
+                        "fillOpacity": 10,
+                        "gradientMode": "none",
+                        "hideFrom": {
+                            "legend": false,
+                            "tooltip": false,
+                            "vis": false
+                        },
+                        "insertNulls": false,
+                        "lineInterpolation": "linear",
+                        "lineWidth": 1,
+                        "pointSize": 5,
+                        "scaleDistribution": {
+                            "type": "linear"
+                        },
+                        "showPoints": "never",
+                        "spanNulls": false,
+                        "stacking": {
+                            "group": "A",
+                            "mode": "none"
+                        },
+                        "thresholdsStyle": {
+                            "mode": "line"
+                        }
+                    },
+                    "mappings": [],
+                    "max": 1,
+                    "min": 0,
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "color": "green"
+                            },
+                            {
+                                "color": "red",
+                                "value": 0.95
+                            }
+                        ]
+                    },
+                    "unit": "percentunit"
+                },
+                "overrides": []
+            },
+            "gridPos": {
+                "h": 8,
+                "w": 12,
+                "x": 0,
+                "y": 37
+            },
+            "id": 11,
+            "options": {
+                "legend": {
+                    "calcs": [],
+                    "displayMode": "list",
+                    "placement": "bottom",
+                    "showLegend": true
+                },
+                "tooltip": {
+                    "mode": "multi",
+                    "sort": "none"
+                }
+            },
+            "pluginVersion": "11.4.0",
+            "targets": [
+                {
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "${prometheus_uid}"
+                    },
+                    "expr": "rate(http_server_requests_total{environment=\"$environment\", service=\"banterbus\", status=\"success\"}[$rate_interval]) / rate(http_server_requests_total{environment=\"$environment\", service=\"banterbus\"}[$rate_interval])",
+                    "legendFormat": "Availability - {{endpoint}}",
+                    "refId": "A"
+                },
+                {
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "${prometheus_uid}"
+                    },
+                    "expr": "rate(operations_total{environment=\"$environment\", service=\"banterbus\", status=\"success\"}[$rate_interval]) / rate(operations_total{environment=\"$environment\", service=\"banterbus\"}[$rate_interval])",
+                    "legendFormat": "Lobby success rate - {{operation}}",
+                    "refId": "B"
+                },
+                {
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "${prometheus_uid}"
+                    },
+                    "expr": "rate(completions_total{environment=\"$environment\", service=\"banterbus\", status=\"success\"}[$rate_interval]) / rate(completions_total{environment=\"$environment\", service=\"banterbus\"}[$rate_interval])",
+                    "legendFormat": "Game completion rate",
+                    "refId": "C"
+                }
+            ],
+            "title": "Service Level Indicators - Success Rates",
+            "type": "timeseries"
+        },
+        {
+            "datasource": {
+                "type": "prometheus",
+                "uid": "${prometheus_uid}"
+            },
+            "description": "Response time and performance SLIs",
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "mode": "palette-classic"
+                    },
+                    "custom": {
+                        "axisBorderShow": false,
+                        "axisCenteredZero": false,
+                        "axisColorMode": "text",
+                        "axisLabel": "",
+                        "axisPlacement": "auto",
+                        "barAlignment": 0,
+                        "drawStyle": "line",
+                        "fillOpacity": 10,
+                        "gradientMode": "none",
+                        "hideFrom": {
+                            "legend": false,
+                            "tooltip": false,
+                            "vis": false
+                        },
+                        "insertNulls": false,
+                        "lineInterpolation": "linear",
+                        "lineWidth": 1,
+                        "pointSize": 5,
+                        "scaleDistribution": {
+                            "type": "linear"
+                        },
+                        "showPoints": "never",
+                        "spanNulls": false,
+                        "stacking": {
+                            "group": "A",
+                            "mode": "none"
+                        },
+                        "thresholdsStyle": {
+                            "mode": "line"
+                        }
+                    },
+                    "mappings": [],
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "color": "green"
+                            },
+                            {
+                                "color": "yellow",
+                                "value": 0.5
+                            },
+                            {
+                                "color": "red",
+                                "value": 1
+                            }
+                        ]
+                    },
+                    "unit": "s"
+                },
+                "overrides": []
+            },
+            "gridPos": {
+                "h": 8,
+                "w": 12,
+                "x": 12,
+                "y": 37
+            },
+            "id": 12,
+            "options": {
+                "legend": {
+                    "calcs": [],
+                    "displayMode": "list",
+                    "placement": "bottom",
+                    "showLegend": true
+                },
+                "tooltip": {
+                    "mode": "multi",
+                    "sort": "none"
+                }
+            },
+            "pluginVersion": "11.4.0",
+            "targets": [
+                {
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "${prometheus_uid}"
+                    },
+                    "expr": "histogram_quantile(0.95, rate(http_server_request_duration_seconds_bucket{environment=\"$environment\", service=\"banterbus\"}[$rate_interval]))",
+                    "legendFormat": "95th percentile response time - {{endpoint}}",
+                    "refId": "A"
+                },
+                {
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "${prometheus_uid}"
+                    },
+                    "expr": "histogram_quantile(0.50, rate(http_server_request_duration_seconds_bucket{environment=\"$environment\", service=\"banterbus\"}[$rate_interval]))",
+                    "legendFormat": "Median response time - {{endpoint}}",
+                    "refId": "B"
+                },
+                {
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "${prometheus_uid}"
+                    },
+                    "expr": "histogram_quantile(0.95, rate(duration_seconds_bucket{environment=\"$environment\", service=\"banterbus\"}[$rate_interval]))",
+                    "legendFormat": "95th percentile game duration",
+                    "refId": "C"
+                }
+            ],
+            "title": "Service Level Indicators - Performance",
+            "type": "timeseries"
+        },
+        {
+            "collapsed": false,
+            "gridPos": {
+                "h": 1,
+                "w": 24,
+                "x": 0,
+                "y": 45
+            },
+            "id": 105,
+            "panels": [],
+            "title": "🚨 Errors & Quality",
+            "type": "row"
+        },
+        {
+            "datasource": {
+                "type": "prometheus",
+                "uid": "${prometheus_uid}"
+            },
+            "description": "Total number of errors across all components in the selected time range",
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "mode": "thresholds"
+                    },
+                    "mappings": [],
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "color": "green",
+                                "value": 0
+                            },
+                            {
+                                "color": "yellow",
+                                "value": 10
+                            },
+                            {
+                                "color": "orange",
+                                "value": 50
+                            },
+                            {
+                                "color": "red",
+                                "value": 100
+                            }
+                        ]
+                    },
+                    "unit": "short"
+                },
+                "overrides": []
+            },
+            "gridPos": {
+                "h": 8,
+                "w": 6,
+                "x": 0,
+                "y": 46
+            },
+            "id": 15,
+            "options": {
+                "colorMode": "background",
+                "graphMode": "area",
+                "justifyMode": "auto",
+                "orientation": "auto",
+                "percentChangeColorMode": "standard",
+                "reduceOptions": {
+                    "calcs": [
+                        "lastNotNull"
+                    ],
+                    "fields": "",
+                    "values": false
+                },
+                "showPercentChange": true,
+                "textMode": "auto",
+                "wideLayout": true
+            },
+            "pluginVersion": "12.1.1",
+            "targets": [
+                {
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "${prometheus_uid}"
+                    },
+                    "expr": "increase(errors_total{environment=\"$environment\", service=\"banterbus\"}[$__range]) + increase(state_operation_errors_total{environment=\"$environment\", service=\"banterbus\"}[$__range]) + increase(websocket_messages_received_errors_total{environment=\"$environment\", service=\"banterbus\"}[$__range]) + increase(websocket_messages_sent_errors_total{environment=\"$environment\", service=\"banterbus\"}[$__range]) + increase(handshake_failure_total{environment=\"$environment\", service=\"banterbus\"}[$__range])",
+                    "legendFormat": "Total Errors",
+                    "refId": "A"
+                }
+            ],
+            "title": "Total Errors",
+            "type": "stat"
+        },
+        {
+            "datasource": {
+                "type": "prometheus",
+                "uid": "${prometheus_uid}"
+            },
+            "description": "Error rate percentage across all components",
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "mode": "thresholds"
+                    },
+                    "mappings": [],
+                    "max": 100,
+                    "min": 0,
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "color": "green",
+                                "value": 0
+                            },
+                            {
+                                "color": "yellow",
+                                "value": 1
+                            },
+                            {
+                                "color": "orange",
+                                "value": 5
+                            },
+                            {
+                                "color": "red",
+                                "value": 10
+                            }
+                        ]
+                    },
+                    "unit": "percent"
+                },
+                "overrides": []
+            },
+            "gridPos": {
+                "h": 8,
+                "w": 6,
+                "x": 6,
+                "y": 46
+            },
+            "id": 16,
+            "options": {
+                "colorMode": "background",
+                "graphMode": "area",
+                "justifyMode": "auto",
+                "orientation": "auto",
+                "percentChangeColorMode": "standard",
+                "reduceOptions": {
+                    "calcs": [
+                        "lastNotNull"
+                    ],
+                    "fields": "",
+                    "values": false
+                },
+                "showPercentChange": true,
+                "textMode": "auto",
+                "wideLayout": true
+            },
+            "pluginVersion": "12.1.1",
+            "targets": [
+                {
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "${prometheus_uid}"
+                    },
+                    "expr": "(increase(errors_total{environment=\"$environment\", service=\"banterbus\"}[$__range]) + increase(state_operation_errors_total{environment=\"$environment\", service=\"banterbus\"}[$__range]) + increase(websocket_messages_received_errors_total{environment=\"$environment\", service=\"banterbus\"}[$__range]) + increase(websocket_messages_sent_errors_total{environment=\"$environment\", service=\"banterbus\"}[$__range])) / (increase(http_server_requests_total{environment=\"$environment\", service=\"banterbus\"}[$__range]) + increase(websocket_messages_received_total{environment=\"$environment\", service=\"banterbus\"}[$__range]) + increase(operations_total{environment=\"$environment\", service=\"banterbus\"}[$__range]) + 1) * 100",
+                    "legendFormat": "Error Rate %",
+                    "refId": "A"
+                }
+            ],
+            "title": "Overall Error Rate",
+            "type": "stat"
+        },
+        {
+            "datasource": {
+                "type": "prometheus",
+                "uid": "${prometheus_uid}"
+            },
+            "description": "Error rates by component and type",
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "mode": "palette-classic"
+                    },
+                    "custom": {
+                        "axisBorderShow": false,
+                        "axisCenteredZero": false,
+                        "axisColorMode": "text",
+                        "axisLabel": "",
+                        "axisPlacement": "auto",
+                        "barAlignment": 0,
+                        "drawStyle": "line",
+                        "fillOpacity": 10,
+                        "gradientMode": "none",
+                        "hideFrom": {
+                            "legend": false,
+                            "tooltip": false,
+                            "vis": false
+                        },
+                        "insertNulls": false,
+                        "lineInterpolation": "linear",
+                        "lineWidth": 1,
+                        "pointSize": 5,
+                        "scaleDistribution": {
+                            "type": "linear"
+                        },
+                        "showPoints": "never",
+                        "spanNulls": false,
+                        "stacking": {
+                            "group": "A",
+                            "mode": "none"
+                        },
+                        "thresholdsStyle": {
+                            "mode": "off"
+                        }
+                    },
+                    "mappings": [],
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "color": "green"
+                            }
+                        ]
+                    },
+                    "unit": "reqps"
+                },
+                "overrides": []
+            },
+            "gridPos": {
+                "h": 8,
+                "w": 12,
+                "x": 12,
+                "y": 46
+            },
+            "id": 13,
+            "options": {
+                "legend": {
+                    "calcs": [],
+                    "displayMode": "list",
+                    "placement": "bottom",
+                    "showLegend": true
+                },
+                "tooltip": {
+                    "mode": "multi",
+                    "sort": "none"
+                }
+            },
+            "pluginVersion": "11.4.0",
+            "targets": [
+                {
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "${prometheus_uid}"
+                    },
+                    "expr": "increase(errors_total{environment=\"$environment\", service=\"banterbus\"}[$__range])",
+                    "legendFormat": "{{error_type}} - {{component}}",
+                    "refId": "A"
+                },
+                {
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "${prometheus_uid}"
+                    },
+                    "expr": "increase(state_operation_errors_total{environment=\"$environment\", service=\"banterbus\"}[$__range])",
+                    "legendFormat": "State errors - {{state}} ({{error}})",
+                    "refId": "B"
+                },
+                {
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "${prometheus_uid}"
+                    },
+                    "expr": "increase(player_disconnection_count_total{environment=\"$environment\", service=\"banterbus\"}[$__range])",
+                    "legendFormat": "Player disconnections - {{reason}} ({{game_state}})",
+                    "refId": "C"
+                }
+            ],
+            "title": "Error Rates by Component",
+            "type": "timeseries"
+        },
+        {
+            "datasource": {
+                "type": "prometheus",
+                "uid": "${prometheus_uid}"
+            },
+            "description": "Connection quality and data integrity metrics",
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "mode": "palette-classic"
+                    },
+                    "custom": {
+                        "axisBorderShow": false,
+                        "axisCenteredZero": false,
+                        "axisColorMode": "text",
+                        "axisLabel": "",
+                        "axisPlacement": "auto",
+                        "barAlignment": 0,
+                        "drawStyle": "line",
+                        "fillOpacity": 10,
+                        "gradientMode": "none",
+                        "hideFrom": {
+                            "legend": false,
+                            "tooltip": false,
+                            "vis": false
+                        },
+                        "insertNulls": false,
+                        "lineInterpolation": "linear",
+                        "lineWidth": 1,
+                        "pointSize": 5,
+                        "scaleDistribution": {
+                            "type": "linear"
+                        },
+                        "showPoints": "never",
+                        "spanNulls": false,
+                        "stacking": {
+                            "group": "A",
+                            "mode": "none"
+                        },
+                        "thresholdsStyle": {
+                            "mode": "off"
+                        }
+                    },
+                    "mappings": [],
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "color": "green"
+                            }
+                        ]
+                    },
+                    "unit": "percent"
+                },
+                "overrides": []
+            },
+            "gridPos": {
+                "h": 8,
+                "w": 12,
+                "x": 0,
+                "y": 54
+            },
+            "id": 14,
+            "options": {
+                "legend": {
+                    "calcs": [],
+                    "displayMode": "list",
+                    "placement": "bottom",
+                    "showLegend": true
+                },
+                "tooltip": {
+                    "mode": "multi",
+                    "sort": "none"
+                }
+            },
+            "pluginVersion": "11.4.0",
+            "targets": [
+                {
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "${prometheus_uid}"
+                    },
+                    "expr": "histogram_quantile(0.95, rate(connection_quality_error_rate_percent_bucket{environment=\"$environment\", service=\"banterbus\"}[$rate_interval]))",
+                    "legendFormat": "95th percentile error rate",
+                    "refId": "A"
+                },
+                {
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "${prometheus_uid}"
+                    },
+                    "expr": "rate(data_integrity_checks_total{environment=\"$environment\", service=\"banterbus\", status=\"pass\"}[$rate_interval]) / rate(data_integrity_checks_total{environment=\"$environment\", service=\"banterbus\"}[$rate_interval]) * 100",
+                    "legendFormat": "Data integrity pass rate - {{check_type}}",
+                    "refId": "B"
+                },
+                {
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "${prometheus_uid}"
+                    },
+                    "expr": "rate(user_experience_total{environment=\"$environment\", service=\"banterbus\", satisfaction=\"satisfied\"}[$rate_interval]) / rate(user_experience_total{environment=\"$environment\", service=\"banterbus\"}[$rate_interval]) * 100",
+                    "legendFormat": "Player satisfaction rate",
+                    "refId": "C"
+                }
+            ],
+            "title": "Quality Metrics",
+            "type": "timeseries"
+        },
+        {
+            "collapsed": false,
+            "gridPos": {
+                "h": 1,
+                "w": 24,
+                "x": 0,
+                "y": 54
+            },
+            "id": 106,
+            "panels": [],
+            "title": "🔧 System Performance & Infrastructure",
+            "type": "row"
+        },
+        {
+            "datasource": {
+                "type": "prometheus",
+                "uid": "${prometheus_uid}"
+            },
+            "description": "Database performance and connection health",
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "mode": "palette-classic"
+                    },
+                    "custom": {
+                        "axisBorderShow": false,
+                        "axisCenteredZero": false,
+                        "axisColorMode": "text",
+                        "axisLabel": "",
+                        "axisPlacement": "auto",
+                        "barAlignment": 0,
+                        "drawStyle": "line",
+                        "fillOpacity": 10,
+                        "gradientMode": "none",
+                        "hideFrom": {
+                            "legend": false,
+                            "tooltip": false,
+                            "vis": false
+                        },
+                        "insertNulls": false,
+                        "lineInterpolation": "linear",
+                        "lineWidth": 1,
+                        "pointSize": 5,
+                        "scaleDistribution": {
+                            "type": "linear"
+                        },
+                        "showPoints": "never",
+                        "spanNulls": false,
+                        "stacking": {
+                            "group": "A",
+                            "mode": "none"
+                        },
+                        "thresholdsStyle": {
+                            "mode": "line"
+                        }
+                    },
+                    "mappings": [],
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "color": "green"
+                            },
+                            {
+                                "color": "yellow",
+                                "value": 100
+                            },
+                            {
+                                "color": "red",
+                                "value": 500
+                            }
+                        ]
+                    },
+                    "unit": "ms"
+                },
+                "overrides": []
+            },
+            "gridPos": {
+                "h": 8,
+                "w": 12,
+                "x": 0,
+                "y": 55
+            },
+            "id": 301,
+            "options": {
+                "legend": {
+                    "calcs": [],
+                    "displayMode": "list",
+                    "placement": "bottom",
+                    "showLegend": true
+                },
+                "tooltip": {
+                    "mode": "multi",
+                    "sort": "none"
+                }
+            },
+            "targets": [
+                {
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "${prometheus_uid}"
+                    },
+                    "expr": "histogram_quantile(0.95, rate(service_call_duration_seconds_bucket{environment=\"$environment\", service=\"banterbus\", operation=~\".*database.*\"}[$rate_interval])) * 1000",
+                    "legendFormat": "95th percentile DB query time",
+                    "refId": "A"
+                },
+                {
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "${prometheus_uid}"
+                    },
+                    "expr": "histogram_quantile(0.50, rate(service_call_duration_seconds_bucket{environment=\"$environment\", service=\"banterbus\", operation=~\".*database.*\"}[$rate_interval])) * 1000",
+                    "legendFormat": "Median DB query time",
+                    "refId": "B"
+                },
+                {
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "${prometheus_uid}"
+                    },
+                    "expr": "rate(errors_total{environment=\"$environment\", service=\"banterbus\", component=\"database\"}[$rate_interval]) * 1000",
+                    "legendFormat": "Database errors/sec",
+                    "refId": "C"
+                }
+            ],
+            "title": "Database Performance",
+            "type": "timeseries"
+        },
+        {
+            "datasource": {
+                "type": "prometheus",
+                "uid": "${prometheus_uid}"
+            },
+            "description": "Go runtime metrics and resource utilization",
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "mode": "palette-classic"
+                    },
+                    "custom": {
+                        "axisBorderShow": false,
+                        "axisCenteredZero": false,
+                        "axisColorMode": "text",
+                        "axisLabel": "",
+                        "axisPlacement": "auto",
+                        "barAlignment": 0,
+                        "drawStyle": "line",
+                        "fillOpacity": 10,
+                        "gradientMode": "none",
+                        "hideFrom": {
+                            "legend": false,
+                            "tooltip": false,
+                            "vis": false
+                        },
+                        "insertNulls": false,
+                        "lineInterpolation": "linear",
+                        "lineWidth": 1,
+                        "pointSize": 5,
+                        "scaleDistribution": {
+                            "type": "linear"
+                        },
+                        "showPoints": "never",
+                        "spanNulls": false,
+                        "stacking": {
+                            "group": "A",
+                            "mode": "none"
+                        },
+                        "thresholdsStyle": {
+                            "mode": "off"
+                        }
+                    },
+                    "mappings": [],
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "color": "green"
+                            }
+                        ]
+                    },
+                    "unit": "short"
+                },
+                "overrides": [
                     {
-                        "expr": "histogram_quantile(0.95, rate(http_request_duration_seconds_bucket{service_name=\"voxicle\"}[5m]))",
-                        "legendFormat": "95th percentile",
-                        "refId": "A"
+                        "matcher": {
+                            "id": "byName",
+                            "options": "Memory Usage"
+                        },
+                        "properties": [
+                            {
+                                "id": "unit",
+                                "value": "bytes"
+                            }
+                        ]
+                    }
+                ]
+            },
+            "gridPos": {
+                "h": 8,
+                "w": 12,
+                "x": 12,
+                "y": 55
+            },
+            "id": 302,
+            "options": {
+                "legend": {
+                    "calcs": [],
+                    "displayMode": "list",
+                    "placement": "bottom",
+                    "showLegend": true
+                },
+                "tooltip": {
+                    "mode": "multi",
+                    "sort": "none"
+                }
+            },
+            "targets": [
+                {
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "${prometheus_uid}"
+                    },
+                    "expr": "go_memstats_alloc_bytes{environment=\"$environment\", service=\"banterbus\"}",
+                    "legendFormat": "Memory Usage",
+                    "refId": "A"
+                },
+                {
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "${prometheus_uid}"
+                    },
+                    "expr": "go_goroutines{environment=\"$environment\", service=\"banterbus\"}",
+                    "legendFormat": "Goroutines",
+                    "refId": "B"
+                },
+                {
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "${prometheus_uid}"
+                    },
+                    "expr": "rate(go_gc_duration_seconds_count{environment=\"$environment\", service=\"banterbus\"}[$rate_interval])",
+                    "legendFormat": "GC Rate",
+                    "refId": "C"
+                },
+                {
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "${prometheus_uid}"
+                    },
+                    "expr": "process_open_fds{environment=\"$environment\", service=\"banterbus\"}",
+                    "legendFormat": "Open File Descriptors",
+                    "refId": "D"
+                }
+            ],
+            "title": "Go Runtime & Resource Utilization",
+            "type": "timeseries"
+        },
+        {
+            "collapsed": false,
+            "gridPos": {
+                "h": 1,
+                "w": 24,
+                "x": 0,
+                "y": 63
+            },
+            "id": 106,
+            "panels": [],
+            "title": "🏢 Business Operations & Game Flow",
+            "type": "row"
+        },
+        {
+            "datasource": {
+                "type": "prometheus",
+                "uid": "${prometheus_uid}"
+            },
+            "description": "Round completion rates and player engagement by game state",
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "mode": "palette-classic"
+                    },
+                    "custom": {
+                        "axisBorderShow": false,
+                        "axisCenteredZero": false,
+                        "axisColorMode": "text",
+                        "axisLabel": "",
+                        "axisPlacement": "auto",
+                        "barAlignment": 0,
+                        "drawStyle": "line",
+                        "fillOpacity": 10,
+                        "gradientMode": "none",
+                        "hideFrom": {
+                            "legend": false,
+                            "tooltip": false,
+                            "vis": false
+                        },
+                        "insertNulls": false,
+                        "lineInterpolation": "linear",
+                        "lineWidth": 1,
+                        "pointSize": 5,
+                        "scaleDistribution": {
+                            "type": "linear"
+                        },
+                        "showPoints": "never",
+                        "spanNulls": false,
+                        "stacking": {
+                            "group": "A",
+                            "mode": "none"
+                        },
+                        "thresholdsStyle": {
+                            "mode": "off"
+                        }
+                    },
+                    "mappings": [],
+                    "max": 1,
+                    "min": 0,
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "color": "green"
+                            },
+                            {
+                                "color": "red",
+                                "value": 0.7
+                            }
+                        ]
+                    },
+                    "unit": "percentunit"
+                },
+                "overrides": []
+            },
+            "gridPos": {
+                "h": 8,
+                "w": 12,
+                "x": 0,
+                "y": 64
+            },
+            "id": 402,
+            "options": {
+                "legend": {
+                    "calcs": [],
+                    "displayMode": "list",
+                    "placement": "bottom",
+                    "showLegend": true
+                },
+                "tooltip": {
+                    "mode": "multi",
+                    "sort": "none"
+                }
+            },
+            "targets": [
+                {
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "${prometheus_uid}"
+                    },
+                    "expr": "rate(game_state_transitions_total{environment=\"$environment\", service=\"banterbus\", status=\"success\", to_state=\"completed\"}[$rate_interval]) / rate(game_state_transitions_total{environment=\"$environment\", service=\"banterbus\", from_state=\"in_progress\"}[$rate_interval])",
+                    "legendFormat": "Round Completion Rate",
+                    "refId": "A"
+                },
+                {
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "${prometheus_uid}"
+                    },
+                    "expr": "rate(websocket_events_total{environment=\"$environment\", service=\"banterbus\", event_category=\"player_action\", status=\"success\"}[$rate_interval]) / rate(websocket_events_total{environment=\"$environment\", service=\"banterbus\", event_category=\"player_action\"}[$rate_interval])",
+                    "legendFormat": "Player Action Success Rate",
+                    "refId": "B"
+                },
+                {
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "${prometheus_uid}"
+                    },
+                    "expr": "rate(websocket_events_total{environment=\"$environment\", service=\"banterbus\", event_category=\"lobby_management\", status=\"success\"}[$rate_interval]) / rate(websocket_events_total{environment=\"$environment\", service=\"banterbus\", event_category=\"lobby_management\"}[$rate_interval])",
+                    "legendFormat": "Lobby Management Success Rate",
+                    "refId": "C"
+                }
+            ],
+            "title": "Player Engagement & Round Analytics",
+            "type": "timeseries"
+        },
+        {
+            "datasource": {
+                "type": "prometheus",
+                "uid": "${prometheus_uid}"
+            },
+            "description": "Game duration distribution and state transition health",
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "mode": "continuous-GrYlRd"
+                    },
+                    "custom": {
+                        "hideFrom": {
+                            "legend": false,
+                            "tooltip": false,
+                            "vis": false
+                        }
+                    },
+                    "mappings": [],
+                    "unit": "s"
+                },
+                "overrides": []
+            },
+            "gridPos": {
+                "h": 8,
+                "w": 12,
+                "x": 12,
+                "y": 64
+            },
+            "id": 403,
+            "options": {
+                "calculate": false,
+                "cellGap": 2,
+                "color": {
+                    "exponent": 0.5,
+                    "fill": "dark-orange",
+                    "mode": "scheme",
+                    "reverse": false,
+                    "scale": "exponential",
+                    "scheme": "Spectral",
+                    "steps": 64
+                },
+                "exemplars": {
+                    "color": "rgba(255,0,255,0.7)"
+                },
+                "filterValues": {
+                    "le": 1e-9
+                },
+                "legend": {
+                    "show": true
+                },
+                "rowsFrame": {
+                    "layout": "auto"
+                },
+                "tooltip": {
+                    "mode": "single",
+                    "showColorScale": false,
+                    "yHistogram": false
+                },
+                "yAxis": {
+                    "axisPlacement": "left",
+                    "reverse": false
+                }
+            },
+            "targets": [
+                {
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "${prometheus_uid}"
+                    },
+                    "expr": "increase(game_duration_seconds_bucket{environment=\"$environment\", service=\"banterbus\", status=\"success\"}[$__range])",
+                    "format": "heatmap",
+                    "legendFormat": "{{le}}",
+                    "refId": "A"
+                }
+            ],
+            "title": "Game Duration Distribution (Successful Games)",
+            "type": "heatmap"
+        },
+        {
+            "datasource": {
+                "type": "prometheus",
+                "uid": "${prometheus_uid}"
+            },
+            "description": "Business operations and game flow metrics",
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "mode": "palette-classic"
+                    },
+                    "custom": {
+                        "axisBorderShow": false,
+                        "axisCenteredZero": false,
+                        "axisColorMode": "text",
+                        "axisLabel": "",
+                        "axisPlacement": "auto",
+                        "barAlignment": 0,
+                        "drawStyle": "line",
+                        "fillOpacity": 10,
+                        "gradientMode": "none",
+                        "hideFrom": {
+                            "legend": false,
+                            "tooltip": false,
+                            "vis": false
+                        },
+                        "insertNulls": false,
+                        "lineInterpolation": "linear",
+                        "lineWidth": 1,
+                        "pointSize": 5,
+                        "scaleDistribution": {
+                            "type": "linear"
+                        },
+                        "showPoints": "never",
+                        "spanNulls": false,
+                        "stacking": {
+                            "group": "A",
+                            "mode": "none"
+                        },
+                        "thresholdsStyle": {
+                            "mode": "off"
+                        }
+                    },
+                    "mappings": [],
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "color": "green"
+                            }
+                        ]
+                    },
+                    "unit": "reqps"
+                },
+                "overrides": []
+            },
+            "gridPos": {
+                "h": 8,
+                "w": 12,
+                "x": 12,
+                "y": 72
+            },
+            "id": 401,
+            "options": {
+                "legend": {
+                    "calcs": [],
+                    "displayMode": "list",
+                    "placement": "bottom",
+                    "showLegend": true
+                },
+                "tooltip": {
+                    "mode": "multi",
+                    "sort": "none"
+                }
+            },
+            "pluginVersion": "11.4.0",
+            "targets": [
+                {
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "${prometheus_uid}"
+                    },
+                    "expr": "increase(operations_total{environment=\"$environment\", service=\"banterbus\", status=\"success\"}[$__range])",
+                    "legendFormat": "Successful {{operation}}",
+                    "refId": "A"
+                },
+                {
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "${prometheus_uid}"
+                    },
+                    "expr": "increase(operations_total{environment=\"$environment\", service=\"banterbus\", status=\"failure\"}[$__range])",
+                    "legendFormat": "Failed {{operation}}",
+                    "refId": "B"
+                },
+                {
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "${prometheus_uid}"
+                    },
+                    "expr": "increase(websocket_events_total{environment=\"$environment\", service=\"banterbus\"}[$__range])",
+                    "legendFormat": "WebSocket events - {{event_category}}",
+                    "refId": "C"
+                }
+            ],
+            "title": "Business Operations",
+            "type": "timeseries"
+        },
+        {
+            "datasource": {
+                "type": "prometheus",
+                "uid": "${prometheus_uid}"
+            },
+            "description": "Game flow health and business operation duration",
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "mode": "palette-classic"
+                    },
+                    "custom": {
+                        "axisBorderShow": false,
+                        "axisCenteredZero": false,
+                        "axisColorMode": "text",
+                        "axisLabel": "",
+                        "axisPlacement": "auto",
+                        "barAlignment": 0,
+                        "drawStyle": "line",
+                        "fillOpacity": 10,
+                        "gradientMode": "none",
+                        "hideFrom": {
+                            "legend": false,
+                            "tooltip": false,
+                            "vis": false
+                        },
+                        "insertNulls": false,
+                        "lineInterpolation": "linear",
+                        "lineWidth": 1,
+                        "pointSize": 5,
+                        "scaleDistribution": {
+                            "type": "linear"
+                        },
+                        "showPoints": "never",
+                        "spanNulls": false,
+                        "stacking": {
+                            "group": "A",
+                            "mode": "none"
+                        },
+                        "thresholdsStyle": {
+                            "mode": "off"
+                        }
+                    },
+                    "mappings": [],
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "color": "green"
+                            }
+                        ]
+                    },
+                    "unit": "s"
+                },
+                "overrides": []
+            },
+            "gridPos": {
+                "h": 8,
+                "w": 12,
+                "x": 0,
+                "y": 72
+            },
+            "id": 17,
+            "options": {
+                "legend": {
+                    "calcs": [],
+                    "displayMode": "list",
+                    "placement": "bottom",
+                    "showLegend": true
+                },
+                "tooltip": {
+                    "mode": "multi",
+                    "sort": "none"
+                }
+            },
+            "pluginVersion": "11.4.0",
+            "targets": [
+                {
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "${prometheus_uid}"
+                    },
+                    "expr": "histogram_quantile(0.95, rate(operation_duration_seconds_bucket{environment=\"$environment\", service=\"banterbus\"}[$rate_interval]))",
+                    "legendFormat": "95th percentile - {{operation}}",
+                    "refId": "A"
+                },
+                {
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "${prometheus_uid}"
+                    },
+                    "expr": "histogram_quantile(0.95, rate(game_flow_operation_duration_seconds_bucket{environment=\"$environment\", service=\"banterbus\"}[$rate_interval]))",
+                    "legendFormat": "95th percentile game flow - {{operation}}",
+                    "refId": "B"
+                },
+                {
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "${prometheus_uid}"
+                    },
+                    "expr": "histogram_quantile(0.95, rate(game_stuck_duration_seconds_bucket{environment=\"$environment\", service=\"banterbus\"}[$rate_interval]))",
+                    "legendFormat": "95th percentile stuck duration - {{state}}",
+                    "refId": "C"
+                }
+            ],
+            "title": "Business Operation Duration",
+            "type": "timeseries"
+        },
+        {
+            "collapsed": false,
+            "gridPos": {
+                "h": 1,
+                "w": 24,
+                "x": 0,
+                "y": 79
+            },
+            "id": 107,
+            "panels": [],
+            "title": "📋 Logs",
+            "type": "row"
+        },
+        {
+            "datasource": {
+                "type": "loki",
+                "uid": "${loki_uid}"
+            },
+            "description": "Recent application logs with filtering",
+            "fieldConfig": {
+                "defaults": {},
+                "overrides": []
+            },
+            "gridPos": {
+                "h": 12,
+                "w": 24,
+                "x": 0,
+                "y": 80
+            },
+            "id": 18,
+            "links": [
+                {
+                    "targetBlank": true,
+                    "title": "View More Logs",
+                    "url": "/explore?schemaVersion=1&panes=%7B%22logs%22:%7B%22datasource%22:%22${loki_uid}%22,%22queries%22:%5B%7B%22refId%22:%22A%22,%22datasource%22:%7B%22type%22:%22loki%22,%22uid%22:%22${loki_uid}%22%7D,%22expr%22:%22%7Bexporter%3D%5C%22OTLP%5C%22%7D%20%7C%3D%20%60${log_filter}%60%20%7C%20json%20%7C%20resources_service_namespace%20%3D%20%60$environment%60%20%7C%20resources_service_name%3D%60banterbus%60%22%7D%5D,%22range%22:%7B%22from%22:%22${__from}%22,%22to%22:%22${__to}%22%7D%7D%7D"
+                }
+            ],
+            "options": {
+                "dedupStrategy": "none",
+                "enableLogDetails": true,
+                "prettifyLogMessage": false,
+                "showCommonLabels": false,
+                "showLabels": false,
+                "showTime": true,
+                "sortOrder": "Descending",
+                "wrapLogMessage": false
+            },
+            "pluginVersion": "11.4.0",
+            "targets": [
+                {
+                    "datasource": {
+                        "type": "loki",
+                        "uid": "${loki_uid}"
+                    },
+                    "editorMode": "code",
+                    "expr": "{exporter=\"OTLP\"} |= `${log_filter}` | json | resources_service_namespace = `$environment` | resources_service_name=`banterbus`",
+                    "queryType": "range",
+                    "refId": "A"
+                }
+            ],
+            "title": "Application Logs",
+            "type": "logs"
+        }
+    ],
+    "preload": false,
+    "refresh": "10s",
+    "schemaVersion": 41,
+    "tags": [
+        "banterbus",
+        "websockets",
+        "sli",
+        "slo"
+    ],
+    "templating": {
+        "list": [
+            {
+                "current": {
+                    "text": "Prometheus (ms01)",
+                    "value": "PBFA97CFB590B2093"
+                },
+                "hide": 2,
+                "includeAll": false,
+                "name": "prometheus_uid",
+                "options": [],
+                "query": "prometheus",
+                "refresh": 1,
+                "type": "datasource"
+            },
+            {
+                "current": {
+                    "text": "Loki (ms01)",
+                    "value": "PE6A9712DBD83369B"
+                },
+                "hide": 2,
+                "includeAll": false,
+                "name": "loki_uid",
+                "options": [],
+                "query": "loki",
+                "refresh": 1,
+                "type": "datasource"
+            },
+            {
+                "current": {
+                    "text": "Tempo",
+                    "value": "tempo"
+                },
+                "hide": 2,
+                "includeAll": false,
+                "name": "tempo_uid",
+                "options": [],
+                "query": "tempo",
+                "refresh": 1,
+                "type": "datasource"
+            },
+            {
+                "current": {
+                    "text": "development",
+                    "value": "development"
+                },
+                "includeAll": false,
+                "label": "Environment",
+                "name": "environment",
+                "options": [
+                    {
+                        "selected": true,
+                        "text": "development",
+                        "value": "development"
                     },
                     {
-                        "expr": "histogram_quantile(0.50, rate(http_request_duration_seconds_bucket{service_name=\"voxicle\"}[5m]))",
-                        "legendFormat": "50th percentile",
-                        "refId": "B"
+                        "selected": false,
+                        "text": "production",
+                        "value": "production"
                     }
                 ],
-                "fieldConfig": {
-                    "defaults": {
-                        "color": {
-                            "mode": "palette-classic"
-                        },
-                        "custom": {
-                            "drawStyle": "line",
-                            "lineInterpolation": "linear",
-                            "barAlignment": 0,
-                            "lineWidth": 1,
-                            "fillOpacity": 0,
-                            "gradientMode": "none",
-                            "spanNulls": false,
-                            "insertNulls": false,
-                            "showPoints": "auto",
-                            "pointSize": 5,
-                            "stacking": {
-                                "mode": "none",
-                                "group": "A"
-                            },
-                            "axisPlacement": "auto",
-                            "axisLabel": "",
-                            "axisColorMode": "text",
-                            "scaleDistribution": {
-                                "type": "linear"
-                            },
-                            "axisCenteredZero": false,
-                            "hideFrom": {
-                                "legend": false,
-                                "tooltip": false,
-                                "vis": false
-                            },
-                            "thresholdsStyle": {
-                                "mode": "off"
-                            }
-                        },
-                        "mappings": [],
-                        "thresholds": {
-                            "steps": [
-                                {
-                                    "color": "green",
-                                    "value": null
-                                },
-                                {
-                                    "color": "red",
-                                    "value": 80
-                                }
-                            ]
-                        },
-                        "unit": "s"
-                    }
-                },
-                "gridPos": {
-                    "h": 8,
-                    "w": 12,
-                    "x": 12,
-                    "y": 0
-                }
+                "query": "development,production",
+                "type": "custom"
             },
             {
-                "id": 3,
-                "title": "HTTP Request Size",
-                "type": "histogram",
-                "targets": [
+                "current": {
+                    "text": "",
+                    "value": ""
+                },
+                "label": "Log Filter",
+                "name": "log_filter",
+                "options": [
                     {
-                        "expr": "histogram_quantile(0.95, rate(http_request_size_bytes_bucket{service_name=\"voxicle\"}[5m]))",
-                        "legendFormat": "95th percentile",
-                        "refId": "A"
+                        "selected": true,
+                        "text": "",
+                        "value": ""
                     }
                 ],
-                "fieldConfig": {
-                    "defaults": {
-                        "color": {
-                            "mode": "palette-classic"
-                        },
-                        "custom": {
-                            "drawStyle": "line",
-                            "lineInterpolation": "linear",
-                            "barAlignment": 0,
-                            "lineWidth": 1,
-                            "fillOpacity": 0,
-                            "gradientMode": "none",
-                            "spanNulls": false,
-                            "insertNulls": false,
-                            "showPoints": "auto",
-                            "pointSize": 5,
-                            "stacking": {
-                                "mode": "none",
-                                "group": "A"
-                            },
-                            "axisPlacement": "auto",
-                            "axisLabel": "",
-                            "axisColorMode": "text",
-                            "scaleDistribution": {
-                                "type": "linear"
-                            },
-                            "axisCenteredZero": false,
-                            "hideFrom": {
-                                "legend": false,
-                                "tooltip": false,
-                                "vis": false
-                            },
-                            "thresholdsStyle": {
-                                "mode": "off"
-                            }
-                        },
-                        "mappings": [],
-                        "thresholds": {
-                            "steps": [
-                                {
-                                    "color": "green",
-                                    "value": null
-                                },
-                                {
-                                    "color": "red",
-                                    "value": 80
-                                }
-                            ]
-                        },
-                        "unit": "bytes"
-                    }
-                },
-                "gridPos": {
-                    "h": 8,
-                    "w": 12,
-                    "x": 0,
-                    "y": 8
-                }
+                "query": "",
+                "type": "textbox"
             },
             {
-                "id": 4,
-                "title": "HTTP Response Size",
-                "type": "histogram",
-                "targets": [
+                "current": {
+                    "text": "5m",
+                    "value": "5m"
+                },
+                "label": "Rate Interval",
+                "name": "rate_interval",
+                "options": [
                     {
-                        "expr": "histogram_quantile(0.95, rate(http_response_size_bytes_bucket{service_name=\"voxicle\"}[5m]))",
-                        "legendFormat": "95th percentile",
-                        "refId": "A"
+                        "selected": false,
+                        "text": "1m",
+                        "value": "1m"
+                    },
+                    {
+                        "selected": false,
+                        "text": "2m",
+                        "value": "2m"
+                    },
+                    {
+                        "selected": true,
+                        "text": "5m",
+                        "value": "5m"
+                    },
+                    {
+                        "selected": false,
+                        "text": "10m",
+                        "value": "10m"
+                    },
+                    {
+                        "selected": false,
+                        "text": "15m",
+                        "value": "15m"
                     }
                 ],
-                "fieldConfig": {
-                    "defaults": {
-                        "color": {
-                            "mode": "palette-classic"
-                        },
-                        "custom": {
-                            "drawStyle": "line",
-                            "lineInterpolation": "linear",
-                            "barAlignment": 0,
-                            "lineWidth": 1,
-                            "fillOpacity": 0,
-                            "gradientMode": "none",
-                            "spanNulls": false,
-                            "insertNulls": false,
-                            "showPoints": "auto",
-                            "pointSize": 5,
-                            "stacking": {
-                                "mode": "none",
-                                "group": "A"
-                            },
-                            "axisPlacement": "auto",
-                            "axisLabel": "",
-                            "axisColorMode": "text",
-                            "scaleDistribution": {
-                                "type": "linear"
-                            },
-                            "axisCenteredZero": false,
-                            "hideFrom": {
-                                "legend": false,
-                                "tooltip": false,
-                                "vis": false
-                            },
-                            "thresholdsStyle": {
-                                "mode": "off"
-                            }
-                        },
-                        "mappings": [],
-                        "thresholds": {
-                            "steps": [
-                                {
-                                    "color": "green",
-                                    "value": null
-                                },
-                                {
-                                    "color": "red",
-                                    "value": 80
-                                }
-                            ]
-                        },
-                        "unit": "bytes"
-                    }
-                },
-                "gridPos": {
-                    "h": 8,
-                    "w": 12,
-                    "x": 12,
-                    "y": 8
-                }
+                "query": "1m,2m,5m,10m,15m",
+                "type": "custom"
             }
-        ],
-        "time": {
-            "from": "now-5m",
-            "to": "now"
-        },
-        "timepicker": {},
-        "templating": {
-            "list": []
-        },
-        "annotations": {
-            "list": []
-        },
-        "refresh": "5s",
-        "schemaVersion": 27,
-        "version": 0,
-        "links": []
-    }
+        ]
+    },
+    "time": {
+        "from": "now-1h",
+        "to": "now"
+    },
+    "timepicker": {},
+    "timezone": "",
+    "title": "BanterBus",
+    "uid": "banterbus-comprehensive",
+    "version": 2
 }

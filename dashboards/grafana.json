@@ -30,7 +30,7 @@
             "title": "🔍 Traces (Tempo)",
             "tooltip": "View distributed traces in Tempo",
             "type": "link",
-            "url": "/explore?schemaVersion=1&panes=%7B%22traces%22:%7B%22datasource%22:%22tempo%22,%22queries%22:%5B%7B%22refId%22:%22A%22,%22datasource%22:%7B%22type%22:%22tempo%22,%22uid%22:%22tempo%22%7D,%22queryType%22:%22traceqlSearch%22,%22limit%22:20,%22tableType%22:%22traces%22,%22filters%22:%5B%7B%22id%22:%22service-name%22,%22tag%22:%22service.name%22,%22operator%22:%22%3D%22,%22scope%22:%22resource%22,%22value%22:%5B%22banterbus%22%5D,%22valueType%22:%22string%22%7D%2C%7B%22id%22:%22namespace%22,%22tag%22:%22deployment.environment%22,%22operator%22:%22%3D%22,%22scope%22:%22resource%22,%22value%22:%5B%22$environment%22%5D,%22valueType%22:%22string%22%7D%5D%7D%5D,%22range%22:%7B%22from%22:%22${__from}%22,%22to%22:%22${__to}%22%7D%7D%7D"
+            "url": "/explore?schemaVersion=1&panes=%7B%22traces%22%3A%7B%22datasource%22%3A%22${tempo_uid}%22%2C%22queries%22%3A%5B%7B%22refId%22%3A%22A%22%2C%22datasource%22%3A%7B%22type%22%3A%22tempo%22%2C%22uid%22%3A%22${tempo_uid}%22%7D%2C%22queryType%22%3A%22traceql%22%2C%22query%22%3A%22%7Bresource.service.name%3D%5C%22banterbus%5C%22%20%26%26%20resource.service.namespace%3D%5C%22$environment%5C%22%7D%22%2C%22limit%22%3A20%7D%5D%2C%22range%22%3A%7B%22from%22%3A%22${__from}%22%2C%22to%22%3A%22${__to}%22%7D%7D%7D"
         },
         {
             "asDropdown": false,
@@ -42,7 +42,7 @@
             "title": "📋 Logs (Loki)",
             "tooltip": "View application logs in Loki",
             "type": "link",
-            "url": "/explore?schemaVersion=1&panes=%7B%22odr%22:%7B%22datasource%22:%22PE6A9712DBD83369B%22,%22queries%22:%5B%7B%22refId%22:%22A%22,%22expr%22:%22%7Bservice_name%3D%5C%22$environment%2Fbanterbus%5C%22%7D%20%7C%3D%20%60%60%20%7C%20json%22,%22queryType%22:%22range%22,%22datasource%22:%7B%22type%22:%22loki%22,%22uid%22:%22PE6A9712DBD83369B%22%7D,%22editorMode%22:%22builder%22,%22direction%22:%22backward%22%7D%5D,%22range%22:%7B%22from%22:%22${__from}%22,%22to%22:%22${__to}%22%7D%7D%7D&orgId=1&timezone=Europe%2FLondon&var-prometheus_uid=PBFA97CFB590B2093&var-loki_uid=PE6A9712DBD83369B&var-environment=$environment&var-rate_interval=5m"
+            "url": "/explore?schemaVersion=1&panes=%7B%22logs%22%3A%7B%22datasource%22%3A%22${loki_uid}%22%2C%22queries%22%3A%5B%7B%22refId%22%3A%22A%22%2C%22expr%22%3A%22%7Bexporter%3D%5C%22OTLP%5C%22%7D%20%7C%3D%20%60%60%20%7C%20json%20%7C%20resources_service_namespace%20%3D%20%60$environment%60%20%7C%20resources_service_name%3D%60banterbus%60%22%2C%22queryType%22%3A%22range%22%2C%22datasource%22%3A%7B%22type%22%3A%22loki%22%2C%22uid%22%3A%22${loki_uid}%22%7D%2C%22editorMode%22%3A%22code%22%2C%22direction%22%3A%22backward%22%7D%5D%2C%22range%22%3A%7B%22from%22%3A%22${__from}%22%2C%22to%22%3A%22${__to}%22%7D%7D%7D&orgId=1&timezone=Europe%2FLondon&var-prometheus_uid=${prometheus_uid}&var-loki_uid=${loki_uid}&var-environment=$environment&var-rate_interval=$rate_interval"
         }
     ],
     "panels": [
@@ -149,7 +149,7 @@
                         "type": "prometheus",
                         "uid": "${prometheus_uid}"
                     },
-                    "expr": "rate(state_count_total{environment=\"$environment\", service=\"banterbus\", state=\"in_progress\"}[$rate_interval])",
+                    "expr": "increase(state_count_total{environment=\"$environment\", service=\"banterbus\", state=\"in_progress\"}[$__range])",
                     "legendFormat": "Games Started",
                     "refId": "B"
                 },
@@ -284,13 +284,13 @@
                 "textMode": "auto",
                 "wideLayout": true
             },
-                "targets": [
+            "targets": [
                 {
                     "datasource": {
                         "type": "prometheus",
                         "uid": "${prometheus_uid}"
                     },
-                    "expr": "histogram_quantile(0.50, rate(websocket_connection_duration_seconds_bucket{environment=\"$environment\", service=\"banterbus\"}[$rate_interval]))",
+                    "expr": "histogram_quantile(0.50, increase(websocket_connection_duration_seconds_bucket{environment=\"$environment\", service=\"banterbus\"}[$__range]))",
                     "legendFormat": "Avg Session Duration",
                     "refId": "A"
                 }
@@ -385,7 +385,7 @@
                         "type": "prometheus",
                         "uid": "${prometheus_uid}"
                     },
-                    "expr": "rate(game_completion_total{environment=\"$environment\", service=\"banterbus\", status=\"failure\"}[$rate_interval]) / (rate(game_completion_total{environment=\"$environment\", service=\"banterbus\", status=\"success\"}[$rate_interval]) + rate(game_completion_total{environment=\"$environment\", service=\"banterbus\", status=\"failure\"}[$rate_interval]))",
+                    "expr": "increase(game_completion_total{environment=\"$environment\", service=\"banterbus\", status=\"failure\"}[$__range]) / (increase(game_completion_total{environment=\"$environment\", service=\"banterbus\", status=\"success\"}[$__range]) + increase(game_completion_total{environment=\"$environment\", service=\"banterbus\", status=\"failure\"}[$__range]))",
                     "legendFormat": "Game Abandonment Rate",
                     "refId": "A"
                 },
@@ -1398,7 +1398,7 @@
                         "type": "prometheus",
                         "uid": "${prometheus_uid}"
                     },
-                    "expr": "rate(state_count_total{environment=\"$environment\", service=\"banterbus\"}[$rate_interval])",
+                    "expr": "increase(state_count_total{environment=\"$environment\", service=\"banterbus\"}[$__range])",
                     "legendFormat": "{{state}} state transitions",
                     "refId": "A"
                 },
@@ -1407,7 +1407,7 @@
                         "type": "prometheus",
                         "uid": "${prometheus_uid}"
                     },
-                    "expr": "rate(game_state_transitions_total{environment=\"$environment\", service=\"banterbus\", status=\"success\"}[$rate_interval])",
+                    "expr": "increase(game_state_transitions_total{environment=\"$environment\", service=\"banterbus\", status=\"success\"}[$__range])",
                     "legendFormat": "Successful transitions - {{from_state}} -> {{to_state}}",
                     "refId": "B"
                 },
@@ -1416,7 +1416,7 @@
                         "type": "prometheus",
                         "uid": "${prometheus_uid}"
                     },
-                    "expr": "rate(state_transition_failures_total{environment=\"$environment\", service=\"banterbus\"}[$rate_interval])",
+                    "expr": "increase(state_transition_failures_total{environment=\"$environment\", service=\"banterbus\"}[$__range])",
                     "legendFormat": "Failed transitions - {{from_state}} -> {{to_state}}",
                     "refId": "C"
                 }
@@ -1524,7 +1524,7 @@
                         "type": "prometheus",
                         "uid": "${prometheus_uid}"
                     },
-                    "expr": "rate(game_stuck_count_total{environment=\"$environment\", service=\"banterbus\"}[$rate_interval])",
+                    "expr": "increase(game_stuck_count_total{environment=\"$environment\", service=\"banterbus\"}[$__range])",
                     "legendFormat": "Stuck games - {{state}}",
                     "refId": "C"
                 }
@@ -1793,6 +1793,160 @@
                 "type": "prometheus",
                 "uid": "${prometheus_uid}"
             },
+            "description": "Total number of errors across all components in the selected time range",
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "mode": "thresholds"
+                    },
+                    "mappings": [],
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "color": "green",
+                                "value": 0
+                            },
+                            {
+                                "color": "yellow",
+                                "value": 10
+                            },
+                            {
+                                "color": "orange",
+                                "value": 50
+                            },
+                            {
+                                "color": "red",
+                                "value": 100
+                            }
+                        ]
+                    },
+                    "unit": "short"
+                },
+                "overrides": []
+            },
+            "gridPos": {
+                "h": 8,
+                "w": 6,
+                "x": 0,
+                "y": 46
+            },
+            "id": 15,
+            "options": {
+                "colorMode": "background",
+                "graphMode": "area",
+                "justifyMode": "auto",
+                "orientation": "auto",
+                "percentChangeColorMode": "standard",
+                "reduceOptions": {
+                    "calcs": [
+                        "lastNotNull"
+                    ],
+                    "fields": "",
+                    "values": false
+                },
+                "showPercentChange": true,
+                "textMode": "auto",
+                "wideLayout": true
+            },
+            "pluginVersion": "12.1.1",
+            "targets": [
+                {
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "${prometheus_uid}"
+                    },
+                    "expr": "increase(errors_total{environment=\"$environment\", service=\"banterbus\"}[$__range]) + increase(state_operation_errors_total{environment=\"$environment\", service=\"banterbus\"}[$__range]) + increase(websocket_messages_received_errors_total{environment=\"$environment\", service=\"banterbus\"}[$__range]) + increase(websocket_messages_sent_errors_total{environment=\"$environment\", service=\"banterbus\"}[$__range]) + increase(handshake_failure_total{environment=\"$environment\", service=\"banterbus\"}[$__range])",
+                    "legendFormat": "Total Errors",
+                    "refId": "A"
+                }
+            ],
+            "title": "Total Errors",
+            "type": "stat"
+        },
+        {
+            "datasource": {
+                "type": "prometheus",
+                "uid": "${prometheus_uid}"
+            },
+            "description": "Error rate percentage across all components",
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "mode": "thresholds"
+                    },
+                    "mappings": [],
+                    "max": 100,
+                    "min": 0,
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "color": "green",
+                                "value": 0
+                            },
+                            {
+                                "color": "yellow",
+                                "value": 1
+                            },
+                            {
+                                "color": "orange",
+                                "value": 5
+                            },
+                            {
+                                "color": "red",
+                                "value": 10
+                            }
+                        ]
+                    },
+                    "unit": "percent"
+                },
+                "overrides": []
+            },
+            "gridPos": {
+                "h": 8,
+                "w": 6,
+                "x": 6,
+                "y": 46
+            },
+            "id": 16,
+            "options": {
+                "colorMode": "background",
+                "graphMode": "area",
+                "justifyMode": "auto",
+                "orientation": "auto",
+                "percentChangeColorMode": "standard",
+                "reduceOptions": {
+                    "calcs": [
+                        "lastNotNull"
+                    ],
+                    "fields": "",
+                    "values": false
+                },
+                "showPercentChange": true,
+                "textMode": "auto",
+                "wideLayout": true
+            },
+            "pluginVersion": "12.1.1",
+            "targets": [
+                {
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "${prometheus_uid}"
+                    },
+                    "expr": "(increase(errors_total{environment=\"$environment\", service=\"banterbus\"}[$__range]) + increase(state_operation_errors_total{environment=\"$environment\", service=\"banterbus\"}[$__range]) + increase(websocket_messages_received_errors_total{environment=\"$environment\", service=\"banterbus\"}[$__range]) + increase(websocket_messages_sent_errors_total{environment=\"$environment\", service=\"banterbus\"}[$__range])) / (increase(http_server_requests_total{environment=\"$environment\", service=\"banterbus\"}[$__range]) + increase(websocket_messages_received_total{environment=\"$environment\", service=\"banterbus\"}[$__range]) + increase(operations_total{environment=\"$environment\", service=\"banterbus\"}[$__range]) + 1) * 100",
+                    "legendFormat": "Error Rate %",
+                    "refId": "A"
+                }
+            ],
+            "title": "Overall Error Rate",
+            "type": "stat"
+        },
+        {
+            "datasource": {
+                "type": "prometheus",
+                "uid": "${prometheus_uid}"
+            },
             "description": "Error rates by component and type",
             "fieldConfig": {
                 "defaults": {
@@ -1847,7 +2001,7 @@
             "gridPos": {
                 "h": 8,
                 "w": 12,
-                "x": 0,
+                "x": 12,
                 "y": 46
             },
             "id": 13,
@@ -1870,7 +2024,7 @@
                         "type": "prometheus",
                         "uid": "${prometheus_uid}"
                     },
-                    "expr": "rate(errors_total{environment=\"$environment\", service=\"banterbus\"}[$rate_interval])",
+                    "expr": "increase(errors_total{environment=\"$environment\", service=\"banterbus\"}[$__range])",
                     "legendFormat": "{{error_type}} - {{component}}",
                     "refId": "A"
                 },
@@ -1879,7 +2033,7 @@
                         "type": "prometheus",
                         "uid": "${prometheus_uid}"
                     },
-                    "expr": "rate(state_operation_errors_total{environment=\"$environment\", service=\"banterbus\"}[$rate_interval])",
+                    "expr": "increase(state_operation_errors_total{environment=\"$environment\", service=\"banterbus\"}[$__range])",
                     "legendFormat": "State errors - {{state}} ({{error}})",
                     "refId": "B"
                 },
@@ -1888,7 +2042,7 @@
                         "type": "prometheus",
                         "uid": "${prometheus_uid}"
                     },
-                    "expr": "rate(player_disconnection_count_total{environment=\"$environment\", service=\"banterbus\"}[$rate_interval])",
+                    "expr": "increase(player_disconnection_count_total{environment=\"$environment\", service=\"banterbus\"}[$__range])",
                     "legendFormat": "Player disconnections - {{reason}} ({{game_state}})",
                     "refId": "C"
                 }
@@ -1955,8 +2109,8 @@
             "gridPos": {
                 "h": 8,
                 "w": 12,
-                "x": 12,
-                "y": 46
+                "x": 0,
+                "y": 54
             },
             "id": 14,
             "options": {
@@ -2548,7 +2702,7 @@
                         "type": "prometheus",
                         "uid": "${prometheus_uid}"
                     },
-                    "expr": "rate(operations_total{environment=\"$environment\", service=\"banterbus\", status=\"success\"}[$rate_interval])",
+                    "expr": "increase(operations_total{environment=\"$environment\", service=\"banterbus\", status=\"success\"}[$__range])",
                     "legendFormat": "Successful {{operation}}",
                     "refId": "A"
                 },
@@ -2557,7 +2711,7 @@
                         "type": "prometheus",
                         "uid": "${prometheus_uid}"
                     },
-                    "expr": "rate(operations_total{environment=\"$environment\", service=\"banterbus\", status=\"failure\"}[$rate_interval])",
+                    "expr": "increase(operations_total{environment=\"$environment\", service=\"banterbus\", status=\"failure\"}[$__range])",
                     "legendFormat": "Failed {{operation}}",
                     "refId": "B"
                 },
@@ -2566,7 +2720,7 @@
                         "type": "prometheus",
                         "uid": "${prometheus_uid}"
                     },
-                    "expr": "rate(websocket_events_total{environment=\"$environment\", service=\"banterbus\"}[$rate_interval])",
+                    "expr": "increase(websocket_events_total{environment=\"$environment\", service=\"banterbus\"}[$__range])",
                     "legendFormat": "WebSocket events - {{event_category}}",
                     "refId": "C"
                 }
@@ -2636,7 +2790,7 @@
                 "x": 0,
                 "y": 72
             },
-            "id": 16,
+            "id": 17,
             "options": {
                 "legend": {
                     "calcs": [],
@@ -2711,12 +2865,12 @@
                 "x": 0,
                 "y": 80
             },
-            "id": 17,
+            "id": 18,
             "links": [
                 {
                     "targetBlank": true,
                     "title": "View More Logs",
-                    "url": "/explore?schemaVersion=1&panes=%7B%22logs%22:%7B%22datasource%22:%22${loki_uid}%22,%22queries%22:%5B%7B%22refId%22:%22A%22,%22datasource%22:%7B%22type%22:%22loki%22,%22uid%22:%22${loki_uid}%22%7D,%22expr%22:%22%7Bapp%3D%5C%22banterbus%5C%22%2C%20namespace%3D%5C%22$environment%5C%22%7D%20%7C%3D%20%60${log_filter}%60%22%7D%5D,%22range%22:%7B%22from%22:%22${__from}%22,%22to%22:%22${__to}%22%7D%7D%7D"
+                    "url": "/explore?schemaVersion=1&panes=%7B%22logs%22:%7B%22datasource%22:%22${loki_uid}%22,%22queries%22:%5B%7B%22refId%22:%22A%22,%22datasource%22:%7B%22type%22:%22loki%22,%22uid%22:%22${loki_uid}%22%7D,%22expr%22:%22%7Bexporter%3D%5C%22OTLP%5C%22%7D%20%7C%3D%20%60${log_filter}%60%20%7C%20json%20%7C%20resources_service_namespace%20%3D%20%60$environment%60%20%7C%20resources_service_name%3D%60banterbus%60%22%7D%5D,%22range%22:%7B%22from%22:%22${__from}%22,%22to%22:%22${__to}%22%7D%7D%7D"
                 }
             ],
             "options": {
@@ -2737,7 +2891,7 @@
                         "uid": "${loki_uid}"
                     },
                     "editorMode": "code",
-                    "expr": "{app=\"banterbus\", namespace=\"$environment\"} |= `${log_filter}`",
+                    "expr": "{exporter=\"OTLP\"} |= `${log_filter}` | json | resources_service_namespace = `$environment` | resources_service_name=`banterbus`",
                     "queryType": "range",
                     "refId": "A"
                 }
@@ -2780,6 +2934,19 @@
                 "name": "loki_uid",
                 "options": [],
                 "query": "loki",
+                "refresh": 1,
+                "type": "datasource"
+            },
+            {
+                "current": {
+                    "text": "Tempo",
+                    "value": "tempo"
+                },
+                "hide": 2,
+                "includeAll": false,
+                "name": "tempo_uid",
+                "options": [],
+                "query": "tempo",
                 "refresh": 1,
                 "type": "datasource"
             },
@@ -2868,7 +3035,7 @@
     },
     "timepicker": {},
     "timezone": "",
-    "title": "BanterBus",
+    "title": "Banter Bus",
     "uid": "banterbus-comprehensive",
     "version": 2
 }

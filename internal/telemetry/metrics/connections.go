@@ -117,7 +117,7 @@ func RecordMessageSendLatency(ctx context.Context, latency float64, messageType 
 func IncrementMessageSent(ctx context.Context, messageType string) error {
 	m := otel.Meter("gitlab.com/hmajid2301/banterbus")
 
-	counter, err := m.Int64Counter("websocket.messages.sent.total",
+	counter, err := m.Int64Counter("websocket.message.sent.total",
 		metric.WithDescription("Total number of WebSocket messages sent"),
 		metric.WithUnit("{message}"),
 	)
@@ -132,7 +132,7 @@ func IncrementMessageSent(ctx context.Context, messageType string) error {
 func IncrementMessageSentError(ctx context.Context, messageType string) error {
 	m := otel.Meter("gitlab.com/hmajid2301/banterbus")
 
-	counter, err := m.Int64Counter("websocket.messages.sent.errors.total",
+	counter, err := m.Int64Counter("websocket.message.sent.errors.total",
 		metric.WithDescription("Total number of WebSocket message send errors"),
 		metric.WithUnit("{error}"),
 	)
@@ -147,7 +147,7 @@ func IncrementMessageSentError(ctx context.Context, messageType string) error {
 func IncrementMessageReceived(ctx context.Context, messageType string) error {
 	m := otel.Meter("gitlab.com/hmajid2301/banterbus")
 
-	counter, err := m.Int64Counter("websocket.messages.received.total",
+	counter, err := m.Int64Counter("websocket.message.received.total",
 		metric.WithDescription("Total number of WebSocket messages received"),
 		metric.WithUnit("{message}"),
 	)
@@ -162,7 +162,7 @@ func IncrementMessageReceived(ctx context.Context, messageType string) error {
 func IncrementMessageReceivedError(ctx context.Context, messageType string) error {
 	m := otel.Meter("gitlab.com/hmajid2301/banterbus")
 
-	counter, err := m.Int64Counter("websocket.messages.received.errors.total",
+	counter, err := m.Int64Counter("websocket.message.received.errors.total",
 		metric.WithDescription("Total number of WebSocket message receive errors"),
 		metric.WithUnit("{error}"),
 	)

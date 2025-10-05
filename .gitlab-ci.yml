@@ -10,10 +10,9 @@ default:
 variables:
   IMAGE_TAG: v0.1.13
   BANTERBUS_CI_IMAGE: $CI_REGISTRY_IMAGE/ci:$IMAGE_TAG
-  TOFU_IMAGE: nixos/nix:latest
   TF_ROOT: ${CI_PROJECT_DIR}/infra/tf
-  TF_STATE_NAME: banterbus
-  TF_ADDRESS: ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/terraform/state/${ENVIRONMENT}
+  TF_STATE_NAME: default
+  TF_ADDRESS: ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/terraform/state/default
   TF_USERNAME: gitlab-ci-token
   TF_PASSWORD: ${CI_JOB_TOKEN}
   OPENBAO_ADDRESS: https://openbao.homelab.haseebmajid.dev
@@ -138,7 +137,6 @@ stages:
 
 .tofu:
   extends: .task
-  stage: tofu
   variables:
     TF_VAR_openbao_token: $OPENBAO_TOKEN
     TF_VAR_openbao_address: $OPENBAO_ADDRESS
@@ -147,25 +145,25 @@ stages:
     TF_VAR_access_token: $TF_PASSWORD
     TF_VAR_kubeconfig_path: ~/.kube/config
     TF_VAR_kubeconfig_context: hmajid2301/k8s-gitops:k8s
+    GITLAB_USERNAME: $TF_USERNAME
+    GITLAB_ACCESS_TOKEN: $TF_PASSWORD
     TMPDIR: /tmp
     TMP: /tmp
     TEMP: /tmp
   before_script:
     - !reference [.tailscale, before_script]
+    - mkdir -p ~/.kube
     - kubectl config use-context hmajid2301/k8s-gitops:k8s
+    - kubectl config view --raw > ~/.kube/config
+    - chmod 600 ~/.kube/config
     - cd $TF_ROOT
     - |
       echo "Setting up Terraform environment..."
-      # Ensure required directories exist and are writable
       mkdir -p /tmp .terraform/providers
       chmod 755 /tmp
-      # Set proper temp directory for Terraform
       export TMPDIR=/tmp
       export TMP=/tmp
       export TEMP=/tmp
-      echo "Lock file exists: $(test -f .terraform.lock.hcl && echo 'yes' || echo 'no')"
-      echo "Providers cache exists: $(test -d .terraform/providers && echo 'yes' || echo 'no')"
-      echo "Temp directory: $TMPDIR ($(ls -ld $TMPDIR))"
   cache:
     key: tofu-providers-$CI_COMMIT_REF_SLUG
     paths:
@@ -174,18 +172,19 @@ stages:
 
 .tofu:plan:
   extends: .tofu
+  stage: build
   script:
     - task tf:plan
   artifacts:
-    name: plan-${ENVIRONMENT}
+    name: plan
     paths:
-      - $TF_ROOT/plan-${ENVIRONMENT}.cache
-      - $TF_ROOT/plan-${ENVIRONMENT}.txt
-      - $TF_ROOT/environments/${ENVIRONMENT}.auto.tfvars
+      - $TF_ROOT/plan-default.cache
+      - $TF_ROOT/plan-default.txt
     expire_in: 1 week
 
 .tofu:apply:
   extends: .tofu
+  stage: deploy
   script:
     - task tf:apply
   when: manual
@@ -396,87 +395,59 @@ combine:coverage:
     paths:
       - coverage/
 
-# tofu:validate:
-#   stage: test
-#   variables:
-#     TF_VAR_openbao_token: $OPENBAO_TOKEN
-#     TF_VAR_openbao_address: $OPENBAO_ADDRESS
-#     TMPDIR: /tmp
-#     TMP: /tmp
-#     TEMP: /tmp
-#   extends:
-#     - .task
-#     - .tailscale
-#   script:
-#     - cd $TF_ROOT
-#     - mkdir -p /tmp .terraform/providers
-#     - |
-#       cat > /etc/resolv.conf << EOF
-#       nameserver 8.8.8.8
-#       nameserver 1.1.1.1
-#       nameserver 100.100.100.100
-#       EOF
-#     - task tf:validate
-#   rules:
-#     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-#       changes:
-#         - "infra/tf/**/*"
-#     - if: $CI_COMMIT_BRANCH == "main"
-#       changes:
-#         - "infra/tf/**/*"
+tofu:validate:
+  extends:
+    - .tofu
+  script:
+    - cd $TF_ROOT
+    - mkdir -p /tmp .terraform/providers
+    - |
+      cat > /etc/resolv.conf << EOF
+      nameserver 8.8.8.8
+      nameserver 1.1.1.1
+      nameserver 100.100.100.100
+      EOF
+    - task tf:init
+    - task tf:validate
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      changes:
+        - "infra/tf/**/*"
+    - if: $CI_COMMIT_BRANCH == "main"
+      changes:
+        - "infra/tf/**/*"
 
-# tofu:plan:dev:
-#   extends: .tofu:plan
-#   variables:
-#     ENVIRONMENT: dev
-#   rules:
-#     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-#       changes:
-#         - infra/tf/**/*
-#     - if: $CI_COMMIT_BRANCH != "main"
-#       changes:
-#         - infra/tf/**/*
-#   needs:
-#     - job: tofu:validate
-#       optional: true
+# Removed: tofu:plan:dev - now using single shared plan
+# See tofu:plan:shared which handles both dev and prod infrastructure
 
-# tofu:apply:dev:
-#   extends: .tofu:apply
-#   variables:
-#     ENVIRONMENT: dev
-#   rules:
-#     - if: $CI_COMMIT_BRANCH != "main"
-#       changes:
-#         - infra/tf/**/*
-#   needs:
-#     - tofu:plan:dev
-#   dependencies:
-#     - tofu:plan:dev
+tofu:plan:
+  extends: .tofu:plan
+  variables:
+    ENVIRONMENT: default  # For artifact naming only
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      changes:
+        - infra/tf/**/*
+    - if: $CI_COMMIT_BRANCH == "main"
+      changes:
+        - infra/tf/**/*
+  needs:
+    - job: tofu:validate
+      optional: true
 
-# tofu:plan:prod:
-#   extends: .tofu:plan
-#   variables:
-#     ENVIRONMENT: prod
-#   rules:
-#     - if: $CI_COMMIT_BRANCH == "main"
-#       changes:
-#         - infra/tf/**/*
-#   needs:
-#     - job: tofu:validate
-#       optional: true
-
-# tofu:apply:prod:
-#   extends: .tofu:apply
-#   variables:
-#     ENVIRONMENT: prod
-#   rules:
-#     - if: $CI_COMMIT_BRANCH == "main"
-#       changes:
-#         - infra/tf/**/*
-#   needs:
-#     - tofu:plan:prod
-#   dependencies:
-#     - tofu:plan:prod
+tofu:apply:
+  extends: .tofu:apply
+  variables:
+    ENVIRONMENT: default  # For artifact naming only
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+      changes:
+        - infra/tf/**/*
+      when: manual
+  needs:
+    - tofu:plan
+  dependencies:
+    - tofu:plan
 
 publish:docker:
   stage: build

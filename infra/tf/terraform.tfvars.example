@@ -39,3 +39,6 @@ environment = "dev" # or "prod"
 #   - token
 #   - username
 #   - remote_state_address
+#
+# kv/infra/betterstack:
+#   - api_token

@@ -1,6 +1,3 @@
-# GitLab Webhook Configuration for Flux CD
-# This webhook triggers Flux CD ResourceSet for preview environments
-
 # Get Flux webhook path from Receiver status
 data "kubernetes_resource" "flux_receiver" {
   api_version = "notification.toolkit.fluxcd.io/v1"
@@ -18,8 +15,6 @@ data "kubernetes_secret" "gitlab_webhook_token" {
     namespace = "flux-system"
   }
 }
-
-# GitLab secrets data source moved to secrets.tf
 
 # Create GitLab project webhook
 resource "gitlab_project_hook" "flux_webhook" {
@@ -46,7 +41,6 @@ resource "gitlab_project_hook" "flux_webhook" {
   # Webhook configuration
   enable_ssl_verification   = true
   push_events_branch_filter = "" # All branches
-
 
 }
 

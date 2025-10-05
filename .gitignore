@@ -109,3 +109,7 @@ terraform.rc
 crash.log
 crash.*.log
 .terraform.tfstate.lock.info
+
+# Terraform plan files
+infra/tf/plan-default.cache
+infra/tf/plan-default.txt

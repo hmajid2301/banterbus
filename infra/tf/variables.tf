@@ -37,10 +37,11 @@ variable "environment" {
   default     = "dev"
 }
 
+# Kubernetes configuration variables
 variable "kubeconfig_path" {
   description = "Path to kubeconfig file"
   type        = string
-  default     = null
+  default     = "~/.kube/config"
 }
 
 variable "kubeconfig_context" {
@@ -48,3 +49,44 @@ variable "kubeconfig_context" {
   type        = string
   default     = null
 }
+
+variable "status_page_domain" {
+  description = "Custom domain for status page (optional)"
+  type        = string
+  default     = ""
+}
+
+variable "admin_phone_number" {
+  description = "Admin phone number for SMS alerts"
+  type        = string
+  default     = ""
+}
+
+variable "cloudflare_api_token" {
+  description = "Cloudflare API token"
+  type        = string
+  default     = null
+  sensitive   = true
+}
+
+variable "cloudflare_zone_id" {
+  description = "Cloudflare zone ID"
+  type        = string
+  default     = null
+}
+
+variable "grafana_service_account_token" {
+  description = "Grafana service account token"
+  type        = string
+  default     = ""
+  sensitive   = true
+}
+
+variable "betterstack_api_token" {
+  description = "BetterStack API token"
+  type        = string
+  default     = ""
+  sensitive   = true
+}
+
+

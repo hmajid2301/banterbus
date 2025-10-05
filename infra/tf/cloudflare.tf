@@ -1,15 +1,17 @@
+# ============================================================================
+# CLOUDFLARE DNS RECORDS
+# ============================================================================
 # Cloudflare Tunnel DNS Records for banterbus.games
 # Using single tunnel for both dev and prod environments
-# Tunnel hostname is dynamically generated from OpenBao data
 
 # Production domain (banterbus.games)
 resource "cloudflare_record" "prod_apex" {
   zone_id = local.cloudflare_zone_id
   name    = "@"
   type    = "CNAME"
-  content = local.tunnel_hostname # Dynamically generated from OpenBao
+  content = local.tunnel_hostname
   ttl     = 1
-  proxied = true # Enable Cloudflare proxy for SSL and performance
+  proxied = true
 }
 
 # Production wildcard (*.banterbus.games)
@@ -27,7 +29,7 @@ resource "cloudflare_record" "dev_apex" {
   zone_id = local.cloudflare_zone_id
   name    = "dev"
   type    = "CNAME"
-  content = local.tunnel_hostname # Same tunnel for dev
+  content = local.tunnel_hostname
   ttl     = 1
   proxied = true
 }
@@ -42,14 +44,14 @@ resource "cloudflare_record" "dev_wildcard" {
   proxied = true
 }
 
-# ACME challenge records for SSL certificates (if using cert-manager)
+# ACME challenge records for SSL certificates
 resource "cloudflare_record" "acme_challenge" {
   zone_id = local.cloudflare_zone_id
   name    = "_acme-challenge"
   type    = "CNAME"
   content = local.tunnel_hostname
   ttl     = 1
-  proxied = false # ACME challenges should not be proxied
+  proxied = false
 }
 
 resource "cloudflare_record" "acme_challenge_dev" {
@@ -60,4 +62,3 @@ resource "cloudflare_record" "acme_challenge_dev" {
   ttl     = 1
   proxied = false
 }
-

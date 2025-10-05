@@ -41,6 +41,7 @@ tasks:
       - sqlfluff format internal/store/db/sqlc/ --dialect postgres --disable-progress-bar
       - templ fmt internal/views
       - rustywind internal/views/ --write
+      - tofu fmt -recursive
 
   tests:
     desc: Runs all the tests.
@@ -240,27 +241,31 @@ tasks:
       - job=$(gitlab-ci-local --list-all | tail -n +4 | awk '{print $1}' | gum filter --placeholder "Select job") && gitlab-ci-local "$job"
 
   tf:init:
-    desc: Initialize OpenTofu with backend configuration
+    desc: Initialize OpenTofu with backend configuration  
     dir: infra/tf
+    vars:
+      STATE_NAME: '{{.STATE_NAME | default "default"}}'
+      GITLAB_USERNAME: '{{.GITLAB_USERNAME | default "hmajid2301"}}'
     cmds:
       - |
         tofu init \
-          -backend-config="address=${TF_ADDRESS}" \
-          -backend-config="lock_address=${TF_ADDRESS}/lock" \
-          -backend-config="unlock_address=${TF_ADDRESS}/lock" \
-          -backend-config="username=${TF_USERNAME}" \
-          -backend-config="password=${TF_PASSWORD}" \
+          -backend-config="address=https://gitlab.com/api/v4/projects/59925362/terraform/state/{{.STATE_NAME}}" \
+          -backend-config="lock_address=https://gitlab.com/api/v4/projects/59925362/terraform/state/{{.STATE_NAME}}/lock" \
+          -backend-config="unlock_address=https://gitlab.com/api/v4/projects/59925362/terraform/state/{{.STATE_NAME}}/lock" \
+          -backend-config="username={{.GITLAB_USERNAME}}" \
+          -backend-config="password=$GITLAB_ACCESS_TOKEN" \
           -backend-config="lock_method=POST" \
           -backend-config="unlock_method=DELETE" \
-          -backend-config="retry_wait_min=5"
+          -backend-config="retry_wait_min=5" \
+          -reconfigure
 
   tf:plan:
     desc: Plan OpenTofu changes
     dir: infra/tf
     deps: [tf:init]
     cmds:
-      - tofu plan ${TF_PLAN_ARGS} -out="plan-${ENVIRONMENT:-default}.cache"
-      - tofu show -no-color "plan-${ENVIRONMENT:-default}.cache" > "plan-${ENVIRONMENT:-default}.txt"
+      - tofu plan ${TF_PLAN_ARGS} -out="plan-default.cache"
+      - tofu show -no-color "plan-default.cache" > "plan-default.txt"
 
   tf:apply:
     desc: Apply OpenTofu changes
@@ -268,8 +273,8 @@ tasks:
     deps: [tf:init]
     cmds:
       - |
-        echo "Applying to environment: ${ENVIRONMENT}"
-        tofu apply -auto-approve "plan-${ENVIRONMENT:-default}.cache"
+        echo "Applying infrastructure changes (manages both dev and prod)"
+        tofu apply -auto-approve "plan-default.cache"
 
   tf:validate:
     desc: Validate OpenTofu configuration

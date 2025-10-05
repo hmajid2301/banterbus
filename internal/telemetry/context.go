@@ -174,25 +174,6 @@ func AddScoreAttributes(ctx context.Context, playerID string, score, totalScore 
 	)
 }
 
-func AddGameEndAttributes(ctx context.Context, winnerID, reason string, totalRounds int, gameDuration string) {
-	span := trace.SpanFromContext(ctx)
-	if !span.IsRecording() {
-		return
-	}
-
-	span.AddEvent("game.ended", trace.WithAttributes(
-		attribute.String("game.winner_id", winnerID),
-		attribute.String("game.end_reason", reason),
-		attribute.Int("game.total_rounds", totalRounds),
-		attribute.String("game.duration", gameDuration),
-	))
-
-	span.SetAttributes(
-		attribute.String("game.outcome", "completed"),
-		attribute.String("game.winner_id", winnerID),
-	)
-}
-
 func AddPlayerConnectionAttributes(
 	ctx context.Context,
 	playerID, connectionType string,
@@ -268,24 +249,6 @@ func AddWebSocketMetrics(
 	)
 }
 
-func AddValidationErrorDetails(
-	ctx context.Context,
-	fieldName, expectedValue, actualValue string,
-	validationRule string,
-) {
-	span := trace.SpanFromContext(ctx)
-	if !span.IsRecording() {
-		return
-	}
-
-	span.AddEvent("validation.field_error", trace.WithAttributes(
-		attribute.String("validation.field_name", fieldName),
-		attribute.String("validation.expected_value", expectedValue),
-		attribute.String("validation.actual_value", actualValue),
-		attribute.String("validation.rule", validationRule),
-	))
-}
-
 func AddGameProgressMetrics(
 	ctx context.Context,
 	gameStateID string,
@@ -321,20 +284,6 @@ func AddPlayerToBaggage(ctx context.Context, playerID uuid.UUID) context.Context
 	return baggage.ContextWithBaggage(ctx, bag)
 }
 
-func AddRoomCodeToBaggage(ctx context.Context, roomCode string) context.Context {
-	member, err := baggage.NewMember("room_code", roomCode)
-	if err != nil {
-		return ctx
-	}
-
-	bag, err := baggage.FromContext(ctx).SetMember(member)
-	if err != nil {
-		return ctx
-	}
-
-	return baggage.ContextWithBaggage(ctx, bag)
-}
-
 func AddTestNameToBaggage(ctx context.Context, testName string) context.Context {
 	member, err := baggage.NewMember("test_name", testName)
 	if err != nil {
@@ -347,19 +296,6 @@ func AddTestNameToBaggage(ctx context.Context, testName string) context.Context 
 	}
 
 	return baggage.ContextWithBaggage(ctx, bag)
-}
-
-func GetPlayerIDFromBaggage(ctx context.Context) *uuid.UUID {
-	bag := baggage.FromContext(ctx)
-	member := bag.Member("player_id")
-	if member.Value() == "" {
-		return nil
-	}
-
-	if playerID, err := uuid.FromString(member.Value()); err == nil {
-		return &playerID
-	}
-	return nil
 }
 
 func RecordValidationError(ctx context.Context, field, message, value string) {
@@ -454,22 +390,6 @@ func AddMessagingAttributes(ctx context.Context, messageType, operation string, 
 	span.SetAttributes(attrs...)
 }
 
-func AddDatabaseAttributes(ctx context.Context, dbName, operation, statement string) {
-	span := trace.SpanFromContext(ctx)
-	if !span.IsRecording() {
-		return
-	}
-
-	attrs := []attribute.KeyValue{
-		semconv.DBSystemKey.String("postgresql"),
-		semconv.DBNamespace(dbName),
-		semconv.DBOperationName(operation),
-		semconv.DBQueryText(statement),
-	}
-
-	span.SetAttributes(attrs...)
-}
-
 func StartInternalSpan(
 	ctx context.Context,
 	tracer trace.Tracer,
@@ -478,30 +398,6 @@ func StartInternalSpan(
 ) (context.Context, trace.Span) {
 	return tracer.Start(ctx, name,
 		trace.WithSpanKind(trace.SpanKindInternal),
-		trace.WithAttributes(attrs...),
-	)
-}
-
-func StartServerSpan(
-	ctx context.Context,
-	tracer trace.Tracer,
-	name string,
-	attrs ...attribute.KeyValue,
-) (context.Context, trace.Span) {
-	return tracer.Start(ctx, name,
-		trace.WithSpanKind(trace.SpanKindServer),
-		trace.WithAttributes(attrs...),
-	)
-}
-
-func StartClientSpan(
-	ctx context.Context,
-	tracer trace.Tracer,
-	name string,
-	attrs ...attribute.KeyValue,
-) (context.Context, trace.Span) {
-	return tracer.Start(ctx, name,
-		trace.WithSpanKind(trace.SpanKindClient),
 		trace.WithAttributes(attrs...),
 	)
 }
