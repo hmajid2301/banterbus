@@ -8,7 +8,7 @@ default:
   interruptible: true
 
 variables:
-  IMAGE_TAG: v0.1.13
+  IMAGE_TAG: v0.1.14
   BANTERBUS_CI_IMAGE: $CI_REGISTRY_IMAGE/ci:$IMAGE_TAG
   TF_ROOT: ${CI_PROJECT_DIR}/infra/tf
   TF_STATE_NAME: default
@@ -16,13 +16,15 @@ variables:
   TF_USERNAME: gitlab-ci-token
   TF_PASSWORD: ${CI_JOB_TOKEN}
   OPENBAO_ADDRESS: https://openbao.homelab.haseebmajid.dev
+  # OpenTofu Report variables
+  PLAN: plan.cache
+  PLAN_JSON: plan.json
 
 stages:
   - pre
   - deps
   - test
   - build
-  - tofu
   - deploy
   - review
   - post
@@ -147,6 +149,8 @@ stages:
     TF_VAR_kubeconfig_context: hmajid2301/k8s-gitops:k8s
     GITLAB_USERNAME: $TF_USERNAME
     GITLAB_ACCESS_TOKEN: $TF_PASSWORD
+    TF_HTTP_USERNAME: $TF_USERNAME
+    TF_HTTP_PASSWORD: $TF_PASSWORD
     TMPDIR: /tmp
     TMP: /tmp
     TEMP: /tmp
@@ -180,6 +184,9 @@ stages:
     paths:
       - $TF_ROOT/plan-default.cache
       - $TF_ROOT/plan-default.txt
+      - $TF_ROOT/plan-default.json
+    reports:
+      terraform: $TF_ROOT/plan-default.json
     expire_in: 1 week
 
 .tofu:apply:

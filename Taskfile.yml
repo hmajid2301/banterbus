@@ -246,14 +246,17 @@ tasks:
     vars:
       STATE_NAME: '{{.STATE_NAME | default "default"}}'
       GITLAB_USERNAME: '{{.GITLAB_USERNAME | default "hmajid2301"}}'
+    env:
+      TF_HTTP_USERNAME: '{{.TF_HTTP_USERNAME | default "gitlab-ci-token"}}'
+      TF_HTTP_PASSWORD: '{{.TF_HTTP_PASSWORD | default "$GITLAB_ACCESS_TOKEN"}}'
     cmds:
       - |
         tofu init \
           -backend-config="address=https://gitlab.com/api/v4/projects/59925362/terraform/state/{{.STATE_NAME}}" \
           -backend-config="lock_address=https://gitlab.com/api/v4/projects/59925362/terraform/state/{{.STATE_NAME}}/lock" \
           -backend-config="unlock_address=https://gitlab.com/api/v4/projects/59925362/terraform/state/{{.STATE_NAME}}/lock" \
-          -backend-config="username={{.GITLAB_USERNAME}}" \
-          -backend-config="password=$GITLAB_ACCESS_TOKEN" \
+          -backend-config="username={{.TF_HTTP_USERNAME | default "gitlab-ci-token"}}" \
+          -backend-config="password=$TF_HTTP_PASSWORD" \
           -backend-config="lock_method=POST" \
           -backend-config="unlock_method=DELETE" \
           -backend-config="retry_wait_min=5" \
@@ -263,18 +266,35 @@ tasks:
     desc: Plan OpenTofu changes
     dir: infra/tf
     deps: [tf:init]
+    env:
+      TF_HTTP_USERNAME: '{{.TF_HTTP_USERNAME | default "gitlab-ci-token"}}'
+      TF_HTTP_PASSWORD: '{{.TF_HTTP_PASSWORD | default "$GITLAB_ACCESS_TOKEN"}}'
     cmds:
       - tofu plan ${TF_PLAN_ARGS} -out="plan-default.cache"
       - tofu show -no-color "plan-default.cache" > "plan-default.txt"
+      - |
+        if command -v jq >/dev/null 2>&1; then
+          tofu show -json "plan-default.cache" | jq -r '([.resource_changes[]?.change.actions?]|flatten)|{"create":(map(select(.=="create"))|length),"update":(map(select(.=="update"))|length),"delete":(map(select(.=="delete"))|length)}' > "plan-default.json"
+        else
+          echo "jq not available, skipping JSON report generation"
+        fi
 
   tf:apply:
     desc: Apply OpenTofu changes
     dir: infra/tf
-    deps: [tf:init]
+    env:
+      TF_HTTP_USERNAME: '{{.TF_HTTP_USERNAME | default "gitlab-ci-token"}}'
+      TF_HTTP_PASSWORD: '{{.TF_HTTP_PASSWORD | default "$GITLAB_ACCESS_TOKEN"}}'
     cmds:
+      - task: tf:init
       - |
-        echo "Applying infrastructure changes (manages both dev and prod)"
-        tofu apply -auto-approve "plan-default.cache"
+        if [ -f "plan-default.cache" ]; then
+          echo "Applying with cached plan file: plan-default.cache"
+          tofu apply -auto-approve "plan-default.cache"
+        else
+          echo "No plan cache found, running apply without plan file"
+          tofu apply -auto-approve
+        fi
 
   tf:validate:
     desc: Validate OpenTofu configuration
@@ -283,3 +303,10 @@ tasks:
       - tofu fmt -check -recursive
       - tofu init -backend=false
       - tofu validate
+
+  tf:state-rm:
+    desc: Remove resource from OpenTofu state
+    dir: infra/tf
+    deps: [tf:init]
+    cmds:
+      - tofu state rm {{.CLI_ARGS}}

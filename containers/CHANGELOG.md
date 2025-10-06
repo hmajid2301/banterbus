@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.14] 2025-10-06
+
+### Added
+
+- GitLab OpenTofu MR integration with JSON plan reports for merge request widgets.
+
+### Changed
+
+- Enhanced OpenTofu plan task to generate JSON reports for GitLab MR widget display.
+
 ## [0.1.13] 2025-09-28
 
 ### Added
