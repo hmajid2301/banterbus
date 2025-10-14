@@ -10,6 +10,8 @@ import (
 	"gitlab.com/hmajid2301/banterbus/internal/store/db"
 )
 
+var ErrPlayerNotFound = errors.New("player not found")
+
 type PlayerService struct {
 	store      Storer
 	randomizer Randomizer
@@ -130,11 +132,21 @@ func (p *PlayerService) UpdateLocale(ctx context.Context, playerID uuid.UUID, ne
 		Locale: pgtype.Text{String: newLocale},
 	})
 	if err != nil {
-		// Handle case where player doesn't exist (common in tests during cleanup)
 		if err.Error() == "no rows in result set" {
-			return nil
+			return ErrPlayerNotFound
 		}
 		return err
 	}
 	return nil
+}
+
+func (p *PlayerService) GetPlayerByID(ctx context.Context, playerID uuid.UUID) (db.Player, error) {
+	player, err := p.store.GetPlayerByID(ctx, playerID)
+	if err != nil {
+		if err.Error() == "no rows in result set" {
+			return db.Player{}, ErrPlayerNotFound
+		}
+		return db.Player{}, err
+	}
+	return player, nil
 }

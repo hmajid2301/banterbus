@@ -484,7 +484,7 @@ func TestPlayerServiceUpdateLocale(t *testing.T) {
 		}).Return(db.Player{}, xerrors.New("no rows in result set"))
 
 		err := srv.UpdateLocale(ctx, playerID, newLocale)
-		assert.NoError(t, err) // Should return nil for "no rows in result set"
+		assert.ErrorIs(t, err, service.ErrPlayerNotFound)
 	})
 
 	t.Run("Should return error for other database errors", func(t *testing.T) {

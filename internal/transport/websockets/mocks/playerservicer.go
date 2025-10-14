@@ -10,6 +10,7 @@ import (
 	"github.com/gofrs/uuid/v5"
 	mock "github.com/stretchr/testify/mock"
 	"gitlab.com/hmajid2301/banterbus/internal/service"
+	"gitlab.com/hmajid2301/banterbus/internal/store/db"
 )
 
 // NewMockPlayerServicer creates a new instance of MockPlayerServicer. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
@@ -101,6 +102,72 @@ func (_c *MockPlayerServicer_GenerateNewAvatar_Call) Return(lobby service.Lobby,
 }
 
 func (_c *MockPlayerServicer_GenerateNewAvatar_Call) RunAndReturn(run func(ctx context.Context, playerID uuid.UUID) (service.Lobby, error)) *MockPlayerServicer_GenerateNewAvatar_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetPlayerByID provides a mock function for the type MockPlayerServicer
+func (_mock *MockPlayerServicer) GetPlayerByID(ctx context.Context, playerID uuid.UUID) (db.Player, error) {
+	ret := _mock.Called(ctx, playerID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetPlayerByID")
+	}
+
+	var r0 db.Player
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uuid.UUID) (db.Player, error)); ok {
+		return returnFunc(ctx, playerID)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uuid.UUID) db.Player); ok {
+		r0 = returnFunc(ctx, playerID)
+	} else {
+		r0 = ret.Get(0).(db.Player)
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, uuid.UUID) error); ok {
+		r1 = returnFunc(ctx, playerID)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockPlayerServicer_GetPlayerByID_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetPlayerByID'
+type MockPlayerServicer_GetPlayerByID_Call struct {
+	*mock.Call
+}
+
+// GetPlayerByID is a helper method to define mock.On call
+//   - ctx context.Context
+//   - playerID uuid.UUID
+func (_e *MockPlayerServicer_Expecter) GetPlayerByID(ctx interface{}, playerID interface{}) *MockPlayerServicer_GetPlayerByID_Call {
+	return &MockPlayerServicer_GetPlayerByID_Call{Call: _e.mock.On("GetPlayerByID", ctx, playerID)}
+}
+
+func (_c *MockPlayerServicer_GetPlayerByID_Call) Run(run func(ctx context.Context, playerID uuid.UUID)) *MockPlayerServicer_GetPlayerByID_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 uuid.UUID
+		if args[1] != nil {
+			arg1 = args[1].(uuid.UUID)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockPlayerServicer_GetPlayerByID_Call) Return(player db.Player, err error) *MockPlayerServicer_GetPlayerByID_Call {
+	_c.Call.Return(player, err)
+	return _c
+}
+
+func (_c *MockPlayerServicer_GetPlayerByID_Call) RunAndReturn(run func(ctx context.Context, playerID uuid.UUID) (db.Player, error)) *MockPlayerServicer_GetPlayerByID_Call {
 	_c.Call.Return(run)
 	return _c
 }

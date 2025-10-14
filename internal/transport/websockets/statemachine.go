@@ -33,6 +33,10 @@ func (q *QuestionState) Start(ctx context.Context) {
 	const spanName = "game.question_state.process"
 	start := time.Now()
 
+	q.Subscriber.logger.DebugContext(ctx, "question state starting",
+		slog.String("game_state_id", q.GameStateID.String()),
+		slog.Bool("next_round", q.NextRound))
+
 	ctx, span := telemetry.StartInternalSpan(ctx, tracer, spanName,
 		attribute.String("game.state_id", q.GameStateID.String()),
 		attribute.String("game.state", "question"),
@@ -151,65 +155,98 @@ func (q *QuestionState) Start(ctx context.Context) {
 		return
 	}
 
+	// Check periodically if all players have answered and are ready to transition early
+	// Start checking after a short grace period to reduce initial load
+	ticker := time.NewTicker(2 * time.Second)
+	defer ticker.Stop()
+
 	// Use a timer that can be cancelled with context
 	timer := time.NewTimer(time.Until(deadline))
 	defer timer.Stop()
 
-	select {
-	case <-timer.C:
-		currentGameState, err := q.Subscriber.roundService.GetGameState(ctx, q.GameStateID)
-		if err != nil {
-			if err.Error() == "no rows in result set" {
-				// Check if context is cancelled, which indicates intentional cleanup
-				select {
-				case <-ctx.Done():
-					q.Subscriber.logger.ErrorContext(
-						ctx,
-						"game state deleted during context cancellation, stopping state machine",
-						slog.Any("error", err),
-						slog.String("game_state_id", q.GameStateID.String()),
-					)
-					return
-				default:
-					// Context not cancelled, this might be a transient database issue
-					q.Subscriber.logger.WarnContext(
-						ctx,
-						"temporary database issue during voting transition, retrying with voting state",
-						slog.Any("error", err),
-						slog.String("game_state_id", q.GameStateID.String()),
-					)
-					// Proceed to start voting state anyway - it will handle the retry logic
-					time.Sleep(1 * time.Second)
-					v := &VotingState{GameStateID: q.GameStateID, Subscriber: q.Subscriber}
-					go v.Start(telemetry.PropagateContext(ctx))
-					return
-				}
-			} else {
-				q.Subscriber.logger.ErrorContext(
-					ctx,
-					"failed to get game state before voting transition",
-					slog.Any("error", err),
-					slog.String("game_state_id", q.GameStateID.String()),
-				)
-			}
-			return
-		}
-
-		if currentGameState == db.FibbingITQuestion {
+	for {
+		select {
+		case <-timer.C:
+			// Timeout reached, transition to voting
 			span.AddEvent("state_transition", trace.WithAttributes(
 				attribute.String("next_state", "voting"),
 				attribute.String("transition_reason", "timeout"),
 			))
+			goto transitionToVoting
+		case <-ticker.C:
+			// Check if all players have answered and are ready
+			allReady, err := q.Subscriber.roundService.AreAllPlayersAnswerReady(ctx, q.GameStateID)
+			if err != nil {
+				q.Subscriber.logger.WarnContext(ctx, "failed to check if all players are ready for answers",
+					slog.Any("error", err),
+					slog.String("game_state_id", q.GameStateID.String()))
+				continue // Continue checking on error
+			}
 
-			v := &VotingState{GameStateID: q.GameStateID, Subscriber: q.Subscriber}
-			go v.Start(ctx)
-		} else {
-			q.Subscriber.logger.InfoContext(ctx, "game state already transitioned from question state", slog.String("current_state", currentGameState.String()))
+			// If false is returned (either not ready or wrong state), just continue
+			if !allReady {
+				continue
+			}
+
+			// All players have answered and are ready, transition early
+			span.AddEvent("state_transition", trace.WithAttributes(
+				attribute.String("next_state", "voting"),
+				attribute.String("transition_reason", "all_players_ready"),
+			))
+			q.Subscriber.logger.InfoContext(ctx, "all players have answered and are ready, transitioning early to voting",
+				slog.String("game_state_id", q.GameStateID.String()))
+			goto transitionToVoting
+		case <-ctx.Done():
+			q.Subscriber.logger.InfoContext(ctx, "question state cancelled before timeout",
+				slog.String("game_state_id", q.GameStateID.String()))
+			return
 		}
-	case <-ctx.Done():
-		q.Subscriber.logger.InfoContext(ctx, "question state cancelled before timeout",
-			slog.String("game_state_id", q.GameStateID.String()))
+	}
+
+transitionToVoting:
+	currentGameState, err := q.Subscriber.roundService.GetGameState(ctx, q.GameStateID)
+	if err != nil {
+		if err.Error() == "no rows in result set" {
+			// Check if context is cancelled, which indicates intentional cleanup
+			select {
+			case <-ctx.Done():
+				q.Subscriber.logger.ErrorContext(
+					ctx,
+					"game state deleted during context cancellation, stopping state machine",
+					slog.Any("error", err),
+					slog.String("game_state_id", q.GameStateID.String()),
+				)
+				return
+			default:
+				// Context not cancelled, this might be a transient database issue
+				q.Subscriber.logger.WarnContext(
+					ctx,
+					"temporary database issue during voting transition, retrying with voting state",
+					slog.Any("error", err),
+					slog.String("game_state_id", q.GameStateID.String()),
+				)
+				// Proceed to start voting state anyway - it will handle the retry logic
+				time.Sleep(1 * time.Second)
+				v := &VotingState{GameStateID: q.GameStateID, Subscriber: q.Subscriber}
+				go v.Start(telemetry.PropagateContext(ctx))
+				return
+			}
+		} else {
+			q.Subscriber.logger.ErrorContext(
+				ctx,
+				"failed to get game state before voting transition",
+				slog.Any("error", err),
+				slog.String("game_state_id", q.GameStateID.String()),
+			)
+		}
 		return
+	}
+
+	if currentGameState == db.FibbingITQuestion {
+		v := &VotingState{GameStateID: q.GameStateID, Subscriber: q.Subscriber}
+		go v.Start(telemetry.PropagateContext(ctx))
+	} else {
+		q.Subscriber.logger.InfoContext(ctx, "game state already transitioned from question state", slog.String("current_state", currentGameState.String()))
 	}
 }
 
@@ -221,6 +258,9 @@ type VotingState struct {
 func (v *VotingState) Start(ctx context.Context) {
 	const spanName = "fibbing_it.voting_state.process"
 	start := time.Now()
+
+	v.Subscriber.logger.DebugContext(ctx, "voting state starting",
+		slog.String("game_state_id", v.GameStateID.String()))
 
 	ctx, span := tracer.Start(
 		ctx,
@@ -379,7 +419,7 @@ func (v *VotingState) Start(ctx context.Context) {
 transitionToReveal:
 
 	r := &RevealState{GameStateID: v.GameStateID, Subscriber: v.Subscriber}
-	go r.Start(ctx)
+	go r.Start(telemetry.PropagateContext(ctx))
 }
 
 type RevealState struct {
@@ -390,6 +430,9 @@ type RevealState struct {
 func (r *RevealState) Start(ctx context.Context) {
 	const spanName = "fibbing_it.reveal_state.process"
 	start := time.Now()
+
+	r.Subscriber.logger.DebugContext(ctx, "reveal state starting",
+		slog.String("game_state_id", r.GameStateID.String()))
 
 	ctx, span := tracer.Start(
 		ctx,
@@ -511,12 +554,28 @@ func (r *RevealState) Start(ctx context.Context) {
 	fibberFound := revealState.ShouldReveal && revealState.VotedForPlayerRole == "fibber"
 	nextState := db.FibbingITQuestion
 
+	r.Subscriber.logger.InfoContext(ctx, "reveal state determining next state",
+		slog.Int("round", revealState.Round),
+		slog.Int("max_rounds", maxRounds),
+		slog.Bool("final_round", finalRound),
+		slog.Bool("should_reveal", revealState.ShouldReveal),
+		slog.String("voted_for_player_role", revealState.VotedForPlayerRole),
+		slog.Bool("fibber_found", fibberFound),
+		slog.String("round_type", revealState.RoundType),
+		slog.String("game_state_id", r.GameStateID.String()))
+
 	if finalRound || fibberFound {
 		nextState = db.FibbingItScoring
 		if revealState.RoundType == service.RoundTypeMostLikely {
 			nextState = db.FibbingItWinner
 		}
 	}
+
+	r.Subscriber.logger.InfoContext(ctx, "reveal state transition decision",
+		slog.String("next_state", nextState.String()),
+		slog.Bool("final_round", finalRound),
+		slog.Bool("fibber_found", fibberFound),
+		slog.String("game_state_id", r.GameStateID.String()))
 
 	span.AddEvent("state_transition", trace.WithAttributes(
 		attribute.String("next_state", nextState.String()),
@@ -530,16 +589,25 @@ func (r *RevealState) Start(ctx context.Context) {
 
 	select {
 	case <-timer.C:
+		r.Subscriber.logger.InfoContext(ctx, "reveal state timer expired, transitioning",
+			slog.String("next_state", nextState.String()),
+			slog.String("game_state_id", r.GameStateID.String()))
 		switch nextState {
 		case db.FibbingItWinner:
+			r.Subscriber.logger.InfoContext(ctx, "starting winner state",
+				slog.String("game_state_id", r.GameStateID.String()))
 			w := &WinnerState{GameStateID: r.GameStateID, Subscriber: r.Subscriber}
 			go w.Start(telemetry.PropagateContext(ctx))
 		case db.FibbingItScoring:
+			r.Subscriber.logger.InfoContext(ctx, "starting scoring state",
+				slog.String("game_state_id", r.GameStateID.String()))
 			s := &ScoringState{GameStateID: r.GameStateID, Subscriber: r.Subscriber}
-			go s.Start(ctx)
+			go s.Start(telemetry.PropagateContext(ctx))
 		default:
+			r.Subscriber.logger.InfoContext(ctx, "starting question state",
+				slog.String("game_state_id", r.GameStateID.String()))
 			q := &QuestionState{GameStateID: r.GameStateID, Subscriber: r.Subscriber, NextRound: false}
-			go q.Start(ctx)
+			go q.Start(telemetry.PropagateContext(ctx))
 		}
 	case <-ctx.Done():
 		r.Subscriber.logger.InfoContext(ctx, "reveal state cancelled before completion",
@@ -556,6 +624,13 @@ type ScoringState struct {
 func (r *ScoringState) Start(ctx context.Context) {
 	const spanName = "fibbing_it.scoring_state.process"
 	start := time.Now()
+
+	r.Subscriber.logger.DebugContext(ctx, "scoring state starting",
+		slog.String("game_state_id", r.GameStateID.String()))
+
+	r.Subscriber.logger.InfoContext(ctx, "scoring state started",
+		slog.String("game_state_id", r.GameStateID.String()),
+		slog.Int64("duration_ms", r.Subscriber.config.Timings.ShowScoreScreenFor.Milliseconds()))
 
 	ctx, span := tracer.Start(
 		ctx,
@@ -686,7 +761,7 @@ func (r *ScoringState) Start(ctx context.Context) {
 		))
 
 		q := &QuestionState{GameStateID: r.GameStateID, Subscriber: r.Subscriber, NextRound: true}
-		go q.Start(ctx)
+		go q.Start(telemetry.PropagateContext(ctx))
 	case <-ctx.Done():
 		r.Subscriber.logger.InfoContext(ctx, "scoring state cancelled before completion",
 			slog.String("game_state_id", r.GameStateID.String()))

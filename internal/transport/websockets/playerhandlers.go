@@ -7,6 +7,7 @@ import (
 	"github.com/gofrs/uuid/v5"
 
 	"gitlab.com/hmajid2301/banterbus/internal/service"
+	"gitlab.com/hmajid2301/banterbus/internal/store/db"
 	"gitlab.com/hmajid2301/banterbus/internal/telemetry"
 )
 
@@ -15,6 +16,7 @@ type PlayerServicer interface {
 	GenerateNewAvatar(ctx context.Context, playerID uuid.UUID) (service.Lobby, error)
 	TogglePlayerIsReady(ctx context.Context, playerID uuid.UUID) (service.Lobby, error)
 	UpdateLocale(ctx context.Context, playerID uuid.UUID, locale string) error
+	GetPlayerByID(ctx context.Context, playerID uuid.UUID) (db.Player, error)
 }
 
 func (u *UpdateNickname) Handle(ctx context.Context, client *Client, sub *Subscriber) error {

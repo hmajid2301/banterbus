@@ -253,7 +253,16 @@ func getPlayerRoles(
 }
 
 func reconnectToRoom(page playwright.Page, nickname, roomCode string) error {
-	err := page.GetByPlaceholder("Enter your nickname").Fill(nickname)
+	nicknameInput := page.GetByPlaceholder("Enter your nickname")
+	err := nicknameInput.WaitFor(playwright.LocatorWaitForOptions{
+		State:   playwright.WaitForSelectorStateVisible,
+		Timeout: playwright.Float(10000),
+	})
+	if err != nil {
+		return fmt.Errorf("nickname input not visible: %w", err)
+	}
+
+	err = nicknameInput.Fill(nickname)
 	if err != nil {
 		return err
 	}

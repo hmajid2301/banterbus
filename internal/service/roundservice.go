@@ -386,6 +386,31 @@ func (r *RoundService) ToggleVotingIsReady(
 	return allReady, err
 }
 
+func (r *RoundService) AreAllPlayersAnswerReady(ctx context.Context, gameStateID uuid.UUID) (bool, error) {
+	game, err := r.store.GetGameState(ctx, gameStateID)
+	if err != nil {
+		return false, err
+	}
+
+	// If game is not in question state, return false without error
+	// This is expected during state transitions and not an error condition
+	if game.State != db.FibbingITQuestion.String() {
+		return false, nil
+	}
+
+	players, err := r.store.GetAllPlayersByGameStateID(ctx, gameStateID)
+	if err != nil {
+		return false, err
+	}
+
+	if len(players) == 0 {
+		return false, errors.New("no players in room")
+	}
+
+	allReady, err := r.store.GetAllPlayerAnswerIsReady(ctx, players[0].ID)
+	return allReady, err
+}
+
 func (r *RoundService) AreAllPlayersVotingReady(ctx context.Context, gameStateID uuid.UUID) (bool, error) {
 	game, err := r.store.GetGameState(ctx, gameStateID)
 	if err != nil {

@@ -82,14 +82,13 @@ tasks:
       BANTERBUS_AUTO_RECONNECT: false
     cmds:
       - mkdir -p coverage/e2e
-      # TODO: remove rerun-fails as this is hiding flaky tests.
       - |
         concurrently \
           --names "SERVER,TESTS" \
           --success first \
           "task run" --kill-others \
            "until curl -sSf http://localhost:8081/health >/dev/null; do sleep 2; done && \
-            gotestsum --rerun-fails --format testname --hide-summary=skipped --packages='./tests/e2e' -- \
+            gotestsum --format testname --hide-summary=skipped --packages='./tests/e2e' -- \
               -coverprofile coverage/e2e-tests.out \
               -cover -covermode=atomic ${CLI_ARGS}"
 
@@ -303,10 +302,3 @@ tasks:
       - tofu fmt -check -recursive
       - tofu init -backend=false
       - tofu validate
-
-  tf:state-rm:
-    desc: Remove resource from OpenTofu state
-    dir: infra/tf
-    deps: [tf:init]
-    cmds:
-      - tofu state rm {{.CLI_ARGS}}

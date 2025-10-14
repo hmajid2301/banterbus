@@ -40,7 +40,7 @@ func main() {
 
 	err := mainLogic()
 	if err != nil {
-		logger := telemetry.NewLogger()
+		logger := telemetry.NewLogger(slog.LevelInfo)
 		logger.ErrorContext(context.Background(), "failed to start app", slog.Any("error", err))
 		exitCode = 1
 	}
@@ -70,7 +70,8 @@ func mainLogic() error {
 		return fmt.Errorf("failed to initialize metrics: %w", err)
 	}
 
-	logger := telemetry.NewLogger()
+	logLevel := telemetry.NewLogLevelFromMinSev(conf.App.LogLevel)
+	logger := telemetry.NewLogger(logLevel)
 
 	pool, err := db.NewPool(ctx, conf.DB.URI)
 	if err != nil {

@@ -9,6 +9,7 @@ import (
 
 	"github.com/a-h/templ"
 	"github.com/gofrs/uuid/v5"
+	"github.com/invopop/ctxi18n"
 	slogctx "github.com/veqryn/slog-context"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
@@ -22,7 +23,6 @@ import (
 
 func (s Subscriber) Reconnect(ctx context.Context, playerID uuid.UUID) (bytes.Buffer, error) {
 	tracer := otel.Tracer("banterbus-websocket")
-	// TODO: share ctx attributes? use logs from otel
 	ctx = slogctx.Append(ctx, "player_id", playerID)
 	ctx, span := telemetry.StartInternalSpan(ctx, tracer, "websocket.reconnect",
 		attribute.String("game.player_id", playerID.String()),
@@ -33,12 +33,36 @@ func (s Subscriber) Reconnect(ctx context.Context, playerID uuid.UUID) (bytes.Bu
 	telemetry.AddPlayerConnectionAttributes(ctx, playerID.String(), "websocket", true, "")
 
 	var buf bytes.Buffer
+
+	player, err := s.playerService.GetPlayerByID(ctx, playerID)
+	if err != nil {
+		s.logger.WarnContext(ctx, "failed to get player locale for reconnection",
+			slog.String("player_id", playerID.String()),
+			slog.Any("error", err))
+		ctx, _ = ctxi18n.WithLocale(ctx, s.config.App.DefaultLocale.String())
+	} else if player.Locale.Valid {
+		s.logger.DebugContext(ctx, "setting locale from player data",
+			slog.String("player_id", playerID.String()),
+			slog.String("locale", player.Locale.String))
+		ctx, err = ctxi18n.WithLocale(ctx, player.Locale.String)
+		if err != nil {
+			s.logger.WarnContext(ctx, "failed to set locale from player data",
+				slog.String("locale", player.Locale.String),
+				slog.Any("error", err))
+			ctx, _ = ctxi18n.WithLocale(ctx, s.config.App.DefaultLocale.String())
+		}
+	} else {
+		s.logger.DebugContext(ctx, "player has no locale stored, using default",
+			slog.String("player_id", playerID.String()),
+			slog.String("default_locale", s.config.App.DefaultLocale.String()))
+		ctx, _ = ctxi18n.WithLocale(ctx, s.config.App.DefaultLocale.String())
+	}
+
 	roomState, err := s.lobbyService.GetRoomState(ctx, playerID)
 	if err != nil {
 		telemetry.RecordBusinessLogicError(ctx, "get_room_state", err.Error(), telemetry.GameContext{
 			PlayerID: &playerID,
 		})
-		// Provide a more user-friendly error message for reconnection failures
 		if errors.Is(err, service.ErrPlayerNotInGame) {
 			s.logger.WarnContext(ctx, "reconnection attempt for player not in any game",
 				slog.String("player_id", playerID.String()))
@@ -53,6 +77,17 @@ func (s Subscriber) Reconnect(ctx context.Context, playerID uuid.UUID) (bytes.Bu
 	buf, err = s.reconnectOnRoomState(ctx, roomState, playerID)
 	if err != nil {
 		return buf, err
+	}
+
+	if buf.Len() > 0 {
+		bufPreview := buf.String()
+		if len(bufPreview) > 500 {
+			bufPreview = bufPreview[:500]
+		}
+		s.logger.DebugContext(ctx, "reconnect buffer preview",
+			slog.String("player_id", playerID.String()),
+			slog.Int("buffer_size", buf.Len()),
+			slog.String("preview", bufPreview))
 	}
 
 	span.AddEvent("trying_to_reconnect", trace.WithAttributes(attribute.Bool("reconnected", err == nil)))

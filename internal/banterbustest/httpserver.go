@@ -121,6 +121,6 @@ func setupLogger() *slog.Logger {
 		return slog.New(handler)
 	}
 
-	logger := telemetry.NewLogger()
+	logger := telemetry.NewLogger(slog.LevelInfo)
 	return logger
 }

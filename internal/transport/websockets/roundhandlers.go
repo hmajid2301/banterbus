@@ -25,6 +25,7 @@ type RoundServicer interface {
 	) (service.VotingState, error)
 	UpdateStateToVoting(ctx context.Context, gameStateID uuid.UUID, deadline time.Time) (service.VotingState, error)
 	ToggleAnswerIsReady(ctx context.Context, playerID uuid.UUID, submittedAt time.Time) (bool, error)
+	AreAllPlayersAnswerReady(ctx context.Context, gameStateID uuid.UUID) (bool, error)
 	GetVotingState(ctx context.Context, playerID uuid.UUID) (service.VotingState, error)
 	ToggleVotingIsReady(ctx context.Context, playerID uuid.UUID, submittedAt time.Time) (bool, error)
 	AreAllPlayersVotingReady(ctx context.Context, gameStateID uuid.UUID) (bool, error)

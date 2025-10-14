@@ -122,25 +122,40 @@ func TestE2EReconnect(t *testing.T) {
 		hostPlayerPage := playerPages[0]
 		otherPlayerPages := playerPages[1:]
 
-		code, err := startGame(hostPlayerPage, otherPlayerPages)
+		_, err = startGame(hostPlayerPage, otherPlayerPages)
 		require.NoError(t, err)
 
 		questionUI := hostPlayerPage.Locator("text=Round").First()
 		err = expect.Locator(questionUI).ToBeVisible()
 		require.NoError(t, err)
 
+		// Identify fibber and normal players
+		fibber, normals, err := getPlayerRoles(hostPlayerPage, otherPlayerPages)
+		require.NoError(t, err)
+
+		// Close the role modal for all players
 		for _, player := range playerPages {
 			err = player.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Close"}).Click()
 			require.NoError(t, err)
+		}
 
-			err = submitAnswerForPlayer(player, "I am not a fibber")
+		// Fibber submits a different answer to be identifiable
+		err = submitAnswerForPlayer(fibber, "I am the fibber")
+		require.NoError(t, err)
+		err = fibber.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Ready"}).Click()
+		require.NoError(t, err)
+
+		// Normal players submit their answers
+		for _, normal := range normals {
+			err = submitAnswerForPlayer(normal, "I am not a fibber")
 			require.NoError(t, err)
 
-			readyButton := player.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Ready"})
+			readyButton := normal.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Ready"})
 			err = readyButton.Click()
 			require.NoError(t, err)
 		}
 
+		// Wait for voting phase
 		votingIndicators := []string{"Votes", "voting.votes", "vote_for_player"}
 		var votingUI playwright.Locator
 		var lastErr error
@@ -161,19 +176,22 @@ func TestE2EReconnect(t *testing.T) {
 		}
 		require.NoError(t, lastErr)
 
-		voteForm := hostPlayerPage.Locator("form#vote_for_player button").First()
-		voteFormVisible := expect.Locator(voteForm).ToBeVisible(playwright.LocatorAssertionsToBeVisibleOptions{
-			Timeout: playwright.Float(5000),
-		})
-		if voteFormVisible == nil {
-			for _, player := range playerPages {
-				playerVoteForm := player.Locator("form#vote_for_player button").First()
-				playerVoteForm.Click()
-			}
+		// All normal players vote for the fibber's answer
+		fibberAnswer := hostPlayerPage.GetByText("I am the fibber")
+		err = expect.Locator(fibberAnswer).ToBeVisible()
+		require.NoError(t, err)
+
+		for _, normal := range normals {
+			err = normal.GetByText("I am the fibber").Click()
+			require.NoError(t, err)
 		}
 
-		postVotingUI := hostPlayerPage.Locator("text=/Scoreboard|New Round!|You all voted for/").First()
-		err = expect.Locator(postVotingUI).ToBeVisible(playwright.LocatorAssertionsToBeVisibleOptions{
+		// Fibber votes for someone else (first normal player's answer)
+		err = fibber.GetByText("I am not a fibber").First().Click()
+		require.NoError(t, err)
+
+		scoreboardUI := hostPlayerPage.Locator("text=Scoreboard").First()
+		err = expect.Locator(scoreboardUI).ToBeVisible(playwright.LocatorAssertionsToBeVisibleOptions{
 			Timeout: playwright.Float(75000),
 		})
 		require.NoError(t, err)
@@ -188,9 +206,6 @@ func TestE2EReconnect(t *testing.T) {
 			State:   playwright.LoadStateNetworkidle,
 			Timeout: playwright.Float(5000),
 		})
-		require.NoError(t, err)
-
-		err = reconnectToRoom(hostPlayerPage, "HostPlayer", code)
 		require.NoError(t, err)
 
 		reconnectedGameUI := hostPlayerPage.Locator("text=/Scoreboard|New Round!|You all voted for|Ready/").First()
