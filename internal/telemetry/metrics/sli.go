@@ -14,6 +14,7 @@ var (
 	totalGameAttempts         int64
 	activeLobbies             int64
 	gamesInProgress           int64
+	activeStateMachines       int64
 )
 
 func RecordGameCompletion(ctx context.Context, success bool, duration float64, playerCount int) error {
@@ -151,6 +152,11 @@ func UpdateActiveGameCounts(ctx context.Context, lobbies, games int64) error {
 	return nil
 }
 
+// UpdateActiveStateMachineCount updates gauge for active state machines
+func UpdateActiveStateMachineCount(count int64) {
+	atomic.StoreInt64(&activeStateMachines, count)
+}
+
 // RegisterMetrics registers gauge metrics for monitoring
 func RegisterMetrics(ctx context.Context) error {
 	m := otel.Meter("gitlab.com/hmajid2301/banterbus")
@@ -182,6 +188,15 @@ func RegisterMetrics(ctx context.Context) error {
 		return err
 	}
 
+	// Active state machines gauge
+	activeStateMachineGauge, err := m.Int64ObservableGauge("state_machine.active",
+		metric.WithDescription("Number of active state machines"),
+		metric.WithUnit("{state_machine}"),
+	)
+	if err != nil {
+		return err
+	}
+
 	_, err = m.RegisterCallback(
 		func(_ context.Context, o metric.Observer) error {
 			total := atomic.LoadInt64(&totalGameAttempts)
@@ -194,11 +209,13 @@ func RegisterMetrics(ctx context.Context) error {
 			o.ObserveFloat64(gameCompletionRate, rate)
 			o.ObserveInt64(activeLobbyGauge, atomic.LoadInt64(&activeLobbies))
 			o.ObserveInt64(activeGameGauge, atomic.LoadInt64(&gamesInProgress))
+			o.ObserveInt64(activeStateMachineGauge, atomic.LoadInt64(&activeStateMachines))
 			return nil
 		},
 		gameCompletionRate,
 		activeLobbyGauge,
 		activeGameGauge,
+		activeStateMachineGauge,
 	)
 
 	return err

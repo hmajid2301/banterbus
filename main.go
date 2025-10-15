@@ -48,6 +48,10 @@ func main() {
 }
 
 func mainLogic() error {
+	// INFO: separate shutdown context allows canceling state machines before HTTP shutdown
+	shutdownCtx, shutdownCancel := context.WithCancel(context.Background())
+	defer shutdownCancel()
+
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
@@ -107,7 +111,7 @@ func mainLogic() error {
 		return fmt.Errorf("failed to convert rules MD to HTML: %w", err)
 	}
 
-	subscriber := websockets.NewSubscriber(lobbyService, playerService, roundService, logger, &redisClient, conf, rules)
+	subscriber := websockets.NewSubscriber(lobbyService, playerService, roundService, logger, &redisClient, conf, rules, shutdownCtx)
 
 	var k keyfunc.Keyfunc
 	if conf.JWT.JWKSURL != "" {
@@ -148,29 +152,61 @@ func mainLogic() error {
 		}
 	}()
 
-	timeoutSeconds := 25
-	terminateHandler(ctx, logger, server, timeoutSeconds)
+	terminateHandler(shutdownCtx, shutdownCancel, logger, server, subscriber)
 
 	return nil
 }
 
-// terminateHandler waits for SIGINT or SIGTERM signals and does a graceful shutdown of the HTTP server
-// Wait for interrupt signal to gracefully shutdown the server with
-// a timeout of 25 seconds.
-// kill (no param) default send syscall.SIGTERM
-// kill -2 is syscall.SIGINT
-// kill -9 is syscall.SIGKILL but can't be catch, so don't need add it
-func terminateHandler(ctx context.Context, logger *slog.Logger, srv *transporthttp.Server, timeout int) {
-	ctx, stop := signal.NotifyContext(ctx, syscall.SIGINT, syscall.SIGTERM)
+func terminateHandler(
+	shutdownCtx context.Context,
+	shutdownCancel context.CancelFunc,
+	logger *slog.Logger,
+	srv *transporthttp.Server,
+	subscriber *websockets.Subscriber,
+) {
+	ctx, stop := signal.NotifyContext(shutdownCtx, syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 
 	<-ctx.Done()
 	stop()
-	logger.InfoContext(ctx, "shutting down server")
+	shutdownStart := time.Now()
+	logger.InfoContext(ctx, "received shutdown signal, starting graceful shutdown")
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(timeout)*time.Second)
-	defer cancel()
-	if err := srv.Shutdown(ctx); err != nil {
-		logger.ErrorContext(ctx, "unexpected error while shutting down server", slog.Any("error", err))
+	shutdownCancel()
+	logger.InfoContext(ctx, "signaled all state machines to stop")
+
+	stateMachineTimeout := 5 * time.Second
+	stateMachineStart := time.Now()
+	allCompleted := subscriber.WaitForStateMachines(ctx, stateMachineTimeout)
+	stateMachineDuration := time.Since(stateMachineStart)
+
+	if !allCompleted {
+		logger.WarnContext(ctx, "forcing cancellation of remaining state machines")
+		subscriber.CancelAllStateMachines(ctx)
 	}
+
+	totalTimeout := 25 * time.Second
+	elapsed := time.Since(shutdownStart)
+	remainingTimeout := totalTimeout - elapsed
+	if remainingTimeout < 1*time.Second {
+		remainingTimeout = 1 * time.Second
+	}
+
+	httpShutdownCtx, cancel := context.WithTimeout(context.Background(), remainingTimeout)
+	defer cancel()
+
+	logger.InfoContext(ctx, "shutting down HTTP server",
+		slog.Duration("timeout", remainingTimeout))
+
+	if err := srv.Shutdown(httpShutdownCtx); err != nil {
+		logger.ErrorContext(ctx, "unexpected error while shutting down server", slog.Any("error", err))
+	} else {
+		logger.InfoContext(ctx, "server shutdown completed successfully")
+	}
+
+	totalDuration := time.Since(shutdownStart)
+	logger.InfoContext(ctx, "shutdown completed",
+		slog.Bool("graceful", allCompleted),
+		slog.Duration("state_machine_duration", stateMachineDuration),
+		slog.Duration("total_duration", totalDuration))
 }

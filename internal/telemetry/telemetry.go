@@ -110,57 +110,46 @@ func initializeMetrics(ctx context.Context) error {
 	return nil
 }
 
-// RecordGameLogicError records a game logic error
 func RecordGameLogicError(ctx context.Context) error {
 	return metrics.RecordGameLogicError(ctx)
 }
 
-// IncrementStateCount increments state count
 func IncrementStateCount(ctx context.Context, state string) error {
 	return metrics.IncrementStateCount(ctx, state)
 }
 
-// RecordStateDuration records state duration
 func RecordStateDuration(ctx context.Context, duration float64, state string) error {
 	return metrics.RecordStateDuration(ctx, duration, state)
 }
 
-// IncrementStateOperationError increments state operation error
 func IncrementStateOperationError(ctx context.Context, state string, errReason string) error {
 	return metrics.IncrementStateOperationError(ctx, state, errReason)
 }
 
-// IncrementActiveConnections increments active connections
 func IncrementActiveConnections() {
 	metrics.IncrementActiveConnections()
 }
 
-// DecrementActiveConnections decrements active connections
 func DecrementActiveConnections() {
 	metrics.DecrementActiveConnections()
 }
 
-// RecordConnectionDuration records connection duration
 func RecordConnectionDuration(ctx context.Context, time float64) error {
 	return metrics.RecordConnectionDuration(ctx, time)
 }
 
-// IncrementReconnectionCount increments reconnection count
 func IncrementReconnectionCount(ctx context.Context) error {
 	return metrics.IncrementReconnectionCount(ctx)
 }
 
-// IncrementHandshakeFailures increments handshake failures
 func IncrementHandshakeFailures(ctx context.Context, reason string) error {
 	return metrics.IncrementHandshakeFailures(ctx, reason)
 }
 
-// IncrementSubscribers increments subscribers
 func IncrementSubscribers(ctx context.Context) error {
 	return metrics.IncrementSubscribers(ctx)
 }
 
-// IncrementMessageSentError increments message sent error
 func IncrementMessageSentError(ctx context.Context, messageType ...string) error {
 	msgType := "unknown"
 	if len(messageType) > 0 {
@@ -169,7 +158,6 @@ func IncrementMessageSentError(ctx context.Context, messageType ...string) error
 	return metrics.IncrementMessageSentError(ctx, msgType)
 }
 
-// IncrementMessageSent increments message sent
 func IncrementMessageSent(ctx context.Context, messageType ...string) error {
 	msgType := "unknown"
 	if len(messageType) > 0 {
@@ -178,7 +166,6 @@ func IncrementMessageSent(ctx context.Context, messageType ...string) error {
 	return metrics.IncrementMessageSent(ctx, msgType)
 }
 
-// RecordMessageSendLatency records message send latency
 func RecordMessageSendLatency(ctx context.Context, latency float64, messageType ...string) error {
 	msgType := "unknown"
 	if len(messageType) > 0 {
@@ -187,7 +174,6 @@ func RecordMessageSendLatency(ctx context.Context, latency float64, messageType 
 	return metrics.RecordMessageSendLatency(ctx, latency, msgType)
 }
 
-// IncrementMessageReceivedError increments message received error
 func IncrementMessageReceivedError(ctx context.Context, messageType ...string) error {
 	msgType := "unknown"
 	if len(messageType) > 0 {
@@ -196,24 +182,24 @@ func IncrementMessageReceivedError(ctx context.Context, messageType ...string) e
 	return metrics.IncrementMessageReceivedError(ctx, msgType)
 }
 
-// IncrementMessageReceived increments message received
 func IncrementMessageReceived(ctx context.Context, messageType string) error {
 	return metrics.IncrementMessageReceived(ctx, messageType)
 }
 
-// RecordRequestLatency records request latency
 func RecordRequestLatency(ctx context.Context, latency float64, messageType string, status string) error {
 	return metrics.RecordRequestLatency(ctx, latency, messageType, status)
 }
 
-// RecordWebSocketError records websocket error
 func RecordWebSocketError(ctx context.Context) error {
 	return metrics.RecordWebSocketError(ctx)
 }
 
-// RecordValidationErrorMetric records validation error
 func RecordValidationErrorMetric(ctx context.Context) error {
 	return metrics.RecordValidationErrorMetric(ctx)
+}
+
+func UpdateActiveStateMachineCount(count int64) {
+	metrics.UpdateActiveStateMachineCount(count)
 }
 
 func newPropagator() propagation.TextMapPropagator {

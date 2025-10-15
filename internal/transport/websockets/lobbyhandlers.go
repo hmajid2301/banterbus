@@ -175,24 +175,22 @@ func (s *StartGame) Handle(ctx context.Context, client *Client, sub *Subscriber)
 		return err
 	}
 
-	go func() {
-		stateCtx := telemetry.PropagateContext(ctx)
+	stateCtx := telemetry.PropagateContext(ctx)
 
-		// Log baggage propagation for debugging
-		if bag := baggage.FromContext(stateCtx); bag.Len() > 0 {
-			sub.logger.InfoContext(
-				stateCtx,
-				"propagating baggage to statemachine",
-				slog.String("test_name", bag.Member("test_name").Value()),
-			)
-		}
+	// Log baggage propagation for debugging
+	if bag := baggage.FromContext(stateCtx); bag.Len() > 0 {
+		sub.logger.InfoContext(
+			stateCtx,
+			"propagating baggage to statemachine",
+			slog.String("test_name", bag.Member("test_name").Value()),
+		)
+	}
 
-		q := QuestionState{
-			GameStateID: questionState.GameStateID,
-			Subscriber:  *sub,
-		}
-		q.Start(stateCtx)
-	}()
+	q := &QuestionState{
+		GameStateID: questionState.GameStateID,
+		Subscriber:  *sub,
+	}
+	sub.startStateMachine(stateCtx, questionState.GameStateID, q)
 	return nil
 }
 

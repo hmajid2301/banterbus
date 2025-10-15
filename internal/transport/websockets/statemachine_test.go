@@ -1,6 +1,7 @@
 package websockets_test
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"log/slog"
@@ -49,7 +50,7 @@ func TestStateMachine(t *testing.T) {
 		conf.Timings.ShowScoreScreenFor = time.Millisecond * 1
 		conf.Timings.ShowWinnerScreenFor = time.Millisecond * 1
 
-		sub := websockets.NewSubscriber(lobbyService, playerService, roundService, log, websocketer, conf, rules)
+		sub := websockets.NewSubscriber(lobbyService, playerService, roundService, log, websocketer, conf, rules, context.Background())
 
 		u, err := uuid.NewV7()
 		require.NoError(t, err)
@@ -132,7 +133,7 @@ func TestStateMachine(t *testing.T) {
 		conf.Timings.ShowScoreScreenFor = time.Millisecond * 1
 		conf.Timings.ShowWinnerScreenFor = time.Millisecond * 1
 
-		sub := websockets.NewSubscriber(lobbyService, playerService, roundService, log, websocketer, conf, rules)
+		sub := websockets.NewSubscriber(lobbyService, playerService, roundService, log, websocketer, conf, rules, context.Background())
 
 		u, err := uuid.NewV7()
 		require.NoError(t, err)
@@ -171,7 +172,7 @@ func TestStateMachine(t *testing.T) {
 		conf.Timings.ShowScoreScreenFor = time.Millisecond * 1
 		conf.Timings.ShowWinnerScreenFor = time.Millisecond * 1
 
-		sub := websockets.NewSubscriber(lobbyService, playerService, roundService, log, websocketer, conf, rules)
+		sub := websockets.NewSubscriber(lobbyService, playerService, roundService, log, websocketer, conf, rules, context.Background())
 
 		u, err := uuid.NewV7()
 		require.NoError(t, err)
@@ -244,7 +245,7 @@ func TestStateMachine(t *testing.T) {
 		conf.Timings.ShowScoreScreenFor = time.Millisecond * 1
 		conf.Timings.ShowWinnerScreenFor = time.Millisecond * 1
 
-		sub := websockets.NewSubscriber(lobbyService, playerService, roundService, log, websocketer, conf, rules)
+		sub := websockets.NewSubscriber(lobbyService, playerService, roundService, log, websocketer, conf, rules, context.Background())
 
 		u, err := uuid.NewV7()
 		require.NoError(t, err)
@@ -282,7 +283,7 @@ func TestStateMachine(t *testing.T) {
 		conf.Timings.ShowScoreScreenFor = time.Millisecond * 1
 		conf.Timings.ShowWinnerScreenFor = time.Millisecond * 1
 
-		sub := websockets.NewSubscriber(lobbyService, playerService, roundService, log, websocketer, conf, rules)
+		sub := websockets.NewSubscriber(lobbyService, playerService, roundService, log, websocketer, conf, rules, context.Background())
 
 		u, err := uuid.NewV7()
 		require.NoError(t, err)
@@ -343,7 +344,7 @@ func TestStateMachine(t *testing.T) {
 			conf.Timings.ShowScoreScreenFor = time.Millisecond * 1
 			conf.Timings.ShowWinnerScreenFor = time.Millisecond * 1
 
-			sub := websockets.NewSubscriber(lobbyService, playerService, roundService, log, websocketer, conf, rules)
+			sub := websockets.NewSubscriber(lobbyService, playerService, roundService, log, websocketer, conf, rules, context.Background())
 
 			u, err := uuid.NewV7()
 			require.NoError(t, err)
@@ -411,7 +412,7 @@ func TestStateMachine(t *testing.T) {
 				FibberEvadeCapture: conf.Scoring.FibberEvadeCapture,
 			}
 
-			sub := websockets.NewSubscriber(lobbyService, playerService, roundService, log, websocketer, conf, rules)
+			sub := websockets.NewSubscriber(lobbyService, playerService, roundService, log, websocketer, conf, rules, context.Background())
 
 			u, err := uuid.NewV7()
 			require.NoError(t, err)
@@ -489,7 +490,7 @@ func TestStateMachine(t *testing.T) {
 			conf.Timings.ShowScoreScreenFor = time.Millisecond * 1
 			conf.Timings.ShowWinnerScreenFor = time.Millisecond * 1
 
-			sub := websockets.NewSubscriber(lobbyService, playerService, roundService, log, websocketer, conf, rules)
+			sub := websockets.NewSubscriber(lobbyService, playerService, roundService, log, websocketer, conf, rules, context.Background())
 
 			u, err := uuid.NewV7()
 			require.NoError(t, err)

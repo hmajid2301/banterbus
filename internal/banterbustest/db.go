@@ -69,7 +69,7 @@ func NewDB(t *testing.T) *pgxpool.Pool {
 		return nil
 	}
 
-	pool, err := pgxpool.NewWithConfig(context.Background(), pgxConfig)
+	pool, err := pgxpool.NewWithConfig(t.Context(), pgxConfig)
 	if err != nil {
 		t.Fatalf("failed to create connection pool: %v", err)
 	}
@@ -123,7 +123,7 @@ func CleanupData(t *testing.T, pool *pgxpool.Pool) {
 		"players",
 	}
 
-	ctx := context.Background()
+	ctx := t.Context()
 	for _, table := range tables {
 		if _, err := pool.Exec(ctx, "DELETE FROM "+table); err != nil {
 			t.Logf("Warning: failed to cleanup table %s: %v", table, err)
@@ -179,7 +179,7 @@ func loadSeedData(t *testing.T, pool *pgxpool.Pool) {
 		}
 	}
 
-	ctx := context.Background()
+	ctx := t.Context()
 	for _, stmt := range statements {
 		stmt = strings.TrimSpace(stmt)
 		if stmt == "" {

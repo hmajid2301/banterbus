@@ -108,8 +108,7 @@ func LoadConfig(ctx context.Context) (Config, error) {
 		return Config{}, err
 	}
 
-	err := validateServerConfig(input)
-	if err != nil {
+	if err := validateServerConfig(input); err != nil {
 		return Config{}, err
 	}
 

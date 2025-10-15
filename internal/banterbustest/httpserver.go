@@ -79,6 +79,7 @@ func NewTestServer(t *testing.T) (*httptest.Server, error) {
 		&redisClient,
 		conf,
 		rules,
+		t.Context(),
 	)
 	err = ctxi18n.LoadWithDefault(views.Locales, "en-GB")
 	if err != nil {
