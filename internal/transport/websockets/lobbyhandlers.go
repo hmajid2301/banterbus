@@ -12,6 +12,7 @@ import (
 	"go.opentelemetry.io/otel/baggage"
 
 	"gitlab.com/hmajid2301/banterbus/internal/service"
+	"gitlab.com/hmajid2301/banterbus/internal/statemachine"
 	"gitlab.com/hmajid2301/banterbus/internal/store/db"
 	"gitlab.com/hmajid2301/banterbus/internal/telemetry"
 )
@@ -170,7 +171,7 @@ func (s *StartGame) Handle(ctx context.Context, client *Client, sub *Subscriber)
 		questionState.RoundType, questionState.Round, deadline.Format(time.RFC3339))
 
 	showRole := true
-	err = sub.updateClientsAboutQuestion(ctx, questionState, showRole)
+	err = sub.UpdateClientsAboutQuestion(ctx, questionState, showRole)
 	if err != nil {
 		return err
 	}
@@ -186,11 +187,24 @@ func (s *StartGame) Handle(ctx context.Context, client *Client, sub *Subscriber)
 		)
 	}
 
-	q := &QuestionState{
-		GameStateID: questionState.GameStateID,
-		Subscriber:  *sub,
+	deps, err := sub.newStateDependencies()
+	if err != nil {
+		sub.logger.ErrorContext(ctx, "failed to build state dependencies",
+			slog.Any("error", err),
+			slog.String("game_state_id", questionState.GameStateID.String()))
+		clientErr := sub.updateClientAboutErr(ctx, client.playerID, "Failed to start game state machine")
+		return errors.Join(clientErr, err)
 	}
-	sub.startStateMachine(stateCtx, questionState.GameStateID, q)
+
+	q, err := statemachine.NewQuestionState(questionState.GameStateID, false, deps)
+	if err != nil {
+		sub.logger.ErrorContext(ctx, "failed to create question state",
+			slog.Any("error", err),
+			slog.String("game_state_id", questionState.GameStateID.String()))
+		clientErr := sub.updateClientAboutErr(ctx, client.playerID, "Failed to create question state")
+		return errors.Join(clientErr, err)
+	}
+	sub.StartStateMachine(stateCtx, questionState.GameStateID, q)
 	return nil
 }
 

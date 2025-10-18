@@ -10,6 +10,7 @@ import (
 	"github.com/gofrs/uuid/v5"
 
 	"gitlab.com/hmajid2301/banterbus/internal/service"
+	"gitlab.com/hmajid2301/banterbus/internal/statemachine"
 	"gitlab.com/hmajid2301/banterbus/internal/store/db"
 	"gitlab.com/hmajid2301/banterbus/internal/telemetry"
 )
@@ -109,7 +110,7 @@ func (t *ToggleAnswerIsReady) Handle(ctx context.Context, client *Client, sub *S
 
 		// INFO: Only updating individual player's ready status, not full state refresh
 		showRole := false
-		err = sub.updateClientsAboutQuestion(ctx, questionState, showRole)
+		err = sub.UpdateClientsAboutQuestion(ctx, questionState, showRole)
 		if err != nil {
 			return err
 		}
@@ -121,9 +122,22 @@ func (t *ToggleAnswerIsReady) Handle(ctx context.Context, client *Client, sub *S
 			return err
 		}
 
-		votingState := VotingState{
-			GameStateID: questionState.GameStateID,
-			Subscriber:  *sub,
+		deps, err := sub.newStateDependencies()
+		if err != nil {
+			sub.logger.ErrorContext(ctx, "failed to build state dependencies",
+				slog.Any("error", err),
+				slog.String("game_state_id", questionState.GameStateID.String()))
+			clientErr := sub.updateClientAboutErr(ctx, client.playerID, "Failed to start voting state machine")
+			return errors.Join(clientErr, err)
+		}
+
+		votingState, err := statemachine.NewVotingState(questionState.GameStateID, deps)
+		if err != nil {
+			sub.logger.ErrorContext(ctx, "failed to create voting state",
+				slog.Any("error", err),
+				slog.String("game_state_id", questionState.GameStateID.String()))
+			clientErr := sub.updateClientAboutErr(ctx, client.playerID, "Failed to create voting state")
+			return errors.Join(clientErr, err)
 		}
 		go votingState.Start(ctx)
 	}
@@ -139,7 +153,7 @@ func (s *SubmitVote) Handle(ctx context.Context, client *Client, sub *Subscriber
 		return errors.Join(clientErr, err)
 	}
 
-	err = sub.updateClientsAboutVoting(ctx, votingState)
+	err = sub.UpdateClientsAboutVoting(ctx, votingState)
 	if err != nil {
 		sub.logger.ErrorContext(ctx, "failed to update clients", slog.Any("error", err))
 	}
@@ -172,15 +186,28 @@ func (t *ToggleVotingIsReady) Handle(ctx context.Context, client *Client, sub *S
 		return errors.Join(clientErr, err)
 	}
 
-	err = sub.updateClientsAboutVoting(ctx, votingState)
+	err = sub.UpdateClientsAboutVoting(ctx, votingState)
 	if err != nil {
 		return err
 	}
 
 	if allReady {
-		revealState := RevealState{
-			GameStateID: votingState.GameStateID,
-			Subscriber:  *sub,
+		deps, err := sub.newStateDependencies()
+		if err != nil {
+			sub.logger.ErrorContext(ctx, "failed to build state dependencies",
+				slog.Any("error", err),
+				slog.String("game_state_id", votingState.GameStateID.String()))
+			clientErr := sub.updateClientAboutErr(ctx, client.playerID, "Failed to start reveal state machine")
+			return errors.Join(clientErr, err)
+		}
+
+		revealState, err := statemachine.NewRevealState(votingState.GameStateID, deps)
+		if err != nil {
+			sub.logger.ErrorContext(ctx, "failed to create reveal state",
+				slog.Any("error", err),
+				slog.String("game_state_id", votingState.GameStateID.String()))
+			clientErr := sub.updateClientAboutErr(ctx, client.playerID, "Failed to create reveal state")
+			return errors.Join(clientErr, err)
 		}
 		go revealState.Start(ctx)
 	}

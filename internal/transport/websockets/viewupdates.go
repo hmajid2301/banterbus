@@ -102,7 +102,7 @@ func (s *Subscriber) updateClientAboutErr(ctx context.Context, playerID uuid.UUI
 	return err
 }
 
-func (s *Subscriber) updateClientsAboutQuestion(
+func (s *Subscriber) UpdateClientsAboutQuestion(
 	ctx context.Context,
 	gameState service.QuestionState,
 	showModal bool,
@@ -126,7 +126,7 @@ func (s *Subscriber) updateClientsAboutQuestion(
 	return nil
 }
 
-func (s *Subscriber) updateClientsAboutVoting(ctx context.Context, votingState service.VotingState) error {
+func (s *Subscriber) UpdateClientsAboutVoting(ctx context.Context, votingState service.VotingState) error {
 	for _, player := range votingState.Players {
 		playerCtx := s.getContextWithPlayerLocale(ctx, player.ID)
 
@@ -146,7 +146,7 @@ func (s *Subscriber) updateClientsAboutVoting(ctx context.Context, votingState s
 	return nil
 }
 
-func (s *Subscriber) updateClientsAboutReveal(ctx context.Context, revealState service.RevealRoleState) error {
+func (s *Subscriber) UpdateClientsAboutReveal(ctx context.Context, revealState service.RevealRoleState) error {
 	for _, id := range revealState.PlayerIDs {
 		playerCtx := s.getContextWithPlayerLocale(ctx, id)
 
@@ -166,7 +166,7 @@ func (s *Subscriber) updateClientsAboutReveal(ctx context.Context, revealState s
 	return nil
 }
 
-func (s *Subscriber) updateClientsAboutScore(ctx context.Context, scoreState service.ScoreState) error {
+func (s *Subscriber) UpdateClientsAboutScore(ctx context.Context, scoreState service.ScoreState) error {
 	maxScore := 0
 	for _, player := range scoreState.Players {
 		if player.Score > maxScore {
@@ -193,7 +193,7 @@ func (s *Subscriber) updateClientsAboutScore(ctx context.Context, scoreState ser
 	return nil
 }
 
-func (s *Subscriber) updateClientsAboutWinner(ctx context.Context, winnerState service.WinnerState) error {
+func (s *Subscriber) UpdateClientsAboutWinner(ctx context.Context, winnerState service.WinnerState) error {
 	maxScore := 0
 	for _, player := range winnerState.Players {
 		if player.Score > maxScore {

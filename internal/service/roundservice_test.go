@@ -561,7 +561,7 @@ func TestRoundServiceToggleAnswerIsReady(t *testing.T) {
 		}, nil)
 
 		_, err := srv.ToggleAnswerIsReady(ctx, playerID, time.Now().UTC())
-		assert.ErrorContains(t, err, "room game state is not in FIBBING_IT_QUESTION state")
+		assert.ErrorContains(t, err, "game state is not in FIBBING_IT_QUESTION state")
 	})
 
 	t.Run(
@@ -1326,7 +1326,7 @@ func TestRoundServiceToggleVotingIsReady(t *testing.T) {
 		}, nil)
 
 		_, err := srv.ToggleVotingIsReady(ctx, playerID, time.Now().UTC())
-		assert.ErrorContains(t, err, "room game state is not in FIBBING_IT_VOTING state")
+		assert.ErrorContains(t, err, "game state is not in FIBBING_IT_VOTING state")
 	})
 
 	t.Run(

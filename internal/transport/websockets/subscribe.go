@@ -10,10 +10,7 @@ import (
 	"log/slog"
 	"net"
 	"net/http"
-	"runtime/debug"
 	"strings"
-	"sync"
-	"sync/atomic"
 	"time"
 
 	"github.com/a-h/templ"
@@ -32,149 +29,10 @@ import (
 	"go.opentelemetry.io/otel/trace"
 
 	"gitlab.com/hmajid2301/banterbus/internal/config"
+	"gitlab.com/hmajid2301/banterbus/internal/service"
+	"gitlab.com/hmajid2301/banterbus/internal/statemachine"
 	"gitlab.com/hmajid2301/banterbus/internal/telemetry"
 )
-
-type stateMachineEntry struct {
-	cancel     context.CancelFunc
-	generation int64
-}
-
-type StateMachineManager struct {
-	active       sync.Map
-	mu           sync.Mutex
-	wg           sync.WaitGroup
-	generation   atomic.Int64
-	count        atomic.Int64
-	shutdownCtx  context.Context
-	logger       *slog.Logger
-}
-
-func NewStateMachineManager(shutdownCtx context.Context, logger *slog.Logger) *StateMachineManager {
-	return &StateMachineManager{
-		shutdownCtx: shutdownCtx,
-		logger:      logger,
-	}
-}
-
-func (m *StateMachineManager) Start(ctx context.Context, gameStateID uuid.UUID, state State) {
-	stateMachineCtx, cancel := context.WithCancel(m.shutdownCtx)
-
-	if bag := baggage.FromContext(ctx); bag.Len() > 0 {
-		stateMachineCtx = baggage.ContextWithBaggage(stateMachineCtx, bag)
-	}
-
-	m.mu.Lock()
-	gen := m.generation.Add(1)
-
-	if existingInterface, loaded := m.active.Load(gameStateID); loaded {
-		if existing, ok := existingInterface.(*stateMachineEntry); ok {
-			m.logger.DebugContext(ctx, "canceling existing state machine before starting new one",
-				slog.String("game_state_id", gameStateID.String()),
-				slog.Int64("old_generation", existing.generation),
-				slog.Int64("new_generation", gen))
-			existing.cancel()
-		}
-	}
-
-	entry := &stateMachineEntry{
-		cancel:     cancel,
-		generation: gen,
-	}
-	m.active.Store(gameStateID, entry)
-	m.wg.Add(1)
-	count := m.count.Add(1)
-	m.mu.Unlock()
-
-	telemetry.UpdateActiveStateMachineCount(count)
-
-	go func() {
-		defer func() {
-			if r := recover(); r != nil {
-				m.logger.ErrorContext(stateMachineCtx, "state machine panicked",
-					slog.Any("panic", r),
-					slog.String("game_state_id", gameStateID.String()),
-					slog.Any("stack", debug.Stack()))
-			}
-
-			if currentInterface, loaded := m.active.Load(gameStateID); loaded {
-				if current, ok := currentInterface.(*stateMachineEntry); ok && current.generation == gen {
-					m.active.Delete(gameStateID)
-					count := m.count.Add(-1)
-					telemetry.UpdateActiveStateMachineCount(count)
-				}
-			}
-			cancel()
-			m.wg.Done()
-		}()
-
-		state.Start(stateMachineCtx)
-	}()
-}
-
-func (m *StateMachineManager) Stop(ctx context.Context, gameStateID uuid.UUID) {
-	if entryInterface, loaded := m.active.LoadAndDelete(gameStateID); loaded {
-		if entry, ok := entryInterface.(*stateMachineEntry); ok {
-			m.logger.DebugContext(ctx, "stopping state machine",
-				slog.String("game_state_id", gameStateID.String()))
-			entry.cancel()
-		}
-	}
-}
-
-func (m *StateMachineManager) CancelAll(ctx context.Context) {
-	m.logger.InfoContext(ctx, "canceling all active state machines for graceful shutdown")
-
-	m.mu.Lock()
-	defer m.mu.Unlock()
-
-	var toDelete []uuid.UUID
-	count := 0
-
-	m.active.Range(func(key, value interface{}) bool {
-		if gameStateID, ok := key.(uuid.UUID); ok {
-			toDelete = append(toDelete, gameStateID)
-			if entry, ok := value.(*stateMachineEntry); ok {
-				m.logger.DebugContext(ctx, "canceling state machine",
-					slog.String("game_state_id", gameStateID.String()))
-				entry.cancel()
-				count++
-			}
-		}
-		return true
-	})
-
-	for _, id := range toDelete {
-		m.active.Delete(id)
-	}
-
-	currentCount := m.count.Add(-int64(count))
-
-	m.logger.InfoContext(ctx, "canceled all active state machines",
-		slog.Int("count", count))
-
-	telemetry.UpdateActiveStateMachineCount(currentCount)
-}
-
-func (m *StateMachineManager) Wait(ctx context.Context, timeout time.Duration) bool {
-	m.logger.InfoContext(ctx, "waiting for state machines to complete database writes",
-		slog.Duration("timeout", timeout))
-
-	done := make(chan struct{})
-	go func() {
-		defer close(done)
-		m.wg.Wait()
-	}()
-
-	select {
-	case <-done:
-		m.logger.InfoContext(ctx, "all state machines completed gracefully")
-		return true
-	case <-time.After(timeout):
-		m.logger.WarnContext(ctx, "timeout waiting for state machines, forcing shutdown")
-		return false
-	}
-}
 
 type Subscriber struct {
 	lobbyService    LobbyServicer
@@ -185,7 +43,7 @@ type Subscriber struct {
 	websocket       Websocketer
 	config          config.Config
 	rules           templ.Component
-	stateMachines   *StateMachineManager
+	stateMachines   *statemachine.Manager
 }
 
 type Websocketer interface {
@@ -253,7 +111,7 @@ func NewSubscriber(
 		websocket:       websocket,
 		config:          config,
 		rules:           rules,
-		stateMachines:   NewStateMachineManager(shutdownCtx, logger),
+		stateMachines:   statemachine.NewManager(shutdownCtx, logger),
 	}
 
 	s.registerHandlers()
@@ -814,12 +672,31 @@ func translateValidationError(ctx context.Context, errMsg string) string {
 	}
 }
 
-func (s *Subscriber) startStateMachine(ctx context.Context, gameStateID uuid.UUID, state State) {
-	s.stateMachines.Start(ctx, gameStateID, state)
+func (s *Subscriber) newStateDependencies() (*statemachine.StateDependencies, error) {
+	timings := s.config.Timings
+
+	return &statemachine.StateDependencies{
+		RoundService:  s.roundService,
+		ClientUpdater: s,
+		Transitioner:  s,
+		Logger:        s.logger,
+		Timings: statemachine.Timings{
+			ShowQuestionScreenFor: timings.ShowQuestionScreenFor,
+			ShowVotingScreenFor:   timings.ShowVotingScreenFor,
+			ShowRevealScreenFor:   timings.ShowRevealScreenFor,
+			ShowScoreScreenFor:    timings.ShowScoreScreenFor,
+			ShowWinnerScreenFor:   timings.ShowWinnerScreenFor,
+			TickerInterval:        2 * time.Second,
+		},
+		Scoring: service.Scoring{
+			GuessedFibber:      s.config.Scoring.GuessFibber,
+			FibberEvadeCapture: s.config.Scoring.FibberEvadeCapture,
+		},
+	}, nil
 }
 
-func (s *Subscriber) stopStateMachine(ctx context.Context, gameStateID uuid.UUID) {
-	s.stateMachines.Stop(ctx, gameStateID)
+func (s *Subscriber) StartStateMachine(ctx context.Context, gameStateID uuid.UUID, state statemachine.State) {
+	s.stateMachines.Start(ctx, gameStateID, state)
 }
 
 func (s *Subscriber) CancelAllStateMachines(ctx context.Context) {

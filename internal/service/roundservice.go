@@ -44,6 +44,14 @@ func NewRoundService(store Storer, randomizer Randomizer, defaultLocale string) 
 
 var ErrMustSubmitAnswer = errors.New("must submit answer first")
 var ErrMustSubmitVote = errors.New("must submit vote first")
+var ErrGameCompleted = errors.New("game completed - no more round types available")
+var ErrNoNormalQuestions = errors.New("no normal questions available")
+var ErrNoFibberQuestions = errors.New("no fibber questions available")
+var ErrNotInQuestionState = errors.New("game state is not in FIBBING_IT_QUESTION state")
+var ErrNotInVotingState = errors.New("game state is not in FIBBING_IT_VOTING state")
+var ErrNotInRevealState = errors.New("game state is not in FIBBING_IT_REVEAL_ROLE state")
+var ErrNotInScoringState = errors.New("game state is not in FIBBING_IT_SCORING_STATE state")
+var ErrAlreadyInQuestionState = errors.New("game state is already in FIBBING_IT_QUESTION state")
 
 func (r *RoundService) SubmitAnswer(
 	ctx context.Context,
@@ -126,7 +134,7 @@ func (r *RoundService) ToggleAnswerIsReady(
 	}
 
 	if gameState.State != db.FibbingITQuestion.String() {
-		return false, errors.New("room game state is not in FIBBING_IT_QUESTION state")
+		return false, ErrNotInQuestionState
 	}
 
 	if submittedAt.After(gameState.SubmitDeadline.Time) {
@@ -186,12 +194,12 @@ func (r *RoundService) UpdateStateToVoting(
 			r.releaseLock(ctx, gameStateID) // Release lock we didn't use
 			return r.GetVotingState(ctx, gameStateID)
 		}
-		return VotingState{}, errors.New("game state is not in FIBBING_IT_QUESTION state")
+		return VotingState{}, ErrNotInQuestionState
 	}
 	defer r.releaseLock(ctx, gameStateID)
 
 	if gameState != db.FibbingITQuestion {
-		return VotingState{}, errors.New("game state is not in FIBBING_IT_QUESTION state")
+		return VotingState{}, ErrNotInQuestionState
 	}
 
 	_, err = r.store.UpdateGameState(ctx, db.UpdateGameStateParams{
@@ -224,7 +232,7 @@ func (r *RoundService) SubmitVote(
 	}
 
 	if gameState.State != db.FibbingItVoting.String() {
-		return VotingState{}, errors.New("game state is not in FIBBING_IT_VOTING state")
+		return VotingState{}, ErrNotInVotingState
 	}
 
 	players, err := r.store.GetAllPlayersInRoom(ctx, playerID)
@@ -367,7 +375,7 @@ func (r *RoundService) ToggleVotingIsReady(
 	}
 
 	if gameState.State != db.FibbingItVoting.String() {
-		return false, errors.New("room game state is not in FIBBING_IT_VOTING state")
+		return false, ErrNotInVotingState
 	}
 
 	if submittedAt.After(gameState.SubmitDeadline.Time) {
@@ -418,7 +426,7 @@ func (r *RoundService) AreAllPlayersVotingReady(ctx context.Context, gameStateID
 	}
 
 	if game.State != db.FibbingItVoting.String() {
-		return false, errors.New("game state is not in FIBBING_IT_VOTING state")
+		return false, ErrNotInVotingState
 	}
 
 	players, err := r.store.GetAllPlayersByGameStateID(ctx, gameStateID)
@@ -475,12 +483,12 @@ func (r *RoundService) UpdateStateToReveal(
 			r.releaseLock(ctx, gameStateID) // Release lock we didn't use
 			return r.GetRevealState(ctx, gameStateID)
 		}
-		return RevealRoleState{}, errors.New("game state is not in FIBBING_IT_VOTING state")
+		return RevealRoleState{}, ErrNotInVotingState
 	}
 	defer r.releaseLock(ctx, gameStateID)
 
 	if gameState != db.FibbingItVoting {
-		return RevealRoleState{}, errors.New("game state is not in FIBBING_IT_VOTING state")
+		return RevealRoleState{}, ErrNotInVotingState
 	}
 
 	_, err = r.store.UpdateGameState(ctx, db.UpdateGameStateParams{
@@ -587,7 +595,7 @@ func (r *RoundService) UpdateStateToQuestion(
 			r.releaseLock(ctx, gameStateID) // Release lock we didn't use
 			return r.GetQuestionState(ctx, gameStateID)
 		}
-		return QuestionState{}, fmt.Errorf("current state: FibbingITQuestion")
+		return QuestionState{}, ErrAlreadyInQuestionState
 	}
 	defer r.releaseLock(ctx, gameStateID)
 
@@ -628,7 +636,7 @@ func (r *RoundService) UpdateStateToQuestion(
 		nextRoundType := getNextRoundType(roundType)
 		if nextRoundType == "" {
 			// No more round types, this means we've completed all game types
-			return QuestionState{}, errors.New("game completed - no more round types available")
+			return QuestionState{}, ErrGameCompleted
 		}
 		roundType = nextRoundType
 		roundNumber = 1
@@ -652,11 +660,11 @@ func (r *RoundService) UpdateStateToQuestion(
 	}
 
 	if len(normalsQuestions) == 0 {
-		return QuestionState{}, errors.New("no normal questions available")
+		return QuestionState{}, ErrNoNormalQuestions
 	}
 
 	if len(fibberQuestions) == 0 {
-		return QuestionState{}, errors.New("no fibber questions available")
+		return QuestionState{}, ErrNoFibberQuestions
 	}
 
 	if fibberLoc == -1 {
@@ -809,12 +817,12 @@ func (r *RoundService) UpdateStateToScore(
 			r.releaseLock(ctx, gameStateID) // Release lock we didn't use
 			return r.GetScoreState(ctx, scoring, gameStateID)
 		}
-		return ScoreState{}, errors.New("game state is not in FIBBING_IT_REVEAL_ROLE state")
+		return ScoreState{}, ErrNotInRevealState
 	}
 	defer r.releaseLock(ctx, gameStateID)
 
 	if gameState != db.FibbingItRevealRole {
-		return ScoreState{}, errors.New("game state is not in FIBBING_IT_REVEAL_ROLE state")
+		return ScoreState{}, ErrNotInRevealState
 	}
 
 	_, err = r.store.UpdateGameState(ctx, db.UpdateGameStateParams{
@@ -1002,7 +1010,7 @@ func (r *RoundService) UpdateStateToWinner(
 	if err != nil {
 		return WinnerState{}, err
 	} else if gameState != db.FibbingItScoring {
-		return WinnerState{}, errors.New("game state is not in FIBBING_IT_SCORING_STATE state")
+		return WinnerState{}, ErrNotInScoringState
 	}
 
 	_, err = r.store.UpdateGameState(ctx, db.UpdateGameStateParams{

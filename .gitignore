@@ -89,6 +89,9 @@ coverage/
 
 banterbus
 
+# Backup files
+*.bak
+
 # Terraform
 *.tfstate
 *.tfstate.*

@@ -11,6 +11,11 @@ packages:
       LobbyServicer:
       PlayerServicer:
       RoundServicer:
-      State:
       WSHandler:
       Websocketer:
+  gitlab.com/hmajid2301/banterbus/internal/statemachine:
+    interfaces:
+      RoundService:
+      ClientUpdater:
+      StateTransitioner:
+      State:
