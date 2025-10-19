@@ -58,10 +58,10 @@ func (q *QuestionState) Start(ctx context.Context) error {
 	questionState, err := q.Dependencies.RoundService.UpdateStateToQuestion(stateCtx.ctx, q.GameStateID, deadline, q.NextRound)
 	if err != nil {
 		q.handleQuestionUpdateError(stateCtx, err)
-		return nil
+		return err
 	}
 
-	showModal := q.NextRound
+	showModal := q.NextRound || questionState.Round == 1
 	if err := q.Dependencies.ClientUpdater.UpdateClientsAboutQuestion(stateCtx.ctx, questionState, showModal); err != nil {
 		stateCtx.recordClientUpdateError(err)
 	}
@@ -139,7 +139,7 @@ func (q *QuestionState) handleQuestionUpdateError(stateCtx *stateExecutionContex
 func (q *QuestionState) transitionToVoting(stateCtx *stateExecutionContext) {
 	stateCtx.addTransition("voting", "timeout_or_all_ready")
 
-	currentGameState, err := q.Dependencies.RoundService.GetGameState(stateCtx.ctx, q.GameStateID)
+	currentGameState, err := q.Dependencies.RoundService.GetGameStateByID(stateCtx.ctx, q.GameStateID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			select {
@@ -149,19 +149,10 @@ func (q *QuestionState) transitionToVoting(stateCtx *stateExecutionContext) {
 					slog.Any("error", err),
 					slog.String("game_state_id", q.GameStateID.String()))
 			default:
-				stateCtx.logger.DebugContext(stateCtx.ctx,
-					"temporary database issue during voting transition, retrying with voting state",
+				stateCtx.logger.WarnContext(stateCtx.ctx,
+					"game state not found during voting transition, likely deleted",
 					slog.Any("error", err),
 					slog.String("game_state_id", q.GameStateID.String()))
-				time.Sleep(1 * time.Second)
-				v, err := NewVotingState(q.GameStateID, q.Dependencies)
-				if err != nil {
-					stateCtx.logger.ErrorContext(stateCtx.ctx, "failed to create voting state",
-						slog.Any("error", err),
-						slog.String("game_state_id", q.GameStateID.String()))
-					return
-				}
-				q.Dependencies.Transitioner.StartStateMachine(stateCtx.ctx, q.GameStateID, v)
 			}
 			return
 		}

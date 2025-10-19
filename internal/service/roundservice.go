@@ -168,19 +168,15 @@ func (r *RoundService) UpdateStateToVoting(
 		return VotingState{}, err
 	}
 
-	// Check if we're already in the target state (idempotent operation)
 	if gameState == db.FibbingItVoting {
-		// We're already in voting state, return the current state instead of failing
-		return r.GetVotingState(ctx, gameStateID)
+		return r.getVotingStateByGameStateID(ctx, gameStateID)
 	}
 
-	// Acquire lock to prevent concurrent state transitions
 	lockAcquired, err := r.tryAcquireLock(ctx, gameStateID)
 	if err != nil {
 		return VotingState{}, fmt.Errorf("failed to acquire state transition lock: %w", err)
 	}
 	if !lockAcquired {
-		// Lock not acquired, but check if state has already changed
 		currentGame, err := r.store.GetGameState(ctx, gameStateID)
 		if err != nil {
 			return VotingState{}, err
@@ -190,9 +186,8 @@ func (r *RoundService) UpdateStateToVoting(
 			return VotingState{}, err
 		}
 		if currentState == db.FibbingItVoting {
-			// State has already transitioned, return the current state
-			r.releaseLock(ctx, gameStateID) // Release lock we didn't use
-			return r.GetVotingState(ctx, gameStateID)
+			r.releaseLock(ctx, gameStateID)
+			return r.getVotingStateByGameStateID(ctx, gameStateID)
 		}
 		return VotingState{}, ErrNotInQuestionState
 	}
@@ -312,6 +307,16 @@ func (r *RoundService) SubmitVote(
 
 func (r *RoundService) GetVotingState(ctx context.Context, playerID uuid.UUID) (VotingState, error) {
 	round, err := r.store.GetLatestRoundByPlayerID(ctx, playerID)
+	if err != nil {
+		return VotingState{}, err
+	}
+
+	votingState, err := r.getVotingState(ctx, round.ID, round.Round)
+	return votingState, err
+}
+
+func (r *RoundService) getVotingStateByGameStateID(ctx context.Context, gameStateID uuid.UUID) (VotingState, error) {
+	round, err := r.store.GetLatestRoundByGameStateID(ctx, gameStateID)
 	if err != nil {
 		return VotingState{}, err
 	}
@@ -457,19 +462,15 @@ func (r *RoundService) UpdateStateToReveal(
 		return RevealRoleState{}, err
 	}
 
-	// Check if we're already in the target state (idempotent operation)
 	if gameState == db.FibbingItRevealRole {
-		// We're already in reveal state, return the current state instead of failing
-		return r.GetRevealState(ctx, gameStateID)
+		return r.getRevealState(ctx, gameStateID, game.SubmitDeadline.Time)
 	}
 
-	// Acquire lock to prevent concurrent state transitions
 	lockAcquired, err := r.tryAcquireLock(ctx, gameStateID)
 	if err != nil {
 		return RevealRoleState{}, fmt.Errorf("failed to acquire state transition lock: %w", err)
 	}
 	if !lockAcquired {
-		// Lock not acquired, but check if state has already changed
 		currentGame, err := r.store.GetGameState(ctx, gameStateID)
 		if err != nil {
 			return RevealRoleState{}, err
@@ -479,9 +480,8 @@ func (r *RoundService) UpdateStateToReveal(
 			return RevealRoleState{}, err
 		}
 		if currentState == db.FibbingItRevealRole {
-			// State has already transitioned, return the current state
-			r.releaseLock(ctx, gameStateID) // Release lock we didn't use
-			return r.GetRevealState(ctx, gameStateID)
+			r.releaseLock(ctx, gameStateID)
+			return r.getRevealState(ctx, gameStateID, currentGame.SubmitDeadline.Time)
 		}
 		return RevealRoleState{}, ErrNotInVotingState
 	}
@@ -569,19 +569,15 @@ func (r *RoundService) UpdateStateToQuestion(
 		return QuestionState{}, err
 	}
 
-	// Check if we're already in the target state (idempotent operation)
 	if gameState == db.FibbingITQuestion {
-		// We're already in question state, return the current state instead of failing
-		return r.GetQuestionState(ctx, gameStateID)
+		return r.getQuestionStateByGameStateID(ctx, gameStateID)
 	}
 
-	// Acquire lock to prevent concurrent state transitions
 	lockAcquired, err := r.tryAcquireLock(ctx, gameStateID)
 	if err != nil {
 		return QuestionState{}, fmt.Errorf("failed to acquire state transition lock: %w", err)
 	}
 	if !lockAcquired {
-		// Lock not acquired, but check if state has already changed
 		currentGame, err := r.store.GetGameState(ctx, gameStateID)
 		if err != nil {
 			return QuestionState{}, err
@@ -591,9 +587,8 @@ func (r *RoundService) UpdateStateToQuestion(
 			return QuestionState{}, err
 		}
 		if currentState == db.FibbingITQuestion {
-			// State has already transitioned, return the current state
-			r.releaseLock(ctx, gameStateID) // Release lock we didn't use
-			return r.GetQuestionState(ctx, gameStateID)
+			r.releaseLock(ctx, gameStateID)
+			return r.getQuestionStateByGameStateID(ctx, gameStateID)
 		}
 		return QuestionState{}, ErrAlreadyInQuestionState
 	}
@@ -775,6 +770,72 @@ func (r *RoundService) GetQuestionState(ctx context.Context, playerID uuid.UUID)
 	return gameState, nil
 }
 
+func (r *RoundService) getQuestionStateByGameStateID(ctx context.Context, gameStateID uuid.UUID) (QuestionState, error) {
+	playersData, err := r.store.GetAllPlayersQuestionStateByGameStateID(ctx, gameStateID)
+	if err != nil {
+		return QuestionState{}, err
+	}
+
+	if len(playersData) == 0 {
+		return QuestionState{}, errors.New("no players in game")
+	}
+
+	firstPlayer := playersData[0]
+
+	normalsQuestions, err := r.store.GetQuestionWithLocalesById(ctx, firstPlayer.NormalQuestionID)
+	if err != nil {
+		return QuestionState{}, fmt.Errorf("failed to get normal question: %w", err)
+	}
+
+	fibberQuestions, err := r.store.GetQuestionWithLocalesById(ctx, firstPlayer.FibberQuestionID)
+	if err != nil {
+		return QuestionState{}, fmt.Errorf("failed to get fibber question: %w", err)
+	}
+
+	playersWithRole := []PlayerWithRole{}
+	for _, playerData := range playersData {
+		role := NormalRole
+		questionsToSearch := normalsQuestions
+
+		if playerData.Role.Valid && playerData.Role.String == FibberRole {
+			role = FibberRole
+			questionsToSearch = fibberQuestions
+		}
+
+		var question string
+		for _, localeQuestion := range questionsToSearch {
+			if playerData.Locale.Valid && localeQuestion.Locale == playerData.Locale.String {
+				question = localeQuestion.Question
+				break
+			} else if question == "" && localeQuestion.Locale == r.defaultLocale {
+				question = localeQuestion.Question
+			}
+		}
+
+		answers, err := r.getValidAnswers(ctx, playerData.RoundType, playerData.PlayerID)
+		if err != nil {
+			return QuestionState{}, err
+		}
+
+		playersWithRole = append(playersWithRole, PlayerWithRole{
+			ID:              playerData.PlayerID,
+			Role:            role,
+			Question:        question,
+			IsAnswerReady:   playerData.IsAnswerReady,
+			PossibleAnswers: answers,
+			CurrentAnswer:   playerData.CurrentAnswer,
+		})
+	}
+
+	return QuestionState{
+		GameStateID: gameStateID,
+		Players:     playersWithRole,
+		Round:       int(firstPlayer.Round),
+		RoundType:   firstPlayer.RoundType,
+		Deadline:    time.Until(firstPlayer.SubmitDeadline.Time),
+	}, nil
+}
+
 func (r *RoundService) UpdateStateToScore(
 	ctx context.Context,
 	gameStateID uuid.UUID,
@@ -791,19 +852,16 @@ func (r *RoundService) UpdateStateToScore(
 		return ScoreState{}, err
 	}
 
-	// Check if we're already in the target state (idempotent operation)
 	if gameState == db.FibbingItScoring {
-		// We're already in scoring state, return the current state instead of failing
-		return r.GetScoreState(ctx, scoring, gameStateID)
+		scoreState, _, err := r.getScoreState(ctx, scoring, gameStateID, game.SubmitDeadline.Time)
+		return scoreState, err
 	}
 
-	// Acquire lock to prevent concurrent state transitions
 	lockAcquired, err := r.tryAcquireLock(ctx, gameStateID)
 	if err != nil {
 		return ScoreState{}, fmt.Errorf("failed to acquire state transition lock: %w", err)
 	}
 	if !lockAcquired {
-		// Lock not acquired, but check if state has already changed
 		currentGame, err := r.store.GetGameState(ctx, gameStateID)
 		if err != nil {
 			return ScoreState{}, err
@@ -813,9 +871,9 @@ func (r *RoundService) UpdateStateToScore(
 			return ScoreState{}, err
 		}
 		if currentState == db.FibbingItScoring {
-			// State has already transitioned, return the current state
-			r.releaseLock(ctx, gameStateID) // Release lock we didn't use
-			return r.GetScoreState(ctx, scoring, gameStateID)
+			r.releaseLock(ctx, gameStateID)
+			scoreState, _, err := r.getScoreState(ctx, scoring, gameStateID, currentGame.SubmitDeadline.Time)
+			return scoreState, err
 		}
 		return ScoreState{}, ErrNotInRevealState
 	}
@@ -849,6 +907,16 @@ func (r *RoundService) UpdateStateToScore(
 
 func (r *RoundService) GetGameState(ctx context.Context, playerID uuid.UUID) (db.FibbingItGameState, error) {
 	game, err := r.store.GetGameStateByPlayerID(ctx, playerID)
+	if err != nil {
+		return db.FibbingITQuestion, err
+	}
+
+	gameState, err := db.GameStateFromString(game.State)
+	return gameState, err
+}
+
+func (r *RoundService) GetGameStateByID(ctx context.Context, gameStateID uuid.UUID) (db.FibbingItGameState, error) {
+	game, err := r.store.GetGameState(ctx, gameStateID)
 	if err != nil {
 		return db.FibbingITQuestion, err
 	}

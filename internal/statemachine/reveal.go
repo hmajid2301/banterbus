@@ -42,7 +42,7 @@ func (r *RevealState) Start(ctx context.Context) error {
 
 	revealState, err := r.updateToRevealWithRetry(stateCtx, deadline)
 	if err != nil {
-		return nil
+		return err
 	}
 
 	stateCtx.span.SetAttributes(
@@ -89,7 +89,7 @@ func (r *RevealState) updateToRevealWithRetry(stateCtx *stateExecutionContext, d
 func (r *RevealState) determineNextState(stateCtx *stateExecutionContext, revealState service.RevealRoleState) db.FibbingItGameState {
 	maxRounds := 3
 	finalRound := revealState.Round == maxRounds
-	fibberFound := revealState.ShouldReveal && revealState.VotedForPlayerRole == "fibber"
+	fibberFound := revealState.ShouldReveal && revealState.VotedForPlayerRole == service.FibberRole
 	nextState := db.FibbingITQuestion
 
 	if finalRound || fibberFound {
@@ -116,6 +116,22 @@ func (r *RevealState) transitionToNextState(stateCtx *stateExecutionContext, nex
 	stateCtx.logger.InfoContext(stateCtx.ctx, "reveal state timer expired, transitioning",
 		slog.String("next_state", nextState.String()),
 		slog.String("game_state_id", r.GameStateID.String()))
+
+	currentGameState, err := r.Dependencies.RoundService.GetGameStateByID(stateCtx.ctx, r.GameStateID)
+	if err != nil {
+		stateCtx.logger.ErrorContext(stateCtx.ctx,
+			"failed to verify game state before transition",
+			slog.Any("error", err),
+			slog.String("game_state_id", r.GameStateID.String()))
+		return
+	}
+
+	if currentGameState != db.FibbingItRevealRole {
+		stateCtx.logger.InfoContext(stateCtx.ctx, "game state already transitioned from reveal state",
+			slog.String("current_state", currentGameState.String()),
+			slog.String("expected_next_state", nextState.String()))
+		return
+	}
 
 	switch nextState {
 	case db.FibbingItWinner:

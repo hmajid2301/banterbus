@@ -685,10 +685,25 @@ func TestIntegrationRoundServiceGetGameState(t *testing.T) {
 		playerService := service.NewPlayerService(str, randomizer)
 		roundService := service.NewRoundService(str, randomizer, "en-GB")
 
-		revealState, err := revealState(ctx, lobbyService, playerService, roundService)
+		questionState, err := startGame(ctx, lobbyService, playerService)
 		require.NoError(t, err)
 
-		gameState, err := roundService.GetGameState(ctx, revealState.PlayerIDs[0])
+		err = roundService.SubmitAnswer(ctx, questionState.Players[0].ID, "This is my answer", time.Now())
+		require.NoError(t, err)
+
+		err = roundService.SubmitAnswer(ctx, questionState.Players[1].ID, "This is the other players answer", time.Now())
+		require.NoError(t, err)
+
+		votingState, err := roundService.UpdateStateToVoting(ctx, questionState.GameStateID, time.Now().Add(120*time.Second))
+		require.NoError(t, err)
+
+		_, err = roundService.SubmitVote(ctx, votingState.Players[0].ID, votingState.Players[1].Nickname, time.Now())
+		require.NoError(t, err)
+
+		_, err = roundService.UpdateStateToReveal(ctx, votingState.GameStateID, time.Now().Add(120*time.Second))
+		require.NoError(t, err)
+
+		gameState, err := roundService.GetGameState(ctx, votingState.Players[0].ID)
 		assert.NoError(t, err)
 		assert.Equal(t, db.FibbingItRevealRole, gameState)
 	})

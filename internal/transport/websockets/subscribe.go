@@ -686,7 +686,6 @@ func (s *Subscriber) newStateDependencies() (*statemachine.StateDependencies, er
 			ShowRevealScreenFor:   timings.ShowRevealScreenFor,
 			ShowScoreScreenFor:    timings.ShowScoreScreenFor,
 			ShowWinnerScreenFor:   timings.ShowWinnerScreenFor,
-			TickerInterval:        2 * time.Second,
 		},
 		Scoring: service.Scoring{
 			GuessedFibber:      s.config.Scoring.GuessFibber,

@@ -157,15 +157,32 @@ func (s Subscriber) reconnectToPlayingGame(ctx context.Context, playerID uuid.UU
 			return component, errors.Join(clientErr, err)
 		}
 
+		var currentPlayer service.PlayerWithRole
+		for _, player := range question.Players {
+			if player.ID == playerID {
+				currentPlayer = player
+				break
+			}
+		}
+
 		showRole := false
-		component = sections.Question(question, question.Players[0], showRole)
+		component = sections.Question(question, currentPlayer, showRole)
 	case db.FibbingItVoting:
 		voting, err := s.roundService.GetVotingState(ctx, playerID)
 		if err != nil {
 			clientErr := s.updateClientAboutErr(ctx, playerID, "Failed to reconnect to game")
 			return component, errors.Join(clientErr, err)
 		}
-		component = sections.Voting(voting, voting.Players[0])
+
+		var currentPlayer service.PlayerWithVoting
+		for _, player := range voting.Players {
+			if player.ID == playerID {
+				currentPlayer = player
+				break
+			}
+		}
+
+		component = sections.Voting(voting, currentPlayer)
 	case db.FibbingItRevealRole:
 		reveal, err := s.roundService.GetRevealState(ctx, playerID)
 		if err != nil {
@@ -185,14 +202,18 @@ func (s Subscriber) reconnectToPlayingGame(ctx context.Context, playerID uuid.UU
 			return component, errors.Join(clientErr, err)
 		}
 
+		var currentPlayer service.PlayerWithScoring
 		maxScore := 0
 		for _, player := range score.Players {
+			if player.ID == playerID {
+				currentPlayer = player
+			}
 			if player.Score > maxScore {
 				maxScore = player.Score
 			}
 		}
 
-		component = sections.Score(score, score.Players[0], maxScore)
+		component = sections.Score(score, currentPlayer, maxScore)
 	case db.FibbingItWinner:
 		state, err := s.roundService.GetWinnerState(ctx, playerID)
 		if err != nil {

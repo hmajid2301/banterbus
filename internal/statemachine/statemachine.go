@@ -30,6 +30,7 @@ type Manager struct {
 	count       atomic.Int64
 	shutdownCtx context.Context
 	logger      *slog.Logger
+	shutdown    atomic.Bool
 }
 
 func NewManager(shutdownCtx context.Context, logger *slog.Logger) *Manager {
@@ -40,6 +41,12 @@ func NewManager(shutdownCtx context.Context, logger *slog.Logger) *Manager {
 }
 
 func (m *Manager) Start(ctx context.Context, gameStateID uuid.UUID, state State) {
+	if m.shutdown.Load() {
+		m.logger.DebugContext(ctx, "manager is shutting down, not starting new state machine",
+			slog.String("game_state_id", gameStateID.String()))
+		return
+	}
+
 	stateMachineCtx, cancel := context.WithCancel(m.shutdownCtx)
 
 	if bag := baggage.FromContext(ctx); bag.Len() > 0 {
@@ -47,6 +54,15 @@ func (m *Manager) Start(ctx context.Context, gameStateID uuid.UUID, state State)
 	}
 
 	m.mu.Lock()
+
+	if m.shutdown.Load() {
+		m.mu.Unlock()
+		cancel()
+		m.logger.DebugContext(ctx, "manager is shutting down, not starting new state machine",
+			slog.String("game_state_id", gameStateID.String()))
+		return
+	}
+
 	gen := m.generation.Add(1)
 
 	// INFO: This handles race conditions where multiple sources try to start the same state concurrently.
@@ -99,10 +115,11 @@ func (m *Manager) Start(ctx context.Context, gameStateID uuid.UUID, state State)
 }
 
 func (m *Manager) Stop(ctx context.Context, gameStateID uuid.UUID) {
-	if entryInterface, loaded := m.active.LoadAndDelete(gameStateID); loaded {
+	if entryInterface, loaded := m.active.Load(gameStateID); loaded {
 		if entry, ok := entryInterface.(*stateMachineEntry); ok {
 			m.logger.DebugContext(ctx, "stopping state machine",
-				slog.String("game_state_id", gameStateID.String()))
+				slog.String("game_state_id", gameStateID.String()),
+				slog.Int64("generation", entry.generation))
 			entry.cancel()
 		}
 	}
@@ -111,15 +128,15 @@ func (m *Manager) Stop(ctx context.Context, gameStateID uuid.UUID) {
 func (m *Manager) CancelAll(ctx context.Context) {
 	m.logger.InfoContext(ctx, "canceling all active state machines for graceful shutdown")
 
+	m.shutdown.Store(true)
+
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
-	var toDelete []uuid.UUID
 	count := 0
 
 	m.active.Range(func(key, value any) bool {
 		if gameStateID, ok := key.(uuid.UUID); ok {
-			toDelete = append(toDelete, gameStateID)
 			if entry, ok := value.(*stateMachineEntry); ok {
 				m.logger.DebugContext(ctx, "canceling state machine",
 					slog.String("game_state_id", gameStateID.String()))
@@ -130,16 +147,8 @@ func (m *Manager) CancelAll(ctx context.Context) {
 		return true
 	})
 
-	for _, id := range toDelete {
-		m.active.Delete(id)
-	}
-
-	currentCount := m.count.Add(-int64(count))
-
 	m.logger.InfoContext(ctx, "canceled all active state machines",
 		slog.Int("count", count))
-
-	telemetry.UpdateActiveStateMachineCount(currentCount)
 }
 
 func (m *Manager) Wait(ctx context.Context, timeout time.Duration) bool {

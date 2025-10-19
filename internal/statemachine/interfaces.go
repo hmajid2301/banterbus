@@ -20,7 +20,7 @@ type RoundService interface {
 	UpdateStateToScore(ctx context.Context, gameStateID uuid.UUID, deadline time.Time, scoring service.Scoring) (service.ScoreState, error)
 	UpdateStateToWinner(ctx context.Context, gameStateID uuid.UUID, deadline time.Time) (service.WinnerState, error)
 	FinishGame(ctx context.Context, gameStateID uuid.UUID) error
-	GetGameState(ctx context.Context, gameStateID uuid.UUID) (db.FibbingItGameState, error)
+	GetGameStateByID(ctx context.Context, gameStateID uuid.UUID) (db.FibbingItGameState, error)
 }
 
 type ClientUpdater interface {
@@ -41,7 +41,6 @@ type Timings struct {
 	ShowRevealScreenFor   time.Duration
 	ShowScoreScreenFor    time.Duration
 	ShowWinnerScreenFor   time.Duration
-	TickerInterval        time.Duration
 }
 
 type StateDependencies struct {

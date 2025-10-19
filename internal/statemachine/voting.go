@@ -40,7 +40,7 @@ func (v *VotingState) Start(ctx context.Context) error {
 
 	votingState, err := v.updateToVotingWithRetry(stateCtx, deadline)
 	if err != nil {
-		return nil
+		return err
 	}
 
 	if err := v.Dependencies.ClientUpdater.UpdateClientsAboutVoting(stateCtx.ctx, votingState); err != nil {

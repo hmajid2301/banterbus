@@ -51,7 +51,6 @@ services:
       - "log_min_messages=INFO"
     volumes:
       - postgres-data:/var/lib/postgresql/data
-      # - ./docker/postgres-init:/docker-entrypoint-initdb.d:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres -h localhost -d banterbus"]
       interval: 5s
@@ -73,7 +72,7 @@ services:
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: banterbus
     command: [
-      "goose", "-dir", "/migrations", "postgres", 
+      "goose", "-dir", "/migrations", "postgres",
       "host=postgres port=5432 user=postgres password=postgres dbname=banterbus sslmode=disable",
       "up"
     ]
@@ -82,7 +81,7 @@ services:
     restart: "no"
 
   seed-data:
-    image: postgres:16.10
+    image: postgres:17.6
     profiles: [test]
     depends_on:
       migrate:

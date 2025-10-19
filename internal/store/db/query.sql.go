@@ -558,6 +558,96 @@ func (q *Queries) GetAllPlayersInRoom(ctx context.Context, playerID uuid.UUID) (
 	return items, nil
 }
 
+const getAllPlayersQuestionStateByGameStateID = `-- name: GetAllPlayersQuestionStateByGameStateID :many
+SELECT
+    gs.id AS game_state_id,
+    fr.id AS round_id,
+    fr.round,
+    fr.round_type,
+    gs.submit_deadline,
+    p.id AS player_id,
+    p.nickname,
+    p.locale,
+    p.avatar,
+    fpr.player_role AS role,
+    COALESCE(fia.answer, '') AS current_answer,
+    COALESCE(fia.is_ready, FALSE) AS is_answer_ready,
+    fr.normal_question_id,
+    fr.fibber_question_id
+FROM game_state AS gs
+JOIN fibbing_it_rounds AS fr
+    ON
+        fr.game_state_id = gs.id
+        AND fr.id = (
+            SELECT id FROM fibbing_it_rounds
+            WHERE game_state_id = gs.id
+            ORDER BY round DESC LIMIT 1
+        )
+JOIN rooms AS r ON gs.room_id = r.id
+JOIN rooms_players AS rp ON rp.room_id = r.id
+JOIN players AS p ON p.id = rp.player_id
+LEFT JOIN
+    fibbing_it_player_roles AS fpr
+    ON p.id = fpr.player_id AND fr.id = fpr.round_id
+LEFT JOIN
+    fibbing_it_answers AS fia
+    ON p.id = fia.player_id AND fr.id = fia.round_id
+WHERE gs.id = $1
+ORDER BY p.nickname ASC
+`
+
+type GetAllPlayersQuestionStateByGameStateIDRow struct {
+	GameStateID      uuid.UUID
+	RoundID          uuid.UUID
+	Round            int32
+	RoundType        string
+	SubmitDeadline   pgtype.Timestamp
+	PlayerID         uuid.UUID
+	Nickname         string
+	Locale           pgtype.Text
+	Avatar           string
+	Role             pgtype.Text
+	CurrentAnswer    string
+	IsAnswerReady    bool
+	NormalQuestionID uuid.UUID
+	FibberQuestionID uuid.UUID
+}
+
+func (q *Queries) GetAllPlayersQuestionStateByGameStateID(ctx context.Context, id uuid.UUID) ([]GetAllPlayersQuestionStateByGameStateIDRow, error) {
+	rows, err := q.db.Query(ctx, getAllPlayersQuestionStateByGameStateID, id)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetAllPlayersQuestionStateByGameStateIDRow
+	for rows.Next() {
+		var i GetAllPlayersQuestionStateByGameStateIDRow
+		if err := rows.Scan(
+			&i.GameStateID,
+			&i.RoundID,
+			&i.Round,
+			&i.RoundType,
+			&i.SubmitDeadline,
+			&i.PlayerID,
+			&i.Nickname,
+			&i.Locale,
+			&i.Avatar,
+			&i.Role,
+			&i.CurrentAnswer,
+			&i.IsAnswerReady,
+			&i.NormalQuestionID,
+			&i.FibberQuestionID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getAllPlayersVotingIsReady = `-- name: GetAllPlayersVotingIsReady :one
 SELECT
     COUNT(*)
@@ -951,6 +1041,56 @@ func (q *Queries) GetPlayerByID(ctx context.Context, id uuid.UUID) (Player, erro
 		&i.Locale,
 	)
 	return i, err
+}
+
+const getQuestionWithLocalesById = `-- name: GetQuestionWithLocalesById :many
+SELECT
+    qi.id, qi.created_at, qi.updated_at, qi.question, qi.locale, qi.question_id,
+    q.group_id,
+    q.id
+FROM questions_i18n qi
+JOIN questions q ON qi.question_id = q.id
+WHERE q.id = $1
+`
+
+type GetQuestionWithLocalesByIdRow struct {
+	ID         uuid.UUID
+	CreatedAt  pgtype.Timestamp
+	UpdatedAt  pgtype.Timestamp
+	Question   string
+	Locale     string
+	QuestionID uuid.UUID
+	GroupID    uuid.UUID
+	ID_2       uuid.UUID
+}
+
+func (q *Queries) GetQuestionWithLocalesById(ctx context.Context, id uuid.UUID) ([]GetQuestionWithLocalesByIdRow, error) {
+	rows, err := q.db.Query(ctx, getQuestionWithLocalesById, id)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetQuestionWithLocalesByIdRow
+	for rows.Next() {
+		var i GetQuestionWithLocalesByIdRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.Question,
+			&i.Locale,
+			&i.QuestionID,
+			&i.GroupID,
+			&i.ID_2,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const getQuestions = `-- name: GetQuestions :many

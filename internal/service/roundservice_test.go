@@ -737,9 +737,8 @@ func TestRoundServiceUpdateStateToVoting(t *testing.T) {
 			State: db.FibbingItVoting.String(),
 		}, nil)
 
-		// Mock the call to GetVotingState for idempotent behavior
 		roundID := uuid.Must(uuid.NewV4())
-		mockStore.EXPECT().GetLatestRoundByPlayerID(ctx, gameStateID).Return(db.GetLatestRoundByPlayerIDRow{
+		mockStore.EXPECT().GetLatestRoundByGameStateID(ctx, gameStateID).Return(db.GetLatestRoundByGameStateIDRow{
 			ID:             roundID,
 			Round:          1,
 			SubmitDeadline: pgtype.Timestamp{Time: now, Valid: true},
@@ -1801,31 +1800,56 @@ func TestRoundServiceUpdateStateToQuestion(t *testing.T) {
 		ctx := t.Context()
 		deadline := time.Now().Add(5 * time.Second).UTC()
 		playerID := uuid.Must(uuid.NewV4())
+		normalQuestionID := uuid.Must(uuid.NewV4())
+		fibberQuestionID := uuid.Must(uuid.NewV4())
+		groupID := uuid.Must(uuid.NewV4())
 
 		mockStore.EXPECT().GetGameState(ctx, gameStateID).Return(db.GameState{
-			State: db.FibbingITQuestion.String(),
+			State:          db.FibbingITQuestion.String(),
+			SubmitDeadline: pgtype.Timestamp{Time: deadline, Valid: true},
 		}, nil)
 
-		// Mock GetCurrentQuestionByPlayerID for the idempotent check in GetQuestionState
-		mockStore.EXPECT().GetCurrentQuestionByPlayerID(ctx, gameStateID).Return(
-			db.GetCurrentQuestionByPlayerIDRow{
-				GameStateID:    gameStateID,
-				PlayerID:       playerID,
-				Question:       pgtype.Text{String: "Test question", Valid: true},
-				RoundType:      "free_form",
-				Round:          1,
-				SubmitDeadline: pgtype.Timestamp{Time: deadline, Valid: true},
-				Nickname:       "TestPlayer",
-				Role:           pgtype.Text{String: "normal", Valid: true},
-				Avatar:         "avatar1",
-				CurrentAnswer:  "",
-				IsAnswerReady:  false,
-			}, nil,
-		)
+		mockStore.EXPECT().GetAllPlayersQuestionStateByGameStateID(ctx, gameStateID).Return([]db.GetAllPlayersQuestionStateByGameStateIDRow{
+			{
+				GameStateID:      gameStateID,
+				Round:            1,
+				RoundType:        "free_form",
+				SubmitDeadline:   pgtype.Timestamp{Time: deadline, Valid: true},
+				PlayerID:         playerID,
+				Nickname:         "TestPlayer",
+				Locale:           pgtype.Text{String: "en-GB", Valid: true},
+				Avatar:           "avatar1",
+				Role:             pgtype.Text{String: "normal", Valid: true},
+				CurrentAnswer:    "",
+				IsAnswerReady:    false,
+				NormalQuestionID: normalQuestionID,
+				FibberQuestionID: fibberQuestionID,
+			},
+		}, nil)
+
+		mockStore.EXPECT().GetQuestionWithLocalesById(ctx, normalQuestionID).Return([]db.GetQuestionWithLocalesByIdRow{
+			{
+				QuestionID: normalQuestionID,
+				Question:   "Normal question",
+				Locale:     "en-GB",
+				GroupID:    groupID,
+			},
+		}, nil)
+
+		mockStore.EXPECT().GetQuestionWithLocalesById(ctx, fibberQuestionID).Return([]db.GetQuestionWithLocalesByIdRow{
+			{
+				QuestionID: fibberQuestionID,
+				Question:   "Fibber question",
+				Locale:     "en-GB",
+				GroupID:    groupID,
+			},
+		}, nil)
 
 		result, err := srv.UpdateStateToQuestion(ctx, gameStateID, deadline, false)
 		assert.NoError(t, err)
 		assert.NotNil(t, result)
+		assert.Len(t, result.Players, 1)
+		assert.Equal(t, "Normal question", result.Players[0].Question)
 	})
 
 	t.Run(
@@ -2542,6 +2566,7 @@ func TestRoundServiceGetGameState(t *testing.T) {
 			srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
 			ctx := t.Context()
+			playerID := uuid.Must(uuid.NewV7())
 			mockStore.EXPECT().GetGameStateByPlayerID(ctx, playerID).Return(db.GameState{
 				State: tt.gameState.String(),
 			}, nil)
@@ -2559,6 +2584,7 @@ func TestRoundServiceGetGameState(t *testing.T) {
 		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
 		ctx := t.Context()
+		playerID := uuid.Must(uuid.NewV7())
 		mockStore.EXPECT().GetGameStateByPlayerID(ctx, playerID).Return(
 			db.GameState{}, xerrors.New("failed to get game state details"),
 		)

@@ -13,10 +13,6 @@ import (
 	"gitlab.com/hmajid2301/banterbus/internal/telemetry"
 )
 
-const (
-	DefaultTickerInterval = 2 * time.Second
-)
-
 type stateExecutionContext struct {
 	ctx         context.Context
 	span        trace.Span

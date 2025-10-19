@@ -43,7 +43,7 @@ func (r *ScoringState) Start(ctx context.Context) error {
 
 	scoringState, err := r.updateToScoringWithRetry(stateCtx, deadline)
 	if err != nil {
-		return nil
+		return err
 	}
 
 	if err := r.Dependencies.ClientUpdater.UpdateClientsAboutScore(stateCtx.ctx, scoringState); err != nil {

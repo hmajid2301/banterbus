@@ -216,6 +216,43 @@ WHERE p.id = $1
 ORDER BY fr.round DESC
 LIMIT 1;
 
+-- name: GetAllPlayersQuestionStateByGameStateID :many
+SELECT
+    gs.id AS game_state_id,
+    fr.id AS round_id,
+    fr.round,
+    fr.round_type,
+    gs.submit_deadline,
+    p.id AS player_id,
+    p.nickname,
+    p.locale,
+    p.avatar,
+    fpr.player_role AS role,
+    COALESCE(fia.answer, '') AS current_answer,
+    COALESCE(fia.is_ready, FALSE) AS is_answer_ready,
+    fr.normal_question_id,
+    fr.fibber_question_id
+FROM game_state AS gs
+JOIN fibbing_it_rounds AS fr
+    ON
+        fr.game_state_id = gs.id
+        AND fr.id = (
+            SELECT id FROM fibbing_it_rounds
+            WHERE game_state_id = gs.id
+            ORDER BY round DESC LIMIT 1
+        )
+JOIN rooms AS r ON gs.room_id = r.id
+JOIN rooms_players AS rp ON rp.room_id = r.id
+JOIN players AS p ON p.id = rp.player_id
+LEFT JOIN
+    fibbing_it_player_roles AS fpr
+    ON p.id = fpr.player_id AND fr.id = fpr.round_id
+LEFT JOIN
+    fibbing_it_answers AS fia
+    ON p.id = fia.player_id AND fr.id = fia.round_id
+WHERE gs.id = $1
+ORDER BY p.nickname ASC;
+
 -- name: GetFibberByRoundID :one
 SELECT *
 FROM fibbing_it_player_roles
@@ -419,6 +456,15 @@ JOIN (
     ORDER BY RANDOM()
     LIMIT 1
 ) random_question ON qi.question_id = random_question.id;
+
+-- name: GetQuestionWithLocalesById :many
+SELECT
+    qi.*,
+    q.group_id,
+    q.id
+FROM questions_i18n qi
+JOIN questions q ON qi.question_id = q.id
+WHERE q.id = $1;
 
 -- name: DisableQuestion :one
 UPDATE questions SET enabled = FALSE

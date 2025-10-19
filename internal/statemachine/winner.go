@@ -44,7 +44,7 @@ func (r *WinnerState) Start(ctx context.Context) error {
 
 	winnerState, err := r.updateToWinnerWithRetry(stateCtx, deadline)
 	if err != nil {
-		return nil
+		return err
 	}
 
 	if err := r.Dependencies.ClientUpdater.UpdateClientsAboutWinner(stateCtx.ctx, winnerState); err != nil {
@@ -72,7 +72,7 @@ func (r *WinnerState) Start(ctx context.Context) error {
 				slog.String("game_state_id", r.GameStateID.String()))
 
 			_ = telemetry.IncrementStateOperationError(stateCtx.ctx, "winner", "game_cleanup")
-			return err
+			return nil
 		}
 
 		stateCtx.span.AddEvent("game_terminated", trace.WithAttributes(

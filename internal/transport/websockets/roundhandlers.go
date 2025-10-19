@@ -17,6 +17,7 @@ import (
 
 type RoundServicer interface {
 	GetGameState(ctx context.Context, playerID uuid.UUID) (db.FibbingItGameState, error)
+	GetGameStateByID(ctx context.Context, gameStateID uuid.UUID) (db.FibbingItGameState, error)
 	SubmitAnswer(ctx context.Context, playerID uuid.UUID, answer string, submittedAt time.Time) error
 	SubmitVote(
 		ctx context.Context,

@@ -230,12 +230,12 @@ func (_c *MockRoundService_FinishGame_Call) RunAndReturn(run func(ctx context.Co
 	return _c
 }
 
-// GetGameState provides a mock function for the type MockRoundService
-func (_mock *MockRoundService) GetGameState(ctx context.Context, gameStateID uuid.UUID) (db.FibbingItGameState, error) {
+// GetGameStateByID provides a mock function for the type MockRoundService
+func (_mock *MockRoundService) GetGameStateByID(ctx context.Context, gameStateID uuid.UUID) (db.FibbingItGameState, error) {
 	ret := _mock.Called(ctx, gameStateID)
 
 	if len(ret) == 0 {
-		panic("no return value specified for GetGameState")
+		panic("no return value specified for GetGameStateByID")
 	}
 
 	var r0 db.FibbingItGameState
@@ -256,19 +256,19 @@ func (_mock *MockRoundService) GetGameState(ctx context.Context, gameStateID uui
 	return r0, r1
 }
 
-// MockRoundService_GetGameState_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetGameState'
-type MockRoundService_GetGameState_Call struct {
+// MockRoundService_GetGameStateByID_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetGameStateByID'
+type MockRoundService_GetGameStateByID_Call struct {
 	*mock.Call
 }
 
-// GetGameState is a helper method to define mock.On call
+// GetGameStateByID is a helper method to define mock.On call
 //   - ctx context.Context
 //   - gameStateID uuid.UUID
-func (_e *MockRoundService_Expecter) GetGameState(ctx interface{}, gameStateID interface{}) *MockRoundService_GetGameState_Call {
-	return &MockRoundService_GetGameState_Call{Call: _e.mock.On("GetGameState", ctx, gameStateID)}
+func (_e *MockRoundService_Expecter) GetGameStateByID(ctx interface{}, gameStateID interface{}) *MockRoundService_GetGameStateByID_Call {
+	return &MockRoundService_GetGameStateByID_Call{Call: _e.mock.On("GetGameStateByID", ctx, gameStateID)}
 }
 
-func (_c *MockRoundService_GetGameState_Call) Run(run func(ctx context.Context, gameStateID uuid.UUID)) *MockRoundService_GetGameState_Call {
+func (_c *MockRoundService_GetGameStateByID_Call) Run(run func(ctx context.Context, gameStateID uuid.UUID)) *MockRoundService_GetGameStateByID_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
@@ -286,12 +286,12 @@ func (_c *MockRoundService_GetGameState_Call) Run(run func(ctx context.Context, 
 	return _c
 }
 
-func (_c *MockRoundService_GetGameState_Call) Return(fibbingItGameState db.FibbingItGameState, err error) *MockRoundService_GetGameState_Call {
+func (_c *MockRoundService_GetGameStateByID_Call) Return(fibbingItGameState db.FibbingItGameState, err error) *MockRoundService_GetGameStateByID_Call {
 	_c.Call.Return(fibbingItGameState, err)
 	return _c
 }
 
-func (_c *MockRoundService_GetGameState_Call) RunAndReturn(run func(ctx context.Context, gameStateID uuid.UUID) (db.FibbingItGameState, error)) *MockRoundService_GetGameState_Call {
+func (_c *MockRoundService_GetGameStateByID_Call) RunAndReturn(run func(ctx context.Context, gameStateID uuid.UUID) (db.FibbingItGameState, error)) *MockRoundService_GetGameStateByID_Call {
 	_c.Call.Return(run)
 	return _c
 }

@@ -1283,6 +1283,74 @@ func (_c *MockStorer_GetAllPlayersInRoom_Call) RunAndReturn(run func(ctx context
 	return _c
 }
 
+// GetAllPlayersQuestionStateByGameStateID provides a mock function for the type MockStorer
+func (_mock *MockStorer) GetAllPlayersQuestionStateByGameStateID(ctx context.Context, id uuid.UUID) ([]db.GetAllPlayersQuestionStateByGameStateIDRow, error) {
+	ret := _mock.Called(ctx, id)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetAllPlayersQuestionStateByGameStateID")
+	}
+
+	var r0 []db.GetAllPlayersQuestionStateByGameStateIDRow
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uuid.UUID) ([]db.GetAllPlayersQuestionStateByGameStateIDRow, error)); ok {
+		return returnFunc(ctx, id)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uuid.UUID) []db.GetAllPlayersQuestionStateByGameStateIDRow); ok {
+		r0 = returnFunc(ctx, id)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]db.GetAllPlayersQuestionStateByGameStateIDRow)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, uuid.UUID) error); ok {
+		r1 = returnFunc(ctx, id)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockStorer_GetAllPlayersQuestionStateByGameStateID_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetAllPlayersQuestionStateByGameStateID'
+type MockStorer_GetAllPlayersQuestionStateByGameStateID_Call struct {
+	*mock.Call
+}
+
+// GetAllPlayersQuestionStateByGameStateID is a helper method to define mock.On call
+//   - ctx context.Context
+//   - id uuid.UUID
+func (_e *MockStorer_Expecter) GetAllPlayersQuestionStateByGameStateID(ctx interface{}, id interface{}) *MockStorer_GetAllPlayersQuestionStateByGameStateID_Call {
+	return &MockStorer_GetAllPlayersQuestionStateByGameStateID_Call{Call: _e.mock.On("GetAllPlayersQuestionStateByGameStateID", ctx, id)}
+}
+
+func (_c *MockStorer_GetAllPlayersQuestionStateByGameStateID_Call) Run(run func(ctx context.Context, id uuid.UUID)) *MockStorer_GetAllPlayersQuestionStateByGameStateID_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 uuid.UUID
+		if args[1] != nil {
+			arg1 = args[1].(uuid.UUID)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockStorer_GetAllPlayersQuestionStateByGameStateID_Call) Return(getAllPlayersQuestionStateByGameStateIDRows []db.GetAllPlayersQuestionStateByGameStateIDRow, err error) *MockStorer_GetAllPlayersQuestionStateByGameStateID_Call {
+	_c.Call.Return(getAllPlayersQuestionStateByGameStateIDRows, err)
+	return _c
+}
+
+func (_c *MockStorer_GetAllPlayersQuestionStateByGameStateID_Call) RunAndReturn(run func(ctx context.Context, id uuid.UUID) ([]db.GetAllPlayersQuestionStateByGameStateIDRow, error)) *MockStorer_GetAllPlayersQuestionStateByGameStateID_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetAllPlayersVotingIsReady provides a mock function for the type MockStorer
 func (_mock *MockStorer) GetAllPlayersVotingIsReady(ctx context.Context, playerID uuid.UUID) (bool, error) {
 	ret := _mock.Called(ctx, playerID)
@@ -2003,6 +2071,74 @@ func (_c *MockStorer_GetPlayerByID_Call) Return(player db.Player, err error) *Mo
 }
 
 func (_c *MockStorer_GetPlayerByID_Call) RunAndReturn(run func(ctx context.Context, id uuid.UUID) (db.Player, error)) *MockStorer_GetPlayerByID_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetQuestionWithLocalesById provides a mock function for the type MockStorer
+func (_mock *MockStorer) GetQuestionWithLocalesById(ctx context.Context, id uuid.UUID) ([]db.GetQuestionWithLocalesByIdRow, error) {
+	ret := _mock.Called(ctx, id)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetQuestionWithLocalesById")
+	}
+
+	var r0 []db.GetQuestionWithLocalesByIdRow
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uuid.UUID) ([]db.GetQuestionWithLocalesByIdRow, error)); ok {
+		return returnFunc(ctx, id)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uuid.UUID) []db.GetQuestionWithLocalesByIdRow); ok {
+		r0 = returnFunc(ctx, id)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]db.GetQuestionWithLocalesByIdRow)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, uuid.UUID) error); ok {
+		r1 = returnFunc(ctx, id)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockStorer_GetQuestionWithLocalesById_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetQuestionWithLocalesById'
+type MockStorer_GetQuestionWithLocalesById_Call struct {
+	*mock.Call
+}
+
+// GetQuestionWithLocalesById is a helper method to define mock.On call
+//   - ctx context.Context
+//   - id uuid.UUID
+func (_e *MockStorer_Expecter) GetQuestionWithLocalesById(ctx interface{}, id interface{}) *MockStorer_GetQuestionWithLocalesById_Call {
+	return &MockStorer_GetQuestionWithLocalesById_Call{Call: _e.mock.On("GetQuestionWithLocalesById", ctx, id)}
+}
+
+func (_c *MockStorer_GetQuestionWithLocalesById_Call) Run(run func(ctx context.Context, id uuid.UUID)) *MockStorer_GetQuestionWithLocalesById_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 uuid.UUID
+		if args[1] != nil {
+			arg1 = args[1].(uuid.UUID)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockStorer_GetQuestionWithLocalesById_Call) Return(getQuestionWithLocalesByIdRows []db.GetQuestionWithLocalesByIdRow, err error) *MockStorer_GetQuestionWithLocalesById_Call {
+	_c.Call.Return(getQuestionWithLocalesByIdRows, err)
+	return _c
+}
+
+func (_c *MockStorer_GetQuestionWithLocalesById_Call) RunAndReturn(run func(ctx context.Context, id uuid.UUID) ([]db.GetQuestionWithLocalesByIdRow, error)) *MockStorer_GetQuestionWithLocalesById_Call {
 	_c.Call.Return(run)
 	return _c
 }
