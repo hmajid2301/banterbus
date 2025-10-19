@@ -62,7 +62,6 @@ func setupIntegrationTest(t *testing.T) (*testServices, *statemachine.StateDepen
 
 	pool := banterbustest.NewDB(t)
 	cleanup := func() {
-		banterbustest.CleanupData(t, pool)
 		pool.Close()
 	}
 

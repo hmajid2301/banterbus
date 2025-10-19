@@ -98,6 +98,7 @@ type RevealRoleState struct {
 }
 
 type ScoreState struct {
+	GameStateID uuid.UUID
 	Players     []PlayerWithScoring
 	Deadline    time.Duration
 	RoundType   string

@@ -195,7 +195,6 @@ func TestE2ERounds(t *testing.T) {
 			player.WaitForTimeout(500)
 		}
 
-		// Wait for answer form to be available
 		answerForm := fibber.Locator("#submit_answer_form")
 		err = answerForm.WaitFor(playwright.LocatorWaitForOptions{
 			State:   playwright.WaitForSelectorStateVisible,
@@ -207,7 +206,6 @@ func TestE2ERounds(t *testing.T) {
 			err = submitAnswerForPlayer(fibber, "I am not a fibber")
 			require.NoError(t, err)
 
-			// Wait a bit for the form to process
 			fibber.WaitForTimeout(500)
 
 			readyButton := fibber.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Ready"})
@@ -224,7 +222,6 @@ func TestE2ERounds(t *testing.T) {
 				err = submitAnswerForPlayer(normal, fmt.Sprintf("I am a normal player %d", j))
 				require.NoError(t, err)
 
-				// Wait a bit for the form to process
 				normal.WaitForTimeout(500)
 
 				readyButton := normal.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Ready"})

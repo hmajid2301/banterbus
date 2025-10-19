@@ -764,7 +764,7 @@ func TestIntegrationRoundServiceUpdateStateToScoring(t *testing.T) {
 			RoundNumber: 1,
 		}
 
-		diffOpts := cmpopts.IgnoreFields(scoreState, "Deadline", "Players")
+		diffOpts := cmpopts.IgnoreFields(scoreState, "GameStateID", "Deadline", "Players")
 		PartialEqual(t, expectedScoreState, scoreState, diffOpts)
 		assert.LessOrEqual(t, int(expectedScoreState.Deadline.Seconds()), 120)
 		assert.Len(t, scoreState.Players, len(expectedScoreState.Players))
@@ -856,13 +856,9 @@ func TestIntegrationRoundServiceUpdateStateToWinner(t *testing.T) {
 		scoreState, err := scoreState(ctx, lobbyService, playerService, roundService, conf)
 		require.NoError(t, err)
 
-		// Get voting state to extract game state ID - this is the current API design
-		votingState, err := roundService.GetVotingState(ctx, scoreState.Players[0].ID)
-		require.NoError(t, err)
-
 		winnerState, err := roundService.UpdateStateToWinner(
 			ctx,
-			votingState.GameStateID,
+			scoreState.GameStateID,
 			time.Now().Add(120*time.Second),
 		)
 		assert.NoError(t, err)
@@ -903,13 +899,9 @@ func TestIntegrationRoundServiceGetWinnerState(t *testing.T) {
 		scoreState, err := scoreState(ctx, lobbyService, playerService, roundService, conf)
 		require.NoError(t, err)
 
-		// Get voting state to extract game state ID for winner state update
-		votingState, err := roundService.GetVotingState(ctx, scoreState.Players[0].ID)
-		require.NoError(t, err)
-
 		_, err = roundService.UpdateStateToWinner(
 			ctx,
-			votingState.GameStateID,
+			scoreState.GameStateID,
 			time.Now().Add(120*time.Second),
 		)
 		assert.NoError(t, err)
@@ -964,10 +956,7 @@ func TestIntegrationRoundServiceFinsishGame(t *testing.T) {
 		scoreState, err := scoreState(ctx, lobbyService, playerService, roundService, conf)
 		require.NoError(t, err)
 
-		questionState, err := roundService.GetQuestionState(ctx, scoreState.Players[0].ID)
-		require.NoError(t, err)
-
-		err = roundService.FinishGame(ctx, questionState.GameStateID)
+		err = roundService.FinishGame(ctx, scoreState.GameStateID)
 		assert.NoError(t, err)
 	})
 }

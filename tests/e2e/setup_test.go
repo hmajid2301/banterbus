@@ -124,7 +124,6 @@ func setupTest(t *testing.T, playerNum int) ([]playwright.Page, error) {
 	testName := sanitizeTestName(t.Name())
 
 	for i := range playerNum {
-		// Add small delay between players to reduce server load
 		if i > 0 {
 			time.Sleep(100 * time.Millisecond)
 		}
@@ -134,9 +133,8 @@ func setupTest(t *testing.T, playerNum int) ([]playwright.Page, error) {
 		}
 
 		context, err := browser.NewContext(playwright.BrowserNewContextOptions{
-			RecordVideo: &playwright.RecordVideo{Dir: tempVideoDir},
-			Permissions: []string{"clipboard-read", "clipboard-write"},
-			// Reduce resource usage
+			RecordVideo:       &playwright.RecordVideo{Dir: tempVideoDir},
+			Permissions:       []string{"clipboard-read", "clipboard-write"},
 			IgnoreHttpsErrors: playwright.Bool(true),
 			ColorScheme:       playwright.ColorSchemeLight,
 		})
@@ -152,7 +150,6 @@ func setupTest(t *testing.T, playerNum int) ([]playwright.Page, error) {
 
 		page.SetDefaultTimeout(8000)
 
-		// Retry navigation up to 2 times
 		var navErr error
 		for retry := 0; retry < 2; retry++ {
 			_, navErr = page.Goto(webappURL, playwright.PageGotoOptions{
@@ -177,7 +174,6 @@ func setupTest(t *testing.T, playerNum int) ([]playwright.Page, error) {
 			return nil, fmt.Errorf("failed to wait for page elements: %w", err)
 		}
 
-		// Wait for websocket connection to be established
 		_, err = page.WaitForFunction("() => window.htmx && window.htmx.trigger", playwright.PageWaitForFunctionOptions{
 			Timeout: playwright.Float(3000),
 		})
@@ -185,13 +181,11 @@ func setupTest(t *testing.T, playerNum int) ([]playwright.Page, error) {
 			return nil, fmt.Errorf("failed to wait for htmx/websocket setup: %w", err)
 		}
 
-		// Try to set test name if the field exists (optional for debugging)
 		testNameLocator := page.Locator(`input[name="test_name"]`)
 		count, err := testNameLocator.Count()
 		if err == nil && count > 0 {
 			err = testNameLocator.Fill(testName)
 			if err != nil {
-				// Don't fail the test if we can't set the test name
 				log.Printf("Warning: failed to set test name: %v", err)
 			}
 		}

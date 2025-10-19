@@ -20,30 +20,19 @@ func NewDB(t *testing.T) *pgxpool.Pool {
 	t.Helper()
 
 	originalWd, _ := os.Getwd()
-
 	projectRoot := findProjectRoot(t)
 	if projectRoot == "" {
-		t.Fatal("Could not find project root directory (no go.mod found)")
+		t.Fatal("Could not find project root")
 	}
 
 	if err := os.Chdir(projectRoot); err != nil {
-		t.Fatalf("Failed to change to project root %s: %v", projectRoot, err)
+		t.Fatalf("Failed to change to project root: %v", err)
 	}
-	t.Cleanup(func() {
-		os.Chdir(originalWd)
-	})
+	t.Cleanup(func() { os.Chdir(originalWd) })
 
-	// Use relative path from project root (now that we've changed directory)
 	migrationsPath := "internal/store/db/sqlc/migrations"
-
-	// Verify migrations directory exists (using relative path)
 	if _, err := os.Stat(migrationsPath); os.IsNotExist(err) {
-		// Also check absolute path for debugging
-		absPath := filepath.Join(projectRoot, migrationsPath)
-		if _, err2 := os.Stat(absPath); os.IsNotExist(err2) {
-			t.Fatalf("Migrations directory does not exist at relative path '%s' or absolute path '%s'", migrationsPath, absPath)
-		}
-		t.Fatalf("Migrations directory does not exist at relative path '%s' (current dir: %s)", migrationsPath, projectRoot)
+		t.Fatalf("Migrations directory not found: %s", migrationsPath)
 	}
 
 	cfg := pgtestdb.Config{
@@ -56,10 +45,9 @@ func NewDB(t *testing.T) *pgxpool.Pool {
 		Options:    "sslmode=disable",
 	}
 
-	migrator := goosemigrator.New(migrationsPath)
-	sqlDB := pgtestdb.New(t, cfg, migrator)
+	sqlDB := pgtestdb.New(t, cfg, goosemigrator.New(migrationsPath))
 
-	pgxConfig, err := pgxpool.ParseConfig(getConnectionURL(sqlDB))
+	pgxConfig, err := pgxpool.ParseConfig(buildConnectionURL(sqlDB, cfg))
 	if err != nil {
 		t.Fatalf("failed to parse database URL: %v", err)
 	}
@@ -74,10 +62,7 @@ func NewDB(t *testing.T) *pgxpool.Pool {
 		t.Fatalf("failed to create connection pool: %v", err)
 	}
 
-	t.Cleanup(func() {
-		pool.Close()
-	})
-
+	t.Cleanup(pool.Close)
 	loadSeedData(t, pool)
 
 	return pool
@@ -91,21 +76,16 @@ func findProjectRoot(t *testing.T) string {
 		return ""
 	}
 
-	dir := wd
-	for {
-		goModPath := filepath.Join(dir, "go.mod")
-		if _, err := os.Stat(goModPath); err == nil {
+	for dir := wd; ; {
+		if _, err := os.Stat(filepath.Join(dir, "go.mod")); err == nil {
 			return dir
 		}
-
 		parent := filepath.Dir(dir)
 		if parent == dir {
-			break
+			return ""
 		}
 		dir = parent
 	}
-
-	return ""
 }
 
 func CleanupData(t *testing.T, pool *pgxpool.Pool) {
@@ -131,79 +111,71 @@ func CleanupData(t *testing.T, pool *pgxpool.Pool) {
 	}
 }
 
-func getConnectionURL(db *sql.DB) string {
+func buildConnectionURL(db *sql.DB, cfg pgtestdb.Config) string {
 	var dbName string
-	err := db.QueryRow("SELECT current_database()").Scan(&dbName)
-	if err != nil {
+	if err := db.QueryRow("SELECT current_database()").Scan(&dbName); err != nil {
 		panic("failed to get database name: " + err.Error())
 	}
 
-	host := getEnv("BANTERBUS_DB_HOST", "localhost")
-	port := getEnv("BANTERBUS_DB_PORT", "5432")
-	user := getEnv("BANTERBUS_DB_USER", "postgres")
-	password := getEnv("BANTERBUS_DB_PASSWORD", "postgres")
-
-	return "postgres://" + user + ":" + password + "@" + host + ":" + port + "/" + dbName + "?sslmode=disable"
+	return "postgres://" + cfg.User + ":" + cfg.Password + "@" + cfg.Host + ":" + cfg.Port + "/" + dbName + "?sslmode=disable"
 }
 
 func loadSeedData(t *testing.T, pool *pgxpool.Pool) {
 	t.Helper()
 
-	seedDataPath := findSeedDataFile(t)
-	if seedDataPath == "" {
+	seedPath := findSeedDataFile(t)
+	if seedPath == "" {
 		return
 	}
 
-	seedData, err := os.ReadFile(seedDataPath)
+	data, err := os.ReadFile(seedPath)
 	if err != nil {
 		return
 	}
 
-	content := string(seedData)
-	lines := strings.Split(content, "\n")
-	var statements []string
-	var currentStatement strings.Builder
+	statements := parseSQLStatements(string(data))
+	ctx := t.Context()
+	for _, stmt := range statements {
+		if stmt = strings.TrimSpace(stmt); stmt != "" {
+			pool.Exec(ctx, stmt)
+		}
+	}
+}
 
-	for _, line := range lines {
+func parseSQLStatements(content string) []string {
+	var statements []string
+	var current strings.Builder
+
+	for _, line := range strings.Split(content, "\n") {
 		line = strings.TrimSpace(line)
 		if line == "" || strings.HasPrefix(line, "--") {
 			continue
 		}
 
-		currentStatement.WriteString(line)
-		currentStatement.WriteString("\n")
+		current.WriteString(line)
+		current.WriteString("\n")
 
 		if strings.HasSuffix(line, ";") {
-			statements = append(statements, currentStatement.String())
-			currentStatement.Reset()
+			statements = append(statements, current.String())
+			current.Reset()
 		}
 	}
 
-	ctx := t.Context()
-	for _, stmt := range statements {
-		stmt = strings.TrimSpace(stmt)
-		if stmt == "" {
-			continue
-		}
-		pool.Exec(ctx, stmt)
-	}
+	return statements
 }
 
 func findSeedDataFile(t *testing.T) string {
 	t.Helper()
 
-	candidates := []string{
+	for _, path := range []string{
 		"docker/postgres-init/01-seed-data.sql",
 		"../docker/postgres-init/01-seed-data.sql",
 		"../../docker/postgres-init/01-seed-data.sql",
-	}
-
-	for _, path := range candidates {
+	} {
 		if _, err := os.Stat(path); err == nil {
 			return path
 		}
 	}
-
 	return ""
 }
 

@@ -1055,6 +1055,7 @@ func (r *RoundService) getScoreState(
 
 	timeLeft := time.Until(deadline)
 	scoringState := ScoreState{
+		GameStateID: gameStateID,
 		Players:     playersScore,
 		Deadline:    timeLeft,
 		RoundType:   round.RoundType,

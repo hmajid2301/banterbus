@@ -217,7 +217,6 @@ func getPlayerRoles(
 				continue
 			}
 
-			// Find the role using the data attribute on the page
 			roleElement := player.Locator("[data-player-role]")
 			err = roleElement.WaitFor(playwright.LocatorWaitForOptions{
 				State:   playwright.WaitForSelectorStateVisible,

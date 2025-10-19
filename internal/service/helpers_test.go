@@ -27,9 +27,7 @@ func setupSubtest(t *testing.T) (*pgxpool.Pool, func()) {
 	}
 }
 
-// Helper function for creating test rooms - can be used to reduce test setup duplication
 func createRoom(ctx context.Context, srv *service.LobbyService) (service.Lobby, error) {
-	// Use the hardcoded ID that the tests expect
 	hostID := uuid.Must(uuid.FromString("0193a62a-4dff-774c-850a-b1fe78e2a8d1"))
 	newPlayer := service.NewHostPlayer{
 		ID: hostID,
@@ -39,7 +37,6 @@ func createRoom(ctx context.Context, srv *service.LobbyService) (service.Lobby, 
 }
 
 func lobbyWithTwoPlayers(ctx context.Context, srv *service.LobbyService) (service.Lobby, error) {
-	// Use the hardcoded IDs that the tests expect
 	hostID := uuid.Must(uuid.FromString("0193a62a-4dff-774c-850a-b1fe78e2a8d1"))
 	otherID := uuid.Must(uuid.FromString("0193a62a-4dff-774c-850a-b1fe78e2a8d2"))
 
@@ -61,7 +58,6 @@ func startGame(
 	lobbySrv *service.LobbyService,
 	playerSrv *service.PlayerService,
 ) (service.QuestionState, error) {
-	// Use the hardcoded IDs that the tests expect
 	hostID := uuid.Must(uuid.FromString("0193a62a-4dff-774c-850a-b1fe78e2a8d1"))
 	otherID := uuid.Must(uuid.FromString("0193a62a-4dff-774c-850a-b1fe78e2a8d2"))
 

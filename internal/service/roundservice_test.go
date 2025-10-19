@@ -2256,6 +2256,7 @@ func TestRoundServiceUpdateStateToScore(t *testing.T) {
 		assert.NoError(t, err)
 
 		expectedScoreState := service.ScoreState{
+			GameStateID: gameStateID,
 			RoundNumber: 1,
 			RoundType:   "free_form",
 			Deadline:    time.Until(now),
