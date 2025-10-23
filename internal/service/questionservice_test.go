@@ -29,7 +29,7 @@ func TestQuestionServiceAdd(t *testing.T) {
 		groupName := "example"
 		text := "an example question"
 
-		mockStore.EXPECT().CreateQuestion(ctx, db.CreateQuestionArgs{
+		mockStore.EXPECT().CreateQuestionWithTranslation(ctx, db.CreateQuestionArgs{
 			GameName:  "fibbing_it",
 			GroupName: groupName,
 			RoundType: roundType,
@@ -63,7 +63,7 @@ func TestQuestionServiceAdd(t *testing.T) {
 		groupName := "example"
 		text := "an example question"
 
-		mockStore.EXPECT().CreateQuestion(ctx, db.CreateQuestionArgs{
+		mockStore.EXPECT().CreateQuestionWithTranslation(ctx, db.CreateQuestionArgs{
 			GameName:  "fibbing_it",
 			GroupName: groupName,
 			RoundType: roundType,

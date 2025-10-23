@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"slices"
 	"sort"
-	"sync"
 	"time"
 
 	"github.com/gofrs/uuid/v5"
@@ -30,7 +29,6 @@ type RoundService struct {
 	randomizer    Randomizer
 	defaultLocale string
 	metrics       *telemetry.Recorder
-	stateLocks    sync.Map // map[uuid.UUID]*sync.Mutex for per-game state locking
 }
 
 func NewRoundService(store Storer, randomizer Randomizer, defaultLocale string) *RoundService {
@@ -158,60 +156,15 @@ func (r *RoundService) UpdateStateToVoting(
 	gameStateID uuid.UUID,
 	deadline time.Time,
 ) (VotingState, error) {
-	game, err := r.store.GetGameState(ctx, gameStateID)
-	if err != nil {
-		return VotingState{}, err
-	}
-
-	gameState, err := db.GameStateFromString(game.State)
-	if err != nil {
-		return VotingState{}, err
-	}
-
-	if gameState == db.FibbingItVoting {
-		return r.getVotingStateByGameStateID(ctx, gameStateID)
-	}
-
-	lockAcquired, err := r.tryAcquireLock(ctx, gameStateID)
-	if err != nil {
-		return VotingState{}, fmt.Errorf("failed to acquire state transition lock: %w", err)
-	}
-	if !lockAcquired {
-		currentGame, err := r.store.GetGameState(ctx, gameStateID)
-		if err != nil {
-			return VotingState{}, err
-		}
-		currentState, err := db.GameStateFromString(currentGame.State)
-		if err != nil {
-			return VotingState{}, err
-		}
-		if currentState == db.FibbingItVoting {
-			r.releaseLock(ctx, gameStateID)
-			return r.getVotingStateByGameStateID(ctx, gameStateID)
-		}
-		return VotingState{}, ErrNotInQuestionState
-	}
-	defer r.releaseLock(ctx, gameStateID)
-
-	if gameState != db.FibbingITQuestion {
-		return VotingState{}, ErrNotInQuestionState
-	}
-
-	_, err = r.store.UpdateGameState(ctx, db.UpdateGameStateParams{
-		ID:             gameStateID,
-		SubmitDeadline: pgtype.Timestamp{Time: deadline, Valid: true},
-		State:          db.FibbingItVoting.String(),
+	result, err := r.store.UpdateStateToVoting(ctx, db.UpdateStateToVotingArgs{
+		GameStateID: gameStateID,
+		Deadline:    deadline,
 	})
 	if err != nil {
 		return VotingState{}, err
 	}
 
-	round, err := r.store.GetLatestRoundByGameStateID(ctx, gameStateID)
-	if err != nil {
-		return VotingState{}, err
-	}
-
-	votingState, err := r.getVotingState(ctx, round.ID, round.Round)
+	votingState, err := r.getVotingState(ctx, result.RoundID, result.Round)
 	return votingState, err
 }
 
@@ -452,56 +405,16 @@ func (r *RoundService) UpdateStateToReveal(
 	gameStateID uuid.UUID,
 	deadline time.Time,
 ) (RevealRoleState, error) {
-	game, err := r.store.GetGameState(ctx, gameStateID)
-	if err != nil {
-		return RevealRoleState{}, err
-	}
-
-	gameState, err := db.GameStateFromString(game.State)
-	if err != nil {
-		return RevealRoleState{}, err
-	}
-
-	if gameState == db.FibbingItRevealRole {
-		return r.getRevealState(ctx, gameStateID, game.SubmitDeadline.Time)
-	}
-
-	lockAcquired, err := r.tryAcquireLock(ctx, gameStateID)
-	if err != nil {
-		return RevealRoleState{}, fmt.Errorf("failed to acquire state transition lock: %w", err)
-	}
-	if !lockAcquired {
-		currentGame, err := r.store.GetGameState(ctx, gameStateID)
-		if err != nil {
-			return RevealRoleState{}, err
-		}
-		currentState, err := db.GameStateFromString(currentGame.State)
-		if err != nil {
-			return RevealRoleState{}, err
-		}
-		if currentState == db.FibbingItRevealRole {
-			r.releaseLock(ctx, gameStateID)
-			return r.getRevealState(ctx, gameStateID, currentGame.SubmitDeadline.Time)
-		}
-		return RevealRoleState{}, ErrNotInVotingState
-	}
-	defer r.releaseLock(ctx, gameStateID)
-
-	if gameState != db.FibbingItVoting {
-		return RevealRoleState{}, ErrNotInVotingState
-	}
-
-	_, err = r.store.UpdateGameState(ctx, db.UpdateGameStateParams{
-		ID:             gameStateID,
-		SubmitDeadline: pgtype.Timestamp{Time: deadline, Valid: true},
-		State:          db.FibbingItRevealRole.String(),
+	_, err := r.store.UpdateStateToReveal(ctx, db.UpdateStateToRevealArgs{
+		GameStateID: gameStateID,
+		Deadline:    deadline,
 	})
 	if err != nil {
 		return RevealRoleState{}, err
 	}
 
-	reveal, err := r.getRevealState(ctx, gameStateID, deadline)
-	return reveal, err
+	revealState, err := r.getRevealState(ctx, gameStateID, deadline)
+	return revealState, err
 }
 
 func (r *RoundService) GetRevealState(ctx context.Context, playerID uuid.UUID) (RevealRoleState, error) {
@@ -559,54 +472,11 @@ func (r *RoundService) UpdateStateToQuestion(
 	deadline time.Time,
 	nextRound bool,
 ) (QuestionState, error) {
-	game, err := r.store.GetGameState(ctx, gameStateID)
+	round, err := r.store.GetLatestRoundByGameStateID(ctx, gameStateID)
 	if err != nil {
-		return QuestionState{}, err
-	}
-
-	gameState, err := db.GameStateFromString(game.State)
-	if err != nil {
-		return QuestionState{}, err
-	}
-
-	if gameState == db.FibbingITQuestion {
-		return r.getQuestionStateByGameStateID(ctx, gameStateID)
-	}
-
-	lockAcquired, err := r.tryAcquireLock(ctx, gameStateID)
-	if err != nil {
-		return QuestionState{}, fmt.Errorf("failed to acquire state transition lock: %w", err)
-	}
-	if !lockAcquired {
-		currentGame, err := r.store.GetGameState(ctx, gameStateID)
-		if err != nil {
-			return QuestionState{}, err
+		if errors.Is(err, sql.ErrNoRows) {
+			return QuestionState{}, errors.New("no rounds found for game state")
 		}
-		currentState, err := db.GameStateFromString(currentGame.State)
-		if err != nil {
-			return QuestionState{}, err
-		}
-		if currentState == db.FibbingITQuestion {
-			r.releaseLock(ctx, gameStateID)
-			return r.getQuestionStateByGameStateID(ctx, gameStateID)
-		}
-		return QuestionState{}, ErrAlreadyInQuestionState
-	}
-	defer r.releaseLock(ctx, gameStateID)
-
-	if gameState != db.FibbingItRevealRole && gameState != db.FibbingItScoring {
-		return QuestionState{}, fmt.Errorf(
-			"game state is not in FIBBING_IT_REVEAL_ROLE state or FIBBING_IT_SCORING state, current state: %s",
-			gameState.String(),
-		)
-	}
-
-	_, err = r.store.UpdateGameState(ctx, db.UpdateGameStateParams{
-		ID:             gameStateID,
-		SubmitDeadline: pgtype.Timestamp{Time: deadline, Valid: true},
-		State:          db.FibbingITQuestion.String(),
-	})
-	if err != nil {
 		return QuestionState{}, err
 	}
 
@@ -615,22 +485,14 @@ func (r *RoundService) UpdateStateToQuestion(
 		return QuestionState{}, err
 	}
 
-	round, err := r.store.GetLatestRoundByGameStateID(ctx, gameStateID)
-	if err != nil {
-		return QuestionState{}, err
-	}
-
 	roundType := round.RoundType
 	roundNumber := round.Round + 1
 	fibberLoc := -1
 
-	// INFO: If we next round means that we need to find the next fibber
-	// Else it should be the same fibber player used, so find the current fibber in the player slice.
 	var maxRounds int32 = DefaultMaxRounds
 	if roundNumber == maxRounds+1 || nextRound {
 		nextRoundType := getNextRoundType(roundType)
 		if nextRoundType == "" {
-			// No more round types, this means we've completed all game types
 			return QuestionState{}, ErrGameCompleted
 		}
 		roundType = nextRoundType
@@ -666,23 +528,26 @@ func (r *RoundService) UpdateStateToQuestion(
 		return QuestionState{}, errors.New("failed to set fibber location in players slice")
 	}
 
-	newRound := db.NewRoundArgs{
+	result, err := r.store.UpdateStateToQuestion(ctx, db.UpdateStateToQuestionArgs{
 		GameStateID:       gameStateID,
+		Deadline:          deadline,
+		NextRound:         nextRound,
 		NormalsQuestionID: normalsQuestions[0].QuestionID,
 		FibberQuestionID:  fibberQuestions[0].QuestionID,
 		RoundType:         roundType,
-		Round:             roundNumber,
+		RoundNumber:       roundNumber,
 		Players:           players,
 		FibberLoc:         fibberLoc,
-	}
-
-	err = r.store.NewRound(ctx, newRound)
+	})
 	if err != nil {
+		if err.Error() == "game state is already in FIBBING_IT_QUESTION state" {
+			return r.getQuestionStateByGameStateID(ctx, gameStateID)
+		}
 		return QuestionState{}, err
 	}
 
 	playersWithRole := []PlayerWithRole{}
-	for i, player := range players {
+	for i, player := range result.Players {
 		role := NormalRole
 
 		var question string
@@ -707,10 +572,9 @@ func (r *RoundService) UpdateStateToQuestion(
 		}
 		answers := []string{}
 		if roundType == RoundTypeMultipleChoice {
-			// TODO: localise use player locale?
 			answers = []string{"Strongly Agree", "Agree", "Neutral", "Disagree", "Strongly Disagree"}
 		} else if roundType == RoundTypeMostLikely {
-			for _, p := range players {
+			for _, p := range result.Players {
 				answers = append(answers, p.Nickname)
 			}
 			slices.Sort(answers)
@@ -730,10 +594,11 @@ func (r *RoundService) UpdateStateToQuestion(
 	questionState := QuestionState{
 		GameStateID: gameStateID,
 		Players:     playersWithRole,
-		Round:       int(roundNumber),
-		RoundType:   roundType,
+		Round:       int(result.RoundNumber),
+		RoundType:   result.RoundType,
 		Deadline:    timeLeft,
 	}
+
 	return questionState, nil
 }
 
@@ -842,67 +707,21 @@ func (r *RoundService) UpdateStateToScore(
 	deadline time.Time,
 	scoring Scoring,
 ) (ScoreState, error) {
-	game, err := r.store.GetGameState(ctx, gameStateID)
+	scoreState, dbPlayerScores, err := r.getScoreState(ctx, scoring, gameStateID, deadline)
 	if err != nil {
 		return ScoreState{}, err
 	}
 
-	gameState, err := db.GameStateFromString(game.State)
-	if err != nil {
-		return ScoreState{}, err
-	}
-
-	if gameState == db.FibbingItScoring {
-		scoreState, _, err := r.getScoreState(ctx, scoring, gameStateID, game.SubmitDeadline.Time)
-		return scoreState, err
-	}
-
-	lockAcquired, err := r.tryAcquireLock(ctx, gameStateID)
-	if err != nil {
-		return ScoreState{}, fmt.Errorf("failed to acquire state transition lock: %w", err)
-	}
-	if !lockAcquired {
-		currentGame, err := r.store.GetGameState(ctx, gameStateID)
-		if err != nil {
-			return ScoreState{}, err
-		}
-		currentState, err := db.GameStateFromString(currentGame.State)
-		if err != nil {
-			return ScoreState{}, err
-		}
-		if currentState == db.FibbingItScoring {
-			r.releaseLock(ctx, gameStateID)
-			scoreState, _, err := r.getScoreState(ctx, scoring, gameStateID, currentGame.SubmitDeadline.Time)
-			return scoreState, err
-		}
-		return ScoreState{}, ErrNotInRevealState
-	}
-	defer r.releaseLock(ctx, gameStateID)
-
-	if gameState != db.FibbingItRevealRole {
-		return ScoreState{}, ErrNotInRevealState
-	}
-
-	_, err = r.store.UpdateGameState(ctx, db.UpdateGameStateParams{
-		ID:             gameStateID,
-		SubmitDeadline: pgtype.Timestamp{Time: deadline, Valid: true},
-		State:          db.FibbingItScoring.String(),
+	_, err = r.store.UpdateStateToScore(ctx, db.UpdateStateToScoreArgs{
+		GameStateID: gameStateID,
+		Deadline:    deadline,
+		Scores:      dbPlayerScores,
 	})
 	if err != nil {
 		return ScoreState{}, err
 	}
 
-	scoringState, dbPlayerScores, err := r.getScoreState(ctx, scoring, gameStateID, deadline)
-	if err != nil {
-		return ScoreState{}, err
-	}
-
-	err = r.store.NewScores(ctx, db.NewScoresArgs{Players: dbPlayerScores})
-	if err != nil {
-		return ScoreState{}, err
-	}
-
-	return scoringState, nil
+	return scoreState, nil
 }
 
 func (r *RoundService) GetGameState(ctx context.Context, playerID uuid.UUID) (db.FibbingItGameState, error) {
@@ -956,6 +775,11 @@ func (r *RoundService) getScoreState(
 		return ScoreState{}, nil, err
 	}
 
+	totalRounds, err := r.store.CountTotalRoundsByGameStateID(ctx, gameStateID)
+	if err != nil {
+		return ScoreState{}, nil, err
+	}
+
 	scoredByPlayerID, err := r.store.GetTotalScoresByGameStateID(ctx, db.GetTotalScoresByGameStateIDParams{
 		ID:   gameStateID,
 		ID_2: round.ID,
@@ -975,6 +799,7 @@ func (r *RoundService) getScoreState(
 	}
 
 	fibberVotesThisRound := 0
+	totalVotesThisRound := 0
 	fibberCaught := false
 
 	// TODO: add score to previous rounds
@@ -1007,10 +832,14 @@ func (r *RoundService) getScoreState(
 			player.Score += scoring.FibberEvadeCapture
 		}
 
+		if p.RoundID == round.ID {
+			totalVotesThisRound++
+		}
+
 		playerScoreMap[p.VoterID] = player
 	}
 
-	if len(allVotesInRoundType) == fibberVotesThisRound {
+	if totalVotesThisRound > 0 && totalVotesThisRound == fibberVotesThisRound {
 		fibberCaught = true
 	}
 
@@ -1041,7 +870,13 @@ func (r *RoundService) getScoreState(
 			playersScore = append(playersScore, score)
 		}
 
+		scoreID, err := uuid.NewV7()
+		if err != nil {
+			return ScoreState{}, nil, err
+		}
+
 		dbPlayerScores = append(dbPlayerScores, db.AddFibbingItScoreParams{
+			ID:       scoreID,
 			RoundID:  round.ID,
 			PlayerID: p.ID,
 			//nolint:gosec // disable G115
@@ -1055,11 +890,13 @@ func (r *RoundService) getScoreState(
 
 	timeLeft := time.Until(deadline)
 	scoringState := ScoreState{
-		GameStateID: gameStateID,
-		Players:     playersScore,
-		Deadline:    timeLeft,
-		RoundType:   round.RoundType,
-		RoundNumber: int(round.Round),
+		GameStateID:  gameStateID,
+		Players:      playersScore,
+		Deadline:     timeLeft,
+		RoundType:    round.RoundType,
+		RoundNumber:  int(round.Round),
+		TotalRounds:  int(totalRounds),
+		FibberCaught: fibberCaught,
 	}
 
 	return scoringState, dbPlayerScores, nil
@@ -1078,8 +915,8 @@ func (r *RoundService) UpdateStateToWinner(
 	gameState, err := db.GameStateFromString(game.State)
 	if err != nil {
 		return WinnerState{}, err
-	} else if gameState != db.FibbingItScoring {
-		return WinnerState{}, ErrNotInScoringState
+	} else if gameState != db.FibbingItRevealRole && gameState != db.FibbingItScoring {
+		return WinnerState{}, errors.New("game state must be in FIBBING_IT_REVEAL_ROLE or FIBBING_IT_SCORING state")
 	}
 
 	_, err = r.store.UpdateGameState(ctx, db.UpdateGameStateParams{
@@ -1114,13 +951,13 @@ func (r *RoundService) getWinnerState(ctx context.Context, gameStateID uuid.UUID
 		ID:   gameStateID,
 		ID_2: fakeRoundID,
 	})
+	if err != nil {
+		return WinnerState{}, err
+	}
 
 	sort.Slice(scoredByPlayerID, func(i, j int) bool {
 		return scoredByPlayerID[i].TotalScore > scoredByPlayerID[j].TotalScore
 	})
-	if err != nil {
-		return WinnerState{}, err
-	}
 
 	players := []PlayerWithScoring{}
 	for _, p := range scoredByPlayerID {
@@ -1191,35 +1028,4 @@ func (r *RoundService) FinishGame(ctx context.Context, gameStateID uuid.UUID) er
 
 	r.metrics.RecordGameCompletion(ctx, true, time.Since(start).Seconds(), len(players))
 	return nil
-}
-
-// tryAcquireLock attempts to acquire a lock for the given game state
-func (r *RoundService) tryAcquireLock(ctx context.Context, gameStateID uuid.UUID) (bool, error) {
-	mutexInterface, _ := r.stateLocks.LoadOrStore(gameStateID, &sync.Mutex{})
-	mutex := mutexInterface.(*sync.Mutex)
-
-	// Try to acquire lock with timeout
-	lockChan := make(chan bool, 1)
-	go func() {
-		mutex.Lock()
-		lockChan <- true
-	}()
-
-	select {
-	case <-lockChan:
-		return true, nil
-	case <-ctx.Done():
-		return false, ctx.Err()
-	case <-time.After(5 * time.Second): // 5 second timeout
-		return false, fmt.Errorf("timeout acquiring state transition lock")
-	}
-}
-
-// releaseLock releases the lock for the given game state
-func (r *RoundService) releaseLock(ctx context.Context, gameStateID uuid.UUID) {
-	mutexInterface, ok := r.stateLocks.Load(gameStateID)
-	if ok {
-		mutex := mutexInterface.(*sync.Mutex)
-		mutex.Unlock()
-	}
 }

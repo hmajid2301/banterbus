@@ -125,11 +125,69 @@ func (db *DB) TransactionWithRetry(ctx context.Context, fn func(*Queries) error)
 	return err
 }
 
+func (db *DB) TransactionWithIsolationLevel(
+	ctx context.Context,
+	isolationLevel pgx.TxIsoLevel,
+	fn func(*Queries) error,
+) error {
+	var err error
+
+	for attempt := 1; attempt <= db.maxRetries; attempt++ {
+		conn, err := db.pool.Acquire(ctx)
+		if err != nil {
+			return err
+		}
+
+		tx, err := conn.BeginTx(ctx, pgx.TxOptions{
+			IsoLevel: isolationLevel,
+		})
+		if err != nil {
+			conn.Release()
+			return err
+		}
+
+		retryingTx := NewRetryingDBTX(tx, db.maxRetries, db.baseDelay)
+		err = fn(New(retryingTx))
+
+		if err != nil {
+			_ = tx.Rollback(ctx)
+			conn.Release()
+
+			if !isRetryableErr(err) || ctx.Err() != nil {
+				return err
+			}
+
+			sleepWithBackoff(ctx, attempt, db.baseDelay)
+			continue
+		}
+
+		err = tx.Commit(ctx)
+		conn.Release()
+
+		if err == nil {
+			return nil
+		}
+
+		if !isRetryableErr(err) || ctx.Err() != nil {
+			return err
+		}
+
+		sleepWithBackoff(ctx, attempt, db.baseDelay)
+	}
+
+	return err
+}
+
+func (db *DB) TransactionWithRepeatableRead(ctx context.Context, fn func(*Queries) error) error {
+	return db.TransactionWithIsolationLevel(ctx, pgx.RepeatableRead, fn)
+}
+
 func isRetryableErr(err error) bool {
 	var pgErr *pgconn.PgError
 	if errors.As(err, &pgErr) {
 		switch pgErr.SQLState() {
 		case "40P01",
+			"40001",
 			"08006",
 			"08000",
 			"08003":
@@ -139,6 +197,22 @@ func isRetryableErr(err error) bool {
 
 	var netErr net.Error
 	return errors.As(err, &netErr) && netErr.Timeout()
+}
+
+func IsLockConflict(err error) bool {
+	var pgErr *pgconn.PgError
+	if errors.As(err, &pgErr) {
+		return pgErr.SQLState() == "55P03"
+	}
+	return false
+}
+
+func IsSerializationFailure(err error) bool {
+	var pgErr *pgconn.PgError
+	if errors.As(err, &pgErr) {
+		return pgErr.SQLState() == "40001"
+	}
+	return false
 }
 
 func sleepWithBackoff(ctx context.Context, attempt int, baseDelay time.Duration) {

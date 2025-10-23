@@ -362,10 +362,11 @@ test:e2e:
     BANTERBUS_SEED_DATA_PATH: $CI_PROJECT_DIR/docker/postgres-init/01-seed-data.sql
   script:
     - docker compose --profile test up -d
-    - docker logs banterbus-seed-data-1 || true
+    - go mod download
     - task tests:e2e -- ${GOTEST_EXTRA_ARGS}
-  after_script:
-    - docker ps
+  tags:
+    - powerful
+    - homelab
   artifacts:
      when: always
      reports:

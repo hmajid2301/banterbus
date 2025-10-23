@@ -28,7 +28,7 @@ func (q QuestionService) Add(
 	group string,
 	roundType string,
 ) (Question, error) {
-	u, err := q.store.CreateQuestion(ctx, db.CreateQuestionArgs{
+	u, err := q.store.CreateQuestionWithTranslation(ctx, db.CreateQuestionArgs{
 		GameName:  DefaultGameName,
 		GroupName: group,
 		RoundType: roundType,

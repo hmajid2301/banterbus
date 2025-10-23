@@ -165,66 +165,29 @@ func (r *LobbyService) Join(
 		}
 	}
 
-	// Check if player is already in a room
 	existingRoom, err := r.store.GetRoomByPlayerID(ctx, newPlayerID)
 	if err == nil && existingRoom.RoomCode != "" {
 		return LobbyJoinResult{}, ErrPlayerAlreadyInRoom
 	}
 
 	newPlayer := r.getNewPlayer(nickname, newPlayerID)
-	room, err := r.store.GetRoomByCode(ctx, roomCode)
-	if err != nil {
-		return LobbyJoinResult{}, err
-	}
 
-	if room.RoomState != db.Created.String() {
-		return LobbyJoinResult{}, errors.New("room is not in CREATED state")
-	}
-
-	playersInRoom, err := r.store.GetAllPlayerByRoomCode(ctx, roomCode)
-	if err != nil {
-		return LobbyJoinResult{}, err
-	}
-
-	for _, p := range playersInRoom {
-		if p.Nickname == nickname {
-			return LobbyJoinResult{}, ErrNicknameExists
-		}
-	}
-
-	locale := ctxi18n.Locale(ctx).Code().String()
-	addPlayer := db.AddPlayerParams{
-		ID:       newPlayer.ID,
-		Avatar:   newPlayer.Avatar,
-		Nickname: newPlayer.Nickname,
-		Locale:   pgtype.Text{String: locale},
-	}
-
-	addRoomPlayer := db.AddRoomPlayerParams{
-		RoomID:   room.ID,
+	result, err := r.store.JoinRoom(ctx, db.JoinRoomArgs{
+		RoomCode: roomCode,
 		PlayerID: newPlayer.ID,
-	}
+		Nickname: newPlayer.Nickname,
+		Avatar:   newPlayer.Avatar,
+	})
 
-	addPlayerToRoom := db.AddPlayerToRoomArgs{
-		Player:     addPlayer,
-		RoomPlayer: addRoomPlayer,
-	}
-
-	err = r.store.AddPlayerToRoom(ctx, addPlayerToRoom)
 	if err != nil {
 		r.metrics.RecordLobbyOperation(ctx, "join", false)
 		return LobbyJoinResult{}, err
 	}
 
+	lobby := getLobbyPlayers(result.Players, roomCode)
+
 	r.metrics.RecordLobbyOperation(ctx, "join", true)
 
-	// TODO: could use information above to work out players in room
-	players, err := r.store.GetAllPlayersInRoom(ctx, newPlayer.ID)
-	if err != nil {
-		return LobbyJoinResult{}, err
-	}
-
-	lobby := getLobbyPlayers(players, roomCode)
 	return LobbyJoinResult{
 		Lobby:       lobby,
 		NewPlayerID: newPlayerID,

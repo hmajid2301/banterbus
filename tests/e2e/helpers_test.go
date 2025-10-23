@@ -199,14 +199,14 @@ func getPlayerRoles(
 	var fibber playwright.Page
 	normals := []playwright.Page{}
 
-	submitButton := hostPlayerPage.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Ready"})
-	err := submitButton.WaitFor(playwright.LocatorWaitForOptions{
-		State:   playwright.WaitForSelectorStateVisible,
-		Timeout: playwright.Float(5000),
-	})
-	if err != nil {
-		return fibber, normals, fmt.Errorf("failed to find Ready button: %w", err)
-	}
+	// submitButton := hostPlayerPage.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Ready"})
+	// err := submitButton.WaitFor(playwright.LocatorWaitForOptions{
+	// 	State:   playwright.WaitForSelectorStateVisible,
+	// 	Timeout: playwright.Float(5000),
+	// })
+	// if err != nil {
+	// 	return fibber, normals, fmt.Errorf("failed to find Ready button: %w", err)
+	// }
 
 	fibberFound := false
 	for i := 0; i < 3; i++ {
@@ -218,7 +218,7 @@ func getPlayerRoles(
 			}
 
 			roleElement := player.Locator("[data-player-role]")
-			err = roleElement.WaitFor(playwright.LocatorWaitForOptions{
+			err := roleElement.WaitFor(playwright.LocatorWaitForOptions{
 				State:   playwright.WaitForSelectorStateVisible,
 				Timeout: playwright.Float(5000),
 			})

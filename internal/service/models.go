@@ -98,11 +98,13 @@ type RevealRoleState struct {
 }
 
 type ScoreState struct {
-	GameStateID uuid.UUID
-	Players     []PlayerWithScoring
-	Deadline    time.Duration
-	RoundType   string
-	RoundNumber int
+	GameStateID  uuid.UUID
+	Players      []PlayerWithScoring
+	Deadline     time.Duration
+	RoundType    string
+	RoundNumber  int
+	TotalRounds  int
+	FibberCaught bool
 }
 
 type PlayerWithScoring struct {

@@ -35,15 +35,13 @@ func TestE2ERounds(t *testing.T) {
 				Timeout: playwright.Float(5000),
 			})
 			require.NoError(t, err)
+
 			err = closeButton.Click()
 			require.NoError(t, err)
-			player.WaitForTimeout(500)
 		}
 
 		err = submitAnswerForPlayer(fibber, "I am not a fibber")
 		require.NoError(t, err)
-
-		fibber.WaitForTimeout(500)
 
 		err = fibber.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Ready"}).Click()
 		require.NoError(t, err)
@@ -52,14 +50,14 @@ func TestE2ERounds(t *testing.T) {
 			err = submitAnswerForPlayer(normal, fmt.Sprintf("I am a normal player %d", i))
 			require.NoError(t, err)
 
-			normal.WaitForTimeout(500)
-
 			err = normal.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Ready"}).Click()
 			require.NoError(t, err)
 		}
 
 		fibberTest := hostPlayerPage.GetByText("I am not a fibber")
-		expect.Locator(fibberTest).ToBeVisible()
+		err = expect.Locator(fibberTest).ToBeVisible()
+		require.NoError(t, err)
+
 		for _, normal := range normals {
 			err = normal.GetByText("I am not a fibber").Click()
 			require.NoError(t, err)
@@ -67,11 +65,17 @@ func TestE2ERounds(t *testing.T) {
 
 		for _, player := range append(normals, fibber) {
 			fibberCaughtText := player.GetByText("They were fibber")
-			expect.Locator(fibberCaughtText).ToBeVisible()
+			err = expect.Locator(fibberCaughtText).ToBeVisible()
+			require.NoError(t, err)
 		}
 
 		scoreboardText := hostPlayerPage.GetByText("Scoreboard")
-		expect.Locator(scoreboardText).ToBeVisible()
+		err = expect.Locator(scoreboardText).ToBeVisible()
+		require.NoError(t, err)
+
+		roundText := hostPlayerPage.GetByText("Round")
+		err = expect.Locator(roundText).ToBeVisible()
+		require.NoError(t, err)
 
 		fibber, normals, err = getPlayerRoles(hostPlayerPage, otherPlayerPages)
 		require.NoError(t, err)
@@ -83,9 +87,9 @@ func TestE2ERounds(t *testing.T) {
 				Timeout: playwright.Float(5000),
 			})
 			require.NoError(t, err)
+
 			err = closeButton.Click()
 			require.NoError(t, err)
-			player.WaitForTimeout(500)
 		}
 
 		for _, normal := range normals {
@@ -95,9 +99,9 @@ func TestE2ERounds(t *testing.T) {
 				Timeout: playwright.Float(5000),
 			})
 			require.NoError(t, err)
+
 			err = agreeButton.Click()
 			require.NoError(t, err)
-			normal.WaitForTimeout(300)
 
 			readyButton := normal.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Ready"})
 			err = readyButton.WaitFor(playwright.LocatorWaitForOptions{
@@ -105,9 +109,9 @@ func TestE2ERounds(t *testing.T) {
 				Timeout: playwright.Float(5000),
 			})
 			require.NoError(t, err)
+
 			err = readyButton.Click()
 			require.NoError(t, err)
-			normal.WaitForTimeout(300)
 		}
 
 		err = fibber.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Strongly Disagree"}).Click()
@@ -117,7 +121,9 @@ func TestE2ERounds(t *testing.T) {
 		require.NoError(t, err)
 
 		fibberTest = hostPlayerPage.GetByText("Strongly Disagree")
-		expect.Locator(fibberTest).ToBeVisible()
+		err = expect.Locator(fibberTest).ToBeVisible()
+		require.NoError(t, err)
+
 		for _, normal := range normals {
 			err = normal.GetByText("Strongly Disagree").Click()
 			require.NoError(t, err)
@@ -125,11 +131,17 @@ func TestE2ERounds(t *testing.T) {
 
 		for _, player := range append(normals, fibber) {
 			fibberCaughtText := player.GetByText("They were fibber")
-			expect.Locator(fibberCaughtText).ToBeVisible()
+			err = expect.Locator(fibberCaughtText).ToBeVisible()
+			require.NoError(t, err)
 		}
 
 		scoreboardText = hostPlayerPage.GetByText("Scoreboard")
-		expect.Locator(scoreboardText).ToBeVisible()
+		err = expect.Locator(scoreboardText).ToBeVisible()
+		require.NoError(t, err)
+
+		roundText = hostPlayerPage.GetByText("Round")
+		err = expect.Locator(roundText).ToBeVisible()
+		require.NoError(t, err)
 
 		fibber, normals, err = getPlayerRoles(hostPlayerPage, otherPlayerPages)
 		require.NoError(t, err)
@@ -157,20 +169,27 @@ func TestE2ERounds(t *testing.T) {
 
 		searchText := fmt.Sprintf("Answer: %s", fibberPlayerVotedName)
 		fibberTest = hostPlayerPage.GetByText(searchText)
-		expect.Locator(fibberTest).ToBeVisible()
+
+		err = expect.Locator(fibberTest).ToBeVisible()
+		require.NoError(t, err)
+
 		for _, normal := range normals {
 			err = normal.GetByText(searchText, playwright.PageGetByTextOptions{Exact: playwright.Bool(true)}).Click()
 			require.NoError(t, err)
 		}
 
-		scoreboardText = hostPlayerPage.GetByText("The winner is")
-		expect.Locator(scoreboardText).ToBeVisible()
+		for _, player := range append(normals, fibber) {
+			fibberCaughtText := player.GetByText("They were fibber")
+			err = expect.Locator(fibberCaughtText).ToBeVisible()
+			require.NoError(t, err)
+		}
 
-		time.Sleep(time.Second * 1)
+		winnerText := hostPlayerPage.GetByText("The winner is")
+		err = expect.Locator(winnerText).ToBeVisible()
+		require.NoError(t, err)
 	})
 
 	t.Run("Should successfully complete an entire round without guessing the fibber", func(t *testing.T) {
-
 		playerPages, err := setupTest(t, playerNum)
 		require.NoError(t, err)
 

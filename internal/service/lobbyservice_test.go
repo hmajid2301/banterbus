@@ -257,54 +257,35 @@ func TestLobbyServiceJoin(t *testing.T) {
 			GetRoomByPlayerID(ctx, generatedPlayerID).
 			Return(db.Room{}, sql.ErrNoRows)
 		mockRandom.EXPECT().GetAvatar(playerNickname).Return(generatedAvatar).Once()
-		mockStore.EXPECT().
-			GetRoomByCode(ctx, roomCode).
-			Return(db.Room{ID: roomID, RoomState: db.Created.String()}, nil)
-		mockStore.EXPECT().GetAllPlayerByRoomCode(ctx, roomCode).Return([]db.GetAllPlayerByRoomCodeRow{
-			{
-				Nickname: "Hello",
-			},
-		}, nil)
-
-		addPlayer := db.AddPlayerParams{
-			ID:       generatedPlayerID,
-			Avatar:   generatedAvatar,
-			Nickname: playerNickname,
-			Locale:   pgtype.Text{String: "en-GB"},
-		}
-
-		addRoomPlayer := db.AddRoomPlayerParams{
-			RoomID:   roomID,
+		mockStore.EXPECT().JoinRoom(ctx, db.JoinRoomArgs{
+			RoomCode: roomCode,
 			PlayerID: generatedPlayerID,
-		}
-
-		addPlayerToRoom := db.AddPlayerToRoomArgs{
-			Player:     addPlayer,
-			RoomPlayer: addRoomPlayer,
-		}
-		mockStore.EXPECT().AddPlayerToRoom(ctx, addPlayerToRoom).Return(nil)
-		mockStore.EXPECT().GetAllPlayersInRoom(ctx, generatedPlayerID).Return([]db.GetAllPlayersInRoomRow{
-			{
-				ID:         uuid.Must(uuid.FromString("0193a628-51bc-7a60-9204-a8667771f278")),
-				Nickname:   "EmotionalTiger",
-				Avatar:     "https://api.dicebear.com/9.x/bottts-neutral/svg?radius=20&seed=EmotionalTiger",
-				IsReady:    pgtype.Bool{Bool: false, Valid: true},
-				HostPlayer: uuid.Must(uuid.FromString("0193a628-8b7b-7ad9-aefe-031ec85289fa")),
-			},
-			{
-				ID:         uuid.Must(uuid.FromString("0193a628-8b7b-7ad9-aefe-031ec85289fa")),
-				Nickname:   "Hello",
-				Avatar:     "https://api.dicebear.com/9.x/bottts-neutral/svg?radius=20&seed=Hello",
-				IsReady:    pgtype.Bool{Bool: false, Valid: true},
-				HostPlayer: uuid.Must(uuid.FromString("0193a628-8b7b-7ad9-aefe-031ec85289fa")),
-			},
-			{
-				ID:         generatedPlayerID,
-				Nickname:   playerNickname,
-				Avatar:     generatedAvatar,
-				IsReady:    pgtype.Bool{Bool: false, Valid: true},
-				HostPlayer: uuid.Must(uuid.FromString("0193a628-8b7b-7ad9-aefe-031ec85289fa")),
-				RoomCode:   roomCode,
+			Nickname: playerNickname,
+			Avatar:   generatedAvatar,
+		}).Return(db.JoinRoomResult{
+			Players: []db.GetAllPlayersInRoomRow{
+				{
+					ID:         uuid.Must(uuid.FromString("0193a628-51bc-7a60-9204-a8667771f278")),
+					Nickname:   "EmotionalTiger",
+					Avatar:     "https://api.dicebear.com/9.x/bottts-neutral/svg?radius=20&seed=EmotionalTiger",
+					IsReady:    pgtype.Bool{Bool: false, Valid: true},
+					HostPlayer: uuid.Must(uuid.FromString("0193a628-8b7b-7ad9-aefe-031ec85289fa")),
+				},
+				{
+					ID:         uuid.Must(uuid.FromString("0193a628-8b7b-7ad9-aefe-031ec85289fa")),
+					Nickname:   "Hello",
+					Avatar:     "https://api.dicebear.com/9.x/bottts-neutral/svg?radius=20&seed=Hello",
+					IsReady:    pgtype.Bool{Bool: false, Valid: true},
+					HostPlayer: uuid.Must(uuid.FromString("0193a628-8b7b-7ad9-aefe-031ec85289fa")),
+				},
+				{
+					ID:         generatedPlayerID,
+					Nickname:   playerNickname,
+					Avatar:     generatedAvatar,
+					IsReady:    pgtype.Bool{Bool: false, Valid: true},
+					HostPlayer: uuid.Must(uuid.FromString("0193a628-8b7b-7ad9-aefe-031ec85289fa")),
+					RoomCode:   roomCode,
+				},
 			},
 		}, nil)
 		result, err := srv.Join(ctx, roomCode, uuid.Nil, playerNickname)
@@ -360,46 +341,27 @@ func TestLobbyServiceJoin(t *testing.T) {
 		mockRandom.EXPECT().
 			GetAvatar(nickname).
 			Return(playerAvatar).Once()
-		mockStore.EXPECT().
-			GetRoomByCode(ctx, roomCode).
-			Return(db.Room{ID: roomID, RoomState: db.Created.String()}, nil)
-		mockStore.EXPECT().GetAllPlayerByRoomCode(ctx, roomCode).Return([]db.GetAllPlayerByRoomCodeRow{
-			{
-				Nickname: "Hello",
-			},
-		}, nil)
-
-		addPlayer := db.AddPlayerParams{
-			ID:       playerID,
-			Avatar:   playerAvatar,
-			Nickname: nickname,
-			Locale:   pgtype.Text{String: "en-GB"},
-		}
-
-		addRoomPlayer := db.AddRoomPlayerParams{
-			RoomID:   roomID,
+		mockStore.EXPECT().JoinRoom(ctx, db.JoinRoomArgs{
+			RoomCode: roomCode,
 			PlayerID: playerID,
-		}
-
-		addPlayerToRoom := db.AddPlayerToRoomArgs{
-			Player:     addPlayer,
-			RoomPlayer: addRoomPlayer,
-		}
-		mockStore.EXPECT().AddPlayerToRoom(ctx, addPlayerToRoom).Return(nil)
-		mockStore.EXPECT().GetAllPlayersInRoom(ctx, playerID).Return([]db.GetAllPlayersInRoomRow{
-			{
-				ID:         uuid.Must(uuid.FromString("0193a628-51bc-7a60-9204-a8667771f278")),
-				Nickname:   nickname,
-				Avatar:     playerAvatar,
-				IsReady:    pgtype.Bool{Bool: false, Valid: true},
-				HostPlayer: uuid.Must(uuid.FromString("0193a628-8b7b-7ad9-aefe-031ec85289fa")),
-			},
-			{
-				ID:         uuid.Must(uuid.FromString("0193a628-8b7b-7ad9-aefe-031ec85289fa")),
-				Nickname:   "Hello",
-				Avatar:     "https://api.dicebear.com/9.x/bottts-neutral/svg?radius=20&seed=Hello",
-				IsReady:    pgtype.Bool{Bool: false, Valid: true},
-				HostPlayer: uuid.Must(uuid.FromString("0193a628-8b7b-7ad9-aefe-031ec85289fa")),
+			Nickname: nickname,
+			Avatar:   playerAvatar,
+		}).Return(db.JoinRoomResult{
+			Players: []db.GetAllPlayersInRoomRow{
+				{
+					ID:         uuid.Must(uuid.FromString("0193a628-51bc-7a60-9204-a8667771f278")),
+					Nickname:   nickname,
+					Avatar:     playerAvatar,
+					IsReady:    pgtype.Bool{Bool: false, Valid: true},
+					HostPlayer: uuid.Must(uuid.FromString("0193a628-8b7b-7ad9-aefe-031ec85289fa")),
+				},
+				{
+					ID:         uuid.Must(uuid.FromString("0193a628-8b7b-7ad9-aefe-031ec85289fa")),
+					Nickname:   "Hello",
+					Avatar:     "https://api.dicebear.com/9.x/bottts-neutral/svg?radius=20&seed=Hello",
+					IsReady:    pgtype.Bool{Bool: false, Valid: true},
+					HostPlayer: uuid.Must(uuid.FromString("0193a628-8b7b-7ad9-aefe-031ec85289fa")),
+				},
 			},
 		}, nil)
 		result, err := srv.Join(ctx, roomCode, playerID, nickname)
@@ -461,11 +423,14 @@ func TestLobbyServiceJoin(t *testing.T) {
 			GetRoomByPlayerID(ctx, generatedPlayerID).
 			Return(db.Room{}, sql.ErrNoRows)
 		mockRandom.EXPECT().GetAvatar(playerNickname).Return(generatedAvatar).Once()
-		mockStore.EXPECT().
-			GetRoomByCode(ctx, roomCode).
-			Return(db.Room{ID: roomID, RoomState: db.Playing.String()}, nil)
+		mockStore.EXPECT().JoinRoom(ctx, db.JoinRoomArgs{
+			RoomCode: roomCode,
+			PlayerID: generatedPlayerID,
+			Nickname: playerNickname,
+			Avatar:   generatedAvatar,
+		}).Return(db.JoinRoomResult{}, xerrors.New("room is not in CREATED state"))
 
-		_, err := srv.Join(ctx, roomCode, uuid.Nil, playerNickname) // Pass uuid.Nil
+		_, err := srv.Join(ctx, roomCode, uuid.Nil, playerNickname)
 		assert.ErrorContains(t, err, "room is not in CREATED state")
 	})
 
@@ -486,17 +451,15 @@ func TestLobbyServiceJoin(t *testing.T) {
 			GetRoomByPlayerID(ctx, generatedPlayerID).
 			Return(db.Room{}, sql.ErrNoRows)
 		mockRandom.EXPECT().GetAvatar(nickname).Return(generatedAvatar).Once()
-		mockStore.EXPECT().
-			GetRoomByCode(ctx, roomCode).
-			Return(db.Room{ID: roomID, RoomState: db.Created.String()}, nil)
-		mockStore.EXPECT().GetAllPlayerByRoomCode(ctx, roomCode).Return([]db.GetAllPlayerByRoomCodeRow{
-			{
-				Nickname: "Hello",
-			},
-		}, nil)
+		mockStore.EXPECT().JoinRoom(ctx, db.JoinRoomArgs{
+			RoomCode: roomCode,
+			PlayerID: generatedPlayerID,
+			Nickname: nickname,
+			Avatar:   generatedAvatar,
+		}).Return(db.JoinRoomResult{}, xerrors.New("nickname already exists"))
 
-		_, err := srv.Join(ctx, roomCode, uuid.Nil, nickname) // Pass uuid.Nil
-		assert.ErrorContains(t, err, "nickname already exists in room")
+		_, err := srv.Join(ctx, roomCode, uuid.Nil, nickname)
+		assert.ErrorContains(t, err, "nickname already exists")
 	})
 
 	t.Run("Should fail to join room because we fail to add player to DB", func(t *testing.T) {
@@ -517,34 +480,14 @@ func TestLobbyServiceJoin(t *testing.T) {
 			GetRoomByPlayerID(ctx, generatedPlayerID).
 			Return(db.Room{}, sql.ErrNoRows)
 		mockRandom.EXPECT().GetAvatar(playerNickname).Return(generatedAvatar).Once()
-		mockStore.EXPECT().
-			GetRoomByCode(ctx, roomCode).
-			Return(db.Room{ID: roomID, RoomState: db.Created.String()}, nil)
-		mockStore.EXPECT().GetAllPlayerByRoomCode(ctx, roomCode).Return([]db.GetAllPlayerByRoomCodeRow{
-			{
-				Nickname: "Hello",
-			},
-		}, nil)
-
-		addPlayer := db.AddPlayerParams{
-			ID:       generatedPlayerID,
-			Avatar:   generatedAvatar,
-			Nickname: playerNickname,
-			Locale:   pgtype.Text{String: "en-GB"},
-		}
-
-		addRoomPlayer := db.AddRoomPlayerParams{
-			RoomID:   roomID,
+		mockStore.EXPECT().JoinRoom(ctx, db.JoinRoomArgs{
+			RoomCode: roomCode,
 			PlayerID: generatedPlayerID,
-		}
+			Nickname: playerNickname,
+			Avatar:   generatedAvatar,
+		}).Return(db.JoinRoomResult{}, xerrors.New("failed to add player to room"))
 
-		addPlayerToRoom := db.AddPlayerToRoomArgs{
-			Player:     addPlayer,
-			RoomPlayer: addRoomPlayer,
-		}
-		mockStore.EXPECT().AddPlayerToRoom(ctx, addPlayerToRoom).Return(xerrors.New("failed to add player to room"))
-
-		_, err = srv.Join(ctx, roomCode, uuid.Nil, playerNickname) // Pass uuid.Nil
+		_, err = srv.Join(ctx, roomCode, uuid.Nil, playerNickname)
 		assert.Error(t, err)
 	})
 
@@ -566,36 +509,14 @@ func TestLobbyServiceJoin(t *testing.T) {
 			GetRoomByPlayerID(ctx, generatedPlayerID).
 			Return(db.Room{}, sql.ErrNoRows)
 		mockRandom.EXPECT().GetAvatar(playerNickname).Return(generatedAvatar).Once()
-		mockStore.EXPECT().
-			GetRoomByCode(ctx, roomCode).
-			Return(db.Room{ID: roomID, RoomState: db.Created.String()}, nil)
-		mockStore.EXPECT().GetAllPlayerByRoomCode(ctx, roomCode).Return([]db.GetAllPlayerByRoomCodeRow{
-			{
-				Nickname: "Hello",
-			},
-		}, nil)
-
-		addPlayer := db.AddPlayerParams{
-			ID:       generatedPlayerID,
-			Avatar:   generatedAvatar,
-			Nickname: playerNickname,
-			Locale:   pgtype.Text{String: "en-GB"},
-		}
-
-		addRoomPlayer := db.AddRoomPlayerParams{
-			RoomID:   roomID,
+		mockStore.EXPECT().JoinRoom(ctx, db.JoinRoomArgs{
+			RoomCode: roomCode,
 			PlayerID: generatedPlayerID,
-		}
+			Nickname: playerNickname,
+			Avatar:   generatedAvatar,
+		}).Return(db.JoinRoomResult{}, xerrors.New("failed to get all players in room"))
 
-		addPlayerToRoom := db.AddPlayerToRoomArgs{
-			Player:     addPlayer,
-			RoomPlayer: addRoomPlayer,
-		}
-		mockStore.EXPECT().AddPlayerToRoom(ctx, addPlayerToRoom).Return(nil)
-		mockStore.EXPECT().
-			GetAllPlayersInRoom(ctx, generatedPlayerID).
-			Return([]db.GetAllPlayersInRoomRow{}, xerrors.New("failed to get all players in room"))
-		_, err = srv.Join(ctx, roomCode, uuid.Nil, playerNickname) // Pass uuid.Nil
+		_, err = srv.Join(ctx, roomCode, uuid.Nil, playerNickname)
 		assert.Error(t, err)
 	})
 }

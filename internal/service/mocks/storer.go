@@ -756,12 +756,135 @@ func (_c *MockStorer_AddRoomPlayer_Call) RunAndReturn(run func(ctx context.Conte
 	return _c
 }
 
-// CreateQuestion provides a mock function for the type MockStorer
-func (_mock *MockStorer) CreateQuestion(ctx context.Context, arg db.CreateQuestionArgs) (uuid.UUID, error) {
+// AddScores provides a mock function for the type MockStorer
+func (_mock *MockStorer) AddScores(ctx context.Context, arg db.NewScoresArgs) error {
 	ret := _mock.Called(ctx, arg)
 
 	if len(ret) == 0 {
-		panic("no return value specified for CreateQuestion")
+		panic("no return value specified for AddScores")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, db.NewScoresArgs) error); ok {
+		r0 = returnFunc(ctx, arg)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockStorer_AddScores_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'AddScores'
+type MockStorer_AddScores_Call struct {
+	*mock.Call
+}
+
+// AddScores is a helper method to define mock.On call
+//   - ctx context.Context
+//   - arg db.NewScoresArgs
+func (_e *MockStorer_Expecter) AddScores(ctx interface{}, arg interface{}) *MockStorer_AddScores_Call {
+	return &MockStorer_AddScores_Call{Call: _e.mock.On("AddScores", ctx, arg)}
+}
+
+func (_c *MockStorer_AddScores_Call) Run(run func(ctx context.Context, arg db.NewScoresArgs)) *MockStorer_AddScores_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 db.NewScoresArgs
+		if args[1] != nil {
+			arg1 = args[1].(db.NewScoresArgs)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockStorer_AddScores_Call) Return(err error) *MockStorer_AddScores_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockStorer_AddScores_Call) RunAndReturn(run func(ctx context.Context, arg db.NewScoresArgs) error) *MockStorer_AddScores_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// CountTotalRoundsByGameStateID provides a mock function for the type MockStorer
+func (_mock *MockStorer) CountTotalRoundsByGameStateID(ctx context.Context, gameStateID uuid.UUID) (int64, error) {
+	ret := _mock.Called(ctx, gameStateID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CountTotalRoundsByGameStateID")
+	}
+
+	var r0 int64
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uuid.UUID) (int64, error)); ok {
+		return returnFunc(ctx, gameStateID)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uuid.UUID) int64); ok {
+		r0 = returnFunc(ctx, gameStateID)
+	} else {
+		r0 = ret.Get(0).(int64)
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, uuid.UUID) error); ok {
+		r1 = returnFunc(ctx, gameStateID)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockStorer_CountTotalRoundsByGameStateID_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CountTotalRoundsByGameStateID'
+type MockStorer_CountTotalRoundsByGameStateID_Call struct {
+	*mock.Call
+}
+
+// CountTotalRoundsByGameStateID is a helper method to define mock.On call
+//   - ctx context.Context
+//   - gameStateID uuid.UUID
+func (_e *MockStorer_Expecter) CountTotalRoundsByGameStateID(ctx interface{}, gameStateID interface{}) *MockStorer_CountTotalRoundsByGameStateID_Call {
+	return &MockStorer_CountTotalRoundsByGameStateID_Call{Call: _e.mock.On("CountTotalRoundsByGameStateID", ctx, gameStateID)}
+}
+
+func (_c *MockStorer_CountTotalRoundsByGameStateID_Call) Run(run func(ctx context.Context, gameStateID uuid.UUID)) *MockStorer_CountTotalRoundsByGameStateID_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 uuid.UUID
+		if args[1] != nil {
+			arg1 = args[1].(uuid.UUID)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockStorer_CountTotalRoundsByGameStateID_Call) Return(n int64, err error) *MockStorer_CountTotalRoundsByGameStateID_Call {
+	_c.Call.Return(n, err)
+	return _c
+}
+
+func (_c *MockStorer_CountTotalRoundsByGameStateID_Call) RunAndReturn(run func(ctx context.Context, gameStateID uuid.UUID) (int64, error)) *MockStorer_CountTotalRoundsByGameStateID_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// CreateQuestionWithTranslation provides a mock function for the type MockStorer
+func (_mock *MockStorer) CreateQuestionWithTranslation(ctx context.Context, arg db.CreateQuestionArgs) (uuid.UUID, error) {
+	ret := _mock.Called(ctx, arg)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CreateQuestionWithTranslation")
 	}
 
 	var r0 uuid.UUID
@@ -784,19 +907,19 @@ func (_mock *MockStorer) CreateQuestion(ctx context.Context, arg db.CreateQuesti
 	return r0, r1
 }
 
-// MockStorer_CreateQuestion_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateQuestion'
-type MockStorer_CreateQuestion_Call struct {
+// MockStorer_CreateQuestionWithTranslation_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateQuestionWithTranslation'
+type MockStorer_CreateQuestionWithTranslation_Call struct {
 	*mock.Call
 }
 
-// CreateQuestion is a helper method to define mock.On call
+// CreateQuestionWithTranslation is a helper method to define mock.On call
 //   - ctx context.Context
 //   - arg db.CreateQuestionArgs
-func (_e *MockStorer_Expecter) CreateQuestion(ctx interface{}, arg interface{}) *MockStorer_CreateQuestion_Call {
-	return &MockStorer_CreateQuestion_Call{Call: _e.mock.On("CreateQuestion", ctx, arg)}
+func (_e *MockStorer_Expecter) CreateQuestionWithTranslation(ctx interface{}, arg interface{}) *MockStorer_CreateQuestionWithTranslation_Call {
+	return &MockStorer_CreateQuestionWithTranslation_Call{Call: _e.mock.On("CreateQuestionWithTranslation", ctx, arg)}
 }
 
-func (_c *MockStorer_CreateQuestion_Call) Run(run func(ctx context.Context, arg db.CreateQuestionArgs)) *MockStorer_CreateQuestion_Call {
+func (_c *MockStorer_CreateQuestionWithTranslation_Call) Run(run func(ctx context.Context, arg db.CreateQuestionArgs)) *MockStorer_CreateQuestionWithTranslation_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
@@ -814,12 +937,12 @@ func (_c *MockStorer_CreateQuestion_Call) Run(run func(ctx context.Context, arg 
 	return _c
 }
 
-func (_c *MockStorer_CreateQuestion_Call) Return(uUID uuid.UUID, err error) *MockStorer_CreateQuestion_Call {
+func (_c *MockStorer_CreateQuestionWithTranslation_Call) Return(uUID uuid.UUID, err error) *MockStorer_CreateQuestionWithTranslation_Call {
 	_c.Call.Return(uUID, err)
 	return _c
 }
 
-func (_c *MockStorer_CreateQuestion_Call) RunAndReturn(run func(ctx context.Context, arg db.CreateQuestionArgs) (uuid.UUID, error)) *MockStorer_CreateQuestion_Call {
+func (_c *MockStorer_CreateQuestionWithTranslation_Call) RunAndReturn(run func(ctx context.Context, arg db.CreateQuestionArgs) (uuid.UUID, error)) *MockStorer_CreateQuestionWithTranslation_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -1009,6 +1132,129 @@ func (_c *MockStorer_EnableQuestion_Call) Return(question db.Question, err error
 }
 
 func (_c *MockStorer_EnableQuestion_Call) RunAndReturn(run func(ctx context.Context, id uuid.UUID) (db.Question, error)) *MockStorer_EnableQuestion_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// ExecuteTransactionWithRetry provides a mock function for the type MockStorer
+func (_mock *MockStorer) ExecuteTransactionWithRetry(ctx context.Context, fn func(*db.Queries) error) error {
+	ret := _mock.Called(ctx, fn)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ExecuteTransactionWithRetry")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, func(*db.Queries) error) error); ok {
+		r0 = returnFunc(ctx, fn)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockStorer_ExecuteTransactionWithRetry_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ExecuteTransactionWithRetry'
+type MockStorer_ExecuteTransactionWithRetry_Call struct {
+	*mock.Call
+}
+
+// ExecuteTransactionWithRetry is a helper method to define mock.On call
+//   - ctx context.Context
+//   - fn func(*db.Queries) error
+func (_e *MockStorer_Expecter) ExecuteTransactionWithRetry(ctx interface{}, fn interface{}) *MockStorer_ExecuteTransactionWithRetry_Call {
+	return &MockStorer_ExecuteTransactionWithRetry_Call{Call: _e.mock.On("ExecuteTransactionWithRetry", ctx, fn)}
+}
+
+func (_c *MockStorer_ExecuteTransactionWithRetry_Call) Run(run func(ctx context.Context, fn func(*db.Queries) error)) *MockStorer_ExecuteTransactionWithRetry_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 func(*db.Queries) error
+		if args[1] != nil {
+			arg1 = args[1].(func(*db.Queries) error)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockStorer_ExecuteTransactionWithRetry_Call) Return(err error) *MockStorer_ExecuteTransactionWithRetry_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockStorer_ExecuteTransactionWithRetry_Call) RunAndReturn(run func(ctx context.Context, fn func(*db.Queries) error) error) *MockStorer_ExecuteTransactionWithRetry_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GenerateNewAvatarWithPlayers provides a mock function for the type MockStorer
+func (_mock *MockStorer) GenerateNewAvatarWithPlayers(ctx context.Context, arg db.GenerateNewAvatarArgs) (db.GenerateNewAvatarResult, error) {
+	ret := _mock.Called(ctx, arg)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GenerateNewAvatarWithPlayers")
+	}
+
+	var r0 db.GenerateNewAvatarResult
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, db.GenerateNewAvatarArgs) (db.GenerateNewAvatarResult, error)); ok {
+		return returnFunc(ctx, arg)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, db.GenerateNewAvatarArgs) db.GenerateNewAvatarResult); ok {
+		r0 = returnFunc(ctx, arg)
+	} else {
+		r0 = ret.Get(0).(db.GenerateNewAvatarResult)
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, db.GenerateNewAvatarArgs) error); ok {
+		r1 = returnFunc(ctx, arg)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockStorer_GenerateNewAvatarWithPlayers_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GenerateNewAvatarWithPlayers'
+type MockStorer_GenerateNewAvatarWithPlayers_Call struct {
+	*mock.Call
+}
+
+// GenerateNewAvatarWithPlayers is a helper method to define mock.On call
+//   - ctx context.Context
+//   - arg db.GenerateNewAvatarArgs
+func (_e *MockStorer_Expecter) GenerateNewAvatarWithPlayers(ctx interface{}, arg interface{}) *MockStorer_GenerateNewAvatarWithPlayers_Call {
+	return &MockStorer_GenerateNewAvatarWithPlayers_Call{Call: _e.mock.On("GenerateNewAvatarWithPlayers", ctx, arg)}
+}
+
+func (_c *MockStorer_GenerateNewAvatarWithPlayers_Call) Run(run func(ctx context.Context, arg db.GenerateNewAvatarArgs)) *MockStorer_GenerateNewAvatarWithPlayers_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 db.GenerateNewAvatarArgs
+		if args[1] != nil {
+			arg1 = args[1].(db.GenerateNewAvatarArgs)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockStorer_GenerateNewAvatarWithPlayers_Call) Return(generateNewAvatarResult db.GenerateNewAvatarResult, err error) *MockStorer_GenerateNewAvatarWithPlayers_Call {
+	_c.Call.Return(generateNewAvatarResult, err)
+	return _c
+}
+
+func (_c *MockStorer_GenerateNewAvatarWithPlayers_Call) RunAndReturn(run func(ctx context.Context, arg db.GenerateNewAvatarArgs) (db.GenerateNewAvatarResult, error)) *MockStorer_GenerateNewAvatarWithPlayers_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -1749,6 +1995,72 @@ func (_c *MockStorer_GetGameStateByPlayerID_Call) RunAndReturn(run func(ctx cont
 	return _c
 }
 
+// GetGameStateForUpdate provides a mock function for the type MockStorer
+func (_mock *MockStorer) GetGameStateForUpdate(ctx context.Context, id uuid.UUID) (db.GameState, error) {
+	ret := _mock.Called(ctx, id)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetGameStateForUpdate")
+	}
+
+	var r0 db.GameState
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uuid.UUID) (db.GameState, error)); ok {
+		return returnFunc(ctx, id)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uuid.UUID) db.GameState); ok {
+		r0 = returnFunc(ctx, id)
+	} else {
+		r0 = ret.Get(0).(db.GameState)
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, uuid.UUID) error); ok {
+		r1 = returnFunc(ctx, id)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockStorer_GetGameStateForUpdate_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetGameStateForUpdate'
+type MockStorer_GetGameStateForUpdate_Call struct {
+	*mock.Call
+}
+
+// GetGameStateForUpdate is a helper method to define mock.On call
+//   - ctx context.Context
+//   - id uuid.UUID
+func (_e *MockStorer_Expecter) GetGameStateForUpdate(ctx interface{}, id interface{}) *MockStorer_GetGameStateForUpdate_Call {
+	return &MockStorer_GetGameStateForUpdate_Call{Call: _e.mock.On("GetGameStateForUpdate", ctx, id)}
+}
+
+func (_c *MockStorer_GetGameStateForUpdate_Call) Run(run func(ctx context.Context, id uuid.UUID)) *MockStorer_GetGameStateForUpdate_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 uuid.UUID
+		if args[1] != nil {
+			arg1 = args[1].(uuid.UUID)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockStorer_GetGameStateForUpdate_Call) Return(gameState db.GameState, err error) *MockStorer_GetGameStateForUpdate_Call {
+	_c.Call.Return(gameState, err)
+	return _c
+}
+
+func (_c *MockStorer_GetGameStateForUpdate_Call) RunAndReturn(run func(ctx context.Context, id uuid.UUID) (db.GameState, error)) *MockStorer_GetGameStateForUpdate_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetGroupByName provides a mock function for the type MockStorer
 func (_mock *MockStorer) GetGroupByName(ctx context.Context, groupName string) (db.QuestionsGroup, error) {
 	ret := _mock.Called(ctx, groupName)
@@ -2479,6 +2791,72 @@ func (_c *MockStorer_GetRoomByPlayerID_Call) RunAndReturn(run func(ctx context.C
 	return _c
 }
 
+// GetRoomByPlayerIDForUpdate provides a mock function for the type MockStorer
+func (_mock *MockStorer) GetRoomByPlayerIDForUpdate(ctx context.Context, playerID uuid.UUID) (db.Room, error) {
+	ret := _mock.Called(ctx, playerID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetRoomByPlayerIDForUpdate")
+	}
+
+	var r0 db.Room
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uuid.UUID) (db.Room, error)); ok {
+		return returnFunc(ctx, playerID)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uuid.UUID) db.Room); ok {
+		r0 = returnFunc(ctx, playerID)
+	} else {
+		r0 = ret.Get(0).(db.Room)
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, uuid.UUID) error); ok {
+		r1 = returnFunc(ctx, playerID)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockStorer_GetRoomByPlayerIDForUpdate_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetRoomByPlayerIDForUpdate'
+type MockStorer_GetRoomByPlayerIDForUpdate_Call struct {
+	*mock.Call
+}
+
+// GetRoomByPlayerIDForUpdate is a helper method to define mock.On call
+//   - ctx context.Context
+//   - playerID uuid.UUID
+func (_e *MockStorer_Expecter) GetRoomByPlayerIDForUpdate(ctx interface{}, playerID interface{}) *MockStorer_GetRoomByPlayerIDForUpdate_Call {
+	return &MockStorer_GetRoomByPlayerIDForUpdate_Call{Call: _e.mock.On("GetRoomByPlayerIDForUpdate", ctx, playerID)}
+}
+
+func (_c *MockStorer_GetRoomByPlayerIDForUpdate_Call) Run(run func(ctx context.Context, playerID uuid.UUID)) *MockStorer_GetRoomByPlayerIDForUpdate_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 uuid.UUID
+		if args[1] != nil {
+			arg1 = args[1].(uuid.UUID)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockStorer_GetRoomByPlayerIDForUpdate_Call) Return(room db.Room, err error) *MockStorer_GetRoomByPlayerIDForUpdate_Call {
+	_c.Call.Return(room, err)
+	return _c
+}
+
+func (_c *MockStorer_GetRoomByPlayerIDForUpdate_Call) RunAndReturn(run func(ctx context.Context, playerID uuid.UUID) (db.Room, error)) *MockStorer_GetRoomByPlayerIDForUpdate_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetTotalScoresByGameStateID provides a mock function for the type MockStorer
 func (_mock *MockStorer) GetTotalScoresByGameStateID(ctx context.Context, arg db.GetTotalScoresByGameStateIDParams) ([]db.GetTotalScoresByGameStateIDRow, error) {
 	ret := _mock.Called(ctx, arg)
@@ -2615,6 +2993,72 @@ func (_c *MockStorer_GetVotingState_Call) RunAndReturn(run func(ctx context.Cont
 	return _c
 }
 
+// JoinRoom provides a mock function for the type MockStorer
+func (_mock *MockStorer) JoinRoom(ctx context.Context, arg db.JoinRoomArgs) (db.JoinRoomResult, error) {
+	ret := _mock.Called(ctx, arg)
+
+	if len(ret) == 0 {
+		panic("no return value specified for JoinRoom")
+	}
+
+	var r0 db.JoinRoomResult
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, db.JoinRoomArgs) (db.JoinRoomResult, error)); ok {
+		return returnFunc(ctx, arg)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, db.JoinRoomArgs) db.JoinRoomResult); ok {
+		r0 = returnFunc(ctx, arg)
+	} else {
+		r0 = ret.Get(0).(db.JoinRoomResult)
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, db.JoinRoomArgs) error); ok {
+		r1 = returnFunc(ctx, arg)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockStorer_JoinRoom_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'JoinRoom'
+type MockStorer_JoinRoom_Call struct {
+	*mock.Call
+}
+
+// JoinRoom is a helper method to define mock.On call
+//   - ctx context.Context
+//   - arg db.JoinRoomArgs
+func (_e *MockStorer_Expecter) JoinRoom(ctx interface{}, arg interface{}) *MockStorer_JoinRoom_Call {
+	return &MockStorer_JoinRoom_Call{Call: _e.mock.On("JoinRoom", ctx, arg)}
+}
+
+func (_c *MockStorer_JoinRoom_Call) Run(run func(ctx context.Context, arg db.JoinRoomArgs)) *MockStorer_JoinRoom_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 db.JoinRoomArgs
+		if args[1] != nil {
+			arg1 = args[1].(db.JoinRoomArgs)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockStorer_JoinRoom_Call) Return(joinRoomResult db.JoinRoomResult, err error) *MockStorer_JoinRoom_Call {
+	_c.Call.Return(joinRoomResult, err)
+	return _c
+}
+
+func (_c *MockStorer_JoinRoom_Call) RunAndReturn(run func(ctx context.Context, arg db.JoinRoomArgs) (db.JoinRoomResult, error)) *MockStorer_JoinRoom_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // NewRound provides a mock function for the type MockStorer
 func (_mock *MockStorer) NewRound(ctx context.Context, arg db.NewRoundArgs) error {
 	ret := _mock.Called(ctx, arg)
@@ -2668,63 +3112,6 @@ func (_c *MockStorer_NewRound_Call) Return(err error) *MockStorer_NewRound_Call 
 }
 
 func (_c *MockStorer_NewRound_Call) RunAndReturn(run func(ctx context.Context, arg db.NewRoundArgs) error) *MockStorer_NewRound_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
-// NewScores provides a mock function for the type MockStorer
-func (_mock *MockStorer) NewScores(ctx context.Context, arg db.NewScoresArgs) error {
-	ret := _mock.Called(ctx, arg)
-
-	if len(ret) == 0 {
-		panic("no return value specified for NewScores")
-	}
-
-	var r0 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, db.NewScoresArgs) error); ok {
-		r0 = returnFunc(ctx, arg)
-	} else {
-		r0 = ret.Error(0)
-	}
-	return r0
-}
-
-// MockStorer_NewScores_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'NewScores'
-type MockStorer_NewScores_Call struct {
-	*mock.Call
-}
-
-// NewScores is a helper method to define mock.On call
-//   - ctx context.Context
-//   - arg db.NewScoresArgs
-func (_e *MockStorer_Expecter) NewScores(ctx interface{}, arg interface{}) *MockStorer_NewScores_Call {
-	return &MockStorer_NewScores_Call{Call: _e.mock.On("NewScores", ctx, arg)}
-}
-
-func (_c *MockStorer_NewScores_Call) Run(run func(ctx context.Context, arg db.NewScoresArgs)) *MockStorer_NewScores_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 context.Context
-		if args[0] != nil {
-			arg0 = args[0].(context.Context)
-		}
-		var arg1 db.NewScoresArgs
-		if args[1] != nil {
-			arg1 = args[1].(db.NewScoresArgs)
-		}
-		run(
-			arg0,
-			arg1,
-		)
-	})
-	return _c
-}
-
-func (_c *MockStorer_NewScores_Call) Return(err error) *MockStorer_NewScores_Call {
-	_c.Call.Return(err)
-	return _c
-}
-
-func (_c *MockStorer_NewScores_Call) RunAndReturn(run func(ctx context.Context, arg db.NewScoresArgs) error) *MockStorer_NewScores_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -2984,6 +3371,72 @@ func (_c *MockStorer_TogglePlayerIsReady_Call) RunAndReturn(run func(ctx context
 	return _c
 }
 
+// TogglePlayerReadyWithPlayers provides a mock function for the type MockStorer
+func (_mock *MockStorer) TogglePlayerReadyWithPlayers(ctx context.Context, arg db.TogglePlayerIsReadyArgs) (db.TogglePlayerIsReadyResult, error) {
+	ret := _mock.Called(ctx, arg)
+
+	if len(ret) == 0 {
+		panic("no return value specified for TogglePlayerReadyWithPlayers")
+	}
+
+	var r0 db.TogglePlayerIsReadyResult
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, db.TogglePlayerIsReadyArgs) (db.TogglePlayerIsReadyResult, error)); ok {
+		return returnFunc(ctx, arg)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, db.TogglePlayerIsReadyArgs) db.TogglePlayerIsReadyResult); ok {
+		r0 = returnFunc(ctx, arg)
+	} else {
+		r0 = ret.Get(0).(db.TogglePlayerIsReadyResult)
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, db.TogglePlayerIsReadyArgs) error); ok {
+		r1 = returnFunc(ctx, arg)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockStorer_TogglePlayerReadyWithPlayers_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'TogglePlayerReadyWithPlayers'
+type MockStorer_TogglePlayerReadyWithPlayers_Call struct {
+	*mock.Call
+}
+
+// TogglePlayerReadyWithPlayers is a helper method to define mock.On call
+//   - ctx context.Context
+//   - arg db.TogglePlayerIsReadyArgs
+func (_e *MockStorer_Expecter) TogglePlayerReadyWithPlayers(ctx interface{}, arg interface{}) *MockStorer_TogglePlayerReadyWithPlayers_Call {
+	return &MockStorer_TogglePlayerReadyWithPlayers_Call{Call: _e.mock.On("TogglePlayerReadyWithPlayers", ctx, arg)}
+}
+
+func (_c *MockStorer_TogglePlayerReadyWithPlayers_Call) Run(run func(ctx context.Context, arg db.TogglePlayerIsReadyArgs)) *MockStorer_TogglePlayerReadyWithPlayers_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 db.TogglePlayerIsReadyArgs
+		if args[1] != nil {
+			arg1 = args[1].(db.TogglePlayerIsReadyArgs)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockStorer_TogglePlayerReadyWithPlayers_Call) Return(togglePlayerIsReadyResult db.TogglePlayerIsReadyResult, err error) *MockStorer_TogglePlayerReadyWithPlayers_Call {
+	_c.Call.Return(togglePlayerIsReadyResult, err)
+	return _c
+}
+
+func (_c *MockStorer_TogglePlayerReadyWithPlayers_Call) RunAndReturn(run func(ctx context.Context, arg db.TogglePlayerIsReadyArgs) (db.TogglePlayerIsReadyResult, error)) *MockStorer_TogglePlayerReadyWithPlayers_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ToggleVotingIsReady provides a mock function for the type MockStorer
 func (_mock *MockStorer) ToggleVotingIsReady(ctx context.Context, playerID uuid.UUID) (db.FibbingItVote, error) {
 	ret := _mock.Called(ctx, playerID)
@@ -3182,6 +3635,72 @@ func (_c *MockStorer_UpdateGameState_Call) RunAndReturn(run func(ctx context.Con
 	return _c
 }
 
+// UpdateGameStateIfInState provides a mock function for the type MockStorer
+func (_mock *MockStorer) UpdateGameStateIfInState(ctx context.Context, arg db.UpdateGameStateIfInStateParams) (db.GameState, error) {
+	ret := _mock.Called(ctx, arg)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateGameStateIfInState")
+	}
+
+	var r0 db.GameState
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, db.UpdateGameStateIfInStateParams) (db.GameState, error)); ok {
+		return returnFunc(ctx, arg)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, db.UpdateGameStateIfInStateParams) db.GameState); ok {
+		r0 = returnFunc(ctx, arg)
+	} else {
+		r0 = ret.Get(0).(db.GameState)
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, db.UpdateGameStateIfInStateParams) error); ok {
+		r1 = returnFunc(ctx, arg)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockStorer_UpdateGameStateIfInState_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateGameStateIfInState'
+type MockStorer_UpdateGameStateIfInState_Call struct {
+	*mock.Call
+}
+
+// UpdateGameStateIfInState is a helper method to define mock.On call
+//   - ctx context.Context
+//   - arg db.UpdateGameStateIfInStateParams
+func (_e *MockStorer_Expecter) UpdateGameStateIfInState(ctx interface{}, arg interface{}) *MockStorer_UpdateGameStateIfInState_Call {
+	return &MockStorer_UpdateGameStateIfInState_Call{Call: _e.mock.On("UpdateGameStateIfInState", ctx, arg)}
+}
+
+func (_c *MockStorer_UpdateGameStateIfInState_Call) Run(run func(ctx context.Context, arg db.UpdateGameStateIfInStateParams)) *MockStorer_UpdateGameStateIfInState_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 db.UpdateGameStateIfInStateParams
+		if args[1] != nil {
+			arg1 = args[1].(db.UpdateGameStateIfInStateParams)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockStorer_UpdateGameStateIfInState_Call) Return(gameState db.GameState, err error) *MockStorer_UpdateGameStateIfInState_Call {
+	_c.Call.Return(gameState, err)
+	return _c
+}
+
+func (_c *MockStorer_UpdateGameStateIfInState_Call) RunAndReturn(run func(ctx context.Context, arg db.UpdateGameStateIfInStateParams) (db.GameState, error)) *MockStorer_UpdateGameStateIfInState_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // UpdateLocale provides a mock function for the type MockStorer
 func (_mock *MockStorer) UpdateLocale(ctx context.Context, arg db.UpdateLocaleParams) (db.Player, error) {
 	ret := _mock.Called(ctx, arg)
@@ -3314,6 +3833,72 @@ func (_c *MockStorer_UpdateNickname_Call) RunAndReturn(run func(ctx context.Cont
 	return _c
 }
 
+// UpdateNicknameWithPlayers provides a mock function for the type MockStorer
+func (_mock *MockStorer) UpdateNicknameWithPlayers(ctx context.Context, arg db.UpdateNicknameArgs) (db.UpdateNicknameResult, error) {
+	ret := _mock.Called(ctx, arg)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateNicknameWithPlayers")
+	}
+
+	var r0 db.UpdateNicknameResult
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, db.UpdateNicknameArgs) (db.UpdateNicknameResult, error)); ok {
+		return returnFunc(ctx, arg)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, db.UpdateNicknameArgs) db.UpdateNicknameResult); ok {
+		r0 = returnFunc(ctx, arg)
+	} else {
+		r0 = ret.Get(0).(db.UpdateNicknameResult)
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, db.UpdateNicknameArgs) error); ok {
+		r1 = returnFunc(ctx, arg)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockStorer_UpdateNicknameWithPlayers_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateNicknameWithPlayers'
+type MockStorer_UpdateNicknameWithPlayers_Call struct {
+	*mock.Call
+}
+
+// UpdateNicknameWithPlayers is a helper method to define mock.On call
+//   - ctx context.Context
+//   - arg db.UpdateNicknameArgs
+func (_e *MockStorer_Expecter) UpdateNicknameWithPlayers(ctx interface{}, arg interface{}) *MockStorer_UpdateNicknameWithPlayers_Call {
+	return &MockStorer_UpdateNicknameWithPlayers_Call{Call: _e.mock.On("UpdateNicknameWithPlayers", ctx, arg)}
+}
+
+func (_c *MockStorer_UpdateNicknameWithPlayers_Call) Run(run func(ctx context.Context, arg db.UpdateNicknameArgs)) *MockStorer_UpdateNicknameWithPlayers_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 db.UpdateNicknameArgs
+		if args[1] != nil {
+			arg1 = args[1].(db.UpdateNicknameArgs)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockStorer_UpdateNicknameWithPlayers_Call) Return(updateNicknameResult db.UpdateNicknameResult, err error) *MockStorer_UpdateNicknameWithPlayers_Call {
+	_c.Call.Return(updateNicknameResult, err)
+	return _c
+}
+
+func (_c *MockStorer_UpdateNicknameWithPlayers_Call) RunAndReturn(run func(ctx context.Context, arg db.UpdateNicknameArgs) (db.UpdateNicknameResult, error)) *MockStorer_UpdateNicknameWithPlayers_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // UpdateRoomState provides a mock function for the type MockStorer
 func (_mock *MockStorer) UpdateRoomState(ctx context.Context, arg db.UpdateRoomStateParams) (db.Room, error) {
 	ret := _mock.Called(ctx, arg)
@@ -3376,6 +3961,270 @@ func (_c *MockStorer_UpdateRoomState_Call) Return(room db.Room, err error) *Mock
 }
 
 func (_c *MockStorer_UpdateRoomState_Call) RunAndReturn(run func(ctx context.Context, arg db.UpdateRoomStateParams) (db.Room, error)) *MockStorer_UpdateRoomState_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// UpdateStateToQuestion provides a mock function for the type MockStorer
+func (_mock *MockStorer) UpdateStateToQuestion(ctx context.Context, arg db.UpdateStateToQuestionArgs) (db.UpdateStateToQuestionResult, error) {
+	ret := _mock.Called(ctx, arg)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateStateToQuestion")
+	}
+
+	var r0 db.UpdateStateToQuestionResult
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, db.UpdateStateToQuestionArgs) (db.UpdateStateToQuestionResult, error)); ok {
+		return returnFunc(ctx, arg)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, db.UpdateStateToQuestionArgs) db.UpdateStateToQuestionResult); ok {
+		r0 = returnFunc(ctx, arg)
+	} else {
+		r0 = ret.Get(0).(db.UpdateStateToQuestionResult)
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, db.UpdateStateToQuestionArgs) error); ok {
+		r1 = returnFunc(ctx, arg)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockStorer_UpdateStateToQuestion_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateStateToQuestion'
+type MockStorer_UpdateStateToQuestion_Call struct {
+	*mock.Call
+}
+
+// UpdateStateToQuestion is a helper method to define mock.On call
+//   - ctx context.Context
+//   - arg db.UpdateStateToQuestionArgs
+func (_e *MockStorer_Expecter) UpdateStateToQuestion(ctx interface{}, arg interface{}) *MockStorer_UpdateStateToQuestion_Call {
+	return &MockStorer_UpdateStateToQuestion_Call{Call: _e.mock.On("UpdateStateToQuestion", ctx, arg)}
+}
+
+func (_c *MockStorer_UpdateStateToQuestion_Call) Run(run func(ctx context.Context, arg db.UpdateStateToQuestionArgs)) *MockStorer_UpdateStateToQuestion_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 db.UpdateStateToQuestionArgs
+		if args[1] != nil {
+			arg1 = args[1].(db.UpdateStateToQuestionArgs)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockStorer_UpdateStateToQuestion_Call) Return(updateStateToQuestionResult db.UpdateStateToQuestionResult, err error) *MockStorer_UpdateStateToQuestion_Call {
+	_c.Call.Return(updateStateToQuestionResult, err)
+	return _c
+}
+
+func (_c *MockStorer_UpdateStateToQuestion_Call) RunAndReturn(run func(ctx context.Context, arg db.UpdateStateToQuestionArgs) (db.UpdateStateToQuestionResult, error)) *MockStorer_UpdateStateToQuestion_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// UpdateStateToReveal provides a mock function for the type MockStorer
+func (_mock *MockStorer) UpdateStateToReveal(ctx context.Context, arg db.UpdateStateToRevealArgs) (db.UpdateStateToRevealResult, error) {
+	ret := _mock.Called(ctx, arg)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateStateToReveal")
+	}
+
+	var r0 db.UpdateStateToRevealResult
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, db.UpdateStateToRevealArgs) (db.UpdateStateToRevealResult, error)); ok {
+		return returnFunc(ctx, arg)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, db.UpdateStateToRevealArgs) db.UpdateStateToRevealResult); ok {
+		r0 = returnFunc(ctx, arg)
+	} else {
+		r0 = ret.Get(0).(db.UpdateStateToRevealResult)
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, db.UpdateStateToRevealArgs) error); ok {
+		r1 = returnFunc(ctx, arg)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockStorer_UpdateStateToReveal_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateStateToReveal'
+type MockStorer_UpdateStateToReveal_Call struct {
+	*mock.Call
+}
+
+// UpdateStateToReveal is a helper method to define mock.On call
+//   - ctx context.Context
+//   - arg db.UpdateStateToRevealArgs
+func (_e *MockStorer_Expecter) UpdateStateToReveal(ctx interface{}, arg interface{}) *MockStorer_UpdateStateToReveal_Call {
+	return &MockStorer_UpdateStateToReveal_Call{Call: _e.mock.On("UpdateStateToReveal", ctx, arg)}
+}
+
+func (_c *MockStorer_UpdateStateToReveal_Call) Run(run func(ctx context.Context, arg db.UpdateStateToRevealArgs)) *MockStorer_UpdateStateToReveal_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 db.UpdateStateToRevealArgs
+		if args[1] != nil {
+			arg1 = args[1].(db.UpdateStateToRevealArgs)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockStorer_UpdateStateToReveal_Call) Return(updateStateToRevealResult db.UpdateStateToRevealResult, err error) *MockStorer_UpdateStateToReveal_Call {
+	_c.Call.Return(updateStateToRevealResult, err)
+	return _c
+}
+
+func (_c *MockStorer_UpdateStateToReveal_Call) RunAndReturn(run func(ctx context.Context, arg db.UpdateStateToRevealArgs) (db.UpdateStateToRevealResult, error)) *MockStorer_UpdateStateToReveal_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// UpdateStateToScore provides a mock function for the type MockStorer
+func (_mock *MockStorer) UpdateStateToScore(ctx context.Context, arg db.UpdateStateToScoreArgs) (db.UpdateStateToScoreResult, error) {
+	ret := _mock.Called(ctx, arg)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateStateToScore")
+	}
+
+	var r0 db.UpdateStateToScoreResult
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, db.UpdateStateToScoreArgs) (db.UpdateStateToScoreResult, error)); ok {
+		return returnFunc(ctx, arg)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, db.UpdateStateToScoreArgs) db.UpdateStateToScoreResult); ok {
+		r0 = returnFunc(ctx, arg)
+	} else {
+		r0 = ret.Get(0).(db.UpdateStateToScoreResult)
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, db.UpdateStateToScoreArgs) error); ok {
+		r1 = returnFunc(ctx, arg)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockStorer_UpdateStateToScore_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateStateToScore'
+type MockStorer_UpdateStateToScore_Call struct {
+	*mock.Call
+}
+
+// UpdateStateToScore is a helper method to define mock.On call
+//   - ctx context.Context
+//   - arg db.UpdateStateToScoreArgs
+func (_e *MockStorer_Expecter) UpdateStateToScore(ctx interface{}, arg interface{}) *MockStorer_UpdateStateToScore_Call {
+	return &MockStorer_UpdateStateToScore_Call{Call: _e.mock.On("UpdateStateToScore", ctx, arg)}
+}
+
+func (_c *MockStorer_UpdateStateToScore_Call) Run(run func(ctx context.Context, arg db.UpdateStateToScoreArgs)) *MockStorer_UpdateStateToScore_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 db.UpdateStateToScoreArgs
+		if args[1] != nil {
+			arg1 = args[1].(db.UpdateStateToScoreArgs)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockStorer_UpdateStateToScore_Call) Return(updateStateToScoreResult db.UpdateStateToScoreResult, err error) *MockStorer_UpdateStateToScore_Call {
+	_c.Call.Return(updateStateToScoreResult, err)
+	return _c
+}
+
+func (_c *MockStorer_UpdateStateToScore_Call) RunAndReturn(run func(ctx context.Context, arg db.UpdateStateToScoreArgs) (db.UpdateStateToScoreResult, error)) *MockStorer_UpdateStateToScore_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// UpdateStateToVoting provides a mock function for the type MockStorer
+func (_mock *MockStorer) UpdateStateToVoting(ctx context.Context, arg db.UpdateStateToVotingArgs) (db.UpdateStateToVotingResult, error) {
+	ret := _mock.Called(ctx, arg)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateStateToVoting")
+	}
+
+	var r0 db.UpdateStateToVotingResult
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, db.UpdateStateToVotingArgs) (db.UpdateStateToVotingResult, error)); ok {
+		return returnFunc(ctx, arg)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, db.UpdateStateToVotingArgs) db.UpdateStateToVotingResult); ok {
+		r0 = returnFunc(ctx, arg)
+	} else {
+		r0 = ret.Get(0).(db.UpdateStateToVotingResult)
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, db.UpdateStateToVotingArgs) error); ok {
+		r1 = returnFunc(ctx, arg)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockStorer_UpdateStateToVoting_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateStateToVoting'
+type MockStorer_UpdateStateToVoting_Call struct {
+	*mock.Call
+}
+
+// UpdateStateToVoting is a helper method to define mock.On call
+//   - ctx context.Context
+//   - arg db.UpdateStateToVotingArgs
+func (_e *MockStorer_Expecter) UpdateStateToVoting(ctx interface{}, arg interface{}) *MockStorer_UpdateStateToVoting_Call {
+	return &MockStorer_UpdateStateToVoting_Call{Call: _e.mock.On("UpdateStateToVoting", ctx, arg)}
+}
+
+func (_c *MockStorer_UpdateStateToVoting_Call) Run(run func(ctx context.Context, arg db.UpdateStateToVotingArgs)) *MockStorer_UpdateStateToVoting_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 db.UpdateStateToVotingArgs
+		if args[1] != nil {
+			arg1 = args[1].(db.UpdateStateToVotingArgs)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockStorer_UpdateStateToVoting_Call) Return(updateStateToVotingResult db.UpdateStateToVotingResult, err error) *MockStorer_UpdateStateToVoting_Call {
+	_c.Call.Return(updateStateToVotingResult, err)
+	return _c
+}
+
+func (_c *MockStorer_UpdateStateToVoting_Call) RunAndReturn(run func(ctx context.Context, arg db.UpdateStateToVotingArgs) (db.UpdateStateToVotingResult, error)) *MockStorer_UpdateStateToVoting_Call {
 	_c.Call.Return(run)
 	return _c
 }

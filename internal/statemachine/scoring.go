@@ -55,21 +55,48 @@ func (r *ScoringState) Start(ctx context.Context) error {
 
 	select {
 	case <-timer.C:
-		stateCtx.addTransition("question", "timeout", attribute.Bool("next_round", true))
-		q, err := NewQuestionState(r.GameStateID, true, r.Dependencies)
-		if err != nil {
-			stateCtx.logger.ErrorContext(stateCtx.ctx, "failed to create question state",
-				slog.Any("error", err),
-				slog.String("game_state_id", r.GameStateID.String()))
-			return nil
-		}
-		r.Dependencies.Transitioner.StartStateMachine(stateCtx.ctx, r.GameStateID, q)
+		r.transitionToNextState(stateCtx, scoringState)
 	case <-stateCtx.ctx.Done():
 		stateCtx.logger.InfoContext(stateCtx.ctx, "scoring state cancelled",
 			slog.String("game_state_id", r.GameStateID.String()))
 	}
 
 	return nil
+}
+
+func (r *ScoringState) transitionToNextState(stateCtx *stateExecutionContext, scoringState service.ScoreState) {
+	shouldEndGame := scoringState.TotalRounds >= 3 ||
+		scoringState.RoundType == service.RoundTypeMostLikely
+
+	stateCtx.logger.InfoContext(stateCtx.ctx, "scoring state transition decision",
+		slog.Int("round_number", scoringState.RoundNumber),
+		slog.Int("total_rounds", scoringState.TotalRounds),
+		slog.Bool("fibber_caught", scoringState.FibberCaught),
+		slog.String("round_type", scoringState.RoundType),
+		slog.Bool("should_end_game", shouldEndGame),
+		slog.String("game_state_id", r.GameStateID.String()))
+
+	if shouldEndGame {
+		stateCtx.addTransition("winner", "timeout", attribute.Bool("game_ended", true))
+		w, err := NewWinnerState(r.GameStateID, r.Dependencies)
+		if err != nil {
+			stateCtx.logger.ErrorContext(stateCtx.ctx, "failed to create winner state",
+				slog.Any("error", err),
+				slog.String("game_state_id", r.GameStateID.String()))
+			return
+		}
+		r.Dependencies.Transitioner.StartStateMachine(stateCtx.ctx, r.GameStateID, w)
+	} else {
+		stateCtx.addTransition("question", "timeout", attribute.Bool("next_round", true))
+		q, err := NewQuestionState(r.GameStateID, true, r.Dependencies)
+		if err != nil {
+			stateCtx.logger.ErrorContext(stateCtx.ctx, "failed to create question state",
+				slog.Any("error", err),
+				slog.String("game_state_id", r.GameStateID.String()))
+			return
+		}
+		r.Dependencies.Transitioner.StartStateMachine(stateCtx.ctx, r.GameStateID, q)
+	}
 }
 
 func (r *ScoringState) updateToScoringWithRetry(stateCtx *stateExecutionContext, deadline time.Time) (service.ScoreState, error) {

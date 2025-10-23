@@ -22,108 +22,56 @@ func NewPlayerService(store Storer, randomizer Randomizer) *PlayerService {
 }
 
 func (p *PlayerService) UpdateNickname(ctx context.Context, nickname string, playerID uuid.UUID) (Lobby, error) {
-	room, err := p.store.GetRoomByPlayerID(ctx, playerID)
-	if err != nil {
-		return Lobby{}, err
-	}
-
-	if room.RoomState != db.Created.String() {
-		return Lobby{}, errors.New("room is not in CREATED state")
-	}
-
-	playersInRoom, err := p.store.GetAllPlayersInRoom(ctx, playerID)
-	if err != nil {
-		return Lobby{}, err
-	}
-
-	for _, p := range playersInRoom {
-		if p.Nickname == nickname {
-			return Lobby{}, errors.New("nickname already exists")
-		}
-	}
-
-	_, err = p.store.UpdateNickname(ctx, db.UpdateNicknameParams{
+	result, err := p.store.UpdateNicknameWithPlayers(ctx, db.UpdateNicknameArgs{
+		PlayerID: playerID,
 		Nickname: nickname,
-		ID:       playerID,
 	})
 	if err != nil {
 		return Lobby{}, err
 	}
 
-	players, err := p.store.GetAllPlayersInRoom(ctx, playerID)
-	if err != nil {
-		return Lobby{}, err
-	}
-
-	if len(players) == 0 {
+	if len(result.Players) == 0 {
 		return Lobby{}, errors.New("no players found in room")
 	}
 
-	lobby := getLobbyPlayers(players, players[0].RoomCode)
-	return lobby, err
+	lobby := getLobbyPlayers(result.Players, result.Players[0].RoomCode)
+	return lobby, nil
 }
 
 func (p *PlayerService) GenerateNewAvatar(ctx context.Context, playerID uuid.UUID) (Lobby, error) {
-	room, err := p.store.GetRoomByPlayerID(ctx, playerID)
-	if err != nil {
-		return Lobby{}, err
-	}
-
-	if room.RoomState != db.Created.String() {
-		return Lobby{}, errors.New("room is not in CREATED state")
-	}
-
-	// INFO: Using an empty name, generates a completely random avatar (random seed vs using the nickname as a seed)
 	emptyName := ""
 	avatar := p.randomizer.GetAvatar(emptyName)
 
-	_, err = p.store.UpdateAvatar(ctx, db.UpdateAvatarParams{
-		Avatar: avatar,
-		ID:     playerID,
+	result, err := p.store.GenerateNewAvatarWithPlayers(ctx, db.GenerateNewAvatarArgs{
+		PlayerID: playerID,
+		Avatar:   avatar,
 	})
 	if err != nil {
 		return Lobby{}, err
 	}
 
-	players, err := p.store.GetAllPlayersInRoom(ctx, playerID)
-	if err != nil {
-		return Lobby{}, err
-	}
-
-	if len(players) == 0 {
+	if len(result.Players) == 0 {
 		return Lobby{}, errors.New("no players found in room")
 	}
 
-	lobby := getLobbyPlayers(players, players[0].RoomCode)
-	return lobby, err
+	lobby := getLobbyPlayers(result.Players, result.Players[0].RoomCode)
+	return lobby, nil
 }
 
 func (p *PlayerService) TogglePlayerIsReady(ctx context.Context, playerID uuid.UUID) (Lobby, error) {
-	room, err := p.store.GetRoomByPlayerID(ctx, playerID)
+	result, err := p.store.TogglePlayerReadyWithPlayers(ctx, db.TogglePlayerIsReadyArgs{
+		PlayerID: playerID,
+	})
 	if err != nil {
 		return Lobby{}, err
 	}
 
-	if room.RoomState != db.Created.String() {
-		return Lobby{}, errors.New("room is not in CREATED state")
-	}
-
-	_, err = p.store.TogglePlayerIsReady(ctx, playerID)
-	if err != nil {
-		return Lobby{}, err
-	}
-
-	players, err := p.store.GetAllPlayersInRoom(ctx, playerID)
-	if err != nil {
-		return Lobby{}, err
-	}
-
-	if len(players) == 0 {
+	if len(result.Players) == 0 {
 		return Lobby{}, errors.New("no players found in room")
 	}
 
-	lobby := getLobbyPlayers(players, players[0].RoomCode)
-	return lobby, err
+	lobby := getLobbyPlayers(result.Players, result.Players[0].RoomCode)
+	return lobby, nil
 }
 
 func (p *PlayerService) UpdateLocale(ctx context.Context, playerID uuid.UUID, newLocale string) error {

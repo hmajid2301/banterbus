@@ -325,6 +325,19 @@ func (q *Queries) AddRoomPlayer(ctx context.Context, arg AddRoomPlayerParams) (R
 	return i, err
 }
 
+const countTotalRoundsByGameStateID = `-- name: CountTotalRoundsByGameStateID :one
+SELECT COUNT(*) AS total_rounds
+FROM fibbing_it_rounds
+WHERE game_state_id = $1
+`
+
+func (q *Queries) CountTotalRoundsByGameStateID(ctx context.Context, gameStateID uuid.UUID) (int64, error) {
+	row := q.db.QueryRow(ctx, countTotalRoundsByGameStateID, gameStateID)
+	var total_rounds int64
+	err := row.Scan(&total_rounds)
+	return total_rounds, err
+}
+
 const disableQuestion = `-- name: DisableQuestion :one
 UPDATE questions SET enabled = FALSE
 WHERE id = $1 RETURNING id, created_at, updated_at, game_name, round_type, enabled, group_id
@@ -888,6 +901,33 @@ func (q *Queries) GetGameStateByPlayerID(ctx context.Context, playerID uuid.UUID
 	return i, err
 }
 
+const getGameStateForUpdate = `-- name: GetGameStateForUpdate :one
+SELECT
+    gs.id,
+    gs.created_at,
+    gs.updated_at,
+    gs.room_id,
+    gs.submit_deadline,
+    gs.state
+FROM game_state gs
+WHERE gs.id = $1
+FOR UPDATE NOWAIT
+`
+
+func (q *Queries) GetGameStateForUpdate(ctx context.Context, id uuid.UUID) (GameState, error) {
+	row := q.db.QueryRow(ctx, getGameStateForUpdate, id)
+	var i GameState
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.RoomID,
+		&i.SubmitDeadline,
+		&i.State,
+	)
+	return i, err
+}
+
 const getGroupByName = `-- name: GetGroupByName :one
 SELECT id, created_at, updated_at, group_name, group_type
 FROM
@@ -1351,6 +1391,29 @@ func (q *Queries) GetRoomByPlayerID(ctx context.Context, playerID uuid.UUID) (Ro
 	return i, err
 }
 
+const getRoomByPlayerIDForUpdate = `-- name: GetRoomByPlayerIDForUpdate :one
+SELECT r.id, r.created_at, r.updated_at, r.game_name, r.host_player, r.room_state, r.room_code
+FROM rooms AS r
+JOIN rooms_players AS rp ON r.id = rp.room_id
+WHERE rp.player_id = $1
+FOR UPDATE OF r NOWAIT
+`
+
+func (q *Queries) GetRoomByPlayerIDForUpdate(ctx context.Context, playerID uuid.UUID) (Room, error) {
+	row := q.db.QueryRow(ctx, getRoomByPlayerIDForUpdate, playerID)
+	var i Room
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.GameName,
+		&i.HostPlayer,
+		&i.RoomState,
+		&i.RoomCode,
+	)
+	return i, err
+}
+
 const getTotalScoresByGameStateID = `-- name: GetTotalScoresByGameStateID :many
 SELECT
     s.player_id,
@@ -1619,6 +1682,39 @@ type UpdateGameStateParams struct {
 
 func (q *Queries) UpdateGameState(ctx context.Context, arg UpdateGameStateParams) (GameState, error) {
 	row := q.db.QueryRow(ctx, updateGameState, arg.State, arg.SubmitDeadline, arg.ID)
+	var i GameState
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.RoomID,
+		&i.SubmitDeadline,
+		&i.State,
+	)
+	return i, err
+}
+
+const updateGameStateIfInState = `-- name: UpdateGameStateIfInState :one
+UPDATE game_state
+SET state = $1, submit_deadline = $2
+WHERE id = $3 AND state = $4
+RETURNING id, created_at, updated_at, room_id, submit_deadline, state
+`
+
+type UpdateGameStateIfInStateParams struct {
+	State          string
+	SubmitDeadline pgtype.Timestamp
+	ID             uuid.UUID
+	State_2        string
+}
+
+func (q *Queries) UpdateGameStateIfInState(ctx context.Context, arg UpdateGameStateIfInStateParams) (GameState, error) {
+	row := q.db.QueryRow(ctx, updateGameStateIfInState,
+		arg.State,
+		arg.SubmitDeadline,
+		arg.ID,
+		arg.State_2,
+	)
 	var i GameState
 	err := row.Scan(
 		&i.ID,

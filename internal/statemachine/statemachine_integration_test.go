@@ -282,13 +282,6 @@ func TestIntegrationStateMachine(t *testing.T) {
 		_, err = services.roundService.UpdateStateToReveal(ctx, gameStateID, time.Now().Add(10*time.Second))
 		require.NoError(t, err)
 
-		scoring := service.Scoring{
-			GuessedFibber:      100,
-			FibberEvadeCapture: 50,
-		}
-		_, err = services.roundService.UpdateStateToScore(ctx, gameStateID, time.Now().Add(10*time.Second), scoring)
-		require.NoError(t, err)
-
 		winnerState, err := statemachine.NewWinnerState(gameStateID, deps)
 		require.NoError(t, err)
 

@@ -154,11 +154,36 @@ SELECT
 FROM game_state gs
 WHERE gs.id = $1;
 
+-- name: GetGameStateForUpdate :one
+SELECT
+    gs.id,
+    gs.created_at,
+    gs.updated_at,
+    gs.room_id,
+    gs.submit_deadline,
+    gs.state
+FROM game_state gs
+WHERE gs.id = $1
+FOR UPDATE NOWAIT;
+
+-- name: UpdateGameStateIfInState :one
+UPDATE game_state
+SET state = $1, submit_deadline = $2
+WHERE id = $3 AND state = $4
+RETURNING *;
+
 -- name: GetRoomByPlayerID :one
 SELECT r.*
 FROM rooms AS r
 JOIN rooms_players AS rp ON r.id = rp.room_id
 WHERE rp.player_id = $1;
+
+-- name: GetRoomByPlayerIDForUpdate :one
+SELECT r.*
+FROM rooms AS r
+JOIN rooms_players AS rp ON r.id = rp.room_id
+WHERE rp.player_id = $1
+FOR UPDATE OF r NOWAIT;
 
 -- name: GetRoomByCode :one
 SELECT * FROM rooms
@@ -184,6 +209,11 @@ JOIN game_state AS gs ON fir.game_state_id = gs.id
 WHERE gs.id = $1
 ORDER BY fir.created_at DESC
 LIMIT 1;
+
+-- name: CountTotalRoundsByGameStateID :one
+SELECT COUNT(*) AS total_rounds
+FROM fibbing_it_rounds
+WHERE game_state_id = $1;
 
 -- name: GetCurrentQuestionByPlayerID :one
 SELECT
