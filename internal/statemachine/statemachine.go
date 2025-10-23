@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/gofrs/uuid/v5"
-	"go.opentelemetry.io/otel/baggage"
 
 	"gitlab.com/hmajid2301/banterbus/internal/telemetry"
 )
@@ -48,10 +47,6 @@ func (m *Manager) Start(ctx context.Context, gameStateID uuid.UUID, state State)
 	}
 
 	stateMachineCtx, cancel := context.WithCancel(m.shutdownCtx)
-
-	if bag := baggage.FromContext(ctx); bag.Len() > 0 {
-		stateMachineCtx = baggage.ContextWithBaggage(stateMachineCtx, bag)
-	}
 
 	m.mu.Lock()
 

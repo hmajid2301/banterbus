@@ -150,13 +150,6 @@ func (s *Subscriber) registerHandlers() {
 
 func (s *Subscriber) Subscribe(r *http.Request, w http.ResponseWriter) (err error) {
 	ctx := r.Context()
-
-	bag := baggage.FromContext(ctx)
-	testNameMember := bag.Member("test_name")
-	if testNameMember.Value() != "" {
-		ctx = slogctx.Append(ctx, "test_name", testNameMember.Value())
-	}
-
 	ctx, cancel := context.WithCancel(ctx)
 	start := time.Now()
 
@@ -172,22 +165,16 @@ func (s *Subscriber) Subscribe(r *http.Request, w http.ResponseWriter) (err erro
 	}()
 
 	tracer := otel.Tracer("banterbus-websocket")
-	spanAttrs := []attribute.KeyValue{
-		semconv.NetworkTransportKey.String("tcp"),
-		semconv.NetworkTypeKey.String("ipv4"),
-		semconv.NetworkProtocolName("websocket"),
-		attribute.String("component", "websocket-subscriber"),
-	}
-
-	if testNameMember.Value() != "" {
-		spanAttrs = append(spanAttrs, attribute.String("test_name", testNameMember.Value()))
-	}
-
 	ctx, span := tracer.Start(
 		ctx,
 		"websocket.subscribe",
 		trace.WithSpanKind(trace.SpanKindServer),
-		trace.WithAttributes(spanAttrs...),
+		trace.WithAttributes(
+			semconv.NetworkTransportKey.String("tcp"),
+			semconv.NetworkTypeKey.String("ipv4"),
+			semconv.NetworkProtocolName("websocket"),
+			attribute.String("component", "websocket-subscriber"),
+		),
 	)
 
 	locale := s.config.App.DefaultLocale.String()
@@ -589,27 +576,6 @@ func (s *Subscriber) handleMessageData(
 	if client.playerID != uuid.Nil {
 		ctx = telemetry.AddPlayerToBaggage(ctx, client.playerID)
 		span.SetAttributes(attribute.String("game.player_id", client.playerID.String()))
-	}
-
-	// Extract test name from HEADERS field (HTMX WebSocket extension approach)
-	var testName string
-
-	if message.Headers != nil {
-		if headerTestName, exists := message.Headers["X-Test-Name"]; exists && headerTestName != "" {
-			testName = headerTestName
-		}
-	}
-
-	// Fallback to message-level test context if available
-	if testName == "" && message.TestContext != nil && message.TestContext.TestName != "" {
-		testName = message.TestContext.TestName
-	}
-
-	// Apply test name to context and telemetry if found
-	if testName != "" {
-		ctx = telemetry.AddTestNameToBaggage(ctx, testName)
-		ctx = slogctx.Append(ctx, "test_name", testName)
-		span.SetAttributes(attribute.String("test_name", testName))
 	}
 
 	s.logger.DebugContext(ctx, "handling message", slog.String("message_type", message.MessageType))

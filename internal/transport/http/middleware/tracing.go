@@ -7,7 +7,6 @@ import (
 
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/baggage"
 	"go.opentelemetry.io/otel/propagation"
 	semconv "go.opentelemetry.io/otel/semconv/v1.26.0"
 	"go.opentelemetry.io/otel/trace"
@@ -21,24 +20,6 @@ func (Middleware) Tracing(h http.Handler) http.Handler {
 
 		propagator := otel.GetTextMapPropagator()
 		ctx = propagator.Extract(ctx, propagation.HeaderCarrier(r.Header))
-
-		// Extract test name from baggage first (preferred method)
-		bag := baggage.FromContext(ctx)
-		testNameFromBaggage := bag.Member("test_name").Value()
-
-		// If not in baggage, check headers as fallback
-		if testNameFromBaggage == "" {
-			if testName := r.Header.Get("X-Test-Name"); testName != "" {
-				ctx = telemetry.AddTestNameToBaggage(ctx, testName)
-			}
-		}
-
-		// If still not found, check query parameters as final fallback
-		if testNameFromBaggage == "" {
-			if testName := r.URL.Query().Get("test_name"); testName != "" {
-				ctx = telemetry.AddTestNameToBaggage(ctx, testName)
-			}
-		}
 
 		tracer := otel.Tracer("banterbus-backend-http")
 		spanName := getSpanNameForRequest(r)

@@ -1,9 +1,6 @@
 package layouts
 
-import (
-	"github.com/invopop/ctxi18n/i18n"
-	"gitlab.com/hmajid2301/banterbus/internal/views/components"
-)
+import "gitlab.com/hmajid2301/banterbus/internal/views/components"
 
 templ Base(languages map[string]string, environment string) {
 	<!DOCTYPE html>
@@ -40,9 +37,6 @@ templ Base(languages map[string]string, environment string) {
 		</head>
 		<body data-environment={ environment }>
 			@components.Toast()
-			if environment == "test" {
-				@testNameInput()
-			}
 			<div
 				class="w-full min-h-screen text-lg bg-center bg-no-repeat bg-cover bg-mantle bg-background"
 				hx-ext="ws"
@@ -70,14 +64,6 @@ templ Base(languages map[string]string, environment string) {
 		<script src="/static/js/alpine.min.js" defer></script>
 		<script src="/static/js/toast.js"></script>
 		<script>
-			htmx.on("htmx:wsConfigSend", (evt) => {
-				const testNameInput = document.querySelector('input[name="test_name"]');
-				if (testNameInput && testNameInput.value) {
-					evt.detail.headers = evt.detail.headers || {};
-					evt.detail.headers["X-Test-Name"] = testNameInput.value;
-				}
-			});
-
 			htmx.on("htmx:wsBeforeMessage", (evt) => {
 				try {
 					const { message, type } = JSON.parse(evt.detail.message);
@@ -166,18 +152,4 @@ templ Base(languages map[string]string, environment string) {
 			});
 		</script>
 	</html>
-}
-
-templ testNameInput() {
-	<div id="test-name-input" class="fixed right-0 top-12 z-50 p-2 font-mono text-xs text-white bg-blue-900 bg-opacity-80 rounded-bl">
-		<div class="flex flex-col space-y-2">
-			<label for="test-name-field" class="text-xs text-gray-200">{ i18n.T(ctx, "development.test_name_label") }</label>
-			<input
-				type="text"
-				name="test_name"
-				placeholder={ i18n.T(ctx, "development.test_name_placeholder") }
-				class="py-1 px-2 text-xs text-black bg-white rounded border"
-			/>
-		</div>
-	</div>
 }

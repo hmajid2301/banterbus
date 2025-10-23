@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/gofrs/uuid/v5"
-	"go.opentelemetry.io/otel/baggage"
 
 	"gitlab.com/hmajid2301/banterbus/internal/service"
 	"gitlab.com/hmajid2301/banterbus/internal/statemachine"
@@ -177,15 +176,6 @@ func (s *StartGame) Handle(ctx context.Context, client *Client, sub *Subscriber)
 	}
 
 	stateCtx := telemetry.PropagateContext(ctx)
-
-	// Log baggage propagation for debugging
-	if bag := baggage.FromContext(stateCtx); bag.Len() > 0 {
-		sub.logger.InfoContext(
-			stateCtx,
-			"propagating baggage to statemachine",
-			slog.String("test_name", bag.Member("test_name").Value()),
-		)
-	}
 
 	deps, err := sub.newStateDependencies()
 	if err != nil {

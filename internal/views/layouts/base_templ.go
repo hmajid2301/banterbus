@@ -8,10 +8,7 @@ package layouts
 import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
-import (
-	"github.com/invopop/ctxi18n/i18n"
-	"gitlab.com/hmajid2301/banterbus/internal/views/components"
-)
+import "gitlab.com/hmajid2301/banterbus/internal/views/components"
 
 func Base(languages map[string]string, environment string) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
@@ -41,7 +38,7 @@ func Base(languages map[string]string, environment string) templ.Component {
 		var templ_7745c5c3_Var2 string
 		templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(environment)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/layouts/base.templ`, Line: 41, Col: 38}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/layouts/base.templ`, Line: 38, Col: 38}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
 		if templ_7745c5c3_Err != nil {
@@ -54,12 +51,6 @@ func Base(languages map[string]string, environment string) templ.Component {
 		templ_7745c5c3_Err = components.Toast().Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
-		}
-		if environment == "test" {
-			templ_7745c5c3_Err = testNameInput().Render(ctx, templ_7745c5c3_Buffer)
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
 		}
 		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "<div class=\"w-full min-h-screen text-lg bg-center bg-no-repeat bg-cover bg-mantle bg-background\" hx-ext=\"ws\" ws-connect=\"/ws\">")
 		if templ_7745c5c3_Err != nil {
@@ -77,7 +68,7 @@ func Base(languages map[string]string, environment string) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "</div></div></div></div></section></div></body><script src=\"/static/js/htmx.min.js\"></script><script src=\"/static/js/htmx.ws.js\"></script><script src=\"/static/js/alpine.min.js\" defer></script><script src=\"/static/js/toast.js\"></script><script>\n\t\t\thtmx.on(\"htmx:wsConfigSend\", (evt) => {\n\t\t\t\tconst testNameInput = document.querySelector('input[name=\"test_name\"]');\n\t\t\t\tif (testNameInput && testNameInput.value) {\n\t\t\t\t\tevt.detail.headers = evt.detail.headers || {};\n\t\t\t\t\tevt.detail.headers[\"X-Test-Name\"] = testNameInput.value;\n\t\t\t\t}\n\t\t\t});\n\n\t\t\thtmx.on(\"htmx:wsBeforeMessage\", (evt) => {\n\t\t\t\ttry {\n\t\t\t\t\tconst { message, type } = JSON.parse(evt.detail.message);\n\t\t\t\t\twindow.toast(message, type);\n\t\t\t\t\tif (type === \"failure\") {\n\t\t\t\t\t\tconsole.log(message);\n\t\t\t\t\t}\n\t\t\t\t} catch (err) {\n\t\t\t\t\tconsole.error(\n\t\t\t\t\t\t\"Failed to parse or handle message:\",\n\t\t\t\t\t\terr,\n\t\t\t\t\t\tevt.detail.message,\n\t\t\t\t\t);\n\t\t\t\t}\n\t\t\t});\n\t\t</script>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "</div></div></div></div></section></div></body><script src=\"/static/js/htmx.min.js\"></script><script src=\"/static/js/htmx.ws.js\"></script><script src=\"/static/js/alpine.min.js\" defer></script><script src=\"/static/js/toast.js\"></script><script>\n\t\t\thtmx.on(\"htmx:wsBeforeMessage\", (evt) => {\n\t\t\t\ttry {\n\t\t\t\t\tconst { message, type } = JSON.parse(evt.detail.message);\n\t\t\t\t\twindow.toast(message, type);\n\t\t\t\t\tif (type === \"failure\") {\n\t\t\t\t\t\tconsole.log(message);\n\t\t\t\t\t}\n\t\t\t\t} catch (err) {\n\t\t\t\t\tconsole.error(\n\t\t\t\t\t\t\"Failed to parse or handle message:\",\n\t\t\t\t\t\terr,\n\t\t\t\t\t\tevt.detail.message,\n\t\t\t\t\t);\n\t\t\t\t}\n\t\t\t});\n\t\t</script>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -93,61 +84,6 @@ func Base(languages map[string]string, environment string) templ.Component {
 			}
 		}
 		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "<script>\n\t\t\twindow.plausible =\n\t\t\t\twindow.plausible ||\n\t\t\t\tfunction () {\n\t\t\t\t\t(window.plausible.q = window.plausible.q || []).push(arguments);\n\t\t\t\t};\n\t\t</script><script>\n\t\t\t!(function (t, e) {\n\t\t\t\tvar o, n, p, r;\n\t\t\t\te.__SV ||\n\t\t\t\t\t(window.posthog && window.posthog.__loaded) ||\n\t\t\t\t\t((window.posthog = e),\n\t\t\t\t\t(e._i = []),\n\t\t\t\t\t(e.init = function (i, s, a) {\n\t\t\t\t\t\tfunction g(t, e) {\n\t\t\t\t\t\t\tvar o = e.split(\".\");\n\t\t\t\t\t\t\t(2 == o.length && ((t = t[o[0]]), (e = o[1])),\n\t\t\t\t\t\t\t\t(t[e] = function () {\n\t\t\t\t\t\t\t\t\tt.push([e].concat(Array.prototype.slice.call(arguments, 0)));\n\t\t\t\t\t\t\t\t}));\n\t\t\t\t\t\t}\n\t\t\t\t\t\t(((p = t.createElement(\"script\")).type = \"text/javascript\"),\n\t\t\t\t\t\t\t(p.crossOrigin = \"anonymous\"),\n\t\t\t\t\t\t\t(p.async = !0),\n\t\t\t\t\t\t\t(p.src =\n\t\t\t\t\t\t\t\ts.api_host.replace(\".i.posthog.com\", \"-assets.i.posthog.com\") +\n\t\t\t\t\t\t\t\t\"/static/array.js\"),\n\t\t\t\t\t\t\t(r = t.getElementsByTagName(\"script\")[0]).parentNode.insertBefore(\n\t\t\t\t\t\t\t\tp,\n\t\t\t\t\t\t\t\tr,\n\t\t\t\t\t\t\t));\n\t\t\t\t\t\tvar u = e;\n\t\t\t\t\t\tfor (\n\t\t\t\t\t\t\tvoid 0 !== a ? (u = e[a] = []) : (a = \"posthog\"),\n\t\t\t\t\t\t\t\tu.people = u.people || [],\n\t\t\t\t\t\t\t\tu.toString = function (t) {\n\t\t\t\t\t\t\t\t\tvar e = \"posthog\";\n\t\t\t\t\t\t\t\t\treturn (\n\t\t\t\t\t\t\t\t\t\t\"posthog\" !== a && (e += \".\" + a),\n\t\t\t\t\t\t\t\t\t\tt || (e += \" (stub)\"),\n\t\t\t\t\t\t\t\t\t\te\n\t\t\t\t\t\t\t\t\t);\n\t\t\t\t\t\t\t\t},\n\t\t\t\t\t\t\t\tu.people.toString = function () {\n\t\t\t\t\t\t\t\t\treturn u.toString(1) + \".people (stub)\";\n\t\t\t\t\t\t\t\t},\n\t\t\t\t\t\t\t\to =\n\t\t\t\t\t\t\t\t\t\"init Ce js Ls Te Fs Ds capture Ye calculateEventProperties zs register register_once register_for_session unregister unregister_for_session Ws getFeatureFlag getFeatureFlagPayload isFeatureEnabled reloadFeatureFlags updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures on onFeatureFlags onSurveysLoaded onSessionId getSurveys getActiveMatchingSurveys renderSurvey displaySurvey canRenderSurvey canRenderSurveyAsync identify setPersonProperties group resetGroups setPersonPropertiesForFlags resetPersonPropertiesForFlags setGroupPropertiesForFlags resetGroupPropertiesForFlags reset get_distinct_id getGroups get_session_id get_session_replay_url alias set_config startSessionRecording stopSessionRecording sessionRecordingStarted captureException loadToolbar get_property getSessionProperty Bs Us createPersonProfile Hs Ms Gs opt_in_capturing opt_out_capturing has_opted_in_capturing has_opted_out_capturing get_explicit_consent_status is_capturing clear_opt_in_out_capturing Ns debug L qs getPageViewId captureTraceFeedback captureTraceMetric\".split(\n\t\t\t\t\t\t\t\t\t\t\" \",\n\t\t\t\t\t\t\t\t\t),\n\t\t\t\t\t\t\t\tn = 0;\n\t\t\t\t\t\t\tn < o.length;\n\t\t\t\t\t\t\tn++\n\t\t\t\t\t\t)\n\t\t\t\t\t\t\tg(u, o[n]);\n\t\t\t\t\t\te._i.push([i, s, a]);\n\t\t\t\t\t}),\n\t\t\t\t\t(e.__SV = 1));\n\t\t\t})(document, window.posthog || []);\n\t\t\tposthog.init(\"phc_5olBGdkEj5ar0ZEqwwxzRneyYJBsXxCUIRmVWPTHbEh\", {\n\t\t\t\tapi_host: \"https://eu.i.posthog.com\",\n\t\t\t\tdefaults: \"2025-05-24\",\n\t\t\t\tperson_profiles: \"identified_only\",\n\t\t\t});\n\t\t</script></html>")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		return nil
-	})
-}
-
-func testNameInput() templ.Component {
-	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
-		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
-		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
-			return templ_7745c5c3_CtxErr
-		}
-		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
-		if !templ_7745c5c3_IsBuffer {
-			defer func() {
-				templ_7745c5c3_BufErr := templruntime.ReleaseBuffer(templ_7745c5c3_Buffer)
-				if templ_7745c5c3_Err == nil {
-					templ_7745c5c3_Err = templ_7745c5c3_BufErr
-				}
-			}()
-		}
-		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var3 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var3 == nil {
-			templ_7745c5c3_Var3 = templ.NopComponent
-		}
-		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "<div id=\"test-name-input\" class=\"fixed right-0 top-12 z-50 p-2 font-mono text-xs text-white bg-blue-900 bg-opacity-80 rounded-bl\"><div class=\"flex flex-col space-y-2\"><label for=\"test-name-field\" class=\"text-xs text-gray-200\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		var templ_7745c5c3_Var4 string
-		templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "development.test_name_label"))
-		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/layouts/base.templ`, Line: 174, Col: 106}
-		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "</label> <input type=\"text\" name=\"test_name\" placeholder=\"")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		var templ_7745c5c3_Var5 string
-		templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "development.test_name_placeholder"))
-		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/layouts/base.templ`, Line: 178, Col: 66}
-		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "\" class=\"py-1 px-2 text-xs text-black bg-white rounded border\"></div></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

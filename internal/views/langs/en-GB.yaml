@@ -73,6 +73,3 @@ en-GB:
     answer_required: "Answer is required"
     player_nickname_to_kick_required: "Player nickname to kick is required"
     player_nickname_required_voting: "Player nickname is required"
-  development:
-    test_name_label: "Test Name:"
-    test_name_placeholder: "Enter test name..."

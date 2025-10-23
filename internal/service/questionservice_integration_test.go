@@ -115,11 +115,13 @@ func TestIntegrationQuestionGetGroupNames(t *testing.T) {
 			{ID: "01945c66-891a-7894-ae92-c18087c73a23", Name: "programming"},
 			{ID: "01947acd-d953-76d1-881b-247a59906035", Name: "person"},
 			{ID: "01945c66-891c-7942-9a2a-339a62a74800", Name: "horse"},
+			{ID: "01947acd-d953-76d1-881b-247a59906036", Name: "food"},
 			{ID: "01945c66-891c-7aa2-b6ca-088679706a5b", Name: "colour"},
 			{ID: "01945c66-891b-7d3e-804c-f2e170b0b0ce", Name: "cat"},
 			{ID: "01945c66-891c-74d5-9870-7a8777e37588", Name: "bike"},
 			{ID: "01945c66-891c-7d8a-b404-be384c9515a6", Name: "animal"},
 		}
+		assert.Len(t, groups, len(expectedGroups))
 		assert.Equal(t, expectedGroups, groups)
 	})
 }
@@ -173,6 +175,14 @@ func TestIntegrationQuestionGetQuestions(t *testing.T) {
 			{
 				ID:        "6b60f097-b714-4f9e-b8cb-de75a7890381",
 				Text:      "to steal a horse",
+				GroupName: "horse",
+				Locale:    "en-GB",
+				RoundType: "most_likely",
+				Enabled:   true,
+			},
+			{
+				ID:        "6b60f097-b714-4f9e-b8cb-de75a7890382",
+				Text:      "to ride a horse",
 				GroupName: "horse",
 				Locale:    "en-GB",
 				RoundType: "most_likely",
@@ -267,6 +277,22 @@ func TestIntegrationQuestionGetQuestions(t *testing.T) {
 				Enabled:   true,
 			},
 			{
+				ID:        "8aa9f87f-31d9-4421-aae5-2024ca730353",
+				Text:      "What is your favorite food",
+				GroupName: "food",
+				Locale:    "en-GB",
+				RoundType: "free_form",
+				Enabled:   true,
+			},
+			{
+				ID:        "8aa9f87f-31d9-4421-aae5-2024ca730354",
+				Text:      "What food do you dislike",
+				GroupName: "food",
+				Locale:    "en-GB",
+				RoundType: "free_form",
+				Enabled:   true,
+			},
+			{
 				ID:        "89b20c84-12ae-444d-ad9c-26f72d3f28ab",
 				Text:      "What do you think about camels",
 				GroupName: "horse",
@@ -299,6 +325,7 @@ func TestIntegrationQuestionGetQuestions(t *testing.T) {
 				Enabled:   true,
 			},
 		}
+		assert.Len(t, questions, len(expectedQuestions))
 		assert.Equal(t, expectedQuestions, questions)
 	})
 
@@ -452,7 +479,24 @@ func TestIntegrationQuestionGetQuestions(t *testing.T) {
 				RoundType: "free_form",
 				Enabled:   true,
 			},
+			{
+				ID:        "8aa9f87f-31d9-4421-aae5-2024ca730353",
+				Text:      "What is your favorite food",
+				GroupName: "food",
+				Locale:    "en-GB",
+				RoundType: "free_form",
+				Enabled:   true,
+			},
+			{
+				ID:        "8aa9f87f-31d9-4421-aae5-2024ca730354",
+				Text:      "What food do you dislike",
+				GroupName: "food",
+				Locale:    "en-GB",
+				RoundType: "free_form",
+				Enabled:   true,
+			},
 		}
+		assert.Len(t, questions, len(expectedQuestions))
 		assert.Equal(t, expectedQuestions, questions)
 	})
 
