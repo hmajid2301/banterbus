@@ -539,3 +539,9 @@ WHERE
     AND ($4::boolean IS NULL OR q.enabled = $4)
 ORDER BY q.created_at DESC
 LIMIT $5 OFFSET $6;
+
+-- name: ReassignHostPlayer :one
+UPDATE rooms
+SET host_player = $2
+WHERE id = $1
+RETURNING *;

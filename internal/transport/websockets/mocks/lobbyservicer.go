@@ -245,6 +245,63 @@ func (_c *MockLobbyServicer_GetRoomState_Call) RunAndReturn(run func(ctx context
 	return _c
 }
 
+// HandlePlayerDisconnect provides a mock function for the type MockLobbyServicer
+func (_mock *MockLobbyServicer) HandlePlayerDisconnect(ctx context.Context, playerID uuid.UUID) error {
+	ret := _mock.Called(ctx, playerID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for HandlePlayerDisconnect")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uuid.UUID) error); ok {
+		r0 = returnFunc(ctx, playerID)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockLobbyServicer_HandlePlayerDisconnect_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'HandlePlayerDisconnect'
+type MockLobbyServicer_HandlePlayerDisconnect_Call struct {
+	*mock.Call
+}
+
+// HandlePlayerDisconnect is a helper method to define mock.On call
+//   - ctx context.Context
+//   - playerID uuid.UUID
+func (_e *MockLobbyServicer_Expecter) HandlePlayerDisconnect(ctx interface{}, playerID interface{}) *MockLobbyServicer_HandlePlayerDisconnect_Call {
+	return &MockLobbyServicer_HandlePlayerDisconnect_Call{Call: _e.mock.On("HandlePlayerDisconnect", ctx, playerID)}
+}
+
+func (_c *MockLobbyServicer_HandlePlayerDisconnect_Call) Run(run func(ctx context.Context, playerID uuid.UUID)) *MockLobbyServicer_HandlePlayerDisconnect_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 uuid.UUID
+		if args[1] != nil {
+			arg1 = args[1].(uuid.UUID)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockLobbyServicer_HandlePlayerDisconnect_Call) Return(err error) *MockLobbyServicer_HandlePlayerDisconnect_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockLobbyServicer_HandlePlayerDisconnect_Call) RunAndReturn(run func(ctx context.Context, playerID uuid.UUID) error) *MockLobbyServicer_HandlePlayerDisconnect_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // Join provides a mock function for the type MockLobbyServicer
 func (_mock *MockLobbyServicer) Join(ctx context.Context, roomCode string, playerID uuid.UUID, playerNickname string) (service.LobbyJoinResult, error) {
 	ret := _mock.Called(ctx, roomCode, playerID, playerNickname)

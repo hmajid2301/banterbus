@@ -3116,6 +3116,72 @@ func (_c *MockStorer_NewRound_Call) RunAndReturn(run func(ctx context.Context, a
 	return _c
 }
 
+// ReassignHostPlayer provides a mock function for the type MockStorer
+func (_mock *MockStorer) ReassignHostPlayer(ctx context.Context, arg db.ReassignHostPlayerParams) (db.Room, error) {
+	ret := _mock.Called(ctx, arg)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ReassignHostPlayer")
+	}
+
+	var r0 db.Room
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, db.ReassignHostPlayerParams) (db.Room, error)); ok {
+		return returnFunc(ctx, arg)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, db.ReassignHostPlayerParams) db.Room); ok {
+		r0 = returnFunc(ctx, arg)
+	} else {
+		r0 = ret.Get(0).(db.Room)
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, db.ReassignHostPlayerParams) error); ok {
+		r1 = returnFunc(ctx, arg)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockStorer_ReassignHostPlayer_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ReassignHostPlayer'
+type MockStorer_ReassignHostPlayer_Call struct {
+	*mock.Call
+}
+
+// ReassignHostPlayer is a helper method to define mock.On call
+//   - ctx context.Context
+//   - arg db.ReassignHostPlayerParams
+func (_e *MockStorer_Expecter) ReassignHostPlayer(ctx interface{}, arg interface{}) *MockStorer_ReassignHostPlayer_Call {
+	return &MockStorer_ReassignHostPlayer_Call{Call: _e.mock.On("ReassignHostPlayer", ctx, arg)}
+}
+
+func (_c *MockStorer_ReassignHostPlayer_Call) Run(run func(ctx context.Context, arg db.ReassignHostPlayerParams)) *MockStorer_ReassignHostPlayer_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 db.ReassignHostPlayerParams
+		if args[1] != nil {
+			arg1 = args[1].(db.ReassignHostPlayerParams)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockStorer_ReassignHostPlayer_Call) Return(room db.Room, err error) *MockStorer_ReassignHostPlayer_Call {
+	_c.Call.Return(room, err)
+	return _c
+}
+
+func (_c *MockStorer_ReassignHostPlayer_Call) RunAndReturn(run func(ctx context.Context, arg db.ReassignHostPlayerParams) (db.Room, error)) *MockStorer_ReassignHostPlayer_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // RemovePlayerFromRoom provides a mock function for the type MockStorer
 func (_mock *MockStorer) RemovePlayerFromRoom(ctx context.Context, playerID uuid.UUID) (db.RoomsPlayer, error) {
 	ret := _mock.Called(ctx, playerID)

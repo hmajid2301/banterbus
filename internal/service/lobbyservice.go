@@ -194,6 +194,48 @@ func (r *LobbyService) Join(
 	}, nil
 }
 
+func (r *LobbyService) HandlePlayerDisconnect(
+	ctx context.Context,
+	playerID uuid.UUID,
+) error {
+	room, err := r.store.GetRoomByPlayerID(ctx, playerID)
+	if err != nil {
+		return err
+	}
+
+	if room.RoomState != db.Created.String() {
+		return nil
+	}
+
+	playersInRoom, err := r.store.GetAllPlayersInRoom(ctx, playerID)
+	if err != nil {
+		return err
+	}
+
+	if playerID == room.HostPlayer {
+		var newHostPlayerID uuid.UUID
+		for _, p := range playersInRoom {
+			if p.ID != playerID {
+				newHostPlayerID = p.ID
+				break
+			}
+		}
+
+		if newHostPlayerID != uuid.Nil {
+			_, err = r.store.ReassignHostPlayer(ctx, db.ReassignHostPlayerParams{
+				ID:         room.ID,
+				HostPlayer: newHostPlayerID,
+			})
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	_, err = r.store.RemovePlayerFromRoom(ctx, playerID)
+	return err
+}
+
 func (r *LobbyService) KickPlayer(
 	ctx context.Context,
 	roomCode string,
@@ -235,6 +277,19 @@ func (r *LobbyService) KickPlayer(
 	}
 
 	playersInRoom = append(playersInRoom[:removeIndex], playersInRoom[removeIndex+1:]...)
+
+	if playerToKickID == room.HostPlayer {
+		if len(playersInRoom) > 0 {
+			newHostPlayerID := playersInRoom[0].ID
+			_, err = r.store.ReassignHostPlayer(ctx, db.ReassignHostPlayerParams{
+				ID:         room.ID,
+				HostPlayer: newHostPlayerID,
+			})
+			if err != nil {
+				return Lobby{}, playerToKickID, err
+			}
+		}
+	}
 
 	_, err = r.store.RemovePlayerFromRoom(ctx, playerToKickID)
 	if err != nil {

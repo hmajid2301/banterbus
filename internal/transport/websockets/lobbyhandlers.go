@@ -31,6 +31,7 @@ type LobbyServicer interface {
 		playerID uuid.UUID,
 		playerNicknameToKick string,
 	) (service.Lobby, uuid.UUID, error)
+	HandlePlayerDisconnect(ctx context.Context, playerID uuid.UUID) error
 	GetLobby(ctx context.Context, playerID uuid.UUID) (service.Lobby, error)
 	GetRoomState(ctx context.Context, playerID uuid.UUID) (db.RoomState, error)
 }

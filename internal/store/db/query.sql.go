@@ -1567,6 +1567,33 @@ func (q *Queries) GetVotingState(ctx context.Context, roundID uuid.UUID) ([]GetV
 	return items, nil
 }
 
+const reassignHostPlayer = `-- name: ReassignHostPlayer :one
+UPDATE rooms
+SET host_player = $2
+WHERE id = $1
+RETURNING id, created_at, updated_at, game_name, host_player, room_state, room_code
+`
+
+type ReassignHostPlayerParams struct {
+	ID         uuid.UUID
+	HostPlayer uuid.UUID
+}
+
+func (q *Queries) ReassignHostPlayer(ctx context.Context, arg ReassignHostPlayerParams) (Room, error) {
+	row := q.db.QueryRow(ctx, reassignHostPlayer, arg.ID, arg.HostPlayer)
+	var i Room
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.GameName,
+		&i.HostPlayer,
+		&i.RoomState,
+		&i.RoomCode,
+	)
+	return i, err
+}
+
 const removePlayerFromRoom = `-- name: RemovePlayerFromRoom :one
 DELETE FROM rooms_players
 WHERE player_id = $1 RETURNING room_id, player_id, created_at, updated_at

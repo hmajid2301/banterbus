@@ -50,6 +50,7 @@ type Querier interface {
 	GetRoomByPlayerIDForUpdate(ctx context.Context, playerID uuid.UUID) (Room, error)
 	GetTotalScoresByGameStateID(ctx context.Context, arg GetTotalScoresByGameStateIDParams) ([]GetTotalScoresByGameStateIDRow, error)
 	GetVotingState(ctx context.Context, roundID uuid.UUID) ([]GetVotingStateRow, error)
+	ReassignHostPlayer(ctx context.Context, arg ReassignHostPlayerParams) (Room, error)
 	RemovePlayerFromRoom(ctx context.Context, playerID uuid.UUID) (RoomsPlayer, error)
 	ToggleAnswerIsReady(ctx context.Context, playerID uuid.UUID) (FibbingItAnswer, error)
 	TogglePlayerIsReady(ctx context.Context, id uuid.UUID) (Player, error)

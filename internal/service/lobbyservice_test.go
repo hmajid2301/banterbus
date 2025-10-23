@@ -5,10 +5,10 @@ import (
 	"testing"
 	"time"
 
+	"errors"
 	"github.com/gofrs/uuid/v5"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/jackc/pgx/v5/pgtype"
-	"errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 

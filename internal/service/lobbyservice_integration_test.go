@@ -232,6 +232,64 @@ func TestIntegrationLobbyKickPlayer(t *testing.T) {
 		_, _, err = srv.KickPlayer(ctx, lobby.Code, defaultHostPlayerID, "wrong_nickname")
 		assert.ErrorContains(t, err, "player with nickname wrong_nickname not found")
 	})
+
+	t.Run("Should reassign host when host disconnects", func(t *testing.T) {
+		t.Parallel()
+		pool, teardown := setupSubtest(t)
+		t.Cleanup(teardown)
+
+		baseDelay := (time.Millisecond * 100)
+		str := db.NewDB(pool, 3, baseDelay)
+		randomizer := randomizer.NewUserRandomizer()
+
+		ctx, err := getI18nCtx(t.Context())
+		require.NoError(t, err)
+
+		srv := service.NewLobbyService(str, randomizer, "en-GB")
+		lobby, err := lobbyWithTwoPlayers(ctx, srv)
+		assert.NoError(t, err)
+
+		assert.True(t, lobby.Players[0].IsHost)
+		assert.False(t, lobby.Players[1].IsHost)
+
+		err = srv.HandlePlayerDisconnect(ctx, defaultHostPlayerID)
+		assert.NoError(t, err)
+
+		lobby, err = srv.GetLobby(ctx, defaultOtherPlayerID)
+		assert.NoError(t, err)
+		assert.Len(t, lobby.Players, 1)
+		assert.Equal(t, defaultOtherPlayerID, lobby.Players[0].ID)
+		assert.True(t, lobby.Players[0].IsHost)
+	})
+
+	t.Run("Should remove non-host player when they disconnect", func(t *testing.T) {
+		t.Parallel()
+		pool, teardown := setupSubtest(t)
+		t.Cleanup(teardown)
+
+		baseDelay := (time.Millisecond * 100)
+		str := db.NewDB(pool, 3, baseDelay)
+		randomizer := randomizer.NewUserRandomizer()
+
+		ctx, err := getI18nCtx(t.Context())
+		require.NoError(t, err)
+
+		srv := service.NewLobbyService(str, randomizer, "en-GB")
+		lobby, err := lobbyWithTwoPlayers(ctx, srv)
+		assert.NoError(t, err)
+
+		assert.True(t, lobby.Players[0].IsHost)
+		assert.False(t, lobby.Players[1].IsHost)
+
+		err = srv.HandlePlayerDisconnect(ctx, defaultOtherPlayerID)
+		assert.NoError(t, err)
+
+		lobby, err = srv.GetLobby(ctx, defaultHostPlayerID)
+		assert.NoError(t, err)
+		assert.Len(t, lobby.Players, 1)
+		assert.Equal(t, defaultHostPlayerID, lobby.Players[0].ID)
+		assert.True(t, lobby.Players[0].IsHost)
+	})
 }
 
 func TestIntegrationLobbyStart(t *testing.T) {

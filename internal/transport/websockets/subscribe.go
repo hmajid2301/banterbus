@@ -286,6 +286,14 @@ func (s *Subscriber) Subscribe(r *http.Request, w http.ResponseWriter) (err erro
 			slog.String("player_id", playerID.String()),
 		)
 		cancel()
+
+		err = s.lobbyService.HandlePlayerDisconnect(ctx, playerID)
+		if err != nil {
+			s.logger.WarnContext(ctx, "failed to handle player disconnect",
+				slog.String("player_id", playerID.String()),
+				slog.Any("error", err))
+		}
+
 		err = s.websocket.Close(playerID)
 		if err != nil {
 			s.logger.WarnContext(ctx, "failed to close websocket subscription", slog.Any("error", err))
