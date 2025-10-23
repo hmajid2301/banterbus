@@ -5,7 +5,10 @@ packages:
   gitlab.com/hmajid2301/banterbus/internal/service:
     interfaces:
       Randomizer:
-      Storer:
+      LobbyStore:
+      PlayerStore:
+      QuestionStore:
+      RoundStore:
   gitlab.com/hmajid2301/banterbus/internal/transport/websockets:
     interfaces:
       LobbyServicer:

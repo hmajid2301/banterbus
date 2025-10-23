@@ -58,7 +58,7 @@ func TestLobbyServiceCreate(t *testing.T) {
 
 	t.Run("Should create room successfully", func(t *testing.T) {
 		t.Parallel()
-		mockStore := mockService.NewMockStorer(t)
+		mockStore := mockService.NewMockLobbyStore(t)
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewLobbyService(mockStore, mockRandom, "en-GB")
 
@@ -96,7 +96,7 @@ func TestLobbyServiceCreate(t *testing.T) {
 
 	t.Run("Should create room when nickname is passed", func(t *testing.T) {
 		t.Parallel()
-		mockStore := mockService.NewMockStorer(t)
+		mockStore := mockService.NewMockLobbyStore(t)
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewLobbyService(mockStore, mockRandom, "en-GB")
 
@@ -145,7 +145,7 @@ func TestLobbyServiceCreate(t *testing.T) {
 
 	t.Run("Should create room successfully, code is used by room", func(t *testing.T) {
 		t.Parallel()
-		mockStore := mockService.NewMockStorer(t)
+		mockStore := mockService.NewMockLobbyStore(t)
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewLobbyService(mockStore, mockRandom, "en-GB")
 
@@ -190,7 +190,7 @@ func TestLobbyServiceCreate(t *testing.T) {
 
 	t.Run("Should throw error when we fail to get room code", func(t *testing.T) {
 		t.Parallel()
-		mockStore := mockService.NewMockStorer(t)
+		mockStore := mockService.NewMockLobbyStore(t)
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewLobbyService(mockStore, mockRandom, "en-GB")
 
@@ -241,7 +241,7 @@ func TestLobbyServiceJoin(t *testing.T) {
 
 	t.Run("Should allow player to join room successfully", func(t *testing.T) {
 		t.Parallel()
-		mockStore := mockService.NewMockStorer(t)
+		mockStore := mockService.NewMockLobbyStore(t)
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewLobbyService(mockStore, mockRandom, "en-GB")
 
@@ -328,7 +328,7 @@ func TestLobbyServiceJoin(t *testing.T) {
 		playerID := uuid.Must(uuid.NewV4())
 		playerAvatar := "https://api.dicebear.com/9.x/bottts-neutral/svg?radius=20&seed=" + nickname
 
-		mockStore := mockService.NewMockStorer(t)
+		mockStore := mockService.NewMockLobbyStore(t)
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewLobbyService(mockStore, mockRandom, "en-GB")
 
@@ -396,7 +396,7 @@ func TestLobbyServiceJoin(t *testing.T) {
 		playerID := uuid.Must(uuid.NewV4()) // Specific player ID for this test
 		playerNickname := "some_nickname"
 
-		mockStore := mockService.NewMockStorer(t)
+		mockStore := mockService.NewMockLobbyStore(t)
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewLobbyService(mockStore, mockRandom, "en-GB")
 
@@ -409,7 +409,7 @@ func TestLobbyServiceJoin(t *testing.T) {
 
 	t.Run("Should fail to join room, not in CREATED room state", func(t *testing.T) {
 		t.Parallel()
-		mockStore := mockService.NewMockStorer(t)
+		mockStore := mockService.NewMockLobbyStore(t)
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewLobbyService(mockStore, mockRandom, "en-GB")
 
@@ -438,7 +438,7 @@ func TestLobbyServiceJoin(t *testing.T) {
 		t.Parallel()
 		nickname := "Hello"
 
-		mockStore := mockService.NewMockStorer(t)
+		mockStore := mockService.NewMockLobbyStore(t)
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewLobbyService(mockStore, mockRandom, "en-GB")
 
@@ -464,7 +464,7 @@ func TestLobbyServiceJoin(t *testing.T) {
 
 	t.Run("Should fail to join room because we fail to add player to DB", func(t *testing.T) {
 		t.Parallel()
-		mockStore := mockService.NewMockStorer(t)
+		mockStore := mockService.NewMockLobbyStore(t)
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewLobbyService(mockStore, mockRandom, "en-GB")
 
@@ -493,7 +493,7 @@ func TestLobbyServiceJoin(t *testing.T) {
 
 	t.Run("Should fail to join room because fail to get all players in room", func(t *testing.T) {
 		t.Parallel()
-		mockStore := mockService.NewMockStorer(t)
+		mockStore := mockService.NewMockLobbyStore(t)
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewLobbyService(mockStore, mockRandom, "en-GB")
 
@@ -532,7 +532,7 @@ func TestLobbyServiceKickPlayer(t *testing.T) {
 
 	t.Run("Should kick player from lobby successfully", func(t *testing.T) {
 		t.Parallel()
-		mockStore := mockService.NewMockStorer(t)
+		mockStore := mockService.NewMockLobbyStore(t)
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewLobbyService(mockStore, mockRandom, "en-GB")
 
@@ -574,7 +574,7 @@ func TestLobbyServiceKickPlayer(t *testing.T) {
 
 	t.Run("Should fail to kick player, because cannot find room by code", func(t *testing.T) {
 		t.Parallel()
-		mockStore := mockService.NewMockStorer(t)
+		mockStore := mockService.NewMockLobbyStore(t)
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewLobbyService(mockStore, mockRandom, "en-GB")
 
@@ -586,7 +586,7 @@ func TestLobbyServiceKickPlayer(t *testing.T) {
 
 	t.Run("Should fail to kick player because player is not host", func(t *testing.T) {
 		t.Parallel()
-		mockStore := mockService.NewMockStorer(t)
+		mockStore := mockService.NewMockLobbyStore(t)
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewLobbyService(mockStore, mockRandom, "en-GB")
 
@@ -600,7 +600,7 @@ func TestLobbyServiceKickPlayer(t *testing.T) {
 
 	t.Run("Should fail to kick player because room is not in CREATED state", func(t *testing.T) {
 		t.Parallel()
-		mockStore := mockService.NewMockStorer(t)
+		mockStore := mockService.NewMockLobbyStore(t)
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewLobbyService(mockStore, mockRandom, "en-GB")
 
@@ -614,7 +614,7 @@ func TestLobbyServiceKickPlayer(t *testing.T) {
 
 	t.Run("Should fail to kick player because we fail to get all players in room from DB", func(t *testing.T) {
 		t.Parallel()
-		mockStore := mockService.NewMockStorer(t)
+		mockStore := mockService.NewMockLobbyStore(t)
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewLobbyService(mockStore, mockRandom, "en-GB")
 
@@ -632,7 +632,7 @@ func TestLobbyServiceKickPlayer(t *testing.T) {
 
 	t.Run("Should fail to kick player because player with nickname is not in room", func(t *testing.T) {
 		t.Parallel()
-		mockStore := mockService.NewMockStorer(t)
+		mockStore := mockService.NewMockLobbyStore(t)
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewLobbyService(mockStore, mockRandom, "en-GB")
 
@@ -654,7 +654,7 @@ func TestLobbyServiceKickPlayer(t *testing.T) {
 
 	t.Run("Should fail to kick player because failed to remove player from room in DB", func(t *testing.T) {
 		t.Parallel()
-		mockStore := mockService.NewMockStorer(t)
+		mockStore := mockService.NewMockLobbyStore(t)
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewLobbyService(mockStore, mockRandom, "en-GB")
 
@@ -697,7 +697,7 @@ func TestLobbyServiceStart(t *testing.T) {
 
 	t.Run("Should start game successfully", func(t *testing.T) {
 		t.Parallel()
-		mockStore := mockService.NewMockStorer(t)
+		mockStore := mockService.NewMockLobbyStore(t)
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewLobbyService(mockStore, mockRandom, "en-GB")
 
@@ -806,7 +806,7 @@ func TestLobbyServiceStart(t *testing.T) {
 
 	t.Run("Should fail to start game because host did not start game", func(t *testing.T) {
 		t.Parallel()
-		mockStore := mockService.NewMockStorer(t)
+		mockStore := mockService.NewMockLobbyStore(t)
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewLobbyService(mockStore, mockRandom, "en-GB")
 
@@ -827,7 +827,7 @@ func TestLobbyServiceStart(t *testing.T) {
 
 	t.Run("Should fail to start game because room state not in CREATED state", func(t *testing.T) {
 		t.Parallel()
-		mockStore := mockService.NewMockStorer(t)
+		mockStore := mockService.NewMockLobbyStore(t)
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewLobbyService(mockStore, mockRandom, "en-GB")
 
@@ -848,7 +848,7 @@ func TestLobbyServiceStart(t *testing.T) {
 
 	t.Run("Should fail to start game because we failed to get all players in room", func(t *testing.T) {
 		t.Parallel()
-		mockStore := mockService.NewMockStorer(t)
+		mockStore := mockService.NewMockLobbyStore(t)
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewLobbyService(mockStore, mockRandom, "en-GB")
 
@@ -872,7 +872,7 @@ func TestLobbyServiceStart(t *testing.T) {
 
 	t.Run("Should fail to start game because too few players in room", func(t *testing.T) {
 		t.Parallel()
-		mockStore := mockService.NewMockStorer(t)
+		mockStore := mockService.NewMockLobbyStore(t)
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewLobbyService(mockStore, mockRandom, "en-GB")
 
@@ -902,7 +902,7 @@ func TestLobbyServiceStart(t *testing.T) {
 
 	t.Run("Should fail to start game because not every player is ready", func(t *testing.T) {
 		t.Parallel()
-		mockStore := mockService.NewMockStorer(t)
+		mockStore := mockService.NewMockLobbyStore(t)
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewLobbyService(mockStore, mockRandom, "en-GB")
 
@@ -940,7 +940,7 @@ func TestLobbyServiceStart(t *testing.T) {
 
 	t.Run("Should fail to start game because we fail to get random question for normals", func(t *testing.T) {
 		t.Parallel()
-		mockStore := mockService.NewMockStorer(t)
+		mockStore := mockService.NewMockLobbyStore(t)
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewLobbyService(mockStore, mockRandom, "en-GB")
 
@@ -989,7 +989,7 @@ func TestLobbyServiceStart(t *testing.T) {
 
 	t.Run("Should fail to start game because we fail to get random question for fibber", func(t *testing.T) {
 		t.Parallel()
-		mockStore := mockService.NewMockStorer(t)
+		mockStore := mockService.NewMockLobbyStore(t)
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewLobbyService(mockStore, mockRandom, "en-GB")
 
@@ -1045,7 +1045,7 @@ func TestLobbyServiceStart(t *testing.T) {
 
 	t.Run("Should fail to start game because we fail to start game in DB", func(t *testing.T) {
 		t.Parallel()
-		mockStore := mockService.NewMockStorer(t)
+		mockStore := mockService.NewMockLobbyStore(t)
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewLobbyService(mockStore, mockRandom, "en-GB")
 
@@ -1169,7 +1169,7 @@ func TestLobbyServiceGetRoomState(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			mockStore := mockService.NewMockStorer(t)
+			mockStore := mockService.NewMockLobbyStore(t)
 			mockRandom := mockService.NewMockRandomizer(t)
 			lobbyService := service.NewLobbyService(mockStore, mockRandom, "en-GB")
 
@@ -1186,7 +1186,7 @@ func TestLobbyServiceGetRoomState(t *testing.T) {
 
 	t.Run("Should fail to get room state because we fail to get room details DB", func(t *testing.T) {
 		t.Parallel()
-		mockStore := mockService.NewMockStorer(t)
+		mockStore := mockService.NewMockLobbyStore(t)
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewLobbyService(mockStore, mockRandom, "en-GB")
 
@@ -1205,7 +1205,7 @@ func TestLobbyServiceGetLobby(t *testing.T) {
 
 	t.Run("Should successfully get lobby", func(t *testing.T) {
 		t.Parallel()
-		mockStore := mockService.NewMockStorer(t)
+		mockStore := mockService.NewMockLobbyStore(t)
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewLobbyService(mockStore, mockRandom, "en-GB")
 
@@ -1239,7 +1239,7 @@ func TestLobbyServiceGetLobby(t *testing.T) {
 
 	t.Run("Should fail to get lobby because cannot get details from DB", func(t *testing.T) {
 		t.Parallel()
-		mockStore := mockService.NewMockStorer(t)
+		mockStore := mockService.NewMockLobbyStore(t)
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewLobbyService(mockStore, mockRandom, "en-GB")
 

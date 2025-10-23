@@ -20,7 +20,7 @@ func TestAnswerLengthValidation(t *testing.T) {
 
 	t.Run("Should reject answer that exceeds maximum length", func(t *testing.T) {
 		t.Parallel()
-		mockStore := mockService.NewMockStorer(t)
+		mockStore := mockService.NewMockRoundStore(t)
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
@@ -39,7 +39,7 @@ func TestAnswerLengthValidation(t *testing.T) {
 
 	t.Run("Should accept answer within length limits", func(t *testing.T) {
 		t.Parallel()
-		mockStore := mockService.NewMockStorer(t)
+		mockStore := mockService.NewMockRoundStore(t)
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 
@@ -61,7 +61,7 @@ func TestAnswerLengthValidation(t *testing.T) {
 
 	t.Run("Should reject empty answer", func(t *testing.T) {
 		t.Parallel()
-		mockStore := mockService.NewMockStorer(t)
+		mockStore := mockService.NewMockRoundStore(t)
 		mockRandom := mockService.NewMockRandomizer(t)
 		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
 

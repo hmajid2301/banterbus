@@ -15,8 +15,26 @@ import (
 	"gitlab.com/hmajid2301/banterbus/internal/telemetry"
 )
 
+type LobbyStore interface {
+	CreateRoom(ctx context.Context, arg db.CreateRoomArgs) error
+	GetRoomByCode(ctx context.Context, roomCode string) (db.Room, error)
+	GetRoomByPlayerID(ctx context.Context, playerID uuid.UUID) (db.Room, error)
+	GetAllPlayersInRoom(ctx context.Context, playerID uuid.UUID) ([]db.GetAllPlayersInRoomRow, error)
+	JoinRoom(ctx context.Context, arg db.JoinRoomArgs) (db.JoinRoomResult, error)
+	ReassignHostPlayer(ctx context.Context, arg db.ReassignHostPlayerParams) (db.Room, error)
+	RemovePlayerFromRoom(ctx context.Context, playerID uuid.UUID) (db.RoomsPlayer, error)
+	StartGame(ctx context.Context, arg db.StartGameArgs) error
+	GetRandomQuestionByRound(ctx context.Context, arg db.GetRandomQuestionByRoundParams) ([]db.GetRandomQuestionByRoundRow, error)
+	GetRandomQuestionInGroup(ctx context.Context, arg db.GetRandomQuestionInGroupParams) ([]db.GetRandomQuestionInGroupRow, error)
+}
+
+type questionFetcher interface {
+	GetRandomQuestionByRound(ctx context.Context, arg db.GetRandomQuestionByRoundParams) ([]db.GetRandomQuestionByRoundRow, error)
+	GetRandomQuestionInGroup(ctx context.Context, arg db.GetRandomQuestionInGroupParams) ([]db.GetRandomQuestionInGroupRow, error)
+}
+
 type LobbyService struct {
-	store         Storer
+	store         LobbyStore
 	randomizer    Randomizer
 	defaultLocale string
 	metrics       *telemetry.Recorder
@@ -29,7 +47,7 @@ var ErrNicknameExists = errors.New("nickname already exists in room")
 var ErrPlayerAlreadyInRoom = errors.New("player is already in the room")
 var ErrPlayerNotInGame = errors.New("player is not currently in any game")
 
-func NewLobbyService(store Storer, randomizer Randomizer, defaultLocale string) *LobbyService {
+func NewLobbyService(store LobbyStore, randomizer Randomizer, defaultLocale string) *LobbyService {
 	return &LobbyService{
 		store:         store,
 		randomizer:    randomizer,
@@ -447,7 +465,7 @@ func (r *LobbyService) getNewPlayer(playerNickname string, playerID uuid.UUID) N
 // TODO: add unit tests for this
 func getQuestions(
 	ctx context.Context,
-	store Storer,
+	store questionFetcher,
 	gameName string,
 	roundType string,
 ) ([]db.GetRandomQuestionByRoundRow, []db.GetRandomQuestionInGroupRow, error) {

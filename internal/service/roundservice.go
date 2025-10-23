@@ -24,14 +24,48 @@ const (
 	MaxAnswerLength         = 500 // Maximum characters allowed in an answer
 )
 
+type RoundStore interface {
+	GetGameState(ctx context.Context, id uuid.UUID) (db.GameState, error)
+	GetGameStateByPlayerID(ctx context.Context, playerID uuid.UUID) (db.GameState, error)
+	UpdateGameState(ctx context.Context, arg db.UpdateGameStateParams) (db.GameState, error)
+	GetLatestRoundByPlayerID(ctx context.Context, playerID uuid.UUID) (db.GetLatestRoundByPlayerIDRow, error)
+	GetLatestRoundByGameStateID(ctx context.Context, id uuid.UUID) (db.GetLatestRoundByGameStateIDRow, error)
+	CountTotalRoundsByGameStateID(ctx context.Context, gameStateID uuid.UUID) (int64, error)
+	GetFibberByRoundID(ctx context.Context, roundID uuid.UUID) (db.FibbingItPlayerRole, error)
+	GetAllPlayersByGameStateID(ctx context.Context, id uuid.UUID) ([]db.GetAllPlayersByGameStateIDRow, error)
+	GetAllPlayersInRoom(ctx context.Context, playerID uuid.UUID) ([]db.GetAllPlayersInRoomRow, error)
+	GetAllPlayersQuestionStateByGameStateID(ctx context.Context, id uuid.UUID) ([]db.GetAllPlayersQuestionStateByGameStateIDRow, error)
+	UpsertFibbingItAnswer(ctx context.Context, arg db.UpsertFibbingItAnswerParams) (db.FibbingItAnswer, error)
+	ToggleAnswerIsReady(ctx context.Context, playerID uuid.UUID) (db.FibbingItAnswer, error)
+	GetAllPlayerAnswerIsReady(ctx context.Context, id uuid.UUID) (bool, error)
+	GetAllPlayerAnswerIsReadyByPlayerID(ctx context.Context, playerID uuid.UUID) (bool, error)
+	GetCurrentQuestionByPlayerID(ctx context.Context, id uuid.UUID) (db.GetCurrentQuestionByPlayerIDRow, error)
+	GetQuestionWithLocalesById(ctx context.Context, id uuid.UUID) ([]db.GetQuestionWithLocalesByIdRow, error)
+	UpsertFibbingItVote(ctx context.Context, arg db.UpsertFibbingItVoteParams) error
+	ToggleVotingIsReady(ctx context.Context, playerID uuid.UUID) (db.FibbingItVote, error)
+	GetAllPlayersVotingIsReady(ctx context.Context, id uuid.UUID) (bool, error)
+	GetAllPlayersVotingIsReadyByPlayerID(ctx context.Context, playerID uuid.UUID) (bool, error)
+	GetVotingState(ctx context.Context, roundID uuid.UUID) ([]db.GetVotingStateRow, error)
+	GetAllVotesForRoundByGameStateID(ctx context.Context, gameStateID uuid.UUID) ([]db.GetAllVotesForRoundByGameStateIDRow, error)
+	GetTotalScoresByGameStateID(ctx context.Context, arg db.GetTotalScoresByGameStateIDParams) ([]db.GetTotalScoresByGameStateIDRow, error)
+	GetRoomByPlayerID(ctx context.Context, playerID uuid.UUID) (db.Room, error)
+	UpdateRoomState(ctx context.Context, arg db.UpdateRoomStateParams) (db.Room, error)
+	UpdateStateToVoting(ctx context.Context, arg db.UpdateStateToVotingArgs) (db.UpdateStateToVotingResult, error)
+	UpdateStateToReveal(ctx context.Context, arg db.UpdateStateToRevealArgs) (db.UpdateStateToRevealResult, error)
+	UpdateStateToScore(ctx context.Context, arg db.UpdateStateToScoreArgs) (db.UpdateStateToScoreResult, error)
+	UpdateStateToQuestion(ctx context.Context, arg db.UpdateStateToQuestionArgs) (db.UpdateStateToQuestionResult, error)
+	GetRandomQuestionByRound(ctx context.Context, arg db.GetRandomQuestionByRoundParams) ([]db.GetRandomQuestionByRoundRow, error)
+	GetRandomQuestionInGroup(ctx context.Context, arg db.GetRandomQuestionInGroupParams) ([]db.GetRandomQuestionInGroupRow, error)
+}
+
 type RoundService struct {
-	store         Storer
+	store         RoundStore
 	randomizer    Randomizer
 	defaultLocale string
 	metrics       *telemetry.Recorder
 }
 
-func NewRoundService(store Storer, randomizer Randomizer, defaultLocale string) *RoundService {
+func NewRoundService(store RoundStore, randomizer Randomizer, defaultLocale string) *RoundService {
 	return &RoundService{
 		store:         store,
 		randomizer:    randomizer,
@@ -147,7 +181,7 @@ func (r *RoundService) ToggleAnswerIsReady(
 		return false, err
 	}
 
-	allReady, err := r.store.GetAllPlayerAnswerIsReady(ctx, playerID)
+	allReady, err := r.store.GetAllPlayerAnswerIsReadyByPlayerID(ctx, playerID)
 	return allReady, err
 }
 
@@ -348,7 +382,7 @@ func (r *RoundService) ToggleVotingIsReady(
 		return false, err
 	}
 
-	allReady, err := r.store.GetAllPlayersVotingIsReady(ctx, playerID)
+	allReady, err := r.store.GetAllPlayersVotingIsReadyByPlayerID(ctx, playerID)
 	return allReady, err
 }
 
@@ -364,16 +398,7 @@ func (r *RoundService) AreAllPlayersAnswerReady(ctx context.Context, gameStateID
 		return false, nil
 	}
 
-	players, err := r.store.GetAllPlayersByGameStateID(ctx, gameStateID)
-	if err != nil {
-		return false, err
-	}
-
-	if len(players) == 0 {
-		return false, errors.New("no players in room")
-	}
-
-	allReady, err := r.store.GetAllPlayerAnswerIsReady(ctx, players[0].ID)
+	allReady, err := r.store.GetAllPlayerAnswerIsReady(ctx, gameStateID)
 	return allReady, err
 }
 
@@ -387,16 +412,7 @@ func (r *RoundService) AreAllPlayersVotingReady(ctx context.Context, gameStateID
 		return false, ErrNotInVotingState
 	}
 
-	players, err := r.store.GetAllPlayersByGameStateID(ctx, gameStateID)
-	if err != nil {
-		return false, err
-	}
-
-	if len(players) == 0 {
-		return false, errors.New("no players in room")
-	}
-
-	allReady, err := r.store.GetAllPlayersVotingIsReady(ctx, players[0].ID)
+	allReady, err := r.store.GetAllPlayersVotingIsReady(ctx, gameStateID)
 	return allReady, err
 }
 

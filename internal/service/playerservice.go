@@ -12,12 +12,20 @@ import (
 
 var ErrPlayerNotFound = errors.New("player not found")
 
+type PlayerStore interface {
+	GetPlayerByID(ctx context.Context, id uuid.UUID) (db.Player, error)
+	UpdateLocale(ctx context.Context, arg db.UpdateLocaleParams) (db.Player, error)
+	UpdateNicknameWithPlayers(ctx context.Context, arg db.UpdateNicknameArgs) (db.UpdateNicknameResult, error)
+	GenerateNewAvatarWithPlayers(ctx context.Context, arg db.GenerateNewAvatarArgs) (db.GenerateNewAvatarResult, error)
+	TogglePlayerReadyWithPlayers(ctx context.Context, arg db.TogglePlayerIsReadyArgs) (db.TogglePlayerIsReadyResult, error)
+}
+
 type PlayerService struct {
-	store      Storer
+	store      PlayerStore
 	randomizer Randomizer
 }
 
-func NewPlayerService(store Storer, randomizer Randomizer) *PlayerService {
+func NewPlayerService(store PlayerStore, randomizer Randomizer) *PlayerService {
 	return &PlayerService{store: store, randomizer: randomizer}
 }
 

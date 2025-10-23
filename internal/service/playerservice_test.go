@@ -21,7 +21,7 @@ func TestPlayerServiceUpdateNickname(t *testing.T) {
 
 	t.Run("Should successfully update nickname", func(t *testing.T) {
 		t.Parallel()
-		mockStore := mockService.NewMockStorer(t)
+		mockStore := mockService.NewMockPlayerStore(t)
 		mockRandomizer := mockService.NewMockRandomizer(t)
 		srv := service.NewPlayerService(mockStore, mockRandomizer)
 
@@ -61,7 +61,7 @@ func TestPlayerServiceUpdateNickname(t *testing.T) {
 
 	t.Run("Should fail to update nickname because we failed to get room details", func(t *testing.T) {
 		t.Parallel()
-		mockStore := mockService.NewMockStorer(t)
+		mockStore := mockService.NewMockPlayerStore(t)
 		mockRandomizer := mockService.NewMockRandomizer(t)
 		srv := service.NewPlayerService(mockStore, mockRandomizer)
 
@@ -77,7 +77,7 @@ func TestPlayerServiceUpdateNickname(t *testing.T) {
 
 	t.Run("Should fail to update nickname because lobby not in CREATED room state", func(t *testing.T) {
 		t.Parallel()
-		mockStore := mockService.NewMockStorer(t)
+		mockStore := mockService.NewMockPlayerStore(t)
 		mockRandomizer := mockService.NewMockRandomizer(t)
 		srv := service.NewPlayerService(mockStore, mockRandomizer)
 
@@ -94,7 +94,7 @@ func TestPlayerServiceUpdateNickname(t *testing.T) {
 
 	t.Run("Should fail to update nickname because, nickname already exists in lobby", func(t *testing.T) {
 		t.Parallel()
-		mockStore := mockService.NewMockStorer(t)
+		mockStore := mockService.NewMockPlayerStore(t)
 		mockRandomizer := mockService.NewMockRandomizer(t)
 		srv := service.NewPlayerService(mockStore, mockRandomizer)
 
@@ -111,7 +111,7 @@ func TestPlayerServiceUpdateNickname(t *testing.T) {
 
 	t.Run("Should fail to update nickname because update nickname in DB failed", func(t *testing.T) {
 		t.Parallel()
-		mockStore := mockService.NewMockStorer(t)
+		mockStore := mockService.NewMockPlayerStore(t)
 		mockRandomizer := mockService.NewMockRandomizer(t)
 		srv := service.NewPlayerService(mockStore, mockRandomizer)
 
@@ -128,7 +128,7 @@ func TestPlayerServiceUpdateNickname(t *testing.T) {
 
 	t.Run("Should fail to update nickname because get all players failed from DB", func(t *testing.T) {
 		t.Parallel()
-		mockStore := mockService.NewMockStorer(t)
+		mockStore := mockService.NewMockPlayerStore(t)
 		mockRandomizer := mockService.NewMockRandomizer(t)
 		srv := service.NewPlayerService(mockStore, mockRandomizer)
 
@@ -149,7 +149,7 @@ func TestPlayerServiceGenerateAvatar(t *testing.T) {
 
 	t.Run("Should successfully generate avatar", func(t *testing.T) {
 		t.Parallel()
-		mockStore := mockService.NewMockStorer(t)
+		mockStore := mockService.NewMockPlayerStore(t)
 		mockRandomizer := mockService.NewMockRandomizer(t)
 		srv := service.NewPlayerService(mockStore, mockRandomizer)
 
@@ -192,7 +192,7 @@ func TestPlayerServiceGenerateAvatar(t *testing.T) {
 
 	t.Run("Should fail to update avatar because we fail to get room details from DB", func(t *testing.T) {
 		t.Parallel()
-		mockStore := mockService.NewMockStorer(t)
+		mockStore := mockService.NewMockPlayerStore(t)
 		mockRandomizer := mockService.NewMockRandomizer(t)
 		srv := service.NewPlayerService(mockStore, mockRandomizer)
 
@@ -210,7 +210,7 @@ func TestPlayerServiceGenerateAvatar(t *testing.T) {
 
 	t.Run("Should fail to update avatar because lobby is not in CREATED state", func(t *testing.T) {
 		t.Parallel()
-		mockStore := mockService.NewMockStorer(t)
+		mockStore := mockService.NewMockPlayerStore(t)
 		mockRandomizer := mockService.NewMockRandomizer(t)
 		srv := service.NewPlayerService(mockStore, mockRandomizer)
 
@@ -228,7 +228,7 @@ func TestPlayerServiceGenerateAvatar(t *testing.T) {
 
 	t.Run("Should fail to update avatar because we fail to update avatar in DB", func(t *testing.T) {
 		t.Parallel()
-		mockStore := mockService.NewMockStorer(t)
+		mockStore := mockService.NewMockPlayerStore(t)
 		mockRandomizer := mockService.NewMockRandomizer(t)
 		srv := service.NewPlayerService(mockStore, mockRandomizer)
 
@@ -246,7 +246,7 @@ func TestPlayerServiceGenerateAvatar(t *testing.T) {
 
 	t.Run("Should fail to update avatar because we fail to get all players in room from DB", func(t *testing.T) {
 		t.Parallel()
-		mockStore := mockService.NewMockStorer(t)
+		mockStore := mockService.NewMockPlayerStore(t)
 		mockRandomizer := mockService.NewMockRandomizer(t)
 		srv := service.NewPlayerService(mockStore, mockRandomizer)
 
@@ -286,7 +286,7 @@ func TestPlayerServiceTogglePlayerIsReady(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			mockStore := mockService.NewMockStorer(t)
+			mockStore := mockService.NewMockPlayerStore(t)
 			mockRandomizer := mockService.NewMockRandomizer(t)
 			srv := service.NewPlayerService(mockStore, mockRandomizer)
 
@@ -328,7 +328,7 @@ func TestPlayerServiceTogglePlayerIsReady(t *testing.T) {
 
 	t.Run("Should fail to toggle player because we fail to get room details from DB", func(t *testing.T) {
 		t.Parallel()
-		mockStore := mockService.NewMockStorer(t)
+		mockStore := mockService.NewMockPlayerStore(t)
 		mockRandomizer := mockService.NewMockRandomizer(t)
 		srv := service.NewPlayerService(mockStore, mockRandomizer)
 
@@ -343,7 +343,7 @@ func TestPlayerServiceTogglePlayerIsReady(t *testing.T) {
 
 	t.Run("Should fail to toggle player because lobby is not in CREATED state", func(t *testing.T) {
 		t.Parallel()
-		mockStore := mockService.NewMockStorer(t)
+		mockStore := mockService.NewMockPlayerStore(t)
 		mockRandomizer := mockService.NewMockRandomizer(t)
 		srv := service.NewPlayerService(mockStore, mockRandomizer)
 
@@ -359,7 +359,7 @@ func TestPlayerServiceTogglePlayerIsReady(t *testing.T) {
 
 	t.Run("Should fail to toggle player because fail to update ready status in DB", func(t *testing.T) {
 		t.Parallel()
-		mockStore := mockService.NewMockStorer(t)
+		mockStore := mockService.NewMockPlayerStore(t)
 		mockRandomizer := mockService.NewMockRandomizer(t)
 		srv := service.NewPlayerService(mockStore, mockRandomizer)
 
@@ -375,7 +375,7 @@ func TestPlayerServiceTogglePlayerIsReady(t *testing.T) {
 
 	t.Run("Should fail to toggle player because fail to get players in room from DB", func(t *testing.T) {
 		t.Parallel()
-		mockStore := mockService.NewMockStorer(t)
+		mockStore := mockService.NewMockPlayerStore(t)
 		mockRandomizer := mockService.NewMockRandomizer(t)
 		srv := service.NewPlayerService(mockStore, mockRandomizer)
 
@@ -395,7 +395,7 @@ func TestPlayerServiceUpdateLocale(t *testing.T) {
 
 	t.Run("Should successfully update locale", func(t *testing.T) {
 		t.Parallel()
-		mockStore := mockService.NewMockStorer(t)
+		mockStore := mockService.NewMockPlayerStore(t)
 		mockRandomizer := mockService.NewMockRandomizer(t)
 		srv := service.NewPlayerService(mockStore, mockRandomizer)
 
@@ -413,7 +413,7 @@ func TestPlayerServiceUpdateLocale(t *testing.T) {
 
 	t.Run("Should handle player not found gracefully", func(t *testing.T) {
 		t.Parallel()
-		mockStore := mockService.NewMockStorer(t)
+		mockStore := mockService.NewMockPlayerStore(t)
 		mockRandomizer := mockService.NewMockRandomizer(t)
 		srv := service.NewPlayerService(mockStore, mockRandomizer)
 
@@ -431,7 +431,7 @@ func TestPlayerServiceUpdateLocale(t *testing.T) {
 
 	t.Run("Should return error for other database errors", func(t *testing.T) {
 		t.Parallel()
-		mockStore := mockService.NewMockStorer(t)
+		mockStore := mockService.NewMockPlayerStore(t)
 		mockRandomizer := mockService.NewMockRandomizer(t)
 		srv := service.NewPlayerService(mockStore, mockRandomizer)
 

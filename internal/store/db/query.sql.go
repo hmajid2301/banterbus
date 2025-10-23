@@ -385,6 +385,32 @@ WITH latest_round AS (
         gs.room_id
     FROM game_state gs
     JOIN fibbing_it_rounds fir ON fir.game_state_id = gs.id
+    WHERE gs.id = $1
+    ORDER BY fir.created_at DESC
+    LIMIT 1
+)
+
+SELECT COUNT(rp.*) = SUM(CASE WHEN COALESCE(fa.is_ready, FALSE) THEN 1 ELSE 0 END) AS all_players_ready
+FROM rooms_players rp
+CROSS JOIN latest_round lr
+LEFT JOIN fibbing_it_answers fa ON fa.player_id = rp.player_id AND fa.round_id = lr.round_id
+WHERE rp.room_id = lr.room_id
+`
+
+func (q *Queries) GetAllPlayerAnswerIsReady(ctx context.Context, id uuid.UUID) (bool, error) {
+	row := q.db.QueryRow(ctx, getAllPlayerAnswerIsReady, id)
+	var all_players_ready bool
+	err := row.Scan(&all_players_ready)
+	return all_players_ready, err
+}
+
+const getAllPlayerAnswerIsReadyByPlayerID = `-- name: GetAllPlayerAnswerIsReadyByPlayerID :one
+WITH latest_round AS (
+    SELECT
+        fir.id AS round_id,
+        gs.room_id
+    FROM game_state gs
+    JOIN fibbing_it_rounds fir ON fir.game_state_id = gs.id
     JOIN rooms_players rp_lookup ON gs.room_id = rp_lookup.room_id
     WHERE rp_lookup.player_id = $1
     ORDER BY gs.created_at DESC, fir.created_at DESC
@@ -398,8 +424,8 @@ LEFT JOIN fibbing_it_answers fa ON fa.player_id = rp.player_id AND fa.round_id =
 WHERE rp.room_id = lr.room_id
 `
 
-func (q *Queries) GetAllPlayerAnswerIsReady(ctx context.Context, playerID uuid.UUID) (bool, error) {
-	row := q.db.QueryRow(ctx, getAllPlayerAnswerIsReady, playerID)
+func (q *Queries) GetAllPlayerAnswerIsReadyByPlayerID(ctx context.Context, playerID uuid.UUID) (bool, error) {
+	row := q.db.QueryRow(ctx, getAllPlayerAnswerIsReadyByPlayerID, playerID)
 	var all_players_ready bool
 	err := row.Scan(&all_players_ready)
 	return all_players_ready, err
@@ -662,6 +688,32 @@ func (q *Queries) GetAllPlayersQuestionStateByGameStateID(ctx context.Context, i
 }
 
 const getAllPlayersVotingIsReady = `-- name: GetAllPlayersVotingIsReady :one
+WITH latest_round AS (
+    SELECT
+        fir.id AS round_id,
+        gs.room_id
+    FROM game_state gs
+    JOIN fibbing_it_rounds fir ON fir.game_state_id = gs.id
+    WHERE gs.id = $1
+    ORDER BY fir.created_at DESC
+    LIMIT 1
+)
+
+SELECT COUNT(rp.*) = SUM(CASE WHEN COALESCE(fv.is_ready, FALSE) THEN 1 ELSE 0 END) AS all_players_ready
+FROM rooms_players rp
+CROSS JOIN latest_round lr
+LEFT JOIN fibbing_it_votes fv ON fv.player_id = rp.player_id AND fv.round_id = lr.round_id
+WHERE rp.room_id = lr.room_id
+`
+
+func (q *Queries) GetAllPlayersVotingIsReady(ctx context.Context, id uuid.UUID) (bool, error) {
+	row := q.db.QueryRow(ctx, getAllPlayersVotingIsReady, id)
+	var all_players_ready bool
+	err := row.Scan(&all_players_ready)
+	return all_players_ready, err
+}
+
+const getAllPlayersVotingIsReadyByPlayerID = `-- name: GetAllPlayersVotingIsReadyByPlayerID :one
 SELECT
     COUNT(*)
     = SUM(CASE WHEN COALESCE(fa.is_ready, FALSE) THEN 1 ELSE 0 END)
@@ -685,8 +737,8 @@ WHERE rp.room_id = (
 )
 `
 
-func (q *Queries) GetAllPlayersVotingIsReady(ctx context.Context, playerID uuid.UUID) (bool, error) {
-	row := q.db.QueryRow(ctx, getAllPlayersVotingIsReady, playerID)
+func (q *Queries) GetAllPlayersVotingIsReadyByPlayerID(ctx context.Context, playerID uuid.UUID) (bool, error) {
+	row := q.db.QueryRow(ctx, getAllPlayersVotingIsReadyByPlayerID, playerID)
 	var all_players_ready bool
 	err := row.Scan(&all_players_ready)
 	return all_players_ready, err

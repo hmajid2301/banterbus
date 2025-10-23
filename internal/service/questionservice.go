@@ -12,13 +12,23 @@ const (
 	DefaultGameName = "fibbing_it"
 )
 
+type QuestionStore interface {
+	CreateQuestionWithTranslation(ctx context.Context, arg db.CreateQuestionArgs) (uuid.UUID, error)
+	AddQuestionTranslation(ctx context.Context, arg db.AddQuestionTranslationParams) (db.QuestionsI18n, error)
+	GetGroups(ctx context.Context) ([]db.QuestionsGroup, error)
+	GetQuestions(ctx context.Context, arg db.GetQuestionsParams) ([]db.GetQuestionsRow, error)
+	AddGroup(ctx context.Context, arg db.AddGroupParams) (db.QuestionsGroup, error)
+	DisableQuestion(ctx context.Context, id uuid.UUID) (db.Question, error)
+	EnableQuestion(ctx context.Context, id uuid.UUID) (db.Question, error)
+}
+
 type QuestionService struct {
-	store         Storer
+	store         QuestionStore
 	randomizer    Randomizer
 	defaultLocale string
 }
 
-func NewQuestionService(store Storer, randomizer Randomizer, defaultLocale string) *QuestionService {
+func NewQuestionService(store QuestionStore, randomizer Randomizer, defaultLocale string) *QuestionService {
 	return &QuestionService{store: store, randomizer: randomizer, defaultLocale: defaultLocale}
 }
 
