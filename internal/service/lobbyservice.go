@@ -358,7 +358,7 @@ func (r *LobbyService) GetRoomState(ctx context.Context, playerID uuid.UUID) (db
 		return db.Created, err
 	}
 
-	roomState, err := db.RoomStateFromString(room.RoomState)
+	roomState, err := db.ParseRoomState(room.RoomState)
 	return roomState, err
 }
 

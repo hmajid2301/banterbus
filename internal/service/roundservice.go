@@ -47,7 +47,7 @@ var ErrNoNormalQuestions = errors.New("no normal questions available")
 var ErrNoFibberQuestions = errors.New("no fibber questions available")
 var ErrNotInQuestionState = errors.New("game state is not in FIBBING_IT_QUESTION state")
 var ErrNotInVotingState = errors.New("game state is not in FIBBING_IT_VOTING state")
-var ErrNotInRevealState = errors.New("game state is not in FIBBING_IT_REVEAL_ROLE state")
+var ErrNotInRevealState = errors.New("game state is not in FIBBING_IT_REVEAL state")
 var ErrNotInScoringState = errors.New("game state is not in FIBBING_IT_SCORING_STATE state")
 var ErrAlreadyInQuestionState = errors.New("game state is already in FIBBING_IT_QUESTION state")
 
@@ -730,7 +730,7 @@ func (r *RoundService) GetGameState(ctx context.Context, playerID uuid.UUID) (db
 		return db.FibbingITQuestion, err
 	}
 
-	gameState, err := db.GameStateFromString(game.State)
+	gameState, err := db.ParseFibbingItGameState(game.State)
 	return gameState, err
 }
 
@@ -740,7 +740,7 @@ func (r *RoundService) GetGameStateByID(ctx context.Context, gameStateID uuid.UU
 		return db.FibbingITQuestion, err
 	}
 
-	gameState, err := db.GameStateFromString(game.State)
+	gameState, err := db.ParseFibbingItGameState(game.State)
 	return gameState, err
 }
 
@@ -912,11 +912,11 @@ func (r *RoundService) UpdateStateToWinner(
 		return WinnerState{}, err
 	}
 
-	gameState, err := db.GameStateFromString(game.State)
+	gameState, err := db.ParseFibbingItGameState(game.State)
 	if err != nil {
 		return WinnerState{}, err
-	} else if gameState != db.FibbingItRevealRole && gameState != db.FibbingItScoring {
-		return WinnerState{}, errors.New("game state must be in FIBBING_IT_REVEAL_ROLE or FIBBING_IT_SCORING state")
+	} else if gameState != db.FibbingItReveal && gameState != db.FibbingItScoring {
+		return WinnerState{}, errors.New("game state must be in FIBBING_IT_REVEAL or FIBBING_IT_SCORING state")
 	}
 
 	_, err = r.store.UpdateGameState(ctx, db.UpdateGameStateParams{

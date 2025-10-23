@@ -344,7 +344,7 @@ func (s *DB) UpdateStateToQuestion(ctx context.Context, arg UpdateStateToQuestio
 				if err != nil {
 					return err
 				}
-				currentState, err := GameStateFromString(currentGame.State)
+				currentState, err := ParseFibbingItGameState(currentGame.State)
 				if err != nil {
 					return err
 				}
@@ -368,7 +368,7 @@ func (s *DB) UpdateStateToQuestion(ctx context.Context, arg UpdateStateToQuestio
 			return err
 		}
 
-		gameState, err := GameStateFromString(game.State)
+		gameState, err := ParseFibbingItGameState(game.State)
 		if err != nil {
 			return err
 		}
@@ -389,8 +389,8 @@ func (s *DB) UpdateStateToQuestion(ctx context.Context, arg UpdateStateToQuestio
 			return nil
 		}
 
-		if gameState != FibbingItRevealRole && gameState != FibbingItScoring {
-			return errors.New("game state is not in FIBBING_IT_REVEAL_ROLE state or FIBBING_IT_SCORING state")
+		if gameState != FibbingItReveal && gameState != FibbingItScoring {
+			return errors.New("game state is not in FIBBING_IT_REVEAL state or FIBBING_IT_SCORING state")
 		}
 
 		_, err = q.UpdateGameState(ctx, UpdateGameStateParams{
@@ -630,7 +630,7 @@ func (s *DB) UpdateStateToScore(ctx context.Context, arg UpdateStateToScoreArgs)
 				if err != nil {
 					return err
 				}
-				currentState, err := GameStateFromString(currentGame.State)
+				currentState, err := ParseFibbingItGameState(currentGame.State)
 				if err != nil {
 					return err
 				}
@@ -638,12 +638,12 @@ func (s *DB) UpdateStateToScore(ctx context.Context, arg UpdateStateToScoreArgs)
 					result.Success = true
 					return nil
 				}
-				return errors.New("game state is not in FIBBING_IT_REVEAL_ROLE state")
+				return errors.New("game state is not in FIBBING_IT_REVEAL state")
 			}
 			return err
 		}
 
-		gameState, err := GameStateFromString(game.State)
+		gameState, err := ParseFibbingItGameState(game.State)
 		if err != nil {
 			return err
 		}
@@ -653,19 +653,19 @@ func (s *DB) UpdateStateToScore(ctx context.Context, arg UpdateStateToScoreArgs)
 			return nil
 		}
 
-		if gameState != FibbingItRevealRole {
-			return errors.New("game state is not in FIBBING_IT_REVEAL_ROLE state")
+		if gameState != FibbingItReveal {
+			return errors.New("game state is not in FIBBING_IT_REVEAL state")
 		}
 
 		_, err = q.UpdateGameStateIfInState(ctx, UpdateGameStateIfInStateParams{
 			State:          FibbingItScoring.String(),
 			SubmitDeadline: pgtype.Timestamp{Time: arg.Deadline, Valid: true},
 			ID:             arg.GameStateID,
-			State_2:        FibbingItRevealRole.String(),
+			State_2:        FibbingItReveal.String(),
 		})
 		if err != nil {
 			if errors.Is(err, sql.ErrNoRows) {
-				return errors.New("game state is not in FIBBING_IT_REVEAL_ROLE state")
+				return errors.New("game state is not in FIBBING_IT_REVEAL state")
 			}
 			return err
 		}
@@ -709,7 +709,7 @@ func (s *DB) UpdateStateToVoting(ctx context.Context, arg UpdateStateToVotingArg
 				if err != nil {
 					return err
 				}
-				currentState, err := GameStateFromString(currentGame.State)
+				currentState, err := ParseFibbingItGameState(currentGame.State)
 				if err != nil {
 					return err
 				}
@@ -727,7 +727,7 @@ func (s *DB) UpdateStateToVoting(ctx context.Context, arg UpdateStateToVotingArg
 			return err
 		}
 
-		gameState, err := GameStateFromString(game.State)
+		gameState, err := ParseFibbingItGameState(game.State)
 		if err != nil {
 			return err
 		}
@@ -793,11 +793,11 @@ func (s *DB) UpdateStateToReveal(ctx context.Context, arg UpdateStateToRevealArg
 				if err != nil {
 					return err
 				}
-				currentState, err := GameStateFromString(currentGame.State)
+				currentState, err := ParseFibbingItGameState(currentGame.State)
 				if err != nil {
 					return err
 				}
-				if currentState == FibbingItRevealRole {
+				if currentState == FibbingItReveal {
 					round, err := q.GetLatestRoundByGameStateID(ctx, arg.GameStateID)
 					if err != nil {
 						return err
@@ -811,12 +811,12 @@ func (s *DB) UpdateStateToReveal(ctx context.Context, arg UpdateStateToRevealArg
 			return err
 		}
 
-		gameState, err := GameStateFromString(game.State)
+		gameState, err := ParseFibbingItGameState(game.State)
 		if err != nil {
 			return err
 		}
 
-		if gameState == FibbingItRevealRole {
+		if gameState == FibbingItReveal {
 			round, err := q.GetLatestRoundByGameStateID(ctx, arg.GameStateID)
 			if err != nil {
 				return err
@@ -831,7 +831,7 @@ func (s *DB) UpdateStateToReveal(ctx context.Context, arg UpdateStateToRevealArg
 		}
 
 		_, err = q.UpdateGameStateIfInState(ctx, UpdateGameStateIfInStateParams{
-			State:          FibbingItRevealRole.String(),
+			State:          FibbingItReveal.String(),
 			SubmitDeadline: pgtype.Timestamp{Time: arg.Deadline, Valid: true},
 			ID:             arg.GameStateID,
 			State_2:        FibbingItVoting.String(),

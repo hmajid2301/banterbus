@@ -183,7 +183,7 @@ func (s Subscriber) reconnectToPlayingGame(ctx context.Context, playerID uuid.UU
 		}
 
 		component = sections.Voting(voting, currentPlayer)
-	case db.FibbingItRevealRole:
+	case db.FibbingItReveal:
 		reveal, err := s.roundService.GetRevealState(ctx, playerID)
 		if err != nil {
 			clientErr := s.updateClientAboutErr(ctx, playerID, "Failed to reconnect to game")

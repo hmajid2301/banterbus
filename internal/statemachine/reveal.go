@@ -126,7 +126,7 @@ func (r *RevealState) transitionToNextState(stateCtx *stateExecutionContext, nex
 		return
 	}
 
-	if currentGameState != db.FibbingItRevealRole {
+	if currentGameState != db.FibbingItReveal {
 		stateCtx.logger.InfoContext(stateCtx.ctx, "game state already transitioned from reveal state",
 			slog.String("current_state", currentGameState.String()),
 			slog.String("expected_next_state", nextState.String()))

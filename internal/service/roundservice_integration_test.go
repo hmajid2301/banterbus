@@ -705,7 +705,7 @@ func TestIntegrationRoundServiceGetGameState(t *testing.T) {
 
 		gameState, err := roundService.GetGameState(ctx, votingState.Players[0].ID)
 		assert.NoError(t, err)
-		assert.Equal(t, db.FibbingItRevealRole, gameState)
+		assert.Equal(t, db.FibbingItReveal, gameState)
 	})
 }
 
@@ -746,16 +746,16 @@ func TestIntegrationRoundServiceUpdateStateToScoring(t *testing.T) {
 		assert.NoError(t, err)
 
 		expectedScoreState := service.ScoreState{
-			RoundType:    "free_form",
-			RoundNumber:  1,
-			TotalRounds:  1,
+			RoundType:   "free_form",
+			RoundNumber: 1,
+			TotalRounds: 1,
 		}
 
 		diffOpts := cmpopts.IgnoreFields(scoreState, "GameStateID", "Deadline", "Players", "FibberCaught")
 		PartialEqual(t, expectedScoreState, scoreState, diffOpts)
 		assert.LessOrEqual(t, int(expectedScoreState.Deadline.Seconds()), 120)
 		assert.Len(t, scoreState.Players, 2)
-		
+
 		// Verify that scores are assigned correctly regardless of who the fibber is
 		totalScore := 0
 		for _, player := range scoreState.Players {
@@ -765,7 +765,7 @@ func TestIntegrationRoundServiceUpdateStateToScoring(t *testing.T) {
 			assert.GreaterOrEqual(t, player.Score, 0, "Player score should be non-negative")
 			totalScore += player.Score
 		}
-		
+
 		// Verify that the scoring system works correctly
 		assert.GreaterOrEqual(t, totalScore, 0, "Total score should be non-negative")
 	})

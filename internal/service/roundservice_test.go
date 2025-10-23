@@ -2190,25 +2190,25 @@ func TestRoundServiceUpdateStateToScore(t *testing.T) {
 			Return([]db.GetTotalScoresByGameStateIDRow{}, nil)
 		mockStore.EXPECT().
 			UpdateStateToScore(ctx, mock.MatchedBy(func(args db.UpdateStateToScoreArgs) bool {
-				return args.GameStateID == gameStateID && 
-					   args.Deadline == now &&
-					   len(args.Scores) == 2 &&
-					   args.Scores[0].PlayerID == defaultHostPlayerID &&
-					   args.Scores[0].Score == 100 &&
-					   args.Scores[1].PlayerID == defaultOtherPlayerID &&
-					   args.Scores[1].Score == 0
+				return args.GameStateID == gameStateID &&
+					args.Deadline == now &&
+					len(args.Scores) == 2 &&
+					args.Scores[0].PlayerID == defaultHostPlayerID &&
+					args.Scores[0].Score == 100 &&
+					args.Scores[1].PlayerID == defaultOtherPlayerID &&
+					args.Scores[1].Score == 0
 			})).Return(db.UpdateStateToScoreResult{}, nil)
 
 		scoreState, err := srv.UpdateStateToScore(ctx, gameStateID, now, scoring)
 		assert.NoError(t, err)
 
 		expectedScoreState := service.ScoreState{
-			GameStateID: gameStateID,
-			RoundNumber: 1,
-			RoundType:   "free_form",
-			TotalRounds: 1,
+			GameStateID:  gameStateID,
+			RoundNumber:  1,
+			RoundType:    "free_form",
+			TotalRounds:  1,
 			FibberCaught: true,
-			Deadline:    time.Until(now),
+			Deadline:     time.Until(now),
 			Players: []service.PlayerWithScoring{
 				{
 					ID:       defaultHostPlayerID,
@@ -2467,13 +2467,13 @@ func TestRoundServiceUpdateStateToScore(t *testing.T) {
 			Return([]db.GetTotalScoresByGameStateIDRow{}, nil)
 		mockStore.EXPECT().
 			UpdateStateToScore(ctx, mock.MatchedBy(func(args db.UpdateStateToScoreArgs) bool {
-				return args.GameStateID == gameStateID && 
-					   args.Deadline == now &&
-					   len(args.Scores) == 2 &&
-					   args.Scores[0].PlayerID == defaultHostPlayerID &&
-					   args.Scores[0].Score == 100 &&
-					   args.Scores[1].PlayerID == defaultOtherPlayerID &&
-					   args.Scores[1].Score == 0
+				return args.GameStateID == gameStateID &&
+					args.Deadline == now &&
+					len(args.Scores) == 2 &&
+					args.Scores[0].PlayerID == defaultHostPlayerID &&
+					args.Scores[0].Score == 100 &&
+					args.Scores[1].PlayerID == defaultOtherPlayerID &&
+					args.Scores[1].Score == 0
 			})).
 			Return(db.UpdateStateToScoreResult{}, errors.New("failed to add scores"))
 
@@ -2838,7 +2838,7 @@ func TestRoundServiceUpdateStateToWinning(t *testing.T) {
 		deadline := time.Now().UTC().Add(1 * time.Hour)
 
 		_, err = srv.UpdateStateToWinner(ctx, gameID, deadline)
-		assert.ErrorContains(t, err, "game state must be in FIBBING_IT_REVEAL_ROLE or FIBBING_IT_SCORING state")
+		assert.ErrorContains(t, err, "game state must be in FIBBING_IT_REVEAL or FIBBING_IT_SCORING state")
 	})
 
 	t.Run("Should fail to update state to winner state, fail to update state in DB", func(t *testing.T) {

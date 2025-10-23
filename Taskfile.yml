@@ -199,7 +199,7 @@ tasks:
       - templ generate
       - tailwindcss -i ./static/css/tailwind.css -o ./static/css/styles.css --minify
       - mockery
-      - go-enum --file=internal/store/db/enums.go
+      - go-enum --noprefix --file=internal/store/db/enums.go
       - sqlc generate
       - gomod2nix generate
       - task: format

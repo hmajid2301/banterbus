@@ -9,31 +9,31 @@ import (
 )
 
 const (
-	// FibbingItGameStateFibbingITQuestion is a FibbingItGameState of type FibbingITQuestion.
-	FibbingItGameStateFibbingITQuestion FibbingItGameState = iota
-	// FibbingItGameStateFibbingItVoting is a FibbingItGameState of type FibbingItVoting.
-	FibbingItGameStateFibbingItVoting
-	// FibbingItGameStateFibbingItRevealRole is a FibbingItGameState of type FibbingItRevealRole.
-	FibbingItGameStateFibbingItRevealRole
-	// FibbingItGameStateFibbingItScoring is a FibbingItGameState of type FibbingItScoring.
-	FibbingItGameStateFibbingItScoring
-	// FibbingItGameStateFibbingItNewRound is a FibbingItGameState of type FibbingItNewRound.
-	FibbingItGameStateFibbingItNewRound
-	// FibbingItGameStateFibbingItWinner is a FibbingItGameState of type FibbingItWinner.
-	FibbingItGameStateFibbingItWinner
+	// FibbingITQuestion is a FibbingItGameState of type FibbingITQuestion.
+	FibbingITQuestion FibbingItGameState = iota
+	// FibbingItVoting is a FibbingItGameState of type FibbingItVoting.
+	FibbingItVoting
+	// FibbingItReveal is a FibbingItGameState of type FibbingItReveal.
+	FibbingItReveal
+	// FibbingItScoring is a FibbingItGameState of type FibbingItScoring.
+	FibbingItScoring
+	// FibbingItNewRound is a FibbingItGameState of type FibbingItNewRound.
+	FibbingItNewRound
+	// FibbingItWinner is a FibbingItGameState of type FibbingItWinner.
+	FibbingItWinner
 )
 
 var ErrInvalidFibbingItGameState = errors.New("not a valid FibbingItGameState")
 
-const _FibbingItGameStateName = "FibbingITQuestionFibbingItVotingFibbingItRevealRoleFibbingItScoringFibbingItNewRoundFibbingItWinner"
+const _FibbingItGameStateName = "FibbingITQuestionFibbingItVotingFibbingItRevealFibbingItScoringFibbingItNewRoundFibbingItWinner"
 
 var _FibbingItGameStateMap = map[FibbingItGameState]string{
-	FibbingItGameStateFibbingITQuestion:   _FibbingItGameStateName[0:17],
-	FibbingItGameStateFibbingItVoting:     _FibbingItGameStateName[17:32],
-	FibbingItGameStateFibbingItRevealRole: _FibbingItGameStateName[32:51],
-	FibbingItGameStateFibbingItScoring:    _FibbingItGameStateName[51:67],
-	FibbingItGameStateFibbingItNewRound:   _FibbingItGameStateName[67:84],
-	FibbingItGameStateFibbingItWinner:     _FibbingItGameStateName[84:99],
+	FibbingITQuestion: _FibbingItGameStateName[0:17],
+	FibbingItVoting:   _FibbingItGameStateName[17:32],
+	FibbingItReveal:   _FibbingItGameStateName[32:47],
+	FibbingItScoring:  _FibbingItGameStateName[47:63],
+	FibbingItNewRound: _FibbingItGameStateName[63:80],
+	FibbingItWinner:   _FibbingItGameStateName[80:95],
 }
 
 // String implements the Stringer interface.
@@ -52,12 +52,12 @@ func (x FibbingItGameState) IsValid() bool {
 }
 
 var _FibbingItGameStateValue = map[string]FibbingItGameState{
-	_FibbingItGameStateName[0:17]:  FibbingItGameStateFibbingITQuestion,
-	_FibbingItGameStateName[17:32]: FibbingItGameStateFibbingItVoting,
-	_FibbingItGameStateName[32:51]: FibbingItGameStateFibbingItRevealRole,
-	_FibbingItGameStateName[51:67]: FibbingItGameStateFibbingItScoring,
-	_FibbingItGameStateName[67:84]: FibbingItGameStateFibbingItNewRound,
-	_FibbingItGameStateName[84:99]: FibbingItGameStateFibbingItWinner,
+	_FibbingItGameStateName[0:17]:  FibbingITQuestion,
+	_FibbingItGameStateName[17:32]: FibbingItVoting,
+	_FibbingItGameStateName[32:47]: FibbingItReveal,
+	_FibbingItGameStateName[47:63]: FibbingItScoring,
+	_FibbingItGameStateName[63:80]: FibbingItNewRound,
+	_FibbingItGameStateName[80:95]: FibbingItWinner,
 }
 
 // ParseFibbingItGameState attempts to convert a string to a FibbingItGameState.
@@ -69,16 +69,16 @@ func ParseFibbingItGameState(name string) (FibbingItGameState, error) {
 }
 
 const (
-	// RoomStateCreated is a RoomState of type Created.
-	RoomStateCreated RoomState = iota
-	// RoomStatePlaying is a RoomState of type Playing.
-	RoomStatePlaying
-	// RoomStatePaused is a RoomState of type Paused.
-	RoomStatePaused
-	// RoomStateFinished is a RoomState of type Finished.
-	RoomStateFinished
-	// RoomStateAbandoned is a RoomState of type Abandoned.
-	RoomStateAbandoned
+	// Created is a RoomState of type Created.
+	Created RoomState = iota
+	// Playing is a RoomState of type Playing.
+	Playing
+	// Paused is a RoomState of type Paused.
+	Paused
+	// Finished is a RoomState of type Finished.
+	Finished
+	// Abandoned is a RoomState of type Abandoned.
+	Abandoned
 )
 
 var ErrInvalidRoomState = errors.New("not a valid RoomState")
@@ -86,11 +86,11 @@ var ErrInvalidRoomState = errors.New("not a valid RoomState")
 const _RoomStateName = "CreatedPlayingPausedFinishedAbandoned"
 
 var _RoomStateMap = map[RoomState]string{
-	RoomStateCreated:   _RoomStateName[0:7],
-	RoomStatePlaying:   _RoomStateName[7:14],
-	RoomStatePaused:    _RoomStateName[14:20],
-	RoomStateFinished:  _RoomStateName[20:28],
-	RoomStateAbandoned: _RoomStateName[28:37],
+	Created:   _RoomStateName[0:7],
+	Playing:   _RoomStateName[7:14],
+	Paused:    _RoomStateName[14:20],
+	Finished:  _RoomStateName[20:28],
+	Abandoned: _RoomStateName[28:37],
 }
 
 // String implements the Stringer interface.
@@ -109,11 +109,11 @@ func (x RoomState) IsValid() bool {
 }
 
 var _RoomStateValue = map[string]RoomState{
-	_RoomStateName[0:7]:   RoomStateCreated,
-	_RoomStateName[7:14]:  RoomStatePlaying,
-	_RoomStateName[14:20]: RoomStatePaused,
-	_RoomStateName[20:28]: RoomStateFinished,
-	_RoomStateName[28:37]: RoomStateAbandoned,
+	_RoomStateName[0:7]:   Created,
+	_RoomStateName[7:14]:  Playing,
+	_RoomStateName[14:20]: Paused,
+	_RoomStateName[20:28]: Finished,
+	_RoomStateName[28:37]: Abandoned,
 }
 
 // ParseRoomState attempts to convert a string to a RoomState.
