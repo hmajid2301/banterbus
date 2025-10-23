@@ -23,8 +23,8 @@ templ Scoreboard(players []service.PlayerWithScoring, maxScore int) {
 				</div>
 				<div class="flex-grow">
 					<div class="flex justify-between items-center mb-2">
-						<span class="py-2 text-base font-semibold">{ p.Nickname }</span>
-						<span class="text-lg font-bold font-button">{ strconv.Itoa(p.Score) }</span>
+						<span class="py-2 text-base font-semibold text-text2">{ p.Nickname }</span>
+						<span class="text-lg font-bold font-button text-text2">{ strconv.Itoa(p.Score) }</span>
 					</div>
 					<div class="w-full h-12 bg-gray-200 rounded-full">
 						<div class={ scoreBarClass(p.Score, maxScore, i) } style={ calculateWidth(p.Score, maxScore) }></div>

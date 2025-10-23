@@ -8,7 +8,7 @@ import (
 	"github.com/gofrs/uuid/v5"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/jackc/pgx/v5/pgtype"
-	"github.com/mdobak/go-xerrors"
+	"errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -201,7 +201,7 @@ func TestLobbyServiceCreate(t *testing.T) {
 		mockRandom.EXPECT().GetRoomCode().Return(roomCode)
 		mockStore.EXPECT().
 			GetRoomByCode(ctx, roomCode).
-			Return(db.Room{}, xerrors.New("failed to get room code")).
+			Return(db.Room{}, errors.New("failed to get room code")).
 			Times(1)
 		_, err = srv.Create(ctx, gameName, defaultNewHostPlayer)
 		assert.Error(t, err)
@@ -428,7 +428,7 @@ func TestLobbyServiceJoin(t *testing.T) {
 			PlayerID: generatedPlayerID,
 			Nickname: playerNickname,
 			Avatar:   generatedAvatar,
-		}).Return(db.JoinRoomResult{}, xerrors.New("room is not in CREATED state"))
+		}).Return(db.JoinRoomResult{}, errors.New("room is not in CREATED state"))
 
 		_, err := srv.Join(ctx, roomCode, uuid.Nil, playerNickname)
 		assert.ErrorContains(t, err, "room is not in CREATED state")
@@ -456,7 +456,7 @@ func TestLobbyServiceJoin(t *testing.T) {
 			PlayerID: generatedPlayerID,
 			Nickname: nickname,
 			Avatar:   generatedAvatar,
-		}).Return(db.JoinRoomResult{}, xerrors.New("nickname already exists"))
+		}).Return(db.JoinRoomResult{}, errors.New("nickname already exists"))
 
 		_, err := srv.Join(ctx, roomCode, uuid.Nil, nickname)
 		assert.ErrorContains(t, err, "nickname already exists")
@@ -485,7 +485,7 @@ func TestLobbyServiceJoin(t *testing.T) {
 			PlayerID: generatedPlayerID,
 			Nickname: playerNickname,
 			Avatar:   generatedAvatar,
-		}).Return(db.JoinRoomResult{}, xerrors.New("failed to add player to room"))
+		}).Return(db.JoinRoomResult{}, errors.New("failed to add player to room"))
 
 		_, err = srv.Join(ctx, roomCode, uuid.Nil, playerNickname)
 		assert.Error(t, err)
@@ -514,7 +514,7 @@ func TestLobbyServiceJoin(t *testing.T) {
 			PlayerID: generatedPlayerID,
 			Nickname: playerNickname,
 			Avatar:   generatedAvatar,
-		}).Return(db.JoinRoomResult{}, xerrors.New("failed to get all players in room"))
+		}).Return(db.JoinRoomResult{}, errors.New("failed to get all players in room"))
 
 		_, err = srv.Join(ctx, roomCode, uuid.Nil, playerNickname)
 		assert.Error(t, err)
@@ -579,7 +579,7 @@ func TestLobbyServiceKickPlayer(t *testing.T) {
 		srv := service.NewLobbyService(mockStore, mockRandom, "en-GB")
 
 		ctx := t.Context()
-		mockStore.EXPECT().GetRoomByCode(ctx, roomCode).Return(db.Room{}, xerrors.New("failed to get room by code"))
+		mockStore.EXPECT().GetRoomByCode(ctx, roomCode).Return(db.Room{}, errors.New("failed to get room by code"))
 		_, _, err := srv.KickPlayer(ctx, roomCode, hostPlayerID, defaultNewPlayer.Nickname)
 		assert.Error(t, err)
 	})
@@ -624,7 +624,7 @@ func TestLobbyServiceKickPlayer(t *testing.T) {
 			Return(db.Room{ID: roomID, HostPlayer: hostPlayerID, RoomState: db.Created.String()}, nil)
 		mockStore.EXPECT().
 			GetAllPlayersInRoom(ctx, hostPlayerID).
-			Return([]db.GetAllPlayersInRoomRow{}, xerrors.New("failed to get all players in room"))
+			Return([]db.GetAllPlayersInRoomRow{}, errors.New("failed to get all players in room"))
 
 		_, _, err := srv.KickPlayer(ctx, roomCode, hostPlayerID, defaultNewPlayer.Nickname)
 		assert.Error(t, err)
@@ -677,7 +677,7 @@ func TestLobbyServiceKickPlayer(t *testing.T) {
 
 		mockStore.EXPECT().
 			RemovePlayerFromRoom(ctx, defaultNewPlayer.ID).
-			Return(db.RoomsPlayer{}, xerrors.New("failed to remove player from room"))
+			Return(db.RoomsPlayer{}, errors.New("failed to remove player from room"))
 		_, _, err := srv.KickPlayer(ctx, roomCode, hostPlayerID, defaultNewPlayer.Nickname)
 		assert.Error(t, err)
 	})
@@ -863,7 +863,7 @@ func TestLobbyServiceStart(t *testing.T) {
 				}, nil)
 		mockStore.EXPECT().
 			GetAllPlayersInRoom(ctx, hostPlayerID).
-			Return([]db.GetAllPlayersInRoomRow{}, xerrors.New("failed to get all players in room"))
+			Return([]db.GetAllPlayersInRoomRow{}, errors.New("failed to get all players in room"))
 
 		deadline := time.Now().Add(5 * time.Second)
 		_, err := srv.Start(ctx, roomCode, hostPlayerID, deadline)
@@ -980,7 +980,7 @@ func TestLobbyServiceStart(t *testing.T) {
 				Locale:     "en-GB",
 				GroupID:    groupID,
 			},
-		}, xerrors.New("failed to get random question for normals"))
+		}, errors.New("failed to get random question for normals"))
 
 		deadline := time.Now().Add(5 * time.Second)
 		_, err := srv.Start(ctx, roomCode, hostPlayerID, deadline)
@@ -1036,7 +1036,7 @@ func TestLobbyServiceStart(t *testing.T) {
 			GroupID:            groupID,
 			ExcludedQuestionID: uuid.Must(uuid.FromString("0193a629-7dcc-78ad-822f-fd5d83c89ae7")),
 			RoundType:          "free_form",
-		}).Return([]db.GetRandomQuestionInGroupRow{}, xerrors.New("failed to get random question for fibber"))
+		}).Return([]db.GetRandomQuestionInGroupRow{}, errors.New("failed to get random question for fibber"))
 
 		deadline := time.Now().Add(5 * time.Second)
 		_, err := srv.Start(ctx, roomCode, hostPlayerID, deadline)
@@ -1124,7 +1124,7 @@ func TestLobbyServiceStart(t *testing.T) {
 			},
 			FibberLoc: 1,
 			Deadline:  deadline,
-		}).Return(xerrors.New("failed to start game"))
+		}).Return(errors.New("failed to start game"))
 
 		_, err := srv.Start(ctx, roomCode, hostPlayerID, deadline)
 		assert.Error(t, err)
@@ -1192,7 +1192,7 @@ func TestLobbyServiceGetRoomState(t *testing.T) {
 
 		ctx := t.Context()
 		mockStore.EXPECT().GetRoomByPlayerID(ctx, playerID).Return(
-			db.Room{}, xerrors.New("failed to get room details"),
+			db.Room{}, errors.New("failed to get room details"),
 		)
 
 		_, err := srv.GetRoomState(ctx, playerID)
@@ -1246,7 +1246,7 @@ func TestLobbyServiceGetLobby(t *testing.T) {
 		ctx := t.Context()
 
 		mockStore.EXPECT().GetAllPlayersInRoom(ctx, playerID).Return(
-			[]db.GetAllPlayersInRoomRow{}, xerrors.New("failed to get players in room"),
+			[]db.GetAllPlayersInRoomRow{}, errors.New("failed to get players in room"),
 		)
 
 		_, err := srv.GetLobby(ctx, playerID)

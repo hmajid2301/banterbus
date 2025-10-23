@@ -17,7 +17,6 @@ require (
 	github.com/invopop/ctxi18n v0.9.0
 	github.com/jackc/pgx/v5 v5.7.6
 	github.com/lmittmann/tint v1.1.2
-	github.com/mdobak/go-xerrors v1.0.0
 	github.com/peterldowns/pgtestdb v0.1.1
 	github.com/peterldowns/pgtestdb/migrators/goosemigrator v0.1.1
 	github.com/playwright-community/playwright-go v0.5200.1

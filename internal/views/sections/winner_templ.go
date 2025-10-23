@@ -35,14 +35,14 @@ func Winner(state service.WinnerState, maxScore int) templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div hx-swap-oob=\"innerHTML:#page\"><div class=\"mx-auto w-full max-w-5xl\"><div class=\"flex flex-col justify-center items-center space-y-4 text-text2\"><div class=\"grid grid-cols-1 gap-8 w-full lg:grid-cols-2 lg:gap-16\"><div class=\"flex justify-center items-center\"><div class=\"text-center\"><h2 class=\"mb-4 text-2xl sm:text-3xl md:text-4xl\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div hx-swap-oob=\"innerHTML:#page\"><div class=\"mx-auto w-full max-w-5xl\"><div class=\"flex flex-col justify-center items-center space-y-4 text-text2\"><div class=\"grid grid-cols-1 gap-8 w-full lg:grid-cols-2 lg:gap-16\"><div class=\"flex justify-center items-center\"><div class=\"text-center\"><h2 class=\"mb-4 text-2xl sm:text-3xl md:text-4xl text-text2\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var2 string
 		templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "winner.the_winner_is"))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/sections/winner.templ`, Line: 16, Col: 94}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/sections/winner.templ`, Line: 16, Col: 105}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
 		if templ_7745c5c3_Err != nil {

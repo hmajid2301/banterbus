@@ -112,9 +112,6 @@ schema = 3
   [mod."github.com/lufia/plan9stats"]
     version = "v0.0.0-20250827001030-24949be3fa54"
     hash = "sha256-ln7SyNSDeJcg0IaOYm6FQQ2Vr6mEvDbuoBc6iaxYIvs="
-  [mod."github.com/mdobak/go-xerrors"]
-    version = "v1.0.0"
-    hash = "sha256-/MFvLX56dfgWeuHJyKnwVspAQTRHs084kqHIZI7k9C8="
   [mod."github.com/mfridman/interpolate"]
     version = "v0.0.2"
     hash = "sha256-3u04CYOy7PLMctdkum5pltSTkYya8EfXJexbW7j0KB8="

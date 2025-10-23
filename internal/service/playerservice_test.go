@@ -1,10 +1,10 @@
 package service_test
 
 import (
+	"errors"
 	"testing"
 
 	"github.com/jackc/pgx/v5/pgtype"
-	"github.com/mdobak/go-xerrors"
 	"github.com/stretchr/testify/assert"
 
 	"gitlab.com/hmajid2301/banterbus/internal/service"
@@ -69,7 +69,7 @@ func TestPlayerServiceUpdateNickname(t *testing.T) {
 		mockStore.EXPECT().UpdateNicknameWithPlayers(ctx, db.UpdateNicknameArgs{
 			PlayerID: playerID,
 			Nickname: "New Nickname",
-		}).Return(db.UpdateNicknameResult{}, xerrors.New("failed to get room details"))
+		}).Return(db.UpdateNicknameResult{}, errors.New("failed to get room details"))
 
 		_, err := srv.UpdateNickname(ctx, "New Nickname", playerID)
 		assert.Error(t, err)
@@ -86,7 +86,7 @@ func TestPlayerServiceUpdateNickname(t *testing.T) {
 		mockStore.EXPECT().UpdateNicknameWithPlayers(ctx, db.UpdateNicknameArgs{
 			PlayerID: playerID,
 			Nickname: "New Nickname",
-		}).Return(db.UpdateNicknameResult{}, xerrors.New("room is not in CREATED state"))
+		}).Return(db.UpdateNicknameResult{}, errors.New("room is not in CREATED state"))
 
 		_, err := srv.UpdateNickname(ctx, "New Nickname", playerID)
 		assert.Error(t, err)
@@ -103,7 +103,7 @@ func TestPlayerServiceUpdateNickname(t *testing.T) {
 		mockStore.EXPECT().UpdateNicknameWithPlayers(ctx, db.UpdateNicknameArgs{
 			PlayerID: playerID,
 			Nickname: "New Nickname",
-		}).Return(db.UpdateNicknameResult{}, xerrors.New("nickname already exists"))
+		}).Return(db.UpdateNicknameResult{}, errors.New("nickname already exists"))
 
 		_, err := srv.UpdateNickname(ctx, "New Nickname", playerID)
 		assert.ErrorContains(t, err, "nickname already exists")
@@ -120,7 +120,7 @@ func TestPlayerServiceUpdateNickname(t *testing.T) {
 		mockStore.EXPECT().UpdateNicknameWithPlayers(ctx, db.UpdateNicknameArgs{
 			PlayerID: playerID,
 			Nickname: "New Nickname",
-		}).Return(db.UpdateNicknameResult{}, xerrors.New("failed to update nickname"))
+		}).Return(db.UpdateNicknameResult{}, errors.New("failed to update nickname"))
 
 		_, err := srv.UpdateNickname(ctx, "New Nickname", playerID)
 		assert.Error(t, err)
@@ -137,7 +137,7 @@ func TestPlayerServiceUpdateNickname(t *testing.T) {
 		mockStore.EXPECT().UpdateNicknameWithPlayers(ctx, db.UpdateNicknameArgs{
 			PlayerID: playerID,
 			Nickname: "New Nickname",
-		}).Return(db.UpdateNicknameResult{}, xerrors.New("failed to get all players in room"))
+		}).Return(db.UpdateNicknameResult{}, errors.New("failed to get all players in room"))
 
 		_, err := srv.UpdateNickname(ctx, "New Nickname", playerID)
 		assert.Error(t, err)
@@ -202,7 +202,7 @@ func TestPlayerServiceGenerateAvatar(t *testing.T) {
 		mockStore.EXPECT().GenerateNewAvatarWithPlayers(ctx, db.GenerateNewAvatarArgs{
 			PlayerID: playerID,
 			Avatar:   avatarURL,
-		}).Return(db.GenerateNewAvatarResult{}, xerrors.New("failed to get room details"))
+		}).Return(db.GenerateNewAvatarResult{}, errors.New("failed to get room details"))
 
 		_, err := srv.GenerateNewAvatar(ctx, playerID)
 		assert.Error(t, err)
@@ -220,7 +220,7 @@ func TestPlayerServiceGenerateAvatar(t *testing.T) {
 		mockStore.EXPECT().GenerateNewAvatarWithPlayers(ctx, db.GenerateNewAvatarArgs{
 			PlayerID: playerID,
 			Avatar:   avatarURL,
-		}).Return(db.GenerateNewAvatarResult{}, xerrors.New("room is not in CREATED state"))
+		}).Return(db.GenerateNewAvatarResult{}, errors.New("room is not in CREATED state"))
 
 		_, err := srv.GenerateNewAvatar(ctx, playerID)
 		assert.ErrorContains(t, err, "room is not in CREATED state")
@@ -238,7 +238,7 @@ func TestPlayerServiceGenerateAvatar(t *testing.T) {
 		mockStore.EXPECT().GenerateNewAvatarWithPlayers(ctx, db.GenerateNewAvatarArgs{
 			PlayerID: playerID,
 			Avatar:   avatarURL,
-		}).Return(db.GenerateNewAvatarResult{}, xerrors.New("failed to update avatar"))
+		}).Return(db.GenerateNewAvatarResult{}, errors.New("failed to update avatar"))
 
 		_, err := srv.GenerateNewAvatar(ctx, playerID)
 		assert.Error(t, err)
@@ -256,7 +256,7 @@ func TestPlayerServiceGenerateAvatar(t *testing.T) {
 		mockStore.EXPECT().GenerateNewAvatarWithPlayers(ctx, db.GenerateNewAvatarArgs{
 			PlayerID: playerID,
 			Avatar:   avatarURL,
-		}).Return(db.GenerateNewAvatarResult{}, xerrors.New("failed to get all players in room"))
+		}).Return(db.GenerateNewAvatarResult{}, errors.New("failed to get all players in room"))
 
 		_, err := srv.GenerateNewAvatar(ctx, playerID)
 		assert.Error(t, err)
@@ -335,7 +335,7 @@ func TestPlayerServiceTogglePlayerIsReady(t *testing.T) {
 		ctx := t.Context()
 		mockStore.EXPECT().TogglePlayerReadyWithPlayers(ctx, db.TogglePlayerIsReadyArgs{
 			PlayerID: playerID,
-		}).Return(db.TogglePlayerIsReadyResult{}, xerrors.New("failed to get room details"))
+		}).Return(db.TogglePlayerIsReadyResult{}, errors.New("failed to get room details"))
 
 		_, err := srv.TogglePlayerIsReady(ctx, playerID)
 		assert.Error(t, err)
@@ -351,7 +351,7 @@ func TestPlayerServiceTogglePlayerIsReady(t *testing.T) {
 
 		mockStore.EXPECT().TogglePlayerReadyWithPlayers(ctx, db.TogglePlayerIsReadyArgs{
 			PlayerID: playerID,
-		}).Return(db.TogglePlayerIsReadyResult{}, xerrors.New("room is not in CREATED state"))
+		}).Return(db.TogglePlayerIsReadyResult{}, errors.New("room is not in CREATED state"))
 
 		_, err := srv.TogglePlayerIsReady(ctx, playerID)
 		assert.ErrorContains(t, err, "room is not in CREATED state")
@@ -367,7 +367,7 @@ func TestPlayerServiceTogglePlayerIsReady(t *testing.T) {
 
 		mockStore.EXPECT().TogglePlayerReadyWithPlayers(ctx, db.TogglePlayerIsReadyArgs{
 			PlayerID: playerID,
-		}).Return(db.TogglePlayerIsReadyResult{}, xerrors.New("failed to update is ready"))
+		}).Return(db.TogglePlayerIsReadyResult{}, errors.New("failed to update is ready"))
 
 		_, err := srv.TogglePlayerIsReady(ctx, playerID)
 		assert.Error(t, err)
@@ -383,7 +383,7 @@ func TestPlayerServiceTogglePlayerIsReady(t *testing.T) {
 
 		mockStore.EXPECT().TogglePlayerReadyWithPlayers(ctx, db.TogglePlayerIsReadyArgs{
 			PlayerID: playerID,
-		}).Return(db.TogglePlayerIsReadyResult{}, xerrors.New("failed to get players in room"))
+		}).Return(db.TogglePlayerIsReadyResult{}, errors.New("failed to get players in room"))
 
 		_, err := srv.TogglePlayerIsReady(ctx, playerID)
 		assert.Error(t, err)
@@ -423,7 +423,7 @@ func TestPlayerServiceUpdateLocale(t *testing.T) {
 		mockStore.EXPECT().UpdateLocale(ctx, db.UpdateLocaleParams{
 			ID:     playerID,
 			Locale: pgtype.Text{String: newLocale},
-		}).Return(db.Player{}, xerrors.New("no rows in result set"))
+		}).Return(db.Player{}, errors.New("no rows in result set"))
 
 		err := srv.UpdateLocale(ctx, playerID, newLocale)
 		assert.ErrorIs(t, err, service.ErrPlayerNotFound)
@@ -441,7 +441,7 @@ func TestPlayerServiceUpdateLocale(t *testing.T) {
 		mockStore.EXPECT().UpdateLocale(ctx, db.UpdateLocaleParams{
 			ID:     playerID,
 			Locale: pgtype.Text{String: newLocale},
-		}).Return(db.Player{}, xerrors.New("database connection error"))
+		}).Return(db.Player{}, errors.New("database connection error"))
 
 		err := srv.UpdateLocale(ctx, playerID, newLocale)
 		assert.Error(t, err)
