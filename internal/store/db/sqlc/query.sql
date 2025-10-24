@@ -581,3 +581,26 @@ UPDATE rooms
 SET host_player = $2
 WHERE id = $1
 RETURNING *;
+
+-- name: GetActiveGames :many
+SELECT DISTINCT
+    gs.id AS game_state_id,
+    gs.state,
+    gs.submit_deadline,
+    gs.room_id,
+    r.room_code,
+    r.room_state
+FROM game_state gs
+JOIN rooms r ON gs.room_id = r.id
+WHERE r.room_state = 'PLAYING'
+ORDER BY gs.created_at ASC;
+
+-- name: TryAcquireGameLock :one
+SELECT PG_TRY_ADVISORY_LOCK(
+    HASHTEXT($1::text)
+) AS acquired;
+
+-- name: ReleaseGameLock :exec
+SELECT PG_ADVISORY_UNLOCK(
+    HASHTEXT($1::text)
+);

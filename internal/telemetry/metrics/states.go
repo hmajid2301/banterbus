@@ -152,3 +152,35 @@ func RecordActiveGamesGauge(ctx context.Context) error {
 	)
 	return err
 }
+
+// RecordGamesRecoveredCount tracks number of games recovered after server restart
+func RecordGamesRecoveredCount(ctx context.Context, count float64) error {
+	m := otel.Meter("gitlab.com/hmajid2301/banterbus")
+
+	counter, err := m.Float64Counter("games.recovered.total",
+		metric.WithDescription("Total number of games recovered after server restart"),
+		metric.WithUnit("{game}"),
+	)
+	if err != nil {
+		return err
+	}
+
+	counter.Add(ctx, count)
+	return nil
+}
+
+// RecordGamesRecoveryFailedCount tracks number of games that failed to recover
+func RecordGamesRecoveryFailedCount(ctx context.Context, count float64) error {
+	m := otel.Meter("gitlab.com/hmajid2301/banterbus")
+
+	counter, err := m.Float64Counter("games.recovery.failed.total",
+		metric.WithDescription("Total number of games that failed to recover after server restart"),
+		metric.WithUnit("{game}"),
+	)
+	if err != nil {
+		return err
+	}
+
+	counter.Add(ctx, count)
+	return nil
+}

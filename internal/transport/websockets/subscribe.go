@@ -646,7 +646,7 @@ func translateValidationError(ctx context.Context, errMsg string) string {
 	}
 }
 
-func (s *Subscriber) newStateDependencies() (*statemachine.StateDependencies, error) {
+func (s *Subscriber) NewStateDependencies() (*statemachine.StateDependencies, error) {
 	timings := s.config.Timings
 
 	return &statemachine.StateDependencies{
@@ -666,6 +666,10 @@ func (s *Subscriber) newStateDependencies() (*statemachine.StateDependencies, er
 			FibberEvadeCapture: s.config.Scoring.FibberEvadeCapture,
 		},
 	}, nil
+}
+
+func (s *Subscriber) Publish(ctx context.Context, playerID uuid.UUID, message []byte) error {
+	return s.websocket.Publish(ctx, playerID, message)
 }
 
 func (s *Subscriber) StartStateMachine(ctx context.Context, gameStateID uuid.UUID, state statemachine.State) {

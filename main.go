@@ -22,6 +22,7 @@ import (
 	"github.com/invopop/ctxi18n"
 
 	"gitlab.com/hmajid2301/banterbus/internal/config"
+	"gitlab.com/hmajid2301/banterbus/internal/recovery"
 	"gitlab.com/hmajid2301/banterbus/internal/service"
 	"gitlab.com/hmajid2301/banterbus/internal/service/randomizer"
 	"gitlab.com/hmajid2301/banterbus/internal/store/db"
@@ -112,6 +113,13 @@ func mainLogic() error {
 	}
 
 	subscriber := websockets.NewSubscriber(lobbyService, playerService, roundService, logger, &redisClient, conf, rules, shutdownCtx)
+
+	recoveryManager := recovery.NewManager(database, subscriber, subscriber, roundService, logger)
+	go func() {
+		if err := recoveryManager.RecoverActiveGames(ctx); err != nil {
+			logger.WarnContext(ctx, "failed to recover active games", slog.Any("error", err))
+		}
+	}()
 
 	var k keyfunc.Keyfunc
 	if conf.JWT.JWKSURL != "" {

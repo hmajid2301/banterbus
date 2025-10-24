@@ -123,7 +123,7 @@ func (t *ToggleAnswerIsReady) Handle(ctx context.Context, client *Client, sub *S
 			return err
 		}
 
-		deps, err := sub.newStateDependencies()
+		deps, err := sub.NewStateDependencies()
 		if err != nil {
 			sub.logger.ErrorContext(ctx, "failed to build state dependencies",
 				slog.Any("error", err),
@@ -193,7 +193,7 @@ func (t *ToggleVotingIsReady) Handle(ctx context.Context, client *Client, sub *S
 	}
 
 	if allReady {
-		deps, err := sub.newStateDependencies()
+		deps, err := sub.NewStateDependencies()
 		if err != nil {
 			sub.logger.ErrorContext(ctx, "failed to build state dependencies",
 				slog.Any("error", err),

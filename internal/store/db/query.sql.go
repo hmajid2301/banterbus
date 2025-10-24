@@ -378,6 +378,56 @@ func (q *Queries) EnableQuestion(ctx context.Context, id uuid.UUID) (Question, e
 	return i, err
 }
 
+const getActiveGames = `-- name: GetActiveGames :many
+SELECT DISTINCT
+    gs.id AS game_state_id,
+    gs.state,
+    gs.submit_deadline,
+    gs.room_id,
+    r.room_code,
+    r.room_state
+FROM game_state gs
+JOIN rooms r ON gs.room_id = r.id
+WHERE r.room_state = 'PLAYING'
+ORDER BY gs.created_at ASC
+`
+
+type GetActiveGamesRow struct {
+	GameStateID    uuid.UUID
+	State          string
+	SubmitDeadline pgtype.Timestamp
+	RoomID         uuid.UUID
+	RoomCode       string
+	RoomState      string
+}
+
+func (q *Queries) GetActiveGames(ctx context.Context) ([]GetActiveGamesRow, error) {
+	rows, err := q.db.Query(ctx, getActiveGames)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetActiveGamesRow
+	for rows.Next() {
+		var i GetActiveGamesRow
+		if err := rows.Scan(
+			&i.GameStateID,
+			&i.State,
+			&i.SubmitDeadline,
+			&i.RoomID,
+			&i.RoomCode,
+			&i.RoomState,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getAllPlayerAnswerIsReady = `-- name: GetAllPlayerAnswerIsReady :one
 WITH latest_round AS (
     SELECT
@@ -1646,6 +1696,17 @@ func (q *Queries) ReassignHostPlayer(ctx context.Context, arg ReassignHostPlayer
 	return i, err
 }
 
+const releaseGameLock = `-- name: ReleaseGameLock :exec
+SELECT PG_ADVISORY_UNLOCK(
+    HASHTEXT($1::text)
+)
+`
+
+func (q *Queries) ReleaseGameLock(ctx context.Context, dollar_1 string) error {
+	_, err := q.db.Exec(ctx, releaseGameLock, dollar_1)
+	return err
+}
+
 const removePlayerFromRoom = `-- name: RemovePlayerFromRoom :one
 DELETE FROM rooms_players
 WHERE player_id = $1 RETURNING room_id, player_id, created_at, updated_at
@@ -1721,6 +1782,19 @@ func (q *Queries) ToggleVotingIsReady(ctx context.Context, playerID uuid.UUID) (
 		&i.IsReady,
 	)
 	return i, err
+}
+
+const tryAcquireGameLock = `-- name: TryAcquireGameLock :one
+SELECT PG_TRY_ADVISORY_LOCK(
+    HASHTEXT($1::text)
+) AS acquired
+`
+
+func (q *Queries) TryAcquireGameLock(ctx context.Context, dollar_1 string) (bool, error) {
+	row := q.db.QueryRow(ctx, tryAcquireGameLock, dollar_1)
+	var acquired bool
+	err := row.Scan(&acquired)
+	return acquired, err
 }
 
 const updateAvatar = `-- name: UpdateAvatar :one

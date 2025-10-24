@@ -22,3 +22,9 @@ packages:
       ClientUpdater:
       StateTransitioner:
       State:
+  gitlab.com/hmajid2301/banterbus/internal/recovery:
+    interfaces:
+      RecoveryStore:
+      StateTransitioner:
+      MessagePublisher:
+      RoundServicer:

@@ -178,7 +178,7 @@ func (s *StartGame) Handle(ctx context.Context, client *Client, sub *Subscriber)
 
 	stateCtx := telemetry.PropagateContext(ctx)
 
-	deps, err := sub.newStateDependencies()
+	deps, err := sub.NewStateDependencies()
 	if err != nil {
 		sub.logger.ErrorContext(ctx, "failed to build state dependencies",
 			slog.Any("error", err),

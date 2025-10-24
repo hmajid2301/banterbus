@@ -202,6 +202,14 @@ func UpdateActiveStateMachineCount(count int64) {
 	metrics.UpdateActiveStateMachineCount(count)
 }
 
+func RecordGamesRecoveredCount(ctx context.Context, count float64) error {
+	return metrics.RecordGamesRecoveredCount(ctx, count)
+}
+
+func RecordGamesRecoveryFailedCount(ctx context.Context, count float64) error {
+	return metrics.RecordGamesRecoveryFailedCount(ctx, count)
+}
+
 func newPropagator() propagation.TextMapPropagator {
 	return propagation.NewCompositeTextMapPropagator(
 		propagation.TraceContext{},
