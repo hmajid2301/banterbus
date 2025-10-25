@@ -15,6 +15,8 @@ spec:
         app: banterbus
     spec:
       serviceAccountName: banterbus
+      nodeSelector:
+        node-role: control-plane
       initContainers:
       - name: wait-for-migration
         image: ghcr.io/groundnuty/k8s-wait-for:v2.0
@@ -44,6 +46,13 @@ spec:
         - name: secrets-store
           mountPath: "/mnt/secrets"
           readOnly: true
+        resources:
+          requests:
+            cpu: 100m
+            memory: 256Mi
+          limits:
+            cpu: 500m
+            memory: 512Mi
       volumes:
       - name: secrets-store
         csi:

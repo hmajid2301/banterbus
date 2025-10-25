@@ -115,8 +115,8 @@ templ Lobby(code string, players []service.LobbyPlayer, currentPlayer service.Lo
 							<img src={ player.Avatar } alt="avatar" class="object-cover w-full h-full rounded-full"/>
 							if currentPlayer == player {
 								<form id="update_avatar_form" hx-vals='{"message_type": "generate_new_avatar" }' ws-send>
-									<button class="flex absolute -right-1 -bottom-1 justify-center items-center w-8 h-8 text-white bg-blue-500 rounded-full shadow-lg transition-colors hover:bg-blue-600" aria-label={ i18n.T(ctx, "common.update_avatar") }>
-										<i class="text-sm hgi hgi-solid hgi-redo-02"></i>
+									<button class="flex absolute -right-1 -bottom-1 justify-center items-center w-8 h-8 rounded-full shadow-lg transition-colors hover:bg-blue-600 bg-blue" aria-label={ i18n.T(ctx, "common.update_avatar") }>
+										<i class="text-sm text-black hgi hgi-solid hgi-redo-02"></i>
 									</button>
 								</form>
 							}

@@ -1,11 +1,13 @@
-//go:build !dev
+//go:build dev
 
 package telemetry
 
 import (
 	"log/slog"
 	"os"
+	"time"
 
+	"github.com/lmittmann/tint"
 	slogmulti "github.com/samber/slog-multi"
 	slogctx "github.com/veqryn/slog-context"
 	"go.opentelemetry.io/contrib/bridges/otelslog"
@@ -14,9 +16,10 @@ import (
 
 func NewLogger(logLevel minsev.Severity) *slog.Logger {
 	level := newLogLevelFromMinSev(logLevel)
-	stdoutHandler := slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
-		AddSource: true,
-		Level:     level,
+	stdoutHandler := tint.NewHandler(os.Stdout, &tint.Options{
+		AddSource:  true,
+		TimeFormat: time.Kitchen,
+		Level:      level,
 	})
 	otelHandler := otelslog.NewHandler("banterbus", otelslog.WithSource(true))
 	fanoutHandler := slogmulti.Fanout(stdoutHandler, otelHandler)

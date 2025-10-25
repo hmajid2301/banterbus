@@ -1,14 +1,14 @@
 package telemetry_test
 
 import (
-	"log/slog"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 
 	"gitlab.com/hmajid2301/banterbus/internal/telemetry"
-
+	"go.opentelemetry.io/contrib/processors/minsev"
 	"go.opentelemetry.io/otel/sdk/trace"
+	"log/slog"
 )
 
 func TestNew(t *testing.T) {
@@ -17,7 +17,7 @@ func TestNew(t *testing.T) {
 	t.Run("Should create logger with fanout handler", func(t *testing.T) {
 		t.Parallel()
 
-		logger := telemetry.NewLogger(slog.LevelInfo)
+		logger := telemetry.NewLogger(minsev.SeverityInfo)
 
 		assert.NotNil(t, logger)
 		assert.IsType(t, &slog.Logger{}, logger)
@@ -26,7 +26,7 @@ func TestNew(t *testing.T) {
 	t.Run("Should log messages without errors", func(t *testing.T) {
 		t.Parallel()
 
-		logger := telemetry.NewLogger(slog.LevelInfo)
+		logger := telemetry.NewLogger(minsev.SeverityInfo)
 
 		assert.NotPanics(t, func() {
 			logger.Info("test message")
@@ -42,7 +42,7 @@ func TestTraceHandler(t *testing.T) {
 	t.Run("Should handle enabled check", func(t *testing.T) {
 		t.Parallel()
 
-		logger := telemetry.NewLogger(slog.LevelInfo)
+		logger := telemetry.NewLogger(minsev.SeverityInfo)
 		ctx := t.Context()
 
 		enabled := logger.Enabled(ctx, slog.LevelInfo)
@@ -57,7 +57,7 @@ func TestTraceHandler(t *testing.T) {
 		ctx, span := tracer.Start(t.Context(), "test-span")
 		defer span.End()
 
-		logger := telemetry.NewLogger(slog.LevelInfo)
+		logger := telemetry.NewLogger(minsev.SeverityInfo)
 
 		assert.NotPanics(t, func() {
 			logger.InfoContext(ctx, "test message with trace")
@@ -68,7 +68,7 @@ func TestTraceHandler(t *testing.T) {
 		t.Parallel()
 
 		ctx := t.Context()
-		logger := telemetry.NewLogger(slog.LevelInfo)
+		logger := telemetry.NewLogger(minsev.SeverityInfo)
 
 		assert.NotPanics(t, func() {
 			logger.InfoContext(ctx, "test message without trace")
@@ -78,7 +78,7 @@ func TestTraceHandler(t *testing.T) {
 	t.Run("Should handle WithAttrs correctly", func(t *testing.T) {
 		t.Parallel()
 
-		logger := telemetry.NewLogger(slog.LevelInfo)
+		logger := telemetry.NewLogger(minsev.SeverityInfo)
 		loggerWithAttrs := logger.With(slog.String("key", "value"))
 
 		assert.NotNil(t, loggerWithAttrs)
@@ -90,7 +90,7 @@ func TestTraceHandler(t *testing.T) {
 	t.Run("Should handle WithGroup correctly", func(t *testing.T) {
 		t.Parallel()
 
-		logger := telemetry.NewLogger(slog.LevelInfo)
+		logger := telemetry.NewLogger(minsev.SeverityInfo)
 		loggerWithGroup := logger.WithGroup("test-group")
 
 		assert.NotNil(t, loggerWithGroup)
@@ -102,7 +102,7 @@ func TestTraceHandler(t *testing.T) {
 	t.Run("Should handle different log levels", func(t *testing.T) {
 		t.Parallel()
 
-		logger := telemetry.NewLogger(slog.LevelInfo)
+		logger := telemetry.NewLogger(minsev.SeverityInfo)
 		ctx := t.Context()
 
 		assert.NotPanics(t, func() {

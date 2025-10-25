@@ -9,6 +9,10 @@ Banter Bus is a multiplayer web-based party game inspired by JackBox games. Play
 - [Getting Started](#getting-started)
 - [Technology Stack](#technology-stack)
 
+## Demo
+
+<video src="docs/demo.webm" width="1000" controls></video>
+
 ## Getting Started
 
 ## Quick Start with Nix

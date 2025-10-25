@@ -231,20 +231,20 @@ func Lobby(code string, players []service.LobbyPlayer, currentPlayer service.Lob
 				return templ_7745c5c3_Err
 			}
 			if currentPlayer == player {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "<form id=\"update_avatar_form\" hx-vals='{\"message_type\": \"generate_new_avatar\" }' ws-send><button class=\"flex absolute -right-1 -bottom-1 justify-center items-center w-8 h-8 text-white bg-blue-500 rounded-full shadow-lg transition-colors hover:bg-blue-600\" aria-label=\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "<form id=\"update_avatar_form\" hx-vals='{\"message_type\": \"generate_new_avatar\" }' ws-send><button class=\"flex absolute -right-1 -bottom-1 justify-center items-center w-8 h-8 rounded-full shadow-lg transition-colors hover:bg-blue-600 bg-blue\" aria-label=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var13 string
 				templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "common.update_avatar"))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/sections/lobby.templ`, Line: 118, Col: 224}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/sections/lobby.templ`, Line: 118, Col: 209}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, "\"><i class=\"text-sm hgi hgi-solid hgi-redo-02\"></i></button></form>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, "\"><i class=\"text-sm text-black hgi hgi-solid hgi-redo-02\"></i></button></form>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}

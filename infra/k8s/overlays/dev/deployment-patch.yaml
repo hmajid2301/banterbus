@@ -6,6 +6,23 @@ spec:
   replicas: 2
   template:
     spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: app
+                operator: In
+                values:
+                - banterbus
+            topologyKey: kubernetes.io/hostname
       containers:
       - name: banterbus
         image: registry.gitlab.com/hmajid2301/banterbus:dev
+        resources:
+          requests:
+            cpu: 250m
+            memory: 512Mi
+          limits:
+            cpu: 500m
+            memory: 512Mi

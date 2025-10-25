@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
-	"net/http/pprof"
 	"strings"
 	"time"
 
@@ -98,15 +97,7 @@ func (s *Server) setupHTTPRoutes(config ServerConfig, keyfunc jwt.Keyfunc, stati
 	adminGroup.Handle("/question/{id}/enable", s.methodHandler("PUT", s.enableQuestionHandler))
 	adminGroup.Handle("/question/{id}/disable", s.methodHandler("PUT", s.disableQuestionHandler))
 
-	// Debug routes (local environment only)
-	if config.Environment == "local" {
-		debugGroup := router.Group("debug")
-		debugGroup.HandleFunc("/debug/pprof/", pprof.Index)
-		debugGroup.HandleFunc("/debug/pprof/cmdline", pprof.Cmdline)
-		debugGroup.HandleFunc("/debug/pprof/profile", pprof.Profile)
-		debugGroup.HandleFunc("/debug/pprof/symbol", pprof.Symbol)
-		debugGroup.HandleFunc("/debug/pprof/trace", pprof.Trace)
-	}
+	s.registerDebugRoutes(router)
 
 	httpSpanName := func(_ string, r *http.Request) string {
 		return fmt.Sprintf("HTTP %s %s", r.Method, r.URL.Path)

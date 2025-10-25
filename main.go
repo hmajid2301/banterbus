@@ -31,6 +31,7 @@ import (
 	transporthttp "gitlab.com/hmajid2301/banterbus/internal/transport/http"
 	"gitlab.com/hmajid2301/banterbus/internal/transport/websockets"
 	"gitlab.com/hmajid2301/banterbus/internal/views"
+	"go.opentelemetry.io/contrib/processors/minsev"
 )
 
 //go:embed static
@@ -41,7 +42,7 @@ func main() {
 
 	err := mainLogic()
 	if err != nil {
-		logger := telemetry.NewLogger(slog.LevelInfo)
+		logger := telemetry.NewLogger(minsev.SeverityInfo)
 		logger.ErrorContext(context.Background(), "failed to start app", slog.Any("error", err))
 		exitCode = 1
 	}
@@ -75,8 +76,7 @@ func mainLogic() error {
 		return fmt.Errorf("failed to initialize metrics: %w", err)
 	}
 
-	logLevel := telemetry.NewLogLevelFromMinSev(conf.App.LogLevel)
-	logger := telemetry.NewLogger(logLevel)
+	logger := telemetry.NewLogger(conf.App.LogLevel)
 
 	pool, err := db.NewPool(ctx, conf.DB.URI)
 	if err != nil {

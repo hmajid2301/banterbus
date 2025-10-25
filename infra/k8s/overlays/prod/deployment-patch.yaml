@@ -6,13 +6,41 @@ spec:
   replicas: 3
   template:
     spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - banterbus
+              topologyKey: kubernetes.io/hostname
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            preference:
+              matchExpressions:
+              - key: node-role
+                operator: In
+                values:
+                - worker
+          - weight: 1
+            preference:
+              matchExpressions:
+              - key: node-role
+                operator: In
+                values:
+                - control-plane
       containers:
       - name: banterbus
         image: registry.gitlab.com/hmajid2301/banterbus:prod
         resources:
           requests:
             cpu: 500m
-            memory: 512Mi
+            memory: 1Gi
           limits:
             cpu: 1000m
             memory: 1Gi

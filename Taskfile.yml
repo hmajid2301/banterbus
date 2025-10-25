@@ -4,7 +4,7 @@ tasks:
   build:
     desc: Build the binary in a tmp location.
     cmds:
-      - go build -o ./tmp/main main.go
+      - go build -tags dev -o ./tmp/main main.go
 
   run:
     desc: Run the binary with optional environment variables.
@@ -12,7 +12,7 @@ tasks:
       Run the binary with optional environment variables.
       Configuration is done via environment variables, not CLI arguments.
     cmds:
-      - go run -cover main.go
+      - go run -tags dev -cover main.go
 
   dev:
     desc: Start the app in dev mode with live-reloading.

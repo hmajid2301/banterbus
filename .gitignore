@@ -77,8 +77,6 @@ tmp/
 result
 __debug_bin*
 
-bin/*
-!bin/.gitkeep
 coverage.out
 test-results/
 tests/e2e/*.png
@@ -88,6 +86,7 @@ tests/e2e/videos/
 coverage/
 
 banterbus
+main
 
 # Backup files
 *.bak
