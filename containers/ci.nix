@@ -14,7 +14,7 @@ pkgs.dockerTools.buildImage {
   copyToRoot = pkgs.buildEnv {
     name = "root";
     pathsToLink = [ "/bin" ];
-    paths =
+      paths =
       with pkgs;
       [
         coreutils
@@ -46,6 +46,7 @@ pkgs.dockerTools.buildImage {
       "PLAYWRIGHT_BROWSERS_PATH=${pkgs.playwright-driver.browsers}"
       "PLAYWRIGHT_NODEJS_PATH=${pkgs.nodejs}/bin/node"
       "PLAYWRIGHT_DRIVER_PATH=${pkgs.playwright-driver}"
+      "CGO_ENABLED=0"
     ];
   };
 }

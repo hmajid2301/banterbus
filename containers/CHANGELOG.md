@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.15] 2025-10-25
+
+### Changed
+
+- Update all nix dependencies.
+
 ## [0.1.14] 2025-10-06
 
 ### Added

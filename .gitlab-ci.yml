@@ -8,7 +8,7 @@ default:
   interruptible: true
 
 variables:
-  IMAGE_TAG: v0.1.14
+  IMAGE_TAG: v0.1.15
   BANTERBUS_CI_IMAGE: $CI_REGISTRY_IMAGE/ci:$IMAGE_TAG
   TF_ROOT: ${CI_PROJECT_DIR}/infra/tf
   TF_STATE_NAME: default
@@ -16,7 +16,6 @@ variables:
   TF_USERNAME: gitlab-ci-token
   TF_PASSWORD: ${CI_JOB_TOKEN}
   OPENBAO_ADDRESS: https://openbao.homelab.haseebmajid.dev
-  # OpenTofu Report variables
   PLAN: plan.cache
   PLAN_JSON: plan.json
 
@@ -34,6 +33,7 @@ stages:
   image: $BANTERBUS_CI_IMAGE
   variables:
     GOPATH: $CI_PROJECT_DIR/.go
+    CGO_ENABLED: "0"
   cache:
     paths:
       - ${GOPATH}/pkg/mod
