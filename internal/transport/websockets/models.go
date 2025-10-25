@@ -120,3 +120,17 @@ type ToggleVotingIsReady struct {
 func (t *ToggleVotingIsReady) Validate() error {
 	return nil
 }
+
+type PauseGame struct {
+}
+
+func (p *PauseGame) Validate() error {
+	return nil
+}
+
+type ResumeGame struct {
+}
+
+func (r *ResumeGame) Validate() error {
+	return nil
+}

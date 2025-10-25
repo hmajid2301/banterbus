@@ -8,9 +8,6 @@ Banter Bus is a multiplayer web-based party game inspired by JackBox games. Play
 
 - [Getting Started](#getting-started)
 - [Technology Stack](#technology-stack)
-- [Development Setup](#development-setup)
-- [CI/CD Configuration](#cicd-configuration)
-- [Available Commands](#available-commands)
 
 ## Getting Started
 
@@ -28,19 +25,7 @@ direnv allow
 task dev
 ```
 
-The application will be available at `http://localhost:8080`.
-
-## Development Setup
-
-### Environment Configuration
-
-Set up your environment variables for local development:
-
-Key environment variables:
-- `BANTERBUS_DB_URI` - PostgreSQL connection string
-- `BANTERBUS_REDIS_ADDRESS` - Redis server address
-- `BANTERBUS_WEBSERVER_PORT` - Application port (default: 8080)
-- `BANTERBUS_LOG_LEVEL` - Logging level (DEBUG, INFO, WARN, ERROR)
+The application will be available at `http://localhost:7331` (proxy for templ -> `:8080`).
 
 ### Preview Environments
 
@@ -50,29 +35,6 @@ When creating merge requests, you can deploy preview environments:
 2. CI will automatically build and deploy a preview environment
 3. Access your preview at `https://mr-{MR_ID}.dev.banterbus.games`
 4. Environment is automatically cleaned up when MR is merged/closed
-
-## CI/CD Configuration
-
-### Required GitLab CI/CD Variables
-
-Configure these in GitLab Project Settings → CI/CD → Variables:
-
-- `GITLAB_ACCESS_TOKEN` - Personal access token for Terraform state management
-- `GITLAB_REMOTE_STATE_ADDRESS` - Remote state URL: `https://gitlab.com/api/v4/projects/PROJECT_ID/terraform/state/banterbus`
-- `GITLAB_USERNAME` - GitLab username for authentication
-
-- `CLOUDFLARE_API_TOKEN` - API token for DNS management
-- `CLOUDFLARE_ZONE_ID` - Zone ID for banterbus.games domain
-
-- `POSTGRES_HOST` - PostgreSQL host
-- `POSTGRES_USERNAME` - PostgreSQL username
-- `POSTGRES_PASSWORD` - PostgreSQL password (mark as protected/masked)
-- `OPENBAO_ADDRESS` - OpenBao vault address
-- `OPENBAO_TOKEN` - OpenBao authentication token (mark as protected/masked)
-- `GRAFANA_SERVICE_ACCOUNT_TOKEN` - Grafana service account token (mark as protected/masked)
-
-- `TAILSCALE_AUTH_KEY` - Faster Nix builds via Tailscale network
-- `ATTIC_AUTH_KEY` - Binary cache for faster Nix operations
 
 ## Technology Stack
 

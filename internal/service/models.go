@@ -50,15 +50,18 @@ type PlayerWithRole struct {
 	IsAnswerReady   bool
 	PossibleAnswers []string
 	CurrentAnswer   string
+	IsHost          bool
 }
 
 // TODO: could just be a single player
 type QuestionState struct {
-	GameStateID uuid.UUID
-	Players     []PlayerWithRole
-	Round       int
-	RoundType   string
-	Deadline    time.Duration
+	GameStateID          uuid.UUID
+	Players              []PlayerWithRole
+	Round                int
+	RoundType            string
+	Deadline             time.Duration
+	IsPaused             bool
+	PauseTimeRemainingMs int32
 }
 
 type UpdateVotingState struct {
@@ -69,11 +72,13 @@ type UpdateVotingState struct {
 }
 
 type VotingState struct {
-	Players     []PlayerWithVoting
-	Question    string
-	Round       int
-	GameStateID uuid.UUID
-	Deadline    time.Duration
+	Players              []PlayerWithVoting
+	Question             string
+	Round                int
+	GameStateID          uuid.UUID
+	Deadline             time.Duration
+	IsPaused             bool
+	PauseTimeRemainingMs int32
 }
 
 type PlayerWithVoting struct {
@@ -83,6 +88,7 @@ type PlayerWithVoting struct {
 	Votes    int
 	Answer   string
 	IsReady  bool
+	IsHost   bool
 	Role     string
 }
 

@@ -50,6 +50,10 @@ type RoundServicer interface {
 	UpdateStateToWinner(ctx context.Context, gameStateID uuid.UUID, deadline time.Time) (service.WinnerState, error)
 	GetWinnerState(ctx context.Context, playerID uuid.UUID) (service.WinnerState, error)
 	FinishGame(ctx context.Context, gameStateID uuid.UUID) error
+	PauseGame(ctx context.Context, playerID uuid.UUID) (service.PauseStatus, error)
+	ResumeGame(ctx context.Context, playerID uuid.UUID) (service.PauseStatus, error)
+	GetPauseStatus(ctx context.Context, gameStateID uuid.UUID) (service.PauseStatus, error)
+	GetAllPlayersByGameStateID(ctx context.Context, gameStateID uuid.UUID) ([]db.GetAllPlayersByGameStateIDRow, error)
 }
 
 func (s *SubmitAnswer) Handle(ctx context.Context, client *Client, sub *Subscriber) error {
@@ -214,4 +218,74 @@ func (t *ToggleVotingIsReady) Handle(ctx context.Context, client *Client, sub *S
 	}
 
 	return nil
+}
+
+func (p *PauseGame) Handle(ctx context.Context, client *Client, sub *Subscriber) error {
+	telemetry.AddPlayerActionAttributes(ctx, client.playerID.String(), "pause_game", true, false)
+
+	pauseStatus, err := sub.roundService.PauseGame(ctx, client.playerID)
+	if err != nil {
+		errStr := "Failed to pause game"
+		if errors.Is(err, service.ErrNotHost) {
+			errStr = "Only the host can pause the game"
+		} else if errors.Is(err, service.ErrNoPauseTimeRemaining) {
+			errStr = "No pause time remaining (5 minute limit reached)"
+		} else if errors.Is(err, service.ErrGameAlreadyPaused) {
+			errStr = "Game is already paused"
+		} else if errors.Is(err, service.ErrGameNotStarted) {
+			errStr = "Cannot pause game that has not started"
+		}
+		clientErr := sub.updateClientAboutErr(ctx, client.playerID, errStr)
+		return errors.Join(clientErr, err)
+	}
+
+	questionState, err := sub.roundService.GetQuestionState(ctx, client.playerID)
+	if err == nil {
+		sub.stopStateMachine(ctx, questionState.GameStateID)
+		sub.updateClientsAboutPause(ctx, pauseStatus, questionState.GameStateID)
+		return nil
+	}
+
+	votingState, err := sub.roundService.GetVotingState(ctx, client.playerID)
+	if err == nil {
+		sub.stopStateMachine(ctx, votingState.GameStateID)
+		sub.updateClientsAboutPause(ctx, pauseStatus, votingState.GameStateID)
+		return nil
+	}
+
+	return sub.updateClientAboutErr(ctx, client.playerID, "Failed to pause game - unknown game state")
+}
+
+func (r *ResumeGame) Handle(ctx context.Context, client *Client, sub *Subscriber) error {
+	telemetry.AddPlayerActionAttributes(ctx, client.playerID.String(), "resume_game", true, false)
+
+	pauseStatus, err := sub.roundService.ResumeGame(ctx, client.playerID)
+	if err != nil {
+		errStr := "Failed to resume game"
+		if errors.Is(err, service.ErrNotHost) {
+			errStr = "Only the host can resume the game"
+		} else if errors.Is(err, service.ErrGameNotPaused) {
+			errStr = "Game is not paused"
+		} else if errors.Is(err, service.ErrGameNotStarted) {
+			errStr = "Cannot resume game that has not started"
+		}
+		clientErr := sub.updateClientAboutErr(ctx, client.playerID, errStr)
+		return errors.Join(clientErr, err)
+	}
+
+	questionState, err := sub.roundService.GetQuestionState(ctx, client.playerID)
+	if err == nil {
+		sub.updateClientsAboutResume(ctx, pauseStatus, questionState.GameStateID)
+		sub.restartStateMachineAfterResume(ctx, questionState.GameStateID, pauseStatus.State, pauseStatus.SubmitDeadline)
+		return nil
+	}
+
+	votingState, err := sub.roundService.GetVotingState(ctx, client.playerID)
+	if err == nil {
+		sub.updateClientsAboutResume(ctx, pauseStatus, votingState.GameStateID)
+		sub.restartStateMachineAfterResume(ctx, votingState.GameStateID, pauseStatus.State, pauseStatus.SubmitDeadline)
+		return nil
+	}
+
+	return sub.updateClientAboutErr(ctx, client.playerID, "Failed to resume game - unknown game state")
 }

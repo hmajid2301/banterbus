@@ -138,7 +138,10 @@ SELECT
     gs.updated_at,
     gs.room_id,
     gs.submit_deadline,
-    gs.state
+    gs.state,
+    gs.pause_time_remaining_ms,
+    gs.paused_at,
+    gs.pause_deadline
 FROM game_state AS gs
 JOIN rooms_players AS rp ON gs.room_id = rp.room_id
 WHERE rp.player_id = $1;
@@ -150,7 +153,10 @@ SELECT
     gs.updated_at,
     gs.room_id,
     gs.submit_deadline,
-    gs.state
+    gs.state,
+    gs.pause_time_remaining_ms,
+    gs.paused_at,
+    gs.pause_deadline
 FROM game_state gs
 WHERE gs.id = $1;
 
@@ -604,3 +610,51 @@ SELECT PG_TRY_ADVISORY_LOCK(
 SELECT PG_ADVISORY_UNLOCK(
     HASHTEXT($1::text)
 );
+
+-- name: PauseGame :one
+UPDATE game_state
+SET
+    paused_at = $2,
+    pause_deadline = $3
+WHERE
+    id = $1
+    AND paused_at IS NULL
+    AND pause_time_remaining_ms > 0
+RETURNING *;
+
+-- name: ResumeGame :one
+UPDATE game_state
+SET
+    paused_at = NULL,
+    pause_deadline = NULL,
+    pause_time_remaining_ms = GREATEST(
+        0,
+        pause_time_remaining_ms - EXTRACT(EPOCH FROM (CURRENT_TIMESTAMP - paused_at))::integer * 1000
+    ),
+    submit_deadline = submit_deadline + (CURRENT_TIMESTAMP - paused_at)
+WHERE
+    id = $1
+    AND paused_at IS NOT NULL
+RETURNING *;
+
+-- name: GetPauseStatus :one
+SELECT
+    id,
+    paused_at,
+    pause_time_remaining_ms,
+    pause_deadline,
+    submit_deadline,
+    state
+FROM game_state
+WHERE id = $1;
+
+-- name: ForceResumeExpiredPauses :many
+UPDATE game_state
+SET
+    paused_at = NULL,
+    pause_deadline = NULL,
+    pause_time_remaining_ms = 0
+WHERE
+    paused_at IS NOT NULL
+    AND pause_deadline < CURRENT_TIMESTAMP
+RETURNING id;

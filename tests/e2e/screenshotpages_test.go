@@ -43,7 +43,7 @@ func TestE2EScreenshotPages(t *testing.T) {
 			Path: playwright.String("question_modal.png"),
 		})
 
-		err = hostPlayerPage.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Close"}).Click()
+		err = hostPlayerPage.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Close"}).First().Click()
 		require.NoError(t, err)
 
 		hostPlayerPage.Screenshot(playwright.PageScreenshotOptions{
@@ -61,7 +61,7 @@ func TestE2EScreenshotPages(t *testing.T) {
 		err = hostPlayerPage.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Ready"}).Click()
 		require.NoError(t, err)
 
-		err = otherPlayerPage.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Close"}).Click()
+		err = otherPlayerPage.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Close"}).First().Click()
 		require.NoError(t, err)
 
 		err = otherPlayerPage.Locator("#submit_answer_form").

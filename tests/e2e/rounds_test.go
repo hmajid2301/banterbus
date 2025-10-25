@@ -29,7 +29,7 @@ func TestE2ERounds(t *testing.T) {
 		require.NoError(t, err)
 
 		for _, player := range playerPages {
-			closeButton := player.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Close"})
+			closeButton := player.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Close"}).First()
 			err = closeButton.WaitFor(playwright.LocatorWaitForOptions{
 				State:   playwright.WaitForSelectorStateVisible,
 				Timeout: playwright.Float(5000),
@@ -81,7 +81,7 @@ func TestE2ERounds(t *testing.T) {
 		require.NoError(t, err)
 
 		for _, player := range playerPages {
-			closeButton := player.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Close"})
+			closeButton := player.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Close"}).First()
 			err = closeButton.WaitFor(playwright.LocatorWaitForOptions{
 				State:   playwright.WaitForSelectorStateVisible,
 				Timeout: playwright.Float(5000),
@@ -147,7 +147,7 @@ func TestE2ERounds(t *testing.T) {
 		require.NoError(t, err)
 
 		for _, player := range playerPages {
-			err = player.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Close"}).Click()
+			err = player.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Close"}).First().Click()
 			require.NoError(t, err)
 		}
 
@@ -203,15 +203,15 @@ func TestE2ERounds(t *testing.T) {
 		require.NoError(t, err)
 
 		for _, player := range playerPages {
-			closeButton := player.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Close"})
+			closeButton := player.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Close"}).First()
 			err = closeButton.WaitFor(playwright.LocatorWaitForOptions{
 				State:   playwright.WaitForSelectorStateVisible,
 				Timeout: playwright.Float(5000),
 			})
 			require.NoError(t, err)
+
 			err = closeButton.Click()
 			require.NoError(t, err)
-			player.WaitForTimeout(500)
 		}
 
 		answerForm := fibber.Locator("#submit_answer_form")

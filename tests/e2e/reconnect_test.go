@@ -133,7 +133,7 @@ func TestE2EReconnect(t *testing.T) {
 		require.NoError(t, err)
 
 		for _, player := range playerPages {
-			err = player.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Close"}).Click()
+			err = player.GetByRole("button", playwright.PageGetByRoleOptions{Name: "Close"}).First().Click()
 			require.NoError(t, err)
 		}
 

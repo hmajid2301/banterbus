@@ -12,6 +12,10 @@ templ Question(gameState service.QuestionState, currentPlayer service.PlayerWith
 	<div hx-swap-oob="innerHTML:#page">
 		<div>
 			<div class="flex flex-col space-y-6 sm:space-y-8 md:space-y-10 text-text2" data-player-role={ currentPlayer.Role }>
+				@components.PauseBanner(components.PauseBannerProps{
+					IsPaused: gameState.IsPaused,
+					IsHost:   currentPlayer.IsHost,
+				})
 				<div class="flex flex-col justify-between items-center space-y-4 sm:flex-row sm:space-y-0">
 					<div class="order-1 sm:order-1">
 						@components.Role(currentPlayer.Role, showRole)
@@ -69,6 +73,11 @@ templ Question(gameState service.QuestionState, currentPlayer service.PlayerWith
 						}
 					}
 				</form>
+				@components.PauseButton(components.PauseButtonProps{
+					IsHost:               currentPlayer.IsHost,
+					IsPaused:             gameState.IsPaused,
+					PauseTimeRemainingMs: gameState.PauseTimeRemainingMs,
+				})
 			</div>
 		</div>
 	</div>

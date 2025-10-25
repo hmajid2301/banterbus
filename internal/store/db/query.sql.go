@@ -117,7 +117,7 @@ func (q *Queries) AddFibbingItScore(ctx context.Context, arg AddFibbingItScorePa
 const addGameState = `-- name: AddGameState :one
 INSERT INTO game_state (id, room_id, submit_deadline, state) VALUES (
     $1, $2, $3, $4
-) RETURNING id, created_at, updated_at, room_id, submit_deadline, state
+) RETURNING id, created_at, updated_at, room_id, submit_deadline, state, pause_time_remaining_ms, paused_at, pause_deadline
 `
 
 type AddGameStateParams struct {
@@ -142,6 +142,9 @@ func (q *Queries) AddGameState(ctx context.Context, arg AddGameStateParams) (Gam
 		&i.RoomID,
 		&i.SubmitDeadline,
 		&i.State,
+		&i.PauseTimeRemainingMs,
+		&i.PausedAt,
+		&i.PauseDeadline,
 	)
 	return i, err
 }
@@ -376,6 +379,38 @@ func (q *Queries) EnableQuestion(ctx context.Context, id uuid.UUID) (Question, e
 		&i.GroupID,
 	)
 	return i, err
+}
+
+const forceResumeExpiredPauses = `-- name: ForceResumeExpiredPauses :many
+UPDATE game_state
+SET
+    paused_at = NULL,
+    pause_deadline = NULL,
+    pause_time_remaining_ms = 0
+WHERE
+    paused_at IS NOT NULL
+    AND pause_deadline < CURRENT_TIMESTAMP
+RETURNING id
+`
+
+func (q *Queries) ForceResumeExpiredPauses(ctx context.Context) ([]uuid.UUID, error) {
+	rows, err := q.db.Query(ctx, forceResumeExpiredPauses)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []uuid.UUID
+	for rows.Next() {
+		var id uuid.UUID
+		if err := rows.Scan(&id); err != nil {
+			return nil, err
+		}
+		items = append(items, id)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const getActiveGames = `-- name: GetActiveGames :many
@@ -957,7 +992,10 @@ SELECT
     gs.updated_at,
     gs.room_id,
     gs.submit_deadline,
-    gs.state
+    gs.state,
+    gs.pause_time_remaining_ms,
+    gs.paused_at,
+    gs.pause_deadline
 FROM game_state gs
 WHERE gs.id = $1
 `
@@ -972,6 +1010,9 @@ func (q *Queries) GetGameState(ctx context.Context, id uuid.UUID) (GameState, er
 		&i.RoomID,
 		&i.SubmitDeadline,
 		&i.State,
+		&i.PauseTimeRemainingMs,
+		&i.PausedAt,
+		&i.PauseDeadline,
 	)
 	return i, err
 }
@@ -983,7 +1024,10 @@ SELECT
     gs.updated_at,
     gs.room_id,
     gs.submit_deadline,
-    gs.state
+    gs.state,
+    gs.pause_time_remaining_ms,
+    gs.paused_at,
+    gs.pause_deadline
 FROM game_state AS gs
 JOIN rooms_players AS rp ON gs.room_id = rp.room_id
 WHERE rp.player_id = $1
@@ -999,6 +1043,9 @@ func (q *Queries) GetGameStateByPlayerID(ctx context.Context, playerID uuid.UUID
 		&i.RoomID,
 		&i.SubmitDeadline,
 		&i.State,
+		&i.PauseTimeRemainingMs,
+		&i.PausedAt,
+		&i.PauseDeadline,
 	)
 	return i, err
 }
@@ -1016,9 +1063,18 @@ WHERE gs.id = $1
 FOR UPDATE NOWAIT
 `
 
-func (q *Queries) GetGameStateForUpdate(ctx context.Context, id uuid.UUID) (GameState, error) {
+type GetGameStateForUpdateRow struct {
+	ID             uuid.UUID
+	CreatedAt      pgtype.Timestamp
+	UpdatedAt      pgtype.Timestamp
+	RoomID         uuid.UUID
+	SubmitDeadline pgtype.Timestamp
+	State          string
+}
+
+func (q *Queries) GetGameStateForUpdate(ctx context.Context, id uuid.UUID) (GetGameStateForUpdateRow, error) {
 	row := q.db.QueryRow(ctx, getGameStateForUpdate, id)
-	var i GameState
+	var i GetGameStateForUpdateRow
 	err := row.Scan(
 		&i.ID,
 		&i.CreatedAt,
@@ -1161,6 +1217,41 @@ func (q *Queries) GetLatestRoundByPlayerID(ctx context.Context, playerID uuid.UU
 		&i.NormalQuestionID,
 		&i.GameStateID,
 		&i.SubmitDeadline,
+	)
+	return i, err
+}
+
+const getPauseStatus = `-- name: GetPauseStatus :one
+SELECT
+    id,
+    paused_at,
+    pause_time_remaining_ms,
+    pause_deadline,
+    submit_deadline,
+    state
+FROM game_state
+WHERE id = $1
+`
+
+type GetPauseStatusRow struct {
+	ID                   uuid.UUID
+	PausedAt             pgtype.Timestamp
+	PauseTimeRemainingMs pgtype.Int4
+	PauseDeadline        pgtype.Timestamp
+	SubmitDeadline       pgtype.Timestamp
+	State                string
+}
+
+func (q *Queries) GetPauseStatus(ctx context.Context, id uuid.UUID) (GetPauseStatusRow, error) {
+	row := q.db.QueryRow(ctx, getPauseStatus, id)
+	var i GetPauseStatusRow
+	err := row.Scan(
+		&i.ID,
+		&i.PausedAt,
+		&i.PauseTimeRemainingMs,
+		&i.PauseDeadline,
+		&i.SubmitDeadline,
+		&i.State,
 	)
 	return i, err
 }
@@ -1669,6 +1760,41 @@ func (q *Queries) GetVotingState(ctx context.Context, roundID uuid.UUID) ([]GetV
 	return items, nil
 }
 
+const pauseGame = `-- name: PauseGame :one
+UPDATE game_state
+SET
+    paused_at = $2,
+    pause_deadline = $3
+WHERE
+    id = $1
+    AND paused_at IS NULL
+    AND pause_time_remaining_ms > 0
+RETURNING id, created_at, updated_at, room_id, submit_deadline, state, pause_time_remaining_ms, paused_at, pause_deadline
+`
+
+type PauseGameParams struct {
+	ID            uuid.UUID
+	PausedAt      pgtype.Timestamp
+	PauseDeadline pgtype.Timestamp
+}
+
+func (q *Queries) PauseGame(ctx context.Context, arg PauseGameParams) (GameState, error) {
+	row := q.db.QueryRow(ctx, pauseGame, arg.ID, arg.PausedAt, arg.PauseDeadline)
+	var i GameState
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.RoomID,
+		&i.SubmitDeadline,
+		&i.State,
+		&i.PauseTimeRemainingMs,
+		&i.PausedAt,
+		&i.PauseDeadline,
+	)
+	return i, err
+}
+
 const reassignHostPlayer = `-- name: ReassignHostPlayer :one
 UPDATE rooms
 SET host_player = $2
@@ -1720,6 +1846,39 @@ func (q *Queries) RemovePlayerFromRoom(ctx context.Context, playerID uuid.UUID) 
 		&i.PlayerID,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const resumeGame = `-- name: ResumeGame :one
+UPDATE game_state
+SET
+    paused_at = NULL,
+    pause_deadline = NULL,
+    pause_time_remaining_ms = GREATEST(
+        0,
+        pause_time_remaining_ms - EXTRACT(EPOCH FROM (CURRENT_TIMESTAMP - paused_at))::integer * 1000
+    ),
+    submit_deadline = submit_deadline + (CURRENT_TIMESTAMP - paused_at)
+WHERE
+    id = $1
+    AND paused_at IS NOT NULL
+RETURNING id, created_at, updated_at, room_id, submit_deadline, state, pause_time_remaining_ms, paused_at, pause_deadline
+`
+
+func (q *Queries) ResumeGame(ctx context.Context, id uuid.UUID) (GameState, error) {
+	row := q.db.QueryRow(ctx, resumeGame, id)
+	var i GameState
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.RoomID,
+		&i.SubmitDeadline,
+		&i.State,
+		&i.PauseTimeRemainingMs,
+		&i.PausedAt,
+		&i.PauseDeadline,
 	)
 	return i, err
 }
@@ -1824,7 +1983,7 @@ func (q *Queries) UpdateAvatar(ctx context.Context, arg UpdateAvatarParams) (Pla
 
 const updateGameState = `-- name: UpdateGameState :one
 UPDATE game_state SET state = $1, submit_deadline = $2
-WHERE id = $3 RETURNING id, created_at, updated_at, room_id, submit_deadline, state
+WHERE id = $3 RETURNING id, created_at, updated_at, room_id, submit_deadline, state, pause_time_remaining_ms, paused_at, pause_deadline
 `
 
 type UpdateGameStateParams struct {
@@ -1843,6 +2002,9 @@ func (q *Queries) UpdateGameState(ctx context.Context, arg UpdateGameStateParams
 		&i.RoomID,
 		&i.SubmitDeadline,
 		&i.State,
+		&i.PauseTimeRemainingMs,
+		&i.PausedAt,
+		&i.PauseDeadline,
 	)
 	return i, err
 }
@@ -1851,7 +2013,7 @@ const updateGameStateIfInState = `-- name: UpdateGameStateIfInState :one
 UPDATE game_state
 SET state = $1, submit_deadline = $2
 WHERE id = $3 AND state = $4
-RETURNING id, created_at, updated_at, room_id, submit_deadline, state
+RETURNING id, created_at, updated_at, room_id, submit_deadline, state, pause_time_remaining_ms, paused_at, pause_deadline
 `
 
 type UpdateGameStateIfInStateParams struct {
@@ -1876,6 +2038,9 @@ func (q *Queries) UpdateGameStateIfInState(ctx context.Context, arg UpdateGameSt
 		&i.RoomID,
 		&i.SubmitDeadline,
 		&i.State,
+		&i.PauseTimeRemainingMs,
+		&i.PausedAt,
+		&i.PauseDeadline,
 	)
 	return i, err
 }

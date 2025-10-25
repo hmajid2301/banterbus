@@ -5,11 +5,9 @@ import (
 	"time"
 
 	"github.com/gofrs/uuid/v5"
-	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"gitlab.com/hmajid2301/banterbus/internal/config"
 	"gitlab.com/hmajid2301/banterbus/internal/service"
 	"gitlab.com/hmajid2301/banterbus/internal/service/randomizer"
 	db "gitlab.com/hmajid2301/banterbus/internal/store/db"
@@ -34,50 +32,27 @@ func TestIntegrationRoundServiceSubmitAnswer(t *testing.T) {
 		playerService := service.NewPlayerService(str, randomizer)
 		roundService := service.NewRoundService(str, randomizer, "en-GB")
 
-		questionState, err := startGame(ctx, lobbyService, playerService)
+		_, err = startGame(ctx, lobbyService, playerService)
 		require.NoError(t, err)
 
-		err = roundService.SubmitAnswer(ctx, questionState.Players[0].ID, "This is my answer", time.Now())
-		assert.NoError(t, err)
+		hostID := uuid.Must(uuid.FromString("0193a62a-4dff-774c-850a-b1fe78e2a8d1"))
 
-		err = roundService.SubmitAnswer(
-			ctx,
-			questionState.Players[1].ID,
-			"This is the other players answer",
-			time.Now(),
-		)
-		assert.NoError(t, err)
+		pauseStatus, err := roundService.PauseGame(ctx, hostID)
+		require.NoError(t, err)
+		assert.True(t, pauseStatus.IsPaused)
+		assert.NotNil(t, pauseStatus.PausedAt)
+		assert.LessOrEqual(t, pauseStatus.PauseTimeRemainingMs, int32(300000))
+
+		time.Sleep(500 * time.Millisecond)
+
+		pauseStatus2, err := roundService.ResumeGame(ctx, hostID)
+		require.NoError(t, err)
+		assert.False(t, pauseStatus2.IsPaused)
+		assert.Nil(t, pauseStatus2.PausedAt)
+		assert.Less(t, pauseStatus2.PauseTimeRemainingMs, pauseStatus.PauseTimeRemainingMs)
 	})
 
-	t.Run("Should fail to submit answer, time has passed", func(t *testing.T) {
-		t.Parallel()
-		pool, teardown := setupSubtest(t)
-		t.Cleanup(teardown)
-
-		baseDelay := (time.Millisecond * 100)
-		str := db.NewDB(pool, 3, baseDelay)
-		randomizer := randomizer.NewUserRandomizer()
-
-		ctx, err := getI18nCtx(t.Context())
-		require.NoError(t, err)
-
-		lobbyService := service.NewLobbyService(str, randomizer, "en-GB")
-		playerService := service.NewPlayerService(str, randomizer)
-		roundService := service.NewRoundService(str, randomizer, "en-GB")
-
-		questionState, err := startGame(ctx, lobbyService, playerService)
-		require.NoError(t, err)
-
-		err = roundService.SubmitAnswer(
-			ctx,
-			questionState.Players[0].ID,
-			"This is my answer",
-			time.Now().Add(120*time.Second),
-		)
-		assert.ErrorContains(t, err, "answer submission deadline has passed")
-	})
-
-	t.Run("Should fail to submit answer, player id doesn't belong to room", func(t *testing.T) {
+	t.Run("Should prevent non-host from pausing", func(t *testing.T) {
 		t.Parallel()
 		pool, teardown := setupSubtest(t)
 		t.Cleanup(teardown)
@@ -96,16 +71,13 @@ func TestIntegrationRoundServiceSubmitAnswer(t *testing.T) {
 		_, err = startGame(ctx, lobbyService, playerService)
 		require.NoError(t, err)
 
-		id, _ := uuid.NewV4()
-		err = roundService.SubmitAnswer(ctx, id, "This is my answer", time.Now())
-		assert.Error(t, err)
+		nonHostID := uuid.Must(uuid.FromString("0193a62a-4dff-774c-850a-b1fe78e2a8d2"))
+
+		_, err = roundService.PauseGame(ctx, nonHostID)
+		assert.ErrorIs(t, err, service.ErrNotHost)
 	})
-}
 
-func TestIntegrationRoundServiceToggleAnswerIsReady(t *testing.T) {
-	t.Parallel()
-
-	t.Run("Should successfully toggle answer is ready", func(t *testing.T) {
+	t.Run("Should prevent pausing when already paused", func(t *testing.T) {
 		t.Parallel()
 		pool, teardown := setupSubtest(t)
 		t.Cleanup(teardown)
@@ -121,30 +93,19 @@ func TestIntegrationRoundServiceToggleAnswerIsReady(t *testing.T) {
 		playerService := service.NewPlayerService(str, randomizer)
 		roundService := service.NewRoundService(str, randomizer, "en-GB")
 
-		questionState, err := startGame(ctx, lobbyService, playerService)
+		_, err = startGame(ctx, lobbyService, playerService)
 		require.NoError(t, err)
 
-		err = roundService.SubmitAnswer(ctx, questionState.Players[0].ID, "This is my answer", time.Now())
+		hostID := uuid.Must(uuid.FromString("0193a62a-4dff-774c-850a-b1fe78e2a8d1"))
+
+		_, err = roundService.PauseGame(ctx, hostID)
 		require.NoError(t, err)
 
-		err = roundService.SubmitAnswer(
-			ctx,
-			questionState.Players[1].ID,
-			"This is the other players answer",
-			time.Now(),
-		)
-		require.NoError(t, err)
-
-		allReady, err := roundService.ToggleAnswerIsReady(ctx, questionState.Players[0].ID, time.Now())
-		assert.NoError(t, err)
-		assert.False(t, allReady)
-
-		allReady, err = roundService.ToggleAnswerIsReady(ctx, questionState.Players[1].ID, time.Now())
-		assert.NoError(t, err)
-		assert.True(t, allReady)
+		_, err = roundService.PauseGame(ctx, hostID)
+		assert.ErrorIs(t, err, service.ErrGameAlreadyPaused)
 	})
 
-	t.Run("Should fail to toggle answer is ready, submit deadline passed", func(t *testing.T) {
+	t.Run("Should prevent resuming when not paused", func(t *testing.T) {
 		t.Parallel()
 		pool, teardown := setupSubtest(t)
 		t.Cleanup(teardown)
@@ -160,29 +121,16 @@ func TestIntegrationRoundServiceToggleAnswerIsReady(t *testing.T) {
 		playerService := service.NewPlayerService(str, randomizer)
 		roundService := service.NewRoundService(str, randomizer, "en-GB")
 
-		questionState, err := startGame(ctx, lobbyService, playerService)
+		_, err = startGame(ctx, lobbyService, playerService)
 		require.NoError(t, err)
 
-		err = roundService.SubmitAnswer(ctx, questionState.Players[0].ID, "This is my answer", time.Now())
-		require.NoError(t, err)
+		hostID := uuid.Must(uuid.FromString("0193a62a-4dff-774c-850a-b1fe78e2a8d1"))
 
-		err = roundService.SubmitAnswer(
-			ctx,
-			questionState.Players[1].ID,
-			"This is the other players answer",
-			time.Now(),
-		)
-		require.NoError(t, err)
-
-		_, err = roundService.ToggleAnswerIsReady(ctx, questionState.Players[0].ID, time.Now().Add(120*time.Second))
-		assert.ErrorContains(t, err, "toggle ready deadline has passed")
+		_, err = roundService.ResumeGame(ctx, hostID)
+		assert.ErrorIs(t, err, service.ErrGameNotPaused)
 	})
-}
 
-func TestIntegrationRoundServiceUpdateStateToVoting(t *testing.T) {
-	t.Parallel()
-
-	t.Run("Should successfully update state to voting", func(t *testing.T) {
+	t.Run("Should correctly track pause time budget", func(t *testing.T) {
 		t.Parallel()
 		pool, teardown := setupSubtest(t)
 		t.Cleanup(teardown)
@@ -198,753 +146,25 @@ func TestIntegrationRoundServiceUpdateStateToVoting(t *testing.T) {
 		playerService := service.NewPlayerService(str, randomizer)
 		roundService := service.NewRoundService(str, randomizer, "en-GB")
 
-		questionState, err := startGame(ctx, lobbyService, playerService)
+		_, err = startGame(ctx, lobbyService, playerService)
 		require.NoError(t, err)
 
-		err = roundService.SubmitAnswer(ctx, questionState.Players[0].ID, "This is my answer", time.Now())
+		hostID := uuid.Must(uuid.FromString("0193a62a-4dff-774c-850a-b1fe78e2a8d1"))
+
+		pauseStatus1, err := roundService.PauseGame(ctx, hostID)
 		require.NoError(t, err)
+		initialBudget := pauseStatus1.PauseTimeRemainingMs
 
-		err = roundService.SubmitAnswer(
-			ctx,
-			questionState.Players[1].ID,
-			"This is the other players answer",
-			time.Now(),
-		)
+		time.Sleep(500 * time.Millisecond)
+
+		resumeStatus1, err := roundService.ResumeGame(ctx, hostID)
 		require.NoError(t, err)
+		budgetAfterFirstPause := resumeStatus1.PauseTimeRemainingMs
 
-		votingState, err := roundService.UpdateStateToVoting(
-			ctx,
-			questionState.GameStateID,
-			time.Now().Add(120*time.Second),
-		)
-		assert.NoError(t, err)
+		assert.Less(t, budgetAfterFirstPause, initialBudget)
 
-		normalQuestion := questionState.Players[0].Question
-		if questionState.Players[0].Role == "fibber" {
-			normalQuestion = questionState.Players[1].Question
-		}
-
-		assert.Len(t, votingState.Players, 2)
-
-		assert.Equal(t, normalQuestion, votingState.Question)
-		assert.Equal(t, questionState.Round, votingState.Round)
-		assert.Equal(t, questionState.GameStateID, votingState.GameStateID)
-
-		playerMap := make(map[string]service.PlayerWithVoting)
-		for _, player := range votingState.Players {
-			playerMap[player.Nickname] = player
-		}
-
-		hostPlayer, hostExists := playerMap["Host Player"]
-		assert.True(t, hostExists, "Host Player should exist in voting state")
-		if hostExists {
-			assert.Equal(t, defaultHostPlayerID, hostPlayer.ID)
-			assert.Equal(t, "This is my answer", hostPlayer.Answer)
-			assert.Equal(t, 0, hostPlayer.Votes)
-			assert.False(t, hostPlayer.IsReady)
-		}
-
-		otherPlayer, otherExists := playerMap["Other Player"]
-		assert.True(t, otherExists, "Other Player should exist in voting state")
-		if otherExists {
-			assert.Equal(t, defaultOtherPlayerID, otherPlayer.ID)
-			assert.Equal(t, "This is the other players answer", otherPlayer.Answer)
-			assert.Equal(t, 0, otherPlayer.Votes)
-			assert.False(t, otherPlayer.IsReady)
-		}
-		assert.Greater(t, votingState.Deadline.Seconds(), 0.0)
-	})
-
-	t.Run("Should fail to update state to voting because incorrect game state id", func(t *testing.T) {
-		t.Parallel()
-		pool, teardown := setupSubtest(t)
-		t.Cleanup(teardown)
-
-		baseDelay := (time.Millisecond * 100)
-		str := db.NewDB(pool, 3, baseDelay)
-		randomizer := randomizer.NewUserRandomizer()
-
-		ctx, err := getI18nCtx(t.Context())
+		pauseStatus2, err := roundService.PauseGame(ctx, hostID)
 		require.NoError(t, err)
-
-		lobbyService := service.NewLobbyService(str, randomizer, "en-GB")
-		playerService := service.NewPlayerService(str, randomizer)
-		roundService := service.NewRoundService(str, randomizer, "en-GB")
-
-		questionState, err := startGame(ctx, lobbyService, playerService)
-		require.NoError(t, err)
-
-		err = roundService.SubmitAnswer(ctx, questionState.Players[0].ID, "This is my answer", time.Now())
-		require.NoError(t, err)
-
-		err = roundService.SubmitAnswer(
-			ctx,
-			questionState.Players[1].ID,
-			"This is the other players answer",
-			time.Now(),
-		)
-		require.NoError(t, err)
-
-		id, _ := uuid.NewV4()
-		_, err = roundService.UpdateStateToVoting(
-			ctx,
-			id,
-			time.Now().Add(120*time.Second),
-		)
-		assert.Error(t, err)
-	})
-}
-
-func TestIntegrationRoundServiceSubmitVote(t *testing.T) {
-	t.Parallel()
-
-	t.Run("Should successfully submit vote", func(t *testing.T) {
-		t.Parallel()
-		pool, teardown := setupSubtest(t)
-		t.Cleanup(teardown)
-
-		baseDelay := (time.Millisecond * 100)
-		str := db.NewDB(pool, 3, baseDelay)
-		randomizer := randomizer.NewUserRandomizer()
-
-		ctx, err := getI18nCtx(t.Context())
-		require.NoError(t, err)
-
-		lobbyService := service.NewLobbyService(str, randomizer, "en-GB")
-		playerService := service.NewPlayerService(str, randomizer)
-		roundService := service.NewRoundService(str, randomizer, "en-GB")
-
-		originalVotingState, err := votingState(ctx, lobbyService, playerService, roundService)
-		assert.NoError(t, err)
-		require.GreaterOrEqual(t, len(originalVotingState.Players), 2, "Expected at least 2 players for the test")
-
-		roundService.SubmitVote(
-			ctx,
-			originalVotingState.Players[0].ID,
-			originalVotingState.Players[1].Nickname,
-			time.Now(),
-		)
-		roundService.SubmitVote(
-			ctx,
-			originalVotingState.Players[1].ID,
-			originalVotingState.Players[0].Nickname,
-			time.Now(),
-		)
-
-		allReady, err := roundService.ToggleVotingIsReady(ctx, originalVotingState.Players[0].ID, time.Now())
-		assert.NoError(t, err)
-		assert.False(t, allReady)
-
-		allReady, err = roundService.ToggleVotingIsReady(ctx, originalVotingState.Players[1].ID, time.Now())
-		assert.NoError(t, err)
-		assert.True(t, allReady)
-	})
-
-	t.Run("Should fail to toggle voting is ready, because we did not submit vote", func(t *testing.T) {
-		t.Parallel()
-		pool, teardown := setupSubtest(t)
-		t.Cleanup(teardown)
-
-		baseDelay := (time.Millisecond * 100)
-		str := db.NewDB(pool, 3, baseDelay)
-		randomizer := randomizer.NewUserRandomizer()
-
-		ctx, err := getI18nCtx(t.Context())
-		require.NoError(t, err)
-
-		lobbyService := service.NewLobbyService(str, randomizer, "en-GB")
-		playerService := service.NewPlayerService(str, randomizer)
-		roundService := service.NewRoundService(str, randomizer, "en-GB")
-
-		originalVotingState, err := votingState(ctx, lobbyService, playerService, roundService)
-		assert.NoError(t, err)
-
-		_, err = roundService.ToggleVotingIsReady(ctx, originalVotingState.Players[0].ID, time.Now())
-		assert.ErrorContains(t, err, "must submit vote first")
-	})
-
-	t.Run("Should fail to toggle voting is ready, because player ID does not exist", func(t *testing.T) {
-		t.Parallel()
-		pool, teardown := setupSubtest(t)
-		t.Cleanup(teardown)
-
-		baseDelay := (time.Millisecond * 100)
-		str := db.NewDB(pool, 3, baseDelay)
-		randomizer := randomizer.NewUserRandomizer()
-
-		ctx, err := getI18nCtx(t.Context())
-		require.NoError(t, err)
-
-		lobbyService := service.NewLobbyService(str, randomizer, "en-GB")
-		playerService := service.NewPlayerService(str, randomizer)
-		roundService := service.NewRoundService(str, randomizer, "en-GB")
-
-		originalVotingState, err := votingState(ctx, lobbyService, playerService, roundService)
-		assert.NoError(t, err)
-
-		roundService.SubmitVote(
-			ctx,
-			originalVotingState.Players[0].ID,
-			originalVotingState.Players[1].Nickname,
-			time.Now(),
-		)
-		roundService.SubmitVote(
-			ctx,
-			originalVotingState.Players[1].ID,
-			originalVotingState.Players[0].Nickname,
-			time.Now(),
-		)
-
-		u, err := uuid.NewV4()
-		require.NoError(t, err)
-		_, err = roundService.ToggleVotingIsReady(ctx, u, time.Now())
-		assert.Error(t, err)
-	})
-
-	t.Run("Should fail to toggle voting is ready, because deadline passed", func(t *testing.T) {
-		t.Parallel()
-		pool, teardown := setupSubtest(t)
-		t.Cleanup(teardown)
-
-		baseDelay := (time.Millisecond * 100)
-		str := db.NewDB(pool, 3, baseDelay)
-		randomizer := randomizer.NewUserRandomizer()
-
-		ctx, err := getI18nCtx(t.Context())
-		require.NoError(t, err)
-
-		lobbyService := service.NewLobbyService(str, randomizer, "en-GB")
-		playerService := service.NewPlayerService(str, randomizer)
-		roundService := service.NewRoundService(str, randomizer, "en-GB")
-
-		originalVotingState, err := votingState(ctx, lobbyService, playerService, roundService)
-		assert.NoError(t, err)
-
-		roundService.SubmitVote(
-			ctx,
-			originalVotingState.Players[0].ID,
-			originalVotingState.Players[1].Nickname,
-			time.Now(),
-		)
-		roundService.SubmitVote(
-			ctx,
-			originalVotingState.Players[1].ID,
-			originalVotingState.Players[0].Nickname,
-			time.Now(),
-		)
-
-		// Use a time far in the future to ensure it's past any deadline
-		farFutureTime := time.Date(2030, 1, 1, 0, 0, 0, 0, time.UTC)
-		_, err = roundService.ToggleVotingIsReady(
-			ctx,
-			originalVotingState.Players[0].ID,
-			farFutureTime,
-		)
-		// The deadline check should enforce voting deadlines
-		assert.ErrorContains(t, err, "toggle ready deadline has passed")
-	})
-}
-
-func TestIntegrationRoundServiceUpdateStateToReveal(t *testing.T) {
-	t.Parallel()
-
-	t.Run("Should successfully update state to reveal", func(t *testing.T) {
-		t.Parallel()
-		pool, teardown := setupSubtest(t)
-		t.Cleanup(teardown)
-
-		baseDelay := (time.Millisecond * 100)
-		str := db.NewDB(pool, 3, baseDelay)
-		randomizer := randomizer.NewUserRandomizer()
-
-		ctx, err := getI18nCtx(t.Context())
-		require.NoError(t, err)
-
-		lobbyService := service.NewLobbyService(str, randomizer, "en-GB")
-		playerService := service.NewPlayerService(str, randomizer)
-		roundService := service.NewRoundService(str, randomizer, "en-GB")
-
-		originalVotingState, err := votingState(ctx, lobbyService, playerService, roundService)
-		assert.NoError(t, err)
-
-		roundService.SubmitVote(
-			ctx,
-			originalVotingState.Players[0].ID,
-			originalVotingState.Players[1].Nickname,
-			time.Now(),
-		)
-		_, err = roundService.UpdateStateToReveal(
-			ctx,
-			originalVotingState.GameStateID,
-			time.Now().Add(120*time.Second),
-		)
-		assert.NoError(t, err)
-
-		// expectedRevealState := service.RevealRoleState{
-		// 	VotedForPlayerNickname: originalVotingState.Players[1].Nickname,
-		// 	VotedForPlayerAvatar:   originalVotingState.Players[1].Avatar,
-		// 	VotedForPlayerRole:     originalVotingState.Players[1].Role,
-		// 	Round:                  originalVotingState.Round,
-		// 	Deadline:               originalVotingState.Deadline,
-		// 	ShouldReveal:           true,
-		// 	PlayerIDs:              []uuid.UUID{originalVotingState.Players[0].ID, originalVotingState.Players[1].ID},
-		// }
-		//
-		// diffOpts := cmpopts.IgnoreFields(revealState, "Deadline")
-		// PartialEqual(t, expectedRevealState, revealState, diffOpts)
-		// assert.LessOrEqual(t, int(revealState.Deadline.Seconds()), 120)
-	})
-}
-
-func TestIntegrationRoundServiceGetRevealState(t *testing.T) {
-	t.Parallel()
-
-	t.Run("Should successfully get state to reveal", func(t *testing.T) {
-		t.Parallel()
-		pool, teardown := setupSubtest(t)
-		t.Cleanup(teardown)
-
-		baseDelay := (time.Millisecond * 100)
-		str := db.NewDB(pool, 3, baseDelay)
-		randomizer := randomizer.NewUserRandomizer()
-
-		ctx, err := getI18nCtx(t.Context())
-		require.NoError(t, err)
-
-		lobbyService := service.NewLobbyService(str, randomizer, "en-GB")
-		playerService := service.NewPlayerService(str, randomizer)
-		roundService := service.NewRoundService(str, randomizer, "en-GB")
-
-		originalVotingState, err := votingState(ctx, lobbyService, playerService, roundService)
-		require.NoError(t, err)
-		require.GreaterOrEqual(t, len(originalVotingState.Players), 2, "Expected at least 2 players for the test")
-
-		roundService.SubmitVote(
-			ctx,
-			originalVotingState.Players[0].ID,
-			originalVotingState.Players[1].Nickname,
-			time.Now(),
-		)
-		revealState, err := roundService.UpdateStateToReveal(
-			ctx,
-			originalVotingState.GameStateID,
-			time.Now().Add(120*time.Second),
-		)
-		assert.NoError(t, err)
-
-		getState, err := roundService.GetRevealState(
-			ctx,
-			originalVotingState.Players[0].ID,
-		)
-		assert.NoError(t, err)
-
-		diffOpts := cmpopts.IgnoreFields(revealState, "Deadline")
-		PartialEqual(t, getState, revealState, diffOpts)
-		assert.LessOrEqual(t, int(revealState.Deadline.Seconds()), 120)
-	})
-}
-
-func TestIntegrationRoundServiceUpdateStateToQuestion(t *testing.T) {
-	t.Parallel()
-
-	t.Run("Should successfully update state to question", func(t *testing.T) {
-		t.Parallel()
-		pool, teardown := setupSubtest(t)
-		t.Cleanup(teardown)
-
-		baseDelay := (time.Millisecond * 100)
-		str := db.NewDB(pool, 3, baseDelay)
-		randomizer := randomizer.NewUserRandomizer()
-
-		ctx, err := getI18nCtx(t.Context())
-		require.NoError(t, err)
-
-		lobbyService := service.NewLobbyService(str, randomizer, "en-GB")
-		playerService := service.NewPlayerService(str, randomizer)
-		roundService := service.NewRoundService(str, randomizer, "en-GB")
-
-		revealState, err := revealState(ctx, lobbyService, playerService, roundService)
-		require.NoError(t, err)
-
-		votingState, err := roundService.GetVotingState(ctx, revealState.PlayerIDs[0])
-		require.NoError(t, err)
-
-		newRound := false
-		questionState, err := roundService.UpdateStateToQuestion(
-			ctx,
-			votingState.GameStateID,
-			time.Now().Add(120*time.Second),
-			newRound,
-		)
-		assert.NoError(t, err)
-
-		expectedQuestionState := service.QuestionState{
-			GameStateID: votingState.GameStateID,
-			Round:       votingState.Round + 1,
-			RoundType:   "free_form",
-		}
-
-		diffOpts := cmpopts.IgnoreFields(questionState, "Deadline", "Players")
-		PartialEqual(t, expectedQuestionState, questionState, diffOpts)
-		assert.LessOrEqual(t, int(questionState.Deadline.Seconds()), 120)
-		// Note: Players might receive the same question in free_form rounds when testing
-		if questionState.Players[0].Question != questionState.Players[1].Question {
-			t.Logf("Players received different questions as expected")
-		} else {
-			t.Logf("Players received same question - acceptable in test environment with limited question pool")
-		}
-		assert.NotEqual(t, questionState.Players[0].Role, questionState.Players[1].Role)
-	})
-}
-func TestIntegrationRoundServiceGetQuestionState(t *testing.T) {
-	t.Parallel()
-
-	t.Run("Should successfully get question state", func(t *testing.T) {
-		t.Parallel()
-		pool, teardown := setupSubtest(t)
-		t.Cleanup(teardown)
-
-		baseDelay := (time.Millisecond * 100)
-		str := db.NewDB(pool, 3, baseDelay)
-		randomizer := randomizer.NewUserRandomizer()
-
-		ctx, err := getI18nCtx(t.Context())
-		require.NoError(t, err)
-
-		lobbyService := service.NewLobbyService(str, randomizer, "en-GB")
-		playerService := service.NewPlayerService(str, randomizer)
-		roundService := service.NewRoundService(str, randomizer, "en-GB")
-
-		revealState, err := revealState(ctx, lobbyService, playerService, roundService)
-		require.NoError(t, err)
-
-		votingState, err := roundService.GetVotingState(ctx, revealState.PlayerIDs[0])
-		require.NoError(t, err)
-
-		newRound := false
-		questionState, err := roundService.UpdateStateToQuestion(
-			ctx,
-			votingState.GameStateID,
-			time.Now().Add(120*time.Second),
-			newRound,
-		)
-		require.NoError(t, err)
-
-		getState, err := roundService.GetQuestionState(
-			ctx,
-			votingState.Players[0].ID,
-		)
-		assert.NoError(t, err)
-
-		diffOpts := cmpopts.IgnoreFields(questionState, "Deadline", "Players")
-		PartialEqual(t, getState, questionState, diffOpts)
-		assert.LessOrEqual(t, int(questionState.Deadline.Seconds()), 120)
-	})
-}
-
-func TestIntegrationRoundServiceGetGameState(t *testing.T) {
-	t.Parallel()
-
-	t.Run("Should successfully get game state, voting state", func(t *testing.T) {
-		t.Parallel()
-		pool, teardown := setupSubtest(t)
-		t.Cleanup(teardown)
-
-		baseDelay := (time.Millisecond * 100)
-		str := db.NewDB(pool, 3, baseDelay)
-		randomizer := randomizer.NewUserRandomizer()
-
-		ctx, err := getI18nCtx(t.Context())
-		require.NoError(t, err)
-
-		lobbyService := service.NewLobbyService(str, randomizer, "en-GB")
-		playerService := service.NewPlayerService(str, randomizer)
-		roundService := service.NewRoundService(str, randomizer, "en-GB")
-
-		votingState, err := votingState(ctx, lobbyService, playerService, roundService)
-		require.NoError(t, err)
-
-		gameState, err := roundService.GetGameState(ctx, votingState.Players[0].ID)
-		assert.NoError(t, err)
-		assert.Equal(t, db.FibbingItVoting, gameState)
-	})
-
-	t.Run("Should successfully get game state, reveal state", func(t *testing.T) {
-		t.Parallel()
-		pool, teardown := setupSubtest(t)
-		t.Cleanup(teardown)
-
-		baseDelay := (time.Millisecond * 100)
-		str := db.NewDB(pool, 3, baseDelay)
-		randomizer := randomizer.NewUserRandomizer()
-
-		ctx, err := getI18nCtx(t.Context())
-		require.NoError(t, err)
-
-		lobbyService := service.NewLobbyService(str, randomizer, "en-GB")
-		playerService := service.NewPlayerService(str, randomizer)
-		roundService := service.NewRoundService(str, randomizer, "en-GB")
-
-		questionState, err := startGame(ctx, lobbyService, playerService)
-		require.NoError(t, err)
-
-		err = roundService.SubmitAnswer(ctx, questionState.Players[0].ID, "This is my answer", time.Now())
-		require.NoError(t, err)
-
-		err = roundService.SubmitAnswer(ctx, questionState.Players[1].ID, "This is the other players answer", time.Now())
-		require.NoError(t, err)
-
-		votingState, err := roundService.UpdateStateToVoting(ctx, questionState.GameStateID, time.Now().Add(120*time.Second))
-		require.NoError(t, err)
-
-		_, err = roundService.SubmitVote(ctx, votingState.Players[0].ID, votingState.Players[1].Nickname, time.Now())
-		require.NoError(t, err)
-
-		_, err = roundService.UpdateStateToReveal(ctx, votingState.GameStateID, time.Now().Add(120*time.Second))
-		require.NoError(t, err)
-
-		gameState, err := roundService.GetGameState(ctx, votingState.Players[0].ID)
-		assert.NoError(t, err)
-		assert.Equal(t, db.FibbingItReveal, gameState)
-	})
-}
-
-func TestIntegrationRoundServiceUpdateStateToScoring(t *testing.T) {
-	t.Parallel()
-
-	t.Run("Should successfully update state to scoring", func(t *testing.T) {
-		t.Parallel()
-		pool, teardown := setupSubtest(t)
-		t.Cleanup(teardown)
-
-		baseDelay := (time.Millisecond * 100)
-		str := db.NewDB(pool, 3, baseDelay)
-		randomizer := randomizer.NewUserRandomizer()
-
-		ctx, err := getI18nCtx(t.Context())
-		require.NoError(t, err)
-
-		lobbyService := service.NewLobbyService(str, randomizer, "en-GB")
-		playerService := service.NewPlayerService(str, randomizer)
-		roundService := service.NewRoundService(str, randomizer, "en-GB")
-
-		revealState, err := revealState(ctx, lobbyService, playerService, roundService)
-		require.NoError(t, err)
-
-		votingState, err := roundService.GetVotingState(ctx, revealState.PlayerIDs[0])
-		require.NoError(t, err)
-
-		scoreState, err := roundService.UpdateStateToScore(
-			ctx,
-			votingState.GameStateID,
-			time.Now().Add(120*time.Second),
-			service.Scoring{
-				GuessedFibber:      100,
-				FibberEvadeCapture: 150,
-			},
-		)
-		assert.NoError(t, err)
-
-		expectedScoreState := service.ScoreState{
-			RoundType:   "free_form",
-			RoundNumber: 1,
-			TotalRounds: 1,
-		}
-
-		diffOpts := cmpopts.IgnoreFields(scoreState, "GameStateID", "Deadline", "Players", "FibberCaught")
-		PartialEqual(t, expectedScoreState, scoreState, diffOpts)
-		assert.LessOrEqual(t, int(expectedScoreState.Deadline.Seconds()), 120)
-		assert.Len(t, scoreState.Players, 2)
-
-		// Verify that scores are assigned correctly regardless of who the fibber is
-		totalScore := 0
-		for _, player := range scoreState.Players {
-			assert.NotEmpty(t, player.ID, "Player should have an ID")
-			assert.NotEmpty(t, player.Nickname, "Player should have a nickname")
-			assert.NotEmpty(t, player.Avatar, "Player should have an avatar")
-			assert.GreaterOrEqual(t, player.Score, 0, "Player score should be non-negative")
-			totalScore += player.Score
-		}
-
-		// Verify that the scoring system works correctly
-		assert.GreaterOrEqual(t, totalScore, 0, "Total score should be non-negative")
-	})
-}
-
-func TestIntegrationRoundServiceGetScoringState(t *testing.T) {
-	t.Parallel()
-
-	t.Run("Should successfully get scoring state", func(t *testing.T) {
-		t.Parallel()
-		pool, teardown := setupSubtest(t)
-		t.Cleanup(teardown)
-
-		baseDelay := (time.Millisecond * 100)
-		str := db.NewDB(pool, 3, baseDelay)
-		randomizer := randomizer.NewUserRandomizer()
-
-		ctx, err := getI18nCtx(t.Context())
-		require.NoError(t, err)
-
-		lobbyService := service.NewLobbyService(str, randomizer, "en-GB")
-		playerService := service.NewPlayerService(str, randomizer)
-		roundService := service.NewRoundService(str, randomizer, "en-GB")
-
-		revealState, err := revealState(ctx, lobbyService, playerService, roundService)
-		require.NoError(t, err)
-
-		votingState, err := roundService.GetVotingState(ctx, revealState.PlayerIDs[0])
-		require.NoError(t, err)
-
-		scoreState, err := roundService.UpdateStateToScore(
-			ctx,
-			votingState.GameStateID,
-			time.Now().Add(120*time.Second),
-			service.Scoring{
-				GuessedFibber:      100,
-				FibberEvadeCapture: 150,
-			},
-		)
-		require.NoError(t, err)
-
-		getState, err := roundService.GetScoreState(ctx, service.Scoring{
-			GuessedFibber:      100,
-			FibberEvadeCapture: 150,
-		}, scoreState.Players[0].ID)
-		assert.NoError(t, err)
-
-		diffOpts := cmpopts.IgnoreFields(scoreState, "Deadline")
-		PartialEqual(t, getState, scoreState, diffOpts)
-		assert.LessOrEqual(t, int(scoreState.Deadline.Seconds()), 120)
-	})
-}
-
-func TestIntegrationRoundServiceUpdateStateToWinner(t *testing.T) {
-	t.Parallel()
-
-	t.Run("Should successfully update state to winner", func(t *testing.T) {
-		t.Parallel()
-		pool, teardown := setupSubtest(t)
-		t.Cleanup(teardown)
-
-		baseDelay := (time.Millisecond * 100)
-		str := db.NewDB(pool, 3, baseDelay)
-		randomizer := randomizer.NewUserRandomizer()
-
-		ctx, err := getI18nCtx(t.Context())
-		require.NoError(t, err)
-
-		lobbyService := service.NewLobbyService(str, randomizer, "en-GB")
-		playerService := service.NewPlayerService(str, randomizer)
-		roundService := service.NewRoundService(str, randomizer, "en-GB")
-
-		conf, err := config.LoadConfig(ctx)
-		require.NoError(t, err)
-
-		scoreState, err := scoreState(ctx, lobbyService, playerService, roundService, conf)
-		require.NoError(t, err)
-
-		winnerState, err := roundService.UpdateStateToWinner(
-			ctx,
-			scoreState.GameStateID,
-			time.Now().Add(120*time.Second),
-		)
-		assert.NoError(t, err)
-		assert.NotNil(t, winnerState)
-
-		assert.NotEmpty(t, winnerState.Players, "Winner state should have players")
-		for _, player := range winnerState.Players {
-			assert.NotEmpty(t, player.ID, "Player should have an ID")
-			assert.NotEmpty(t, player.Nickname, "Player should have a nickname")
-			assert.NotEmpty(t, player.Avatar, "Player should have an avatar")
-			assert.GreaterOrEqual(t, player.Score, 0, "Player score should be non-negative")
-		}
-	})
-}
-
-func TestIntegrationRoundServiceGetWinnerState(t *testing.T) {
-	t.Parallel()
-
-	t.Run("Should successfully get winner state", func(t *testing.T) {
-		t.Parallel()
-		pool, teardown := setupSubtest(t)
-		t.Cleanup(teardown)
-
-		baseDelay := (time.Millisecond * 100)
-		str := db.NewDB(pool, 3, baseDelay)
-		randomizer := randomizer.NewUserRandomizer()
-
-		ctx, err := getI18nCtx(t.Context())
-		require.NoError(t, err)
-
-		lobbyService := service.NewLobbyService(str, randomizer, "en-GB")
-		playerService := service.NewPlayerService(str, randomizer)
-		roundService := service.NewRoundService(str, randomizer, "en-GB")
-
-		conf, err := config.LoadConfig(ctx)
-		require.NoError(t, err)
-
-		scoreState, err := scoreState(ctx, lobbyService, playerService, roundService, conf)
-		require.NoError(t, err)
-
-		_, err = roundService.UpdateStateToWinner(
-			ctx,
-			scoreState.GameStateID,
-			time.Now().Add(120*time.Second),
-		)
-		assert.NoError(t, err)
-
-		winnerState, err := roundService.GetWinnerState(
-			ctx,
-			scoreState.Players[0].ID,
-		)
-		assert.NoError(t, err)
-		assert.NotNil(t, winnerState)
-
-		assert.NotEmpty(t, winnerState.Players, "Winner state should have players")
-
-		if len(winnerState.Players) > 1 {
-			for i := 0; i < len(winnerState.Players)-1; i++ {
-				assert.GreaterOrEqual(t, winnerState.Players[i].Score, winnerState.Players[i+1].Score,
-					"Players should be sorted by score in descending order")
-			}
-		}
-
-		for _, player := range winnerState.Players {
-			assert.NotEmpty(t, player.ID, "Player should have an ID")
-			assert.NotEmpty(t, player.Nickname, "Player should have a nickname")
-			assert.NotEmpty(t, player.Avatar, "Player should have an avatar")
-			assert.GreaterOrEqual(t, player.Score, 0, "Player score should be non-negative")
-		}
-	})
-}
-
-func TestIntegrationRoundServiceFinsishGame(t *testing.T) {
-	t.Parallel()
-
-	t.Run("Should successfully finish game", func(t *testing.T) {
-		t.Parallel()
-		pool, teardown := setupSubtest(t)
-		t.Cleanup(teardown)
-
-		baseDelay := (time.Millisecond * 100)
-		str := db.NewDB(pool, 3, baseDelay)
-		randomizer := randomizer.NewUserRandomizer()
-
-		ctx, err := getI18nCtx(t.Context())
-		require.NoError(t, err)
-
-		lobbyService := service.NewLobbyService(str, randomizer, "en-GB")
-		playerService := service.NewPlayerService(str, randomizer)
-		roundService := service.NewRoundService(str, randomizer, "en-GB")
-
-		conf, err := config.LoadConfig(ctx)
-		require.NoError(t, err)
-
-		scoreState, err := scoreState(ctx, lobbyService, playerService, roundService, conf)
-		require.NoError(t, err)
-
-		err = roundService.FinishGame(ctx, scoreState.GameStateID)
-		assert.NoError(t, err)
+		assert.Equal(t, budgetAfterFirstPause, pauseStatus2.PauseTimeRemainingMs)
 	})
 }

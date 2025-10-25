@@ -43,6 +43,11 @@ type Timings struct {
 	ShowWinnerScreenFor   time.Duration
 }
 
+type PauseSignal struct {
+	IsPaused         bool
+	ExtendDeadlineBy time.Duration
+}
+
 type StateDependencies struct {
 	RoundService  RoundService
 	ClientUpdater ClientUpdater
@@ -50,4 +55,5 @@ type StateDependencies struct {
 	Logger        *slog.Logger
 	Timings       Timings
 	Scoring       service.Scoring
+	PauseCh       chan PauseSignal
 }

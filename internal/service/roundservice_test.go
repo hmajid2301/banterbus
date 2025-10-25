@@ -676,12 +676,31 @@ func TestRoundServiceUpdateStateToVoting(t *testing.T) {
 			},
 		}, nil)
 
+		mockStore.EXPECT().GetGameState(ctx, gameStateID).Return(db.GameState{
+			ID:                   gameStateID,
+			PausedAt:             pgtype.Timestamp{Valid: false},
+			PauseTimeRemainingMs: pgtype.Int4{Int32: 300000, Valid: true},
+		}, nil)
+
+		mockStore.EXPECT().GetAllPlayersByGameStateID(ctx, gameStateID).Return([]db.GetAllPlayersByGameStateIDRow{
+			{ID: defaultHostPlayerID, Nickname: "Player 1", Avatar: "avatar1"},
+			{ID: defaultOtherPlayerID, Nickname: "Player 2", Avatar: "avatar2"},
+		}, nil)
+
+		roomID, _ := uuid.NewV7()
+		mockStore.EXPECT().GetRoomByPlayerID(ctx, defaultHostPlayerID).Return(db.Room{
+			ID:         roomID,
+			HostPlayer: defaultHostPlayerID,
+		}, nil)
+
 		votes, err := srv.UpdateStateToVoting(ctx, gameStateID, now)
 		assert.NoError(t, err)
 		expectedVotes := service.VotingState{
-			GameStateID: gameStateID,
-			Question:    "My question",
-			Round:       1,
+			GameStateID:          gameStateID,
+			Question:             "My question",
+			Round:                1,
+			IsPaused:             false,
+			PauseTimeRemainingMs: 300000,
 			Players: []service.PlayerWithVoting{
 				{
 					ID:       defaultOtherPlayerID,
@@ -696,6 +715,7 @@ func TestRoundServiceUpdateStateToVoting(t *testing.T) {
 					Avatar:   "https://api.dicebear.com/9.x/bottts-neutral/svg?radius=20&seed=Player+1",
 					Votes:    0,
 					IsReady:  false,
+					IsHost:   true,
 				},
 			},
 		}
@@ -1142,13 +1162,31 @@ func TestRoundServiceGetVotingState(t *testing.T) {
 				},
 			}, nil)
 
+		mockStore.EXPECT().GetGameState(ctx, gameStateID).Return(db.GameState{
+			ID:                   gameStateID,
+			PausedAt:             pgtype.Timestamp{Valid: false},
+			PauseTimeRemainingMs: pgtype.Int4{Int32: 300000, Valid: true},
+		}, nil)
+
+		mockStore.EXPECT().GetAllPlayersByGameStateID(ctx, gameStateID).Return([]db.GetAllPlayersByGameStateIDRow{
+			{ID: playerID, Nickname: "nickname", Avatar: "avatar"},
+		}, nil)
+
+		roomID, _ := uuid.NewV7()
+		mockStore.EXPECT().GetRoomByPlayerID(ctx, playerID).Return(db.Room{
+			ID:         roomID,
+			HostPlayer: playerID,
+		}, nil)
+
 		votingState, err := srv.GetVotingState(ctx, playerID)
 
 		assert.NoError(t, err)
 		expectedVotingState := service.VotingState{
-			GameStateID: gameStateID,
-			Question:    "My  question",
-			Round:       1,
+			GameStateID:          gameStateID,
+			Question:             "My  question",
+			Round:                1,
+			IsPaused:             false,
+			PauseTimeRemainingMs: 300000,
 			Players: []service.PlayerWithVoting{
 				{
 					ID:       playerID,
@@ -1157,6 +1195,7 @@ func TestRoundServiceGetVotingState(t *testing.T) {
 					Votes:    1,
 					Answer:   "A cat",
 					IsReady:  false,
+					IsHost:   true,
 				},
 			},
 		}
@@ -1412,6 +1451,7 @@ func TestRoundServiceUpdateStateToReveal(t *testing.T) {
 			}, nil)
 			mockStore.EXPECT().GetVotingState(ctx, roundID).Return([]db.GetVotingStateRow{
 				{
+					GameStateID:    gameStateID,
 					PlayerID:       defaultHostPlayerID,
 					Nickname:       "Player 1",
 					Avatar:         "https://api.dicebear.com/9.x/bottts-neutral/svg?radius=20&seed=Player+1",
@@ -1421,6 +1461,7 @@ func TestRoundServiceUpdateStateToReveal(t *testing.T) {
 					Role:           pgtype.Text{String: "fibber"},
 				},
 				{
+					GameStateID:    gameStateID,
 					PlayerID:       defaultOtherPlayerID,
 					Nickname:       "Player 2",
 					Avatar:         "https://api.dicebear.com/9.x/bottts-neutral/svg?radius=20&seed=Player+2",
@@ -1429,6 +1470,23 @@ func TestRoundServiceUpdateStateToReveal(t *testing.T) {
 					SubmitDeadline: pgtype.Timestamp{Time: now},
 					Role:           pgtype.Text{String: "normal"},
 				},
+			}, nil)
+
+			mockStore.EXPECT().GetGameState(ctx, gameStateID).Return(db.GameState{
+				ID:                   gameStateID,
+				PausedAt:             pgtype.Timestamp{Valid: false},
+				PauseTimeRemainingMs: pgtype.Int4{Int32: 300000, Valid: true},
+			}, nil)
+
+			mockStore.EXPECT().GetAllPlayersByGameStateID(ctx, gameStateID).Return([]db.GetAllPlayersByGameStateIDRow{
+				{ID: defaultHostPlayerID, Nickname: "Player 1", Avatar: "avatar1"},
+				{ID: defaultOtherPlayerID, Nickname: "Player 2", Avatar: "avatar2"},
+			}, nil)
+
+			roomID, _ := uuid.NewV7()
+			mockStore.EXPECT().GetRoomByPlayerID(ctx, defaultHostPlayerID).Return(db.Room{
+				ID:         roomID,
+				HostPlayer: defaultHostPlayerID,
 			}, nil)
 
 			reveal, err := srv.UpdateStateToReveal(ctx, gameStateID, now)
@@ -2549,8 +2607,10 @@ func TestRoundServiceGetQuestionState(t *testing.T) {
 
 		ctx := t.Context()
 
+		gameStateID := uuid.Nil
 		deadline := time.Now().Add(5 * time.Second)
 		mockStore.EXPECT().GetCurrentQuestionByPlayerID(ctx, playerID).Return(db.GetCurrentQuestionByPlayerIDRow{
+			GameStateID:    gameStateID,
 			PlayerID:       playerID,
 			Avatar:         "https://api.dicebear.com/9.x/bottts-neutral/svg?radius=20&seed=nickname",
 			Nickname:       "nickname",
@@ -2560,6 +2620,18 @@ func TestRoundServiceGetQuestionState(t *testing.T) {
 			RoundType:      "free_form",
 			RoomCode:       "ABC12",
 			SubmitDeadline: pgtype.Timestamp{Time: deadline},
+		}, nil)
+
+		mockStore.EXPECT().GetGameState(ctx, gameStateID).Return(db.GameState{
+			ID:                   gameStateID,
+			PausedAt:             pgtype.Timestamp{Valid: false},
+			PauseTimeRemainingMs: pgtype.Int4{Int32: 300000, Valid: true},
+		}, nil)
+
+		roomID, _ := uuid.NewV7()
+		mockStore.EXPECT().GetRoomByPlayerID(ctx, playerID).Return(db.Room{
+			ID:         roomID,
+			HostPlayer: playerID,
 		}, nil)
 
 		questionState, err := srv.GetQuestionState(ctx, playerID)
@@ -2572,13 +2644,16 @@ func TestRoundServiceGetQuestionState(t *testing.T) {
 					Role:            "fibber",
 					Question:        "fibber question",
 					PossibleAnswers: []string{},
+					IsHost:          true,
 				},
 			},
-			Round:     1,
-			RoundType: "free_form",
+			Round:                1,
+			RoundType:            "free_form",
+			IsPaused:             false,
+			PauseTimeRemainingMs: 300000,
 		}
 
-		diffOpts := cmpopts.IgnoreFields(questionState, "Deadline")
+		diffOpts := cmpopts.IgnoreFields(questionState, "Deadline", "GameStateID")
 		PartialEqual(t, expectedGameState, questionState, diffOpts)
 		assert.LessOrEqual(t, int(questionState.Deadline.Seconds()), 5)
 	})
@@ -2591,8 +2666,10 @@ func TestRoundServiceGetQuestionState(t *testing.T) {
 
 		ctx := t.Context()
 
+		gameStateID := uuid.Nil
 		deadline := time.Now().Add(5 * time.Second)
 		mockStore.EXPECT().GetCurrentQuestionByPlayerID(ctx, playerID).Return(db.GetCurrentQuestionByPlayerIDRow{
+			GameStateID:    gameStateID,
 			PlayerID:       playerID,
 			Avatar:         "https://api.dicebear.com/9.x/bottts-neutral/svg?radius=20&seed=nickname",
 			Nickname:       "nickname",
@@ -2602,6 +2679,18 @@ func TestRoundServiceGetQuestionState(t *testing.T) {
 			RoundType:      "free_form",
 			RoomCode:       "ABC12",
 			SubmitDeadline: pgtype.Timestamp{Time: deadline},
+		}, nil)
+
+		mockStore.EXPECT().GetGameState(ctx, gameStateID).Return(db.GameState{
+			ID:                   gameStateID,
+			PausedAt:             pgtype.Timestamp{Valid: false},
+			PauseTimeRemainingMs: pgtype.Int4{Int32: 300000, Valid: true},
+		}, nil)
+
+		roomID, _ := uuid.NewV7()
+		mockStore.EXPECT().GetRoomByPlayerID(ctx, playerID).Return(db.Room{
+			ID:         roomID,
+			HostPlayer: playerID,
 		}, nil)
 
 		questionState, err := srv.GetQuestionState(ctx, playerID)
@@ -2614,13 +2703,16 @@ func TestRoundServiceGetQuestionState(t *testing.T) {
 					Role:            "normal",
 					Question:        "normal question",
 					PossibleAnswers: []string{},
+					IsHost:          true,
 				},
 			},
-			Round:     1,
-			RoundType: "free_form",
+			Round:                1,
+			IsPaused:             false,
+			PauseTimeRemainingMs: 300000,
+			RoundType:            "free_form",
 		}
 
-		diffOpts := cmpopts.IgnoreFields(questionState, "Deadline")
+		diffOpts := cmpopts.IgnoreFields(questionState, "Deadline", "GameStateID")
 		PartialEqual(t, expectedGameState, questionState, diffOpts)
 		assert.LessOrEqual(t, int(questionState.Deadline.Seconds()), 5)
 	})
@@ -2633,8 +2725,10 @@ func TestRoundServiceGetQuestionState(t *testing.T) {
 
 		ctx := t.Context()
 
+		gameStateID := uuid.Nil
 		deadline := time.Now().Add(5 * time.Second)
 		mockStore.EXPECT().GetCurrentQuestionByPlayerID(ctx, playerID).Return(db.GetCurrentQuestionByPlayerIDRow{
+			GameStateID:    gameStateID,
 			PlayerID:       playerID,
 			Avatar:         "https://api.dicebear.com/9.x/bottts-neutral/svg?radius=20&seed=nickname",
 			Nickname:       "nickname",
@@ -2645,6 +2739,19 @@ func TestRoundServiceGetQuestionState(t *testing.T) {
 			RoomCode:       "ABC12",
 			SubmitDeadline: pgtype.Timestamp{Time: deadline},
 		}, nil)
+
+		mockStore.EXPECT().GetGameState(ctx, gameStateID).Return(db.GameState{
+			ID:                   gameStateID,
+			PausedAt:             pgtype.Timestamp{Valid: false},
+			PauseTimeRemainingMs: pgtype.Int4{Int32: 300000, Valid: true},
+		}, nil)
+
+		roomID, _ := uuid.NewV7()
+		mockStore.EXPECT().GetRoomByPlayerID(ctx, playerID).Return(db.Room{
+			ID:         roomID,
+			HostPlayer: playerID,
+		}, nil)
+
 		questionState, err := srv.GetQuestionState(ctx, playerID)
 
 		assert.NoError(t, err)
@@ -2655,13 +2762,16 @@ func TestRoundServiceGetQuestionState(t *testing.T) {
 					Role:            "fibber",
 					Question:        "fibber question",
 					PossibleAnswers: []string{"Strongly Agree", "Agree", "Neutral", "Disagree", "Strongly Disagree"},
+					IsHost:          true,
 				},
 			},
-			Round:     1,
-			RoundType: "multiple_choice",
+			Round:                1,
+			RoundType:            "multiple_choice",
+			IsPaused:             false,
+			PauseTimeRemainingMs: 300000,
 		}
 
-		diffOpts := cmpopts.IgnoreFields(questionState, "Deadline")
+		diffOpts := cmpopts.IgnoreFields(questionState, "Deadline", "GameStateID")
 		PartialEqual(t, expectedGameState, questionState, diffOpts)
 		assert.LessOrEqual(t, int(questionState.Deadline.Seconds()), 5)
 	})
@@ -2674,8 +2784,10 @@ func TestRoundServiceGetQuestionState(t *testing.T) {
 
 		ctx := t.Context()
 
+		gameStateID := uuid.Nil
 		deadline := time.Now().Add(5 * time.Second)
 		mockStore.EXPECT().GetCurrentQuestionByPlayerID(ctx, playerID).Return(db.GetCurrentQuestionByPlayerIDRow{
+			GameStateID:    gameStateID,
 			PlayerID:       playerID,
 			Avatar:         "https://api.dicebear.com/9.x/bottts-neutral/svg?radius=20&seed=nickname",
 			Nickname:       "nickname",
@@ -2686,6 +2798,19 @@ func TestRoundServiceGetQuestionState(t *testing.T) {
 			RoomCode:       "ABC12",
 			SubmitDeadline: pgtype.Timestamp{Time: deadline},
 		}, nil)
+
+		mockStore.EXPECT().GetGameState(ctx, gameStateID).Return(db.GameState{
+			ID:                   gameStateID,
+			PausedAt:             pgtype.Timestamp{Valid: false},
+			PauseTimeRemainingMs: pgtype.Int4{Int32: 300000, Valid: true},
+		}, nil)
+
+		roomID, _ := uuid.NewV7()
+		mockStore.EXPECT().GetRoomByPlayerID(ctx, playerID).Return(db.Room{
+			ID:         roomID,
+			HostPlayer: playerID,
+		}, nil)
+
 		mockStore.EXPECT().GetAllPlayersInRoom(ctx, playerID).Return([]db.GetAllPlayersInRoomRow{
 			{
 				Nickname: "nickname",
@@ -2705,13 +2830,16 @@ func TestRoundServiceGetQuestionState(t *testing.T) {
 					Role:            "fibber",
 					Question:        "fibber question",
 					PossibleAnswers: []string{"nickname", "other_nickname"},
+					IsHost:          true,
 				},
 			},
-			Round:     1,
-			RoundType: "most_likely",
+			Round:                1,
+			RoundType:            "most_likely",
+			IsPaused:             false,
+			PauseTimeRemainingMs: 300000,
 		}
 
-		diffOpts := cmpopts.IgnoreFields(questionState, "Deadline")
+		diffOpts := cmpopts.IgnoreFields(questionState, "Deadline", "GameStateID")
 		PartialEqual(t, expectedGameState, questionState, diffOpts)
 		assert.LessOrEqual(t, int(questionState.Deadline.Seconds()), 5)
 	})
@@ -3235,5 +3363,350 @@ func TestRoundServiceGetScoreState(t *testing.T) {
 
 		assert.Error(t, err)
 		assert.Empty(t, scoreState)
+	})
+}
+func TestRoundServicePauseGame(t *testing.T) {
+	t.Parallel()
+
+	t.Run("Should successfully pause game when host requests", func(t *testing.T) {
+		t.Parallel()
+		mockStore := mockService.NewMockRoundStore(t)
+		mockRandom := mockService.NewMockRandomizer(t)
+		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
+
+		ctx := t.Context()
+		playerID, _ := uuid.NewV7()
+		roomID, _ := uuid.NewV7()
+		gameStateID, _ := uuid.NewV7()
+		now := time.Now().UTC()
+
+		mockStore.EXPECT().GetRoomByPlayerID(ctx, playerID).Return(db.Room{
+			ID:         roomID,
+			HostPlayer: playerID,
+			RoomState:  db.Playing.String(),
+		}, nil)
+
+		mockStore.EXPECT().GetGameStateByPlayerID(ctx, playerID).Return(db.GameState{
+			ID:                   gameStateID,
+			PausedAt:             pgtype.Timestamp{Valid: false},
+			PauseTimeRemainingMs: pgtype.Int4{Int32: 300000, Valid: true},
+		}, nil)
+
+		pauseDeadline := now.Add(300 * time.Second)
+		mockStore.EXPECT().PauseGame(ctx, mock.MatchedBy(func(args db.PauseGameParams) bool {
+			return args.ID == gameStateID &&
+				args.PausedAt.Valid &&
+				args.PauseDeadline.Valid
+		})).Return(db.GameState{
+			ID:                   gameStateID,
+			PausedAt:             pgtype.Timestamp{Time: now, Valid: true},
+			PauseDeadline:        pgtype.Timestamp{Time: pauseDeadline, Valid: true},
+			PauseTimeRemainingMs: pgtype.Int4{Int32: 300000, Valid: true},
+			SubmitDeadline:       pgtype.Timestamp{Time: now.Add(30 * time.Second), Valid: true},
+			State:                db.FibbingITQuestion.String(),
+		}, nil)
+
+		pauseStatus, err := srv.PauseGame(ctx, playerID)
+
+		require.NoError(t, err)
+		assert.True(t, pauseStatus.IsPaused)
+		assert.NotNil(t, pauseStatus.PausedAt)
+		assert.NotNil(t, pauseStatus.PauseDeadline)
+		assert.Equal(t, int32(300000), pauseStatus.PauseTimeRemainingMs)
+	})
+
+	t.Run("Should return error when non-host tries to pause", func(t *testing.T) {
+		t.Parallel()
+		mockStore := mockService.NewMockRoundStore(t)
+		mockRandom := mockService.NewMockRandomizer(t)
+		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
+
+		ctx := t.Context()
+		playerID, _ := uuid.NewV7()
+		hostID, _ := uuid.NewV7()
+		roomID, _ := uuid.NewV7()
+
+		mockStore.EXPECT().GetRoomByPlayerID(ctx, playerID).Return(db.Room{
+			ID:         roomID,
+			HostPlayer: hostID,
+			RoomState:  db.Playing.String(),
+		}, nil)
+
+		pauseStatus, err := srv.PauseGame(ctx, playerID)
+
+		assert.ErrorIs(t, err, service.ErrNotHost)
+		assert.Empty(t, pauseStatus)
+	})
+
+	t.Run("Should return error when game is already paused", func(t *testing.T) {
+		t.Parallel()
+		mockStore := mockService.NewMockRoundStore(t)
+		mockRandom := mockService.NewMockRandomizer(t)
+		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
+
+		ctx := t.Context()
+		playerID, _ := uuid.NewV7()
+		roomID, _ := uuid.NewV7()
+		gameStateID, _ := uuid.NewV7()
+		now := time.Now().UTC()
+
+		mockStore.EXPECT().GetRoomByPlayerID(ctx, playerID).Return(db.Room{
+			ID:         roomID,
+			HostPlayer: playerID,
+			RoomState:  db.Playing.String(),
+		}, nil)
+
+		mockStore.EXPECT().GetGameStateByPlayerID(ctx, playerID).Return(db.GameState{
+			ID:                   gameStateID,
+			PausedAt:             pgtype.Timestamp{Time: now, Valid: true},
+			PauseTimeRemainingMs: pgtype.Int4{Int32: 300000, Valid: true},
+		}, nil)
+
+		pauseStatus, err := srv.PauseGame(ctx, playerID)
+
+		assert.ErrorIs(t, err, service.ErrGameAlreadyPaused)
+		assert.Empty(t, pauseStatus)
+	})
+
+	t.Run("Should return error when no pause time remaining", func(t *testing.T) {
+		t.Parallel()
+		mockStore := mockService.NewMockRoundStore(t)
+		mockRandom := mockService.NewMockRandomizer(t)
+		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
+
+		ctx := t.Context()
+		playerID, _ := uuid.NewV7()
+		roomID, _ := uuid.NewV7()
+		gameStateID, _ := uuid.NewV7()
+
+		mockStore.EXPECT().GetRoomByPlayerID(ctx, playerID).Return(db.Room{
+			ID:         roomID,
+			HostPlayer: playerID,
+			RoomState:  db.Playing.String(),
+		}, nil)
+
+		mockStore.EXPECT().GetGameStateByPlayerID(ctx, playerID).Return(db.GameState{
+			ID:                   gameStateID,
+			PausedAt:             pgtype.Timestamp{Valid: false},
+			PauseTimeRemainingMs: pgtype.Int4{Int32: 0, Valid: true},
+		}, nil)
+
+		pauseStatus, err := srv.PauseGame(ctx, playerID)
+
+		assert.ErrorIs(t, err, service.ErrNoPauseTimeRemaining)
+		assert.Empty(t, pauseStatus)
+	})
+}
+
+func TestRoundServiceResumeGame(t *testing.T) {
+	t.Parallel()
+
+	t.Run("Should successfully resume game when host requests", func(t *testing.T) {
+		t.Parallel()
+		mockStore := mockService.NewMockRoundStore(t)
+		mockRandom := mockService.NewMockRandomizer(t)
+		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
+
+		ctx := t.Context()
+		playerID, _ := uuid.NewV7()
+		roomID, _ := uuid.NewV7()
+		gameStateID, _ := uuid.NewV7()
+		now := time.Now().UTC()
+		pausedAt := now.Add(-10 * time.Second)
+
+		mockStore.EXPECT().GetRoomByPlayerID(ctx, playerID).Return(db.Room{
+			ID:         roomID,
+			HostPlayer: playerID,
+			RoomState:  db.Playing.String(),
+		}, nil)
+
+		mockStore.EXPECT().GetGameStateByPlayerID(ctx, playerID).Return(db.GameState{
+			ID:                   gameStateID,
+			PausedAt:             pgtype.Timestamp{Time: pausedAt, Valid: true},
+			PauseTimeRemainingMs: pgtype.Int4{Int32: 300000, Valid: true},
+		}, nil)
+
+		mockStore.EXPECT().ResumeGame(ctx, gameStateID).Return(db.GameState{
+			ID:                   gameStateID,
+			PausedAt:             pgtype.Timestamp{Valid: false},
+			PauseDeadline:        pgtype.Timestamp{Valid: false},
+			PauseTimeRemainingMs: pgtype.Int4{Int32: 290000, Valid: true},
+			SubmitDeadline:       pgtype.Timestamp{Time: now.Add(30 * time.Second), Valid: true},
+			State:                db.FibbingITQuestion.String(),
+		}, nil)
+
+		pauseStatus, err := srv.ResumeGame(ctx, playerID)
+
+		require.NoError(t, err)
+		assert.False(t, pauseStatus.IsPaused)
+		assert.Nil(t, pauseStatus.PausedAt)
+		assert.Nil(t, pauseStatus.PauseDeadline)
+		assert.Equal(t, int32(290000), pauseStatus.PauseTimeRemainingMs)
+	})
+
+	t.Run("Should return error when non-host tries to resume", func(t *testing.T) {
+		t.Parallel()
+		mockStore := mockService.NewMockRoundStore(t)
+		mockRandom := mockService.NewMockRandomizer(t)
+		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
+
+		ctx := t.Context()
+		playerID, _ := uuid.NewV7()
+		hostID, _ := uuid.NewV7()
+		roomID, _ := uuid.NewV7()
+
+		mockStore.EXPECT().GetRoomByPlayerID(ctx, playerID).Return(db.Room{
+			ID:         roomID,
+			HostPlayer: hostID,
+			RoomState:  db.Playing.String(),
+		}, nil)
+
+		pauseStatus, err := srv.ResumeGame(ctx, playerID)
+
+		assert.ErrorIs(t, err, service.ErrNotHost)
+		assert.Empty(t, pauseStatus)
+	})
+
+	t.Run("Should return error when game is not paused", func(t *testing.T) {
+		t.Parallel()
+		mockStore := mockService.NewMockRoundStore(t)
+		mockRandom := mockService.NewMockRandomizer(t)
+		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
+
+		ctx := t.Context()
+		playerID, _ := uuid.NewV7()
+		roomID, _ := uuid.NewV7()
+		gameStateID, _ := uuid.NewV7()
+
+		mockStore.EXPECT().GetRoomByPlayerID(ctx, playerID).Return(db.Room{
+			ID:         roomID,
+			HostPlayer: playerID,
+			RoomState:  db.Playing.String(),
+		}, nil)
+
+		mockStore.EXPECT().GetGameStateByPlayerID(ctx, playerID).Return(db.GameState{
+			ID:                   gameStateID,
+			PausedAt:             pgtype.Timestamp{Valid: false},
+			PauseTimeRemainingMs: pgtype.Int4{Int32: 300000, Valid: true},
+		}, nil)
+
+		pauseStatus, err := srv.ResumeGame(ctx, playerID)
+
+		assert.ErrorIs(t, err, service.ErrGameNotPaused)
+		assert.Empty(t, pauseStatus)
+	})
+}
+
+func TestRoundServiceGetPauseStatus(t *testing.T) {
+	t.Parallel()
+
+	t.Run("Should return pause status for paused game", func(t *testing.T) {
+		t.Parallel()
+		mockStore := mockService.NewMockRoundStore(t)
+		mockRandom := mockService.NewMockRandomizer(t)
+		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
+
+		ctx := t.Context()
+		gameStateID, _ := uuid.NewV7()
+		now := time.Now().UTC()
+		pausedAt := now.Add(-5 * time.Second)
+		pauseDeadline := now.Add(295 * time.Second)
+		submitDeadline := now.Add(30 * time.Second)
+
+		mockStore.EXPECT().GetPauseStatus(ctx, gameStateID).Return(db.GetPauseStatusRow{
+			ID:                   gameStateID,
+			PausedAt:             pgtype.Timestamp{Time: pausedAt, Valid: true},
+			PauseDeadline:        pgtype.Timestamp{Time: pauseDeadline, Valid: true},
+			PauseTimeRemainingMs: pgtype.Int4{Int32: 295000, Valid: true},
+			SubmitDeadline:       pgtype.Timestamp{Time: submitDeadline, Valid: true},
+			State:                db.FibbingITQuestion.String(),
+		}, nil)
+
+		pauseStatus, err := srv.GetPauseStatus(ctx, gameStateID)
+
+		require.NoError(t, err)
+		assert.True(t, pauseStatus.IsPaused)
+		assert.NotNil(t, pauseStatus.PausedAt)
+		assert.NotNil(t, pauseStatus.PauseDeadline)
+		assert.Equal(t, int32(295000), pauseStatus.PauseTimeRemainingMs)
+		assert.Equal(t, db.FibbingITQuestion.String(), pauseStatus.State)
+	})
+
+	t.Run("Should return pause status for unpaused game", func(t *testing.T) {
+		t.Parallel()
+		mockStore := mockService.NewMockRoundStore(t)
+		mockRandom := mockService.NewMockRandomizer(t)
+		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
+
+		ctx := t.Context()
+		gameStateID, _ := uuid.NewV7()
+		now := time.Now().UTC()
+		submitDeadline := now.Add(30 * time.Second)
+
+		mockStore.EXPECT().GetPauseStatus(ctx, gameStateID).Return(db.GetPauseStatusRow{
+			ID:                   gameStateID,
+			PausedAt:             pgtype.Timestamp{Valid: false},
+			PauseDeadline:        pgtype.Timestamp{Valid: false},
+			PauseTimeRemainingMs: pgtype.Int4{Int32: 300000, Valid: true},
+			SubmitDeadline:       pgtype.Timestamp{Time: submitDeadline, Valid: true},
+			State:                db.FibbingItVoting.String(),
+		}, nil)
+
+		pauseStatus, err := srv.GetPauseStatus(ctx, gameStateID)
+
+		require.NoError(t, err)
+		assert.False(t, pauseStatus.IsPaused)
+		assert.Nil(t, pauseStatus.PausedAt)
+		assert.Nil(t, pauseStatus.PauseDeadline)
+		assert.Equal(t, int32(300000), pauseStatus.PauseTimeRemainingMs)
+		assert.Equal(t, db.FibbingItVoting.String(), pauseStatus.State)
+	})
+}
+
+func TestRoundServicePauseGameNotStarted(t *testing.T) {
+	t.Parallel()
+
+	t.Run("Should return error when trying to pause game that hasn't started", func(t *testing.T) {
+		t.Parallel()
+		mockStore := mockService.NewMockRoundStore(t)
+		mockRandom := mockService.NewMockRandomizer(t)
+		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
+
+		ctx := t.Context()
+		playerID, _ := uuid.NewV7()
+		roomID, _ := uuid.NewV7()
+
+		mockStore.EXPECT().GetRoomByPlayerID(ctx, playerID).Return(db.Room{
+			ID:         roomID,
+			HostPlayer: playerID,
+			RoomState:  db.Created.String(),
+		}, nil)
+
+		pauseStatus, err := srv.PauseGame(ctx, playerID)
+
+		assert.ErrorIs(t, err, service.ErrGameNotStarted)
+		assert.Empty(t, pauseStatus)
+	})
+
+	t.Run("Should return error when trying to resume game that hasn't started", func(t *testing.T) {
+		t.Parallel()
+		mockStore := mockService.NewMockRoundStore(t)
+		mockRandom := mockService.NewMockRandomizer(t)
+		srv := service.NewRoundService(mockStore, mockRandom, "en-GB")
+
+		ctx := t.Context()
+		playerID, _ := uuid.NewV7()
+		roomID, _ := uuid.NewV7()
+
+		mockStore.EXPECT().GetRoomByPlayerID(ctx, playerID).Return(db.Room{
+			ID:         roomID,
+			HostPlayer: playerID,
+			RoomState:  db.Created.String(),
+		}, nil)
+
+		pauseStatus, err := srv.ResumeGame(ctx, playerID)
+
+		assert.ErrorIs(t, err, service.ErrGameNotStarted)
+		assert.Empty(t, pauseStatus)
 	})
 }

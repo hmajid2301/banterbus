@@ -73,3 +73,11 @@ en-GB:
     answer_required: "Answer is required"
     player_nickname_to_kick_required: "Player nickname to kick is required"
     player_nickname_required_voting: "Player nickname is required"
+  pause:
+    game_paused_title: "GAME PAUSED"
+    pause_button: "Pause"
+    resume_button: "Resume Game"
+    pause_time_remaining: "Pause time remaining"
+    waiting_for_host: "Waiting for host to resume..."
+    no_pause_time: "No pause time remaining"
+    auto_resume_toast: "Pause time expired - Game resumed automatically"

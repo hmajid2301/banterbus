@@ -23,15 +23,12 @@ func TestE2EErrorHandling(t *testing.T) {
 		err = player.GetByText("Join").Click()
 		require.NoError(t, err)
 
-		err = expect.Locator(player.Locator("[role='alert']")).ToBeVisible(playwright.LocatorAssertionsToBeVisibleOptions{
+		errorAlert := player.Locator("[role='alert']").Filter(playwright.LocatorFilterOptions{
+			HasText: "Failed to join room",
+		})
+		err = expect.Locator(errorAlert).ToBeVisible(playwright.LocatorAssertionsToBeVisibleOptions{
 			Timeout: playwright.Float(8000),
 		})
-		require.NoError(t, err)
-
-		err = expect.Locator(player.Locator("[role='alert'] p")).
-			ToContainText("Failed to join room", playwright.LocatorAssertionsToContainTextOptions{
-				Timeout: playwright.Float(2000),
-			})
 		require.NoError(t, err)
 	})
 

@@ -11,6 +11,10 @@ templ Voting(state service.VotingState, currentPlayer service.PlayerWithVoting) 
 	<div hx-swap-oob="innerHTML:#page">
 		<div>
 			<div class="flex flex-col justify-center items-center space-y-4 sm:space-y-6 text-text2">
+				@components.PauseBanner(components.PauseBannerProps{
+					IsPaused: state.IsPaused,
+					IsHost:   currentPlayer.IsHost,
+				})
 				<div class="text-lg sm:text-xl">{ strconv.Itoa(state.Round) } / 3</div>
 				<div class="text-center">
 					@components.CircularTimer(components.CircularTimerProps{
@@ -65,6 +69,11 @@ templ Voting(state service.VotingState, currentPlayer service.PlayerWithVoting) 
 						}
 					}
 				</form>
+				@components.PauseButton(components.PauseButtonProps{
+					IsHost:               currentPlayer.IsHost,
+					IsPaused:             state.IsPaused,
+					PauseTimeRemainingMs: state.PauseTimeRemainingMs,
+				})
 			</div>
 		</div>
 	</div>

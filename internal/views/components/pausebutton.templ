@@ -1,0 +1,43 @@
+package components
+
+import (
+	"github.com/invopop/ctxi18n/i18n"
+	"strconv"
+)
+
+type PauseButtonProps struct {
+	IsHost               bool
+	IsPaused             bool
+	PauseTimeRemainingMs int32
+}
+
+templ PauseButton(props PauseButtonProps) {
+	if props.IsHost && props.PauseTimeRemainingMs > 0 {
+		<div id="pause-button-container" class="w-full">
+			if props.IsPaused {
+				<form hx-vals='{"message_type": "resume_game"}' ws-send class="w-full">
+					@Button(ButtonProps{
+						Label:           i18n.T(ctx, "pause.resume_button"),
+						BackgroundColor: "bg-green",
+						TextColor:       "text-black",
+					}, templ.Attributes{"type": "submit"}) {
+						{ i18n.T(ctx, "pause.resume_button") }
+					}
+				</form>
+			} else {
+				<form hx-vals='{"message_type": "pause_game"}' ws-send class="w-full">
+					@Button(ButtonProps{
+						Label:           i18n.T(ctx, "pause.pause_button"),
+						BackgroundColor: "bg-yellow",
+						TextColor:       "text-black",
+					}, templ.Attributes{"type": "submit"}) {
+						{ i18n.T(ctx, "pause.pause_button") }
+					}
+				</form>
+			}
+			<p class="mt-2 text-sm text-center text-text2">
+				{ i18n.T(ctx, "pause.pause_time_remaining") }: { strconv.Itoa(int(props.PauseTimeRemainingMs / 1000)) }s
+			</p>
+		</div>
+	}
+}

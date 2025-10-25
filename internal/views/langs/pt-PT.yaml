@@ -52,3 +52,11 @@ pt-PT:
     answer_required: "Resposta é obrigatória"
     player_nickname_to_kick_required: "Nome do jogador para expulsar é obrigatório"
     player_nickname_required_voting: "Nome do jogador é obrigatório"
+  pause:
+    game_paused_title: "JOGO PAUSADO"
+    pause_button: "Pausar"
+    resume_button: "Retomar Jogo"
+    pause_time_remaining: "Tempo de pausa restante"
+    waiting_for_host: "Aguardando o anfitrião retomar..."
+    no_pause_time: "Sem tempo de pausa restante"
+    auto_resume_toast: "Tempo de pausa expirou - Jogo retomado automaticamente"

@@ -146,6 +146,8 @@ func (s *Subscriber) registerHandlers() {
 		"toggle_voting_is_ready",
 		WSHandlerAdapter(func() WSHandler { return &ToggleVotingIsReady{} }),
 	)
+	s.handlerRegistry.Register("pause_game", WSHandlerAdapter(func() WSHandler { return &PauseGame{} }))
+	s.handlerRegistry.Register("resume_game", WSHandlerAdapter(func() WSHandler { return &ResumeGame{} }))
 }
 
 func (s *Subscriber) Subscribe(r *http.Request, w http.ResponseWriter) (err error) {
@@ -674,6 +676,10 @@ func (s *Subscriber) Publish(ctx context.Context, playerID uuid.UUID, message []
 
 func (s *Subscriber) StartStateMachine(ctx context.Context, gameStateID uuid.UUID, state statemachine.State) {
 	s.stateMachines.Start(ctx, gameStateID, state)
+}
+
+func (s *Subscriber) stopStateMachine(ctx context.Context, gameStateID uuid.UUID) {
+	s.stateMachines.Stop(ctx, gameStateID)
 }
 
 func (s *Subscriber) CancelAllStateMachines(ctx context.Context) {

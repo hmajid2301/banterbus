@@ -1037,6 +1037,72 @@ func (_c *MockRoundStore_GetLatestRoundByPlayerID_Call) RunAndReturn(run func(ct
 	return _c
 }
 
+// GetPauseStatus provides a mock function for the type MockRoundStore
+func (_mock *MockRoundStore) GetPauseStatus(ctx context.Context, id uuid.UUID) (db.GetPauseStatusRow, error) {
+	ret := _mock.Called(ctx, id)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetPauseStatus")
+	}
+
+	var r0 db.GetPauseStatusRow
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uuid.UUID) (db.GetPauseStatusRow, error)); ok {
+		return returnFunc(ctx, id)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uuid.UUID) db.GetPauseStatusRow); ok {
+		r0 = returnFunc(ctx, id)
+	} else {
+		r0 = ret.Get(0).(db.GetPauseStatusRow)
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, uuid.UUID) error); ok {
+		r1 = returnFunc(ctx, id)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockRoundStore_GetPauseStatus_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetPauseStatus'
+type MockRoundStore_GetPauseStatus_Call struct {
+	*mock.Call
+}
+
+// GetPauseStatus is a helper method to define mock.On call
+//   - ctx context.Context
+//   - id uuid.UUID
+func (_e *MockRoundStore_Expecter) GetPauseStatus(ctx interface{}, id interface{}) *MockRoundStore_GetPauseStatus_Call {
+	return &MockRoundStore_GetPauseStatus_Call{Call: _e.mock.On("GetPauseStatus", ctx, id)}
+}
+
+func (_c *MockRoundStore_GetPauseStatus_Call) Run(run func(ctx context.Context, id uuid.UUID)) *MockRoundStore_GetPauseStatus_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 uuid.UUID
+		if args[1] != nil {
+			arg1 = args[1].(uuid.UUID)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockRoundStore_GetPauseStatus_Call) Return(getPauseStatusRow db.GetPauseStatusRow, err error) *MockRoundStore_GetPauseStatus_Call {
+	_c.Call.Return(getPauseStatusRow, err)
+	return _c
+}
+
+func (_c *MockRoundStore_GetPauseStatus_Call) RunAndReturn(run func(ctx context.Context, id uuid.UUID) (db.GetPauseStatusRow, error)) *MockRoundStore_GetPauseStatus_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetQuestionWithLocalesById provides a mock function for the type MockRoundStore
 func (_mock *MockRoundStore) GetQuestionWithLocalesById(ctx context.Context, id uuid.UUID) ([]db.GetQuestionWithLocalesByIdRow, error) {
 	ret := _mock.Called(ctx, id)
@@ -1439,6 +1505,138 @@ func (_c *MockRoundStore_GetVotingState_Call) Return(getVotingStateRows []db.Get
 }
 
 func (_c *MockRoundStore_GetVotingState_Call) RunAndReturn(run func(ctx context.Context, roundID uuid.UUID) ([]db.GetVotingStateRow, error)) *MockRoundStore_GetVotingState_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// PauseGame provides a mock function for the type MockRoundStore
+func (_mock *MockRoundStore) PauseGame(ctx context.Context, arg db.PauseGameParams) (db.GameState, error) {
+	ret := _mock.Called(ctx, arg)
+
+	if len(ret) == 0 {
+		panic("no return value specified for PauseGame")
+	}
+
+	var r0 db.GameState
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, db.PauseGameParams) (db.GameState, error)); ok {
+		return returnFunc(ctx, arg)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, db.PauseGameParams) db.GameState); ok {
+		r0 = returnFunc(ctx, arg)
+	} else {
+		r0 = ret.Get(0).(db.GameState)
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, db.PauseGameParams) error); ok {
+		r1 = returnFunc(ctx, arg)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockRoundStore_PauseGame_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'PauseGame'
+type MockRoundStore_PauseGame_Call struct {
+	*mock.Call
+}
+
+// PauseGame is a helper method to define mock.On call
+//   - ctx context.Context
+//   - arg db.PauseGameParams
+func (_e *MockRoundStore_Expecter) PauseGame(ctx interface{}, arg interface{}) *MockRoundStore_PauseGame_Call {
+	return &MockRoundStore_PauseGame_Call{Call: _e.mock.On("PauseGame", ctx, arg)}
+}
+
+func (_c *MockRoundStore_PauseGame_Call) Run(run func(ctx context.Context, arg db.PauseGameParams)) *MockRoundStore_PauseGame_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 db.PauseGameParams
+		if args[1] != nil {
+			arg1 = args[1].(db.PauseGameParams)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockRoundStore_PauseGame_Call) Return(gameState db.GameState, err error) *MockRoundStore_PauseGame_Call {
+	_c.Call.Return(gameState, err)
+	return _c
+}
+
+func (_c *MockRoundStore_PauseGame_Call) RunAndReturn(run func(ctx context.Context, arg db.PauseGameParams) (db.GameState, error)) *MockRoundStore_PauseGame_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// ResumeGame provides a mock function for the type MockRoundStore
+func (_mock *MockRoundStore) ResumeGame(ctx context.Context, id uuid.UUID) (db.GameState, error) {
+	ret := _mock.Called(ctx, id)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ResumeGame")
+	}
+
+	var r0 db.GameState
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uuid.UUID) (db.GameState, error)); ok {
+		return returnFunc(ctx, id)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uuid.UUID) db.GameState); ok {
+		r0 = returnFunc(ctx, id)
+	} else {
+		r0 = ret.Get(0).(db.GameState)
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, uuid.UUID) error); ok {
+		r1 = returnFunc(ctx, id)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockRoundStore_ResumeGame_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ResumeGame'
+type MockRoundStore_ResumeGame_Call struct {
+	*mock.Call
+}
+
+// ResumeGame is a helper method to define mock.On call
+//   - ctx context.Context
+//   - id uuid.UUID
+func (_e *MockRoundStore_Expecter) ResumeGame(ctx interface{}, id interface{}) *MockRoundStore_ResumeGame_Call {
+	return &MockRoundStore_ResumeGame_Call{Call: _e.mock.On("ResumeGame", ctx, id)}
+}
+
+func (_c *MockRoundStore_ResumeGame_Call) Run(run func(ctx context.Context, id uuid.UUID)) *MockRoundStore_ResumeGame_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 uuid.UUID
+		if args[1] != nil {
+			arg1 = args[1].(uuid.UUID)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockRoundStore_ResumeGame_Call) Return(gameState db.GameState, err error) *MockRoundStore_ResumeGame_Call {
+	_c.Call.Return(gameState, err)
+	return _c
+}
+
+func (_c *MockRoundStore_ResumeGame_Call) RunAndReturn(run func(ctx context.Context, id uuid.UUID) (db.GameState, error)) *MockRoundStore_ResumeGame_Call {
 	_c.Call.Return(run)
 	return _c
 }

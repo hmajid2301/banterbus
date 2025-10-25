@@ -7,12 +7,14 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"time"
 
 	"github.com/gofrs/uuid/v5"
 	"github.com/invopop/ctxi18n"
 	"go.opentelemetry.io/otel/trace"
 
 	"gitlab.com/hmajid2301/banterbus/internal/service"
+	"gitlab.com/hmajid2301/banterbus/internal/statemachine"
 	"gitlab.com/hmajid2301/banterbus/internal/views/sections"
 )
 
@@ -216,6 +218,115 @@ func (s *Subscriber) UpdateClientsAboutWinner(ctx context.Context, winnerState s
 			return err
 		}
 	}
+
+	return nil
+}
+
+func (s *Subscriber) updateClientsAboutPause(ctx context.Context, pauseStatus service.PauseStatus, gameStateID uuid.UUID) error {
+	players, err := s.roundService.GetAllPlayersByGameStateID(ctx, gameStateID)
+	if err != nil {
+		return err
+	}
+
+	for _, player := range players {
+		message := "Game paused by host"
+		err := s.updateClientAboutErr(ctx, player.ID, message)
+		if err != nil {
+			s.logger.ErrorContext(ctx, "failed to send pause notification",
+				slog.String("player_id", player.ID.String()),
+				slog.Any("error", err))
+		}
+	}
+
+	return nil
+}
+
+func (s *Subscriber) updateClientsAboutResume(ctx context.Context, pauseStatus service.PauseStatus, gameStateID uuid.UUID) error {
+	players, err := s.roundService.GetAllPlayersByGameStateID(ctx, gameStateID)
+	if err != nil {
+		return err
+	}
+
+	for _, player := range players {
+		message := "Game resumed"
+		err := s.updateClientAboutErr(ctx, player.ID, message)
+		if err != nil {
+			s.logger.ErrorContext(ctx, "failed to send resume notification",
+				slog.String("player_id", player.ID.String()),
+				slog.Any("error", err))
+		}
+	}
+
+	return nil
+}
+
+func (s *Subscriber) restartStateMachineAfterResume(ctx context.Context, gameStateID uuid.UUID, state string, submitDeadline time.Time) error {
+	s.logger.InfoContext(ctx, "restarting state machine after resume",
+		slog.String("game_state_id", gameStateID.String()),
+		slog.String("state", state),
+		slog.Time("submit_deadline", submitDeadline))
+
+	remaining := time.Until(submitDeadline)
+	if remaining <= 0 {
+		s.logger.WarnContext(ctx, "deadline already passed, not restarting state machine",
+			slog.String("game_state_id", gameStateID.String()),
+			slog.Duration("remaining", remaining))
+		return nil
+	}
+
+	deps, err := s.NewStateDependencies()
+	if err != nil {
+		s.logger.ErrorContext(ctx, "failed to build state dependencies",
+			slog.Any("error", err),
+			slog.String("game_state_id", gameStateID.String()))
+		return err
+	}
+
+	switch state {
+	case "FibbingITQuestion":
+		deps.Timings.ShowQuestionScreenFor = remaining
+	case "FibbingItVoting":
+		deps.Timings.ShowVotingScreenFor = remaining
+	case "FibbingItReveal":
+		deps.Timings.ShowRevealScreenFor = remaining
+	case "FibbingItScoring":
+		deps.Timings.ShowScoreScreenFor = remaining
+	case "FibbingItWinner":
+		deps.Timings.ShowWinnerScreenFor = remaining
+	}
+
+	var stateMachine statemachine.State
+	switch state {
+	case "FibbingITQuestion":
+		stateMachine, err = statemachine.NewQuestionState(gameStateID, false, deps)
+	case "FibbingItVoting":
+		stateMachine, err = statemachine.NewVotingState(gameStateID, deps)
+	case "FibbingItReveal":
+		stateMachine, err = statemachine.NewRevealState(gameStateID, deps)
+	case "FibbingItScoring":
+		stateMachine, err = statemachine.NewScoringState(gameStateID, deps)
+	case "FibbingItWinner":
+		stateMachine, err = statemachine.NewWinnerState(gameStateID, deps)
+	default:
+		s.logger.WarnContext(ctx, "cannot restart state machine for state",
+			slog.String("state", state),
+			slog.String("game_state_id", gameStateID.String()))
+		return nil
+	}
+
+	if err != nil {
+		s.logger.ErrorContext(ctx, "failed to create state machine",
+			slog.Any("error", err),
+			slog.String("state", state),
+			slog.String("game_state_id", gameStateID.String()))
+		return err
+	}
+
+	s.stateMachines.Start(ctx, gameStateID, stateMachine)
+	s.logger.InfoContext(ctx, "state machine restarted after resume",
+		slog.String("game_state_id", gameStateID.String()),
+		slog.String("state", state),
+		slog.Duration("remaining_time", remaining))
 
 	return nil
 }

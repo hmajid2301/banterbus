@@ -56,6 +56,9 @@ type RoundStore interface {
 	UpdateStateToQuestion(ctx context.Context, arg db.UpdateStateToQuestionArgs) (db.UpdateStateToQuestionResult, error)
 	GetRandomQuestionByRound(ctx context.Context, arg db.GetRandomQuestionByRoundParams) ([]db.GetRandomQuestionByRoundRow, error)
 	GetRandomQuestionInGroup(ctx context.Context, arg db.GetRandomQuestionInGroupParams) ([]db.GetRandomQuestionInGroupRow, error)
+	PauseGame(ctx context.Context, arg db.PauseGameParams) (db.GameState, error)
+	ResumeGame(ctx context.Context, id uuid.UUID) (db.GameState, error)
+	GetPauseStatus(ctx context.Context, id uuid.UUID) (db.GetPauseStatusRow, error)
 }
 
 type RoundService struct {
@@ -84,6 +87,11 @@ var ErrNotInVotingState = errors.New("game state is not in FIBBING_IT_VOTING sta
 var ErrNotInRevealState = errors.New("game state is not in FIBBING_IT_REVEAL state")
 var ErrNotInScoringState = errors.New("game state is not in FIBBING_IT_SCORING_STATE state")
 var ErrAlreadyInQuestionState = errors.New("game state is already in FIBBING_IT_QUESTION state")
+var ErrNotHost = errors.New("only host can pause/resume game")
+var ErrGameAlreadyPaused = errors.New("game is already paused")
+var ErrGameNotPaused = errors.New("game is not paused")
+var ErrNoPauseTimeRemaining = errors.New("no pause time remaining (5 minute limit reached)")
+var ErrGameNotStarted = errors.New("cannot pause game that has not started")
 
 func (r *RoundService) SubmitAnswer(
 	ctx context.Context,
@@ -318,6 +326,29 @@ func (r *RoundService) getVotingState(ctx context.Context, roundID uuid.UUID, ro
 		return VotingState{}, err
 	}
 
+	if len(votes) == 0 {
+		return VotingState{}, errors.New("no players in room")
+	}
+
+	gameState, err := r.store.GetGameState(ctx, votes[0].GameStateID)
+	if err != nil {
+		return VotingState{}, fmt.Errorf("failed to get game state: %w", err)
+	}
+
+	allPlayers, err := r.store.GetAllPlayersByGameStateID(ctx, votes[0].GameStateID)
+	if err != nil {
+		return VotingState{}, fmt.Errorf("failed to get players: %w", err)
+	}
+
+	var hostPlayerID uuid.UUID
+	if len(allPlayers) > 0 {
+		room, err := r.store.GetRoomByPlayerID(ctx, allPlayers[0].ID)
+		if err != nil {
+			return VotingState{}, fmt.Errorf("failed to get room: %w", err)
+		}
+		hostPlayerID = room.HostPlayer
+	}
+
 	var normalQuestion string
 	var votingPlayers []PlayerWithVoting
 	for _, p := range votes {
@@ -334,6 +365,7 @@ func (r *RoundService) getVotingState(ctx context.Context, roundID uuid.UUID, ro
 			Votes:    voteCount,
 			Answer:   p.Answer.String,
 			IsReady:  p.IsReady,
+			IsHost:   p.PlayerID == hostPlayerID,
 			Role:     p.Role.String,
 		})
 	}
@@ -342,16 +374,14 @@ func (r *RoundService) getVotingState(ctx context.Context, roundID uuid.UUID, ro
 		return votingPlayers[i].Nickname > votingPlayers[j].Nickname
 	})
 
-	if len(votingPlayers) == 0 {
-		return VotingState{}, errors.New("no players in room")
-	}
-
 	votingState := VotingState{
-		GameStateID: votes[0].GameStateID,
-		Round:       int(round),
-		Players:     votingPlayers,
-		Question:    normalQuestion,
-		Deadline:    time.Until(votes[0].SubmitDeadline.Time),
+		GameStateID:          votes[0].GameStateID,
+		Round:                int(round),
+		Players:              votingPlayers,
+		Question:             normalQuestion,
+		Deadline:             time.Until(votes[0].SubmitDeadline.Time),
+		IsPaused:             gameState.PausedAt.Valid,
+		PauseTimeRemainingMs: gameState.PauseTimeRemainingMs.Int32,
 	}
 	return votingState, nil
 }
@@ -624,6 +654,16 @@ func (r *RoundService) GetQuestionState(ctx context.Context, playerID uuid.UUID)
 		return QuestionState{}, err
 	}
 
+	gameState, err := r.store.GetGameState(ctx, g.GameStateID)
+	if err != nil {
+		return QuestionState{}, fmt.Errorf("failed to get game state: %w", err)
+	}
+
+	room, err := r.store.GetRoomByPlayerID(ctx, playerID)
+	if err != nil {
+		return QuestionState{}, fmt.Errorf("failed to get room: %w", err)
+	}
+
 	answers, err := r.getValidAnswers(ctx, g.RoundType, playerID)
 	if err != nil {
 		return QuestionState{}, err
@@ -637,18 +677,21 @@ func (r *RoundService) GetQuestionState(ctx context.Context, playerID uuid.UUID)
 			IsAnswerReady:   g.IsAnswerReady,
 			PossibleAnswers: answers,
 			CurrentAnswer:   g.CurrentAnswer,
+			IsHost:          g.PlayerID == room.HostPlayer,
 		},
 	}
 
-	gameState := QuestionState{
-		GameStateID: g.GameStateID,
-		Players:     players,
-		Round:       int(g.Round),
-		RoundType:   g.RoundType,
-		Deadline:    time.Until(g.SubmitDeadline.Time),
+	questionState := QuestionState{
+		GameStateID:          g.GameStateID,
+		Players:              players,
+		Round:                int(g.Round),
+		RoundType:            g.RoundType,
+		Deadline:             time.Until(g.SubmitDeadline.Time),
+		IsPaused:             gameState.PausedAt.Valid,
+		PauseTimeRemainingMs: gameState.PauseTimeRemainingMs.Int32,
 	}
 
-	return gameState, nil
+	return questionState, nil
 }
 
 func (r *RoundService) getQuestionStateByGameStateID(ctx context.Context, gameStateID uuid.UUID) (QuestionState, error) {
@@ -662,6 +705,25 @@ func (r *RoundService) getQuestionStateByGameStateID(ctx context.Context, gameSt
 	}
 
 	firstPlayer := playersData[0]
+
+	gameState, err := r.store.GetGameState(ctx, gameStateID)
+	if err != nil {
+		return QuestionState{}, fmt.Errorf("failed to get game state: %w", err)
+	}
+
+	allPlayers, err := r.store.GetAllPlayersByGameStateID(ctx, gameStateID)
+	if err != nil {
+		return QuestionState{}, fmt.Errorf("failed to get players: %w", err)
+	}
+
+	var hostPlayerID uuid.UUID
+	if len(allPlayers) > 0 {
+		room, err := r.store.GetRoomByPlayerID(ctx, allPlayers[0].ID)
+		if err != nil {
+			return QuestionState{}, fmt.Errorf("failed to get room: %w", err)
+		}
+		hostPlayerID = room.HostPlayer
+	}
 
 	normalsQuestions, err := r.store.GetQuestionWithLocalesById(ctx, firstPlayer.NormalQuestionID)
 	if err != nil {
@@ -705,15 +767,18 @@ func (r *RoundService) getQuestionStateByGameStateID(ctx context.Context, gameSt
 			IsAnswerReady:   playerData.IsAnswerReady,
 			PossibleAnswers: answers,
 			CurrentAnswer:   playerData.CurrentAnswer,
+			IsHost:          playerData.PlayerID == hostPlayerID,
 		})
 	}
 
 	return QuestionState{
-		GameStateID: gameStateID,
-		Players:     playersWithRole,
-		Round:       int(firstPlayer.Round),
-		RoundType:   firstPlayer.RoundType,
-		Deadline:    time.Until(firstPlayer.SubmitDeadline.Time),
+		GameStateID:          gameStateID,
+		Players:              playersWithRole,
+		Round:                int(firstPlayer.Round),
+		RoundType:            firstPlayer.RoundType,
+		Deadline:             time.Until(firstPlayer.SubmitDeadline.Time),
+		IsPaused:             gameState.PausedAt.Valid,
+		PauseTimeRemainingMs: gameState.PauseTimeRemainingMs.Int32,
 	}, nil
 }
 
@@ -1044,4 +1109,125 @@ func (r *RoundService) FinishGame(ctx context.Context, gameStateID uuid.UUID) er
 
 	r.metrics.RecordGameCompletion(ctx, true, time.Since(start).Seconds(), len(players))
 	return nil
+}
+
+type PauseStatus struct {
+	IsPaused             bool
+	PausedAt             *time.Time
+	PauseTimeRemainingMs int32
+	PauseDeadline        *time.Time
+	SubmitDeadline       time.Time
+	State                string
+}
+
+func (r *RoundService) PauseGame(ctx context.Context, playerID uuid.UUID) (PauseStatus, error) {
+	room, err := r.store.GetRoomByPlayerID(ctx, playerID)
+	if err != nil {
+		return PauseStatus{}, err
+	}
+	if room.HostPlayer != playerID {
+		return PauseStatus{}, ErrNotHost
+	}
+
+	if room.RoomState != db.Playing.String() {
+		return PauseStatus{}, ErrGameNotStarted
+	}
+
+	gameState, err := r.store.GetGameStateByPlayerID(ctx, playerID)
+	if err != nil {
+		return PauseStatus{}, err
+	}
+
+	if gameState.PausedAt.Valid {
+		return PauseStatus{}, ErrGameAlreadyPaused
+	}
+
+	if gameState.PauseTimeRemainingMs.Int32 <= 0 {
+		return PauseStatus{}, ErrNoPauseTimeRemaining
+	}
+
+	now := time.Now().UTC()
+	pauseDeadline := now.Add(time.Duration(gameState.PauseTimeRemainingMs.Int32) * time.Millisecond)
+
+	updatedState, err := r.store.PauseGame(ctx, db.PauseGameParams{
+		ID:            gameState.ID,
+		PausedAt:      pgtype.Timestamp{Time: now, Valid: true},
+		PauseDeadline: pgtype.Timestamp{Time: pauseDeadline, Valid: true},
+	})
+	if err != nil {
+		return PauseStatus{}, err
+	}
+
+	return PauseStatus{
+		IsPaused:             true,
+		PausedAt:             &now,
+		PauseTimeRemainingMs: updatedState.PauseTimeRemainingMs.Int32,
+		PauseDeadline:        &pauseDeadline,
+		SubmitDeadline:       updatedState.SubmitDeadline.Time,
+		State:                updatedState.State,
+	}, nil
+}
+
+func (r *RoundService) ResumeGame(ctx context.Context, playerID uuid.UUID) (PauseStatus, error) {
+	room, err := r.store.GetRoomByPlayerID(ctx, playerID)
+	if err != nil {
+		return PauseStatus{}, err
+	}
+	if room.HostPlayer != playerID {
+		return PauseStatus{}, ErrNotHost
+	}
+
+	if room.RoomState != db.Playing.String() {
+		return PauseStatus{}, ErrGameNotStarted
+	}
+
+	gameState, err := r.store.GetGameStateByPlayerID(ctx, playerID)
+	if err != nil {
+		return PauseStatus{}, err
+	}
+
+	if !gameState.PausedAt.Valid {
+		return PauseStatus{}, ErrGameNotPaused
+	}
+
+	updatedState, err := r.store.ResumeGame(ctx, gameState.ID)
+	if err != nil {
+		return PauseStatus{}, err
+	}
+
+	return PauseStatus{
+		IsPaused:             false,
+		PausedAt:             nil,
+		PauseTimeRemainingMs: updatedState.PauseTimeRemainingMs.Int32,
+		PauseDeadline:        nil,
+		SubmitDeadline:       updatedState.SubmitDeadline.Time,
+		State:                updatedState.State,
+	}, nil
+}
+
+func (r *RoundService) GetPauseStatus(ctx context.Context, gameStateID uuid.UUID) (PauseStatus, error) {
+	row, err := r.store.GetPauseStatus(ctx, gameStateID)
+	if err != nil {
+		return PauseStatus{}, err
+	}
+
+	status := PauseStatus{
+		IsPaused:             row.PausedAt.Valid,
+		PauseTimeRemainingMs: row.PauseTimeRemainingMs.Int32,
+		SubmitDeadline:       row.SubmitDeadline.Time,
+		State:                row.State,
+	}
+
+	if row.PausedAt.Valid {
+		status.PausedAt = &row.PausedAt.Time
+	}
+	if row.PauseDeadline.Valid {
+		status.PauseDeadline = &row.PauseDeadline.Time
+	}
+
+	return status, nil
+}
+
+func (r *RoundService) GetAllPlayersByGameStateID(ctx context.Context, gameStateID uuid.UUID) ([]db.GetAllPlayersByGameStateIDRow, error) {
+	return r.store.GetAllPlayersByGameStateID(ctx, gameStateID)
 }

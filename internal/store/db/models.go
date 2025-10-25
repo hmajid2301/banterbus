@@ -59,12 +59,15 @@ type FibbingItVote struct {
 }
 
 type GameState struct {
-	ID             uuid.UUID
-	CreatedAt      pgtype.Timestamp
-	UpdatedAt      pgtype.Timestamp
-	RoomID         uuid.UUID
-	SubmitDeadline pgtype.Timestamp
-	State          string
+	ID                   uuid.UUID
+	CreatedAt            pgtype.Timestamp
+	UpdatedAt            pgtype.Timestamp
+	RoomID               uuid.UUID
+	SubmitDeadline       pgtype.Timestamp
+	State                string
+	PauseTimeRemainingMs pgtype.Int4
+	PausedAt             pgtype.Timestamp
+	PauseDeadline        pgtype.Timestamp
 }
 
 type Player struct {
