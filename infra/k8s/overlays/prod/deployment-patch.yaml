@@ -17,6 +17,10 @@ spec:
                   operator: In
                   values:
                   - banterbus
+                - key: component
+                  operator: NotIn
+                  values:
+                  - migration
               topologyKey: kubernetes.io/hostname
         nodeAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
