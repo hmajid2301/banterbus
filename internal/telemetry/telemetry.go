@@ -87,14 +87,6 @@ func Setup(
 	shutdownFuncs = append(shutdownFuncs, logProvider.Shutdown)
 	global.SetLoggerProvider(logProvider)
 
-	if environment != "test" {
-		err = initializeMetrics(ctx)
-		if err != nil {
-			handleErr(err)
-			return shutdown, err
-		}
-	}
-
 	return shutdown, err
 }
 

@@ -71,7 +71,7 @@ resource "postgresql_grant" "banterbus_dev_tables" {
   role        = postgresql_role.banterbus_dev.name
   schema      = "public"
   object_type = "table"
-  privileges  = ["SELECT", "INSERT", "UPDATE", "DELETE"]
+  privileges  = ["SELECT", "INSERT", "UPDATE", "DELETE", "REFERENCES", "TRIGGER"]
 }
 
 resource "postgresql_grant" "banterbus_dev_sequences" {
@@ -106,7 +106,7 @@ resource "postgresql_grant" "banterbus_prod_tables" {
   role        = postgresql_role.banterbus_prod.name
   schema      = "public"
   object_type = "table"
-  privileges  = ["SELECT", "INSERT", "UPDATE", "DELETE"]
+  privileges  = ["SELECT", "INSERT", "UPDATE", "DELETE", "REFERENCES", "TRIGGER"]
 }
 
 resource "postgresql_grant" "banterbus_prod_sequences" {

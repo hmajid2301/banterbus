@@ -3,23 +3,10 @@ kind: Deployment
 metadata:
   name: banterbus
 spec:
-  replicas: 2
+  replicas: 1
   template:
     spec:
-      affinity:
-        podAntiAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-          - labelSelector:
-              matchExpressions:
-              - key: app
-                operator: In
-                values:
-                - banterbus
-              - key: component
-                operator: NotIn
-                values:
-                - migration
-            topologyKey: kubernetes.io/hostname
+      nodeSelector: null
       containers:
       - name: banterbus
         image: registry.gitlab.com/hmajid2301/banterbus:dev

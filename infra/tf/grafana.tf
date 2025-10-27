@@ -11,6 +11,7 @@ resource "grafana_dashboard" "banterbus" {
   folder   = grafana_folder.apps.uid
 
   config_json = file("${path.module}/../../dashboards/grafana.json")
+  overwrite   = true
 }
 
 

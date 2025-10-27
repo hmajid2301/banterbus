@@ -595,7 +595,8 @@ SELECT DISTINCT
     gs.submit_deadline,
     gs.room_id,
     r.room_code,
-    r.room_state
+    r.room_state,
+    gs.created_at
 FROM game_state gs
 JOIN rooms r ON gs.room_id = r.id
 WHERE r.room_state = 'PLAYING'

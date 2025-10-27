@@ -420,7 +420,8 @@ SELECT DISTINCT
     gs.submit_deadline,
     gs.room_id,
     r.room_code,
-    r.room_state
+    r.room_state,
+    gs.created_at
 FROM game_state gs
 JOIN rooms r ON gs.room_id = r.id
 WHERE r.room_state = 'PLAYING'
@@ -434,6 +435,7 @@ type GetActiveGamesRow struct {
 	RoomID         uuid.UUID
 	RoomCode       string
 	RoomState      string
+	CreatedAt      pgtype.Timestamp
 }
 
 func (q *Queries) GetActiveGames(ctx context.Context) ([]GetActiveGamesRow, error) {
@@ -452,6 +454,7 @@ func (q *Queries) GetActiveGames(ctx context.Context) ([]GetActiveGamesRow, erro
 			&i.RoomID,
 			&i.RoomCode,
 			&i.RoomState,
+			&i.CreatedAt,
 		); err != nil {
 			return nil, err
 		}
