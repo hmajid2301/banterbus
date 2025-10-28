@@ -6,6 +6,7 @@ spec:
   replicas: 3
   template:
     spec:
+      nodeSelector: null
       affinity:
         podAntiAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
@@ -22,22 +23,6 @@ spec:
                   values:
                   - migration
               topologyKey: kubernetes.io/hostname
-        nodeAffinity:
-          preferredDuringSchedulingIgnoredDuringExecution:
-          - weight: 100
-            preference:
-              matchExpressions:
-              - key: node-role
-                operator: In
-                values:
-                - worker
-          - weight: 1
-            preference:
-              matchExpressions:
-              - key: node-role
-                operator: In
-                values:
-                - control-plane
       containers:
       - name: banterbus
         image: registry.gitlab.com/hmajid2301/banterbus:prod
