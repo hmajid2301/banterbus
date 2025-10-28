@@ -8,15 +8,17 @@ import (
 )
 
 type Client struct {
-	messagesCh <-chan *redis.Message
-	connection net.Conn
-	playerID   uuid.UUID
+	messagesCh   <-chan *redis.Message
+	connection   net.Conn
+	playerID     uuid.UUID
+	connectionID string
 }
 
-func newClient(conn net.Conn, playerID uuid.UUID, ch <-chan *redis.Message) *Client {
+func newClient(conn net.Conn, playerID uuid.UUID, ch <-chan *redis.Message, connectionID string) *Client {
 	return &Client{
-		playerID:   playerID,
-		connection: conn,
-		messagesCh: ch,
+		playerID:     playerID,
+		connection:   conn,
+		messagesCh:   ch,
+		connectionID: connectionID,
 	}
 }

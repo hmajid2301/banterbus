@@ -23,7 +23,6 @@ import (
 	slogctx "github.com/veqryn/slog-context"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/baggage"
 	"go.opentelemetry.io/otel/codes"
 	semconv "go.opentelemetry.io/otel/semconv/v1.26.0"
 	"go.opentelemetry.io/otel/trace"
@@ -167,6 +166,7 @@ func (s *Subscriber) Subscribe(r *http.Request, w http.ResponseWriter) (err erro
 	}()
 
 	tracer := otel.Tracer("banterbus-websocket")
+	connectionID := uuid.Must(uuid.NewV4()).String()
 	ctx, span := tracer.Start(
 		ctx,
 		"websocket.subscribe",
@@ -176,6 +176,7 @@ func (s *Subscriber) Subscribe(r *http.Request, w http.ResponseWriter) (err erro
 			semconv.NetworkTypeKey.String("ipv4"),
 			semconv.NetworkProtocolName("websocket"),
 			attribute.String("component", "websocket-subscriber"),
+			attribute.String("connection.id", connectionID),
 		),
 	)
 
@@ -276,7 +277,7 @@ func (s *Subscriber) Subscribe(r *http.Request, w http.ResponseWriter) (err erro
 	}
 
 	subscribeCh := s.websocket.Subscribe(ctx, playerID)
-	client := newClient(connection, playerID, subscribeCh)
+	client := newClient(connection, playerID, subscribeCh, connectionID)
 
 	// INFO: Send the reconnection message to the client if they should reconnect.
 	if component.Len() > 0 {
@@ -375,19 +376,8 @@ func (s *Subscriber) handleMessages(ctx context.Context, cancel context.CancelFu
 		case <-ctx.Done():
 			return
 		default:
-			tracer := otel.Tracer("banterbus-websocket")
-			ctx, span := tracer.Start(
-				ctx,
-				"websocket.handle_message",
-				trace.WithSpanKind(trace.SpanKindInternal),
-				trace.WithAttributes(
-					attribute.String("game.player_id", client.playerID.String()),
-					attribute.String("component", "websocket-handler"),
-				),
-			)
 			var err error
 			ctx, err = s.handleMessage(ctx, client)
-			span.End()
 			if err != nil {
 				if errors.Is(err, errConnectionClosed) || isConnectionError(err) {
 					s.logger.DebugContext(ctx, "client connection closed, stopping message handler",
@@ -438,9 +428,6 @@ func (s *Subscriber) handleMessage(ctx context.Context, client *Client) (context
 	if hdr.OpCode == ws.OpClose {
 		return ctx, errConnectionClosed
 	}
-
-	span := trace.SpanFromContext(ctx)
-	defer span.End()
 
 	data, err := io.ReadAll(r)
 	if err != nil {
@@ -520,8 +507,10 @@ func (s *Subscriber) handleMessageData(
 
 	tracer := otel.Tracer("banterbus-websocket")
 	var span trace.Span
-	if message.Trace != nil && message.Trace.TraceID != "" {
 
+	messageCtx := trace.ContextWithSpanContext(ctx, trace.SpanContext{})
+
+	if message.Trace != nil && message.Trace.TraceID != "" {
 		if len(message.Trace.TraceID) == 32 {
 			traceID, err := trace.TraceIDFromHex(message.Trace.TraceID)
 			if err == nil && len(message.Trace.SpanID) == 16 {
@@ -532,14 +521,12 @@ func (s *Subscriber) handleMessageData(
 						SpanID:     spanID,
 						TraceFlags: trace.FlagsSampled,
 					})
-					bag := baggage.FromContext(ctx)
-					ctxWithSpan := trace.ContextWithSpanContext(ctx, spanCtx)
-					ctx = baggage.ContextWithBaggage(ctxWithSpan, bag)
+					messageCtx = trace.ContextWithSpanContext(ctx, spanCtx)
 				}
 			}
 		}
 
-		ctx, span = tracer.Start(ctx, fmt.Sprintf("ws.%s", message.MessageType),
+		messageCtx, span = tracer.Start(messageCtx, fmt.Sprintf("ws.%s", message.MessageType),
 			trace.WithSpanKind(trace.SpanKindServer),
 			trace.WithAttributes(
 				semconv.MessagingOperationName("process"),
@@ -547,11 +534,13 @@ func (s *Subscriber) handleMessageData(
 				attribute.String("messaging.message.type", message.MessageType),
 				attribute.String("component", "websocket-handler"),
 				attribute.String("trace.source", "websocket"),
+				attribute.String("connection.id", client.connectionID),
+				attribute.String("player.id", client.playerID.String()),
 				semconv.MessagingMessageBodySize(len(data)),
 			),
 		)
 	} else {
-		ctx, span = tracer.Start(ctx, fmt.Sprintf("ws.%s", message.MessageType),
+		messageCtx, span = tracer.Start(messageCtx, fmt.Sprintf("ws.%s", message.MessageType),
 			trace.WithSpanKind(trace.SpanKindServer),
 			trace.WithAttributes(
 				semconv.MessagingOperationName("process"),
@@ -559,10 +548,14 @@ func (s *Subscriber) handleMessageData(
 				attribute.String("messaging.message.type", message.MessageType),
 				attribute.String("component", "websocket-handler"),
 				attribute.String("trace.source", "backend"),
+				attribute.String("connection.id", client.connectionID),
+				attribute.String("player.id", client.playerID.String()),
 				semconv.MessagingMessageBodySize(len(data)),
 			),
 		)
 	}
+
+	ctx = messageCtx
 
 	defer func() {
 		latencyMs := float64(time.Since(start).Milliseconds())
